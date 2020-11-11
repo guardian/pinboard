@@ -1,0 +1,22 @@
+{
+  "name": "@guardian/pinboard-bootstrapping-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to serve JS containing config/secrets to pass on to main client-side PinBoard lib.",
+  "main": "index.js",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "license": "MIT",
+  "scripts": {
+    "watch": "export NODE_ENV=local && ts-node-dev --respawn src/index.ts"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.788.0",
+    "@types/aws-serverless-express": "^3.3.3",
+    "@types/express": "^4.17.8",
+    "ts-node-dev": "^1.0.0",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "aws-serverless-express": "^3.3.8",
+    "express": "^4.17.1"
+  }
+}

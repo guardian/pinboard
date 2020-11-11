@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@guardian/pan-domain-node@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@guardian/pan-domain-node/-/pan-domain-node-0.4.2.tgz#3f052257f5e0fe346bdcb60196b358b85b928086"
+  integrity sha512-FWFa5JMjkflP0VeDY1Jr3hYnoN+T93CDWoDAlEm+xOc6cc+/lIiDP7iKAshFNRGPYwuoJyTdl7BA+Lrb3UtcAQ==
+  dependencies:
+    cookie "^0.3.1"
+    iniparser "^1.0.5"
+
 "@types/aws-lambda@*":
   version "8.10.64"
   resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.64.tgz#4bdcb725aef96bef0cb1decf19c7efff1df22fe7"
@@ -266,6 +274,11 @@ cookie@0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
+
+cookie@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.3.1.tgz#e7e0a1f9ef43b4c8ba925c5c5a96e806d16873bb"
+  integrity sha1-5+Ch+e9DtMi6klxcWpboBtFoc7s=
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
@@ -541,6 +554,11 @@ inherits@2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
   integrity sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=
+
+iniparser@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/iniparser/-/iniparser-1.0.5.tgz#836d6befe6dfbfcee0bccf1cf9f2acc7027f783d"
+  integrity sha1-g21r7+bfv87gvM8c+fKsxwJ/eD0=
 
 ipaddr.js@1.9.1:
   version "1.9.1"

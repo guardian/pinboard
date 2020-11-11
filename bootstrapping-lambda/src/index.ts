@@ -3,6 +3,7 @@ import * as lambda from "aws-lambda";
 import {default as express, Response} from "express";
 import {loaderTemplate} from "./loaderTemplate";
 import {generateAppSyncConfig} from "./appSyncLookup";
+import {getVerifiedUser} from "./panDomainAuth";
 
 const server = express();
 
@@ -15,6 +16,19 @@ const setJavascriptContentType = (_: Response) =>
 const setCacheControlHeader = (_: Response, value: string) =>
   _.header("Cache-Control", value);
 
+// generic error handler to catch errors in the various async functions
+server.use((request, response, next) => {
+  try {
+    next()
+  }
+  catch (error) {
+    console.error(error)
+    response.send(
+      `console.error('PINBOARD SERVER ERROR : ${error.toString()}');`
+    );
+  }
+})
+
 server.get("/pinboard.loader.js", async (request, response) => {
 
   setCacheControlHeader(response,
@@ -23,19 +37,20 @@ server.get("/pinboard.loader.js", async (request, response) => {
   );
   setJavascriptContentType(response);
 
-  const userEmail = "user.email@guardian.co.uk" //TODO get using pan domain auth lib
+  const maybeAuthedUser = await getVerifiedUser(request.header('Cookie'));
 
-  try {
-    const appSyncConfig = await generateAppSyncConfig(userEmail);
+  if(maybeAuthedUser){
+
+    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser.email);
 
     response.send(
       loaderTemplate(appSyncConfig, mainJsFilename)
     );
-  } catch (error) {
-    console.error(error)
-    response.send(
-      `console.error('Could not load AppSync connection information.');`
-    )
+  }
+  else {
+    const message = "pan-domain auth cookie missing, invalid or expired"
+    console.warn(message)
+    response.send(`console.error('${message}')`)
   }
 
 });

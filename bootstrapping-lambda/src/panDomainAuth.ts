@@ -1,0 +1,35 @@
+import { PanDomainAuthentication, AuthenticationStatus, guardianValidation } from '@guardian/pan-domain-node';
+
+const pandaKeyFilename = function(){
+  // TODO consider doing this via Stage tag OR injecting this value directly as env variable
+  const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
+  if (functionName?.includes("PROD")){
+    return "gutools.co.uk.settings.public";
+  }
+  else if(functionName?.includes("CODE")){
+    return "code.dev-gutools.co.uk.settings.public";
+  }
+  return "local.dev-gutools.co.uk.settings.public";
+}();
+
+const panda = new PanDomainAuthentication(
+  "gutoolsAuth-assym", // cookie name
+  "eu-west-1", // AWS region
+  "pan-domain-auth-settings", // Settings bucket
+  pandaKeyFilename, // Settings file
+  guardianValidation
+);
+
+export const getVerifiedUser = async (cookieHeader: string | undefined) => {
+
+  if(cookieHeader){
+
+    const { status, user } = await panda.verify(cookieHeader);
+
+    if(status === AuthenticationStatus.AUTHORISED) {
+      return user;
+    }
+
+  }
+
+};

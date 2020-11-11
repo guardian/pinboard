@@ -11,6 +11,25 @@
     "@aws-cdk/cx-api" "1.73.0"
     constructs "^3.2.0"
 
+"@aws-cdk/aws-apigateway@^1.73.0":
+  version "1.73.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigateway/-/aws-apigateway-1.73.0.tgz#ee824a942fb9ff8ce210250ea54f72265756a5fb"
+  integrity sha512-arqONYZqjPnS5ZyFcSeaiJewdjsl9+UrTcFHZTV/yIojdcm2yGc/rH5LMdCvptIHslIvwINlVm+PapBpgwPVTw==
+  dependencies:
+    "@aws-cdk/assets" "1.73.0"
+    "@aws-cdk/aws-certificatemanager" "1.73.0"
+    "@aws-cdk/aws-cloudwatch" "1.73.0"
+    "@aws-cdk/aws-ec2" "1.73.0"
+    "@aws-cdk/aws-elasticloadbalancingv2" "1.73.0"
+    "@aws-cdk/aws-iam" "1.73.0"
+    "@aws-cdk/aws-lambda" "1.73.0"
+    "@aws-cdk/aws-logs" "1.73.0"
+    "@aws-cdk/aws-s3" "1.73.0"
+    "@aws-cdk/aws-s3-assets" "1.73.0"
+    "@aws-cdk/core" "1.73.0"
+    "@aws-cdk/cx-api" "1.73.0"
+    constructs "^3.2.0"
+
 "@aws-cdk/aws-applicationautoscaling@1.73.0":
   version "1.73.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-applicationautoscaling/-/aws-applicationautoscaling-1.73.0.tgz#2de1f609d25bd9a69c458ec06ae59820f75865f4"
@@ -28,6 +47,17 @@
   integrity sha512-AJf9F9X/ktSMLj/NaX0ccPXr7VlDR6CTycpEgJZU4qbXqIW/LhIDkAhH15CNV38WYQnVDkVSQgDNfCtGaeHTqA==
   dependencies:
     "@aws-cdk/aws-iam" "1.73.0"
+    "@aws-cdk/core" "1.73.0"
+    constructs "^3.2.0"
+
+"@aws-cdk/aws-certificatemanager@1.73.0":
+  version "1.73.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-certificatemanager/-/aws-certificatemanager-1.73.0.tgz#c21eb5c015985d65473429e6d1fc4184da1ac1bc"
+  integrity sha512-r5talegg1Z79Fo289JRgm1u6SV16I7nO4AZEmmbceDByDnXiRcnroi0o9fZTVWNUYuIwrpY4ZWR2UTKY71xYTg==
+  dependencies:
+    "@aws-cdk/aws-iam" "1.73.0"
+    "@aws-cdk/aws-lambda" "1.73.0"
+    "@aws-cdk/aws-route53" "1.73.0"
     "@aws-cdk/core" "1.73.0"
     constructs "^3.2.0"
 
@@ -79,6 +109,23 @@
     "@aws-cdk/cx-api" "1.73.0"
     constructs "^3.2.0"
 
+"@aws-cdk/aws-elasticloadbalancingv2@1.73.0":
+  version "1.73.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-elasticloadbalancingv2/-/aws-elasticloadbalancingv2-1.73.0.tgz#b2159f142b14f90b6cf059402d40159ea326bad5"
+  integrity sha512-NqsPFxyCm6RSeaXQigQJh3CSUeKiAhOB4B1cyU4t/lHVG2EUd4ObDmOYLRREfXEax+nqDg+ZhLzDR03I+sXhIg==
+  dependencies:
+    "@aws-cdk/aws-certificatemanager" "1.73.0"
+    "@aws-cdk/aws-cloudwatch" "1.73.0"
+    "@aws-cdk/aws-ec2" "1.73.0"
+    "@aws-cdk/aws-iam" "1.73.0"
+    "@aws-cdk/aws-lambda" "1.73.0"
+    "@aws-cdk/aws-s3" "1.73.0"
+    "@aws-cdk/cloud-assembly-schema" "1.73.0"
+    "@aws-cdk/core" "1.73.0"
+    "@aws-cdk/cx-api" "1.73.0"
+    "@aws-cdk/region-info" "1.73.0"
+    constructs "^3.2.0"
+
 "@aws-cdk/aws-events@1.73.0":
   version "1.73.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-events/-/aws-events-1.73.0.tgz#178a5e2ff0f11f20d79a722785b05491f16c95bc"
@@ -88,7 +135,7 @@
     "@aws-cdk/core" "1.73.0"
     constructs "^3.2.0"
 
-"@aws-cdk/aws-iam@1.73.0":
+"@aws-cdk/aws-iam@1.73.0", "@aws-cdk/aws-iam@^1.73.0":
   version "1.73.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-iam/-/aws-iam-1.73.0.tgz#a53f3bbaa99b67b56e38fe167a5c867fe339c01f"
   integrity sha512-o2pdkEEdwluZegLqlbhfK0zgIbezvKDf5UfwBKloeFSDcGOZAaqF25OPfrTowXkIakHbw2wMswbUlmUgYdmNFg==
@@ -106,7 +153,7 @@
     "@aws-cdk/core" "1.73.0"
     constructs "^3.2.0"
 
-"@aws-cdk/aws-lambda@^1.73.0":
+"@aws-cdk/aws-lambda@1.73.0", "@aws-cdk/aws-lambda@^1.73.0":
   version "1.73.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-lambda/-/aws-lambda-1.73.0.tgz#2561d19ff9435ec0ef94d5050b92e914bf3c6aec"
   integrity sha512-ffw/hK1DbbSXklry4sDmJ+c+dX3Zl+I9DsYNjf0h2aonEKZo+g7ItAhVzr5s1kDnKatlEJTNOw1Kdpn20vFZHg==
@@ -134,6 +181,17 @@
     "@aws-cdk/aws-cloudwatch" "1.73.0"
     "@aws-cdk/aws-iam" "1.73.0"
     "@aws-cdk/aws-s3-assets" "1.73.0"
+    "@aws-cdk/core" "1.73.0"
+    constructs "^3.2.0"
+
+"@aws-cdk/aws-route53@1.73.0":
+  version "1.73.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-route53/-/aws-route53-1.73.0.tgz#c804c9ee74ec0f607b940774994a80afa96b2f5a"
+  integrity sha512-M3298IkyLELVTlA+2g0EdEV+bYTkC3xzTiHwoqcJeCd8T7IY8E89f73bsweX8k49cu1soPAUvXVJuUfxb6WYEg==
+  dependencies:
+    "@aws-cdk/aws-ec2" "1.73.0"
+    "@aws-cdk/aws-logs" "1.73.0"
+    "@aws-cdk/cloud-assembly-schema" "1.73.0"
     "@aws-cdk/core" "1.73.0"
     constructs "^3.2.0"
 

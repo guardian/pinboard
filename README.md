@@ -18,5 +18,7 @@ Run `./setup.sh`, which...
 
 ### Each time
 - Ensure you have the latest AWS credentials (profile: `composer`)
-- Run `./start.sh` (which should just run `yarn watch` in the `bootstrapping-lambda`)
+- Run `./start.sh`, which should just ...
+  - `nvm use`
+  - run `yarn watch` in the `bootstrapping-lambda`
 - to check its up, hit https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js

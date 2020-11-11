@@ -6,7 +6,7 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
-    "watch": "export NODE_ENV=local && ts-node-dev --respawn src/index.ts"
+    "watch": "ts-node-dev --respawn src/index.ts"
   },
   "devDependencies": {
     "@types/aws-serverless-express": "^3.3.3",

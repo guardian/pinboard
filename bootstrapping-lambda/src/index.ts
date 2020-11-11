@@ -68,14 +68,17 @@ server.get(`/${mainJsFilename}`, (request, response) => {
   `) // TODO load file from S3?
 });
 
-// If local then don't wrap in serverless
-if (process.env.NODE_ENV === 'local') {
-  const PORT = 3030;
-  server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
-} else {
+if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
+
   exports.handler = (
     event: lambda.APIGatewayProxyEvent,
     context: lambda.Context
   ) => proxy(createServer(server), event, context);
+
+} else { // if local then don't wrap in serverless
+
+  const PORT = 3030;
+  server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
 }
 

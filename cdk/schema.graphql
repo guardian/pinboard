@@ -1,0 +1,141 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Item {
+  id: ID!
+  message: String
+  payload: AWSJSON
+  timestamp: AWSTimestamp!
+  type: String!
+  user: AWSJSON!
+}
+
+type ItemConnection {
+  items: [Item]
+  nextToken: String
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  deleteItem(input: DeleteItemInput!): Item
+  updateItem(input: UpdateItemInput!): Item
+}
+
+type Query {
+  getItem(id: ID!): Item
+  listItems(
+    filter: TableItemFilterInput
+    limit: Int
+    nextToken: String
+  ): ItemConnection
+}
+
+type Subscription {
+  onCreateItem(
+    id: ID
+    message: String
+    payload: AWSJSON
+    timestamp: AWSTimestamp
+    type: String
+  ): Item @aws_subscribe(mutations: ["createItem"])
+  onDeleteItem(
+    id: ID
+    message: String
+    payload: AWSJSON
+    timestamp: AWSTimestamp
+    type: String
+  ): Item @aws_subscribe(mutations: ["deleteItem"])
+  onUpdateItem(
+    id: ID
+    message: String
+    payload: AWSJSON
+    timestamp: AWSTimestamp
+    type: String
+  ): Item @aws_subscribe(mutations: ["updateItem"])
+}
+
+input CreateItemInput {
+  message: String
+  payload: AWSJSON
+  timestamp: AWSTimestamp!
+  type: String!
+  user: AWSJSON!
+}
+
+input DeleteItemInput {
+  id: ID!
+}
+
+input TableBooleanFilterInput {
+  eq: Boolean
+  ne: Boolean
+}
+
+input TableFloatFilterInput {
+  between: [Float]
+  contains: Float
+  eq: Float
+  ge: Float
+  gt: Float
+  le: Float
+  lt: Float
+  ne: Float
+  notContains: Float
+}
+
+input TableIDFilterInput {
+  beginsWith: ID
+  between: [ID]
+  contains: ID
+  eq: ID
+  ge: ID
+  gt: ID
+  le: ID
+  lt: ID
+  ne: ID
+  notContains: ID
+}
+
+input TableIntFilterInput {
+  between: [Int]
+  contains: Int
+  eq: Int
+  ge: Int
+  gt: Int
+  le: Int
+  lt: Int
+  ne: Int
+  notContains: Int
+}
+
+input TableItemFilterInput {
+  id: TableIDFilterInput
+  message: TableStringFilterInput
+  timestamp: TableIntFilterInput
+  type: TableStringFilterInput
+}
+
+input TableStringFilterInput {
+  beginsWith: String
+  between: [String]
+  contains: String
+  eq: String
+  ge: String
+  gt: String
+  le: String
+  lt: String
+  ne: String
+  notContains: String
+}
+
+input UpdateItemInput {
+  id: ID!
+  message: String
+  payload: AWSJSON
+  timestamp: AWSTimestamp
+  type: String
+  user: AWSJSON
+}

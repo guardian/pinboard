@@ -3,9 +3,11 @@ import * as lambda from "@aws-cdk/aws-lambda";
 import * as S3 from "@aws-cdk/aws-s3";
 import * as iam from "@aws-cdk/aws-iam";
 import * as apigateway from "@aws-cdk/aws-apigateway";
+import * as appsync from "@aws-cdk/aws-appsync";
+import * as db from "@aws-cdk/aws-dynamodb";
+import { join } from "path";
 
 export class PinBoardStack extends Stack {
-
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props)
 
@@ -103,5 +105,61 @@ export class PinBoardStack extends Stack {
     //   value: `${telemetryDomainName.domainNameAliasDomainName}`,
     // });
 
+    const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
+    const pinboardAppsyncApi = withStandardGuardianTags(
+      new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
+        name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
+        schema: appsync.Schema.fromAsset(join(__dirname, "schema.graphql")),
+        authorizationConfig: {
+          defaultAuthorization: {
+            authorizationType: appsync.AuthorizationType.API_KEY,
+          },
+        },
+        xrayEnabled: true,
+      })
+    );
+
+    const pinboardAppsyncItemTable = withStandardGuardianTags(
+      new db.Table(thisStack, `pinboard-appsync-item-table`, {
+        partitionKey: {
+          name: "id",
+          type: db.AttributeType.STRING,
+        },
+      })
+    );
+
+    const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
+      `pinboard-item-datasource`,
+      pinboardAppsyncItemTable
+    );
+
+    pinboardItemDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "listItems",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList(),
+    });
+
+    pinboardItemDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getItem",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbGetItem(
+        "id",
+        "id"
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+    });
+
+    pinboardItemDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "createItem",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
+        appsync.PrimaryKey.partition("id").auto(),
+        appsync.Values.projecting("Item")
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+    });
+
+    // TODO: add resolvers for updates and deletes
   }
 }

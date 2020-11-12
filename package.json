@@ -1,0 +1,9 @@
+{
+  "name": "editorial-tools-pinboard",
+  "version": "1.0.0",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^4.0.5"
+  }
+}

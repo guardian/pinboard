@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "private": true,
+  "workspaces": ["cdk"],
   "devDependencies": {
     "typescript": "^4.0.5"
   }

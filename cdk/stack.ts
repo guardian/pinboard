@@ -25,12 +25,9 @@ export class PinBoardStack extends Stack {
       description: "Stage",
     }).valueAsString;
 
-    function withStandardGuardianTags<SCOPE extends IConstruct>(scope: SCOPE) {
-      Tags.of(scope).add("App", APP);
-      Tags.of(scope).add("Stage", STAGE);
-      Tags.of(scope).add("Stack", STACK);
-      return scope;
-    }
+    Tags.of(thisStack).add("App", APP);
+    Tags.of(thisStack).add("Stage", STAGE);
+    Tags.of(thisStack).add("Stack", STACK);
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
@@ -39,24 +36,23 @@ export class PinBoardStack extends Stack {
     );
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
-    const bootstrappingLambdaFunction = withStandardGuardianTags(
-      new lambda.Function(thisStack, bootstrappingLambdaBasename, {
-        runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
-        memorySize: 128,
-        timeout: Duration.seconds(5),
-        handler: "index.handler",
-        environment: {
-          STAGE,
-          STACK,
-          APP
-        },
-        functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
-        code: lambda.Code.fromBucket(
-          deployBucket,
-          `${STACK}/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
-        )
-      })
-    );
+    const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
+      runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      handler: "index.handler",
+      environment: {
+        STAGE,
+        STACK,
+        APP
+      },
+      functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
+      code: lambda.Code.fromBucket(
+        deployBucket,
+        `${STACK}/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
+      )
+    });
+
 
     const bootstrappingLambdaPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -106,8 +102,7 @@ export class PinBoardStack extends Stack {
     // });
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
-    const pinboardAppsyncApi = withStandardGuardianTags(
-      new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
+    const pinboardAppsyncApi = new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
         schema: appsync.Schema.fromAsset(join(__dirname, "schema.graphql")),
         authorizationConfig: {
@@ -116,17 +111,15 @@ export class PinBoardStack extends Stack {
           },
         },
         xrayEnabled: true,
-      })
+      }
     );
 
-    const pinboardAppsyncItemTable = withStandardGuardianTags(
-      new db.Table(thisStack, `pinboard-appsync-item-table`, {
-        partitionKey: {
-          name: "id",
-          type: db.AttributeType.STRING,
-        },
-      })
-    );
+    const pinboardAppsyncItemTable = new db.Table(thisStack, `pinboard-appsync-item-table`, {
+      partitionKey: {
+        name: "id",
+        type: db.AttributeType.STRING,
+      },
+    });
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
       `pinboard-item-datasource`,

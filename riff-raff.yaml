@@ -8,4 +8,7 @@ deployments:
     type: cloud-formation
     app: pinboard
     parameters:
+      cloudFormationStackByTags: false
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: pinboard
       templatePath: cloudformation.yaml

@@ -1,0 +1,11 @@
+regions:
+  - eu-west-1
+stacks:
+  - flexible
+deployments:
+
+  pinboard-cloudformation:
+    type: cloud-formation
+    app: pinboard
+    parameters:
+      templatePath: cloudformation.yaml

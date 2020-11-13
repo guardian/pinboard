@@ -7,7 +7,11 @@ shopt -s expand_aliases
 PROJECT_ROOT=$(pwd)
 alias yarn='node ${PROJECT_ROOT}/.yarn/releases/yarn-*.cjs'
 
+# install ALL dependencies
 yarn install
 
-cd cdk
-yarn synth
+# generate cloudformation.yaml
+yarn --cwd 'cdk' synth
+
+# upload riff-raff artifacts
+yarn node-riffraff-artifact

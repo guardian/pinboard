@@ -94,7 +94,7 @@ export class PinBoardStack extends Stack {
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["appsync:*"],
-      resources: [pinboardAppsyncApi.arn]
+      resources: ["arn:aws:appsync:eu-west-1:*"] //TODO tighten up if possible
     });
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"

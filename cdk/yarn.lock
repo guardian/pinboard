@@ -551,9 +551,9 @@ aws-cdk@^1.73.0:
     yargs "^16.1.0"
 
 aws-sdk@^2.789.0:
-  version "2.790.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.790.0.tgz#0c01634e59ff2a761e889808bee26dfd1ea28a2d"
-  integrity sha512-L278KsE+g/LsXIjLhpdtbvMcEZzZ/5dTBLIh6VIcNF0z63xlnDJQ4IWTDZ3Op5fK9B6vwQxlPT7XD5+egu+qoA==
+  version "2.789.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.789.0.tgz#a1b0a8b8b4227a7947c04e8d75239ba27d2deb93"
+  integrity sha512-Jqq+M4N0EgkyS4OPf05UHa7IWUcpuBdnpwMRgBnu4Ju6PxpOTh1UQcmYepVmIN3m6YVpLwFctEYzAMJFM3LT1A==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -571,9 +571,9 @@ balanced-match@^1.0.0:
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
 base64-js@^1.0.2, base64-js@^1.3.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
-  integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.0.tgz#2d03045876d9e2b68a7a0f87d6bd163595e3b6af"
+  integrity sha512-Jrdy04F2EKcNggUDfubMUPNAZg2vMquLQSm8sKLYJvz40ClFL1S8GKyDshGkNsbNNE5Z+fQavzU7nSK1I9JUGA==
 
 bl@^4.0.3:
   version "4.0.3"
@@ -695,9 +695,9 @@ concat-map@0.0.1:
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
 constructs@^3.2.0:
-  version "3.2.25"
-  resolved "https://registry.yarnpkg.com/constructs/-/constructs-3.2.25.tgz#a54e72bda865b345b262c375408cf44bb719fc37"
-  integrity sha512-CTjjeA2Lk71R0z0agDvaspcKB5WdwzeQgA8v30fSgqfX0xMj0DhJ6AcmCwWnVOvYUuTMnU7Qv05tcJKR4sSqwQ==
+  version "3.2.23"
+  resolved "https://registry.yarnpkg.com/constructs/-/constructs-3.2.23.tgz#c6eac61bcdc0ae8892e53f47998d8326280ed67e"
+  integrity sha512-OjSkEKxPPHejROgAqwPvPRJ11nJWpt2dCIqYWdWyRMnpEu2FIbIJDeEcQuWKJB7gKIOqI0X8zhpsgoAqaiPCLA==
 
 core-util-is@~1.0.0:
   version "1.0.2"

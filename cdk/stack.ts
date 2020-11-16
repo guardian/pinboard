@@ -49,7 +49,7 @@ export class PinBoardStack extends Stack {
       functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
       code: lambda.Code.fromBucket(
         deployBucket,
-        `${STACK}/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
+        `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
       )
     });
 

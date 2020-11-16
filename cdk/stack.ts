@@ -90,6 +90,14 @@ export class PinBoardStack extends Stack {
       "composer-dist"
     );
 
+    // this allows the lambda to query/create AppSync config/secrets
+    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["appsync:*"],
+      resources: [pinboardAppsyncApi.arn]
+    });
+    bootstrappingLambdaAppSyncPolicyStatement.addAnyPrincipal();
+
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
     const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
       runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
@@ -105,7 +113,8 @@ export class PinBoardStack extends Stack {
       code: lambda.Code.fromBucket(
         deployBucket,
         `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
-      )
+      ),
+      initialPolicy: [ bootstrappingLambdaAppSyncPolicyStatement ]
     });
 
     const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({
@@ -115,27 +124,17 @@ export class PinBoardStack extends Stack {
     });
     bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
 
-    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["appsync:*"],
-      resources: [pinboardAppsyncApi.arn]
-    });
-    bootstrappingLambdaAppSyncPolicyStatement.addAnyPrincipal();
-
     const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api-${STAGE}`, {
       handler: bootstrappingLambdaFunction,
       endpointTypes: [apigateway.EndpointType.EDGE],
       policy: new iam.PolicyDocument({
-        statements: [
-          bootstrappingLambdaExecutePolicyStatement,
-          bootstrappingLambdaAppSyncPolicyStatement
-        ]
+        statements: [ bootstrappingLambdaExecutePolicyStatement ]
       }),
       defaultMethodOptions: {
         apiKeyRequired: false
       },
       deployOptions: {
-        stageName: STAGE
+        stageName: STAGE,
       }
     });
 

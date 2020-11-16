@@ -124,7 +124,8 @@ export class PinBoardStack extends Stack {
     });
     bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
 
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api-${STAGE}`, {
+    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
+      restApiName: `${bootstrappingLambdaBasename}-api-${STAGE}`,
       handler: bootstrappingLambdaFunction,
       endpointTypes: [apigateway.EndpointType.EDGE],
       policy: new iam.PolicyDocument({

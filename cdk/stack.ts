@@ -122,7 +122,7 @@ export class PinBoardStack extends Stack {
     });
     bootstrappingLambdaAppSyncPolicyStatement.addAnyPrincipal();
 
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
+    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api-${STAGE}`, {
       handler: bootstrappingLambdaFunction,
       endpointTypes: [apigateway.EndpointType.EDGE],
       policy: new iam.PolicyDocument({
@@ -133,6 +133,9 @@ export class PinBoardStack extends Stack {
       }),
       defaultMethodOptions: {
         apiKeyRequired: false
+      },
+      deployOptions: {
+        stageName: STAGE
       }
     });
 

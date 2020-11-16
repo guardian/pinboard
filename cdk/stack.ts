@@ -122,8 +122,8 @@ export class PinBoardStack extends Stack {
     });
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `pinboard-item-datasource`,
-      pinboardAppsyncItemTable
+      `pinboarditemdatasource`,
+      pinboardAppsyncItemTable,
     );
 
     pinboardItemDataSource.createResolver({

@@ -29,78 +29,6 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
 
-    const deployBucket = S3.Bucket.fromBucketName(
-      thisStack,
-      "composer-dist",
-      "composer-dist"
-    );
-
-    const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
-    const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
-      runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
-      memorySize: 128,
-      timeout: Duration.seconds(5),
-      handler: "index.handler",
-      environment: {
-        STAGE,
-        STACK,
-        APP
-      },
-      functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
-      code: lambda.Code.fromBucket(
-        deployBucket,
-        `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
-      )
-    });
-
-
-    const bootstrappingLambdaPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["execute-api:Invoke"],
-      resources: ["*"] //TODO change this to point to the lambda
-    });
-    bootstrappingLambdaPolicyStatement.addAnyPrincipal();
-
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
-      handler: bootstrappingLambdaFunction,
-      endpointTypes: [apigateway.EndpointType.EDGE],
-      policy: new iam.PolicyDocument({
-        statements: [bootstrappingLambdaPolicyStatement]
-      }),
-      defaultMethodOptions: {
-        apiKeyRequired: false
-      }
-    });
-
-    // TODO add certificate etc. e.g...
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    //
-    // const telemetryDomainName = new apigateway.DomainName(
-    //   this,
-    //   "user-telemetry-domain-name",
-    //   {
-    //     domainName: telemetryHostName.valueAsString,
-    //     certificate: telemetryCertificate,
-    //     endpointType: apigateway.EndpointType.EDGE,
-    //   }
-    // );
-    //
-    // telemetryDomainName.addBasePathMapping(telemetryApi, { basePath: "" });
-    //
-    // new CfnOutput(this, "user-telemetry-api-target-hostname", {
-    //   description: "hostname",
-    //   value: `${telemetryDomainName.domainNameAliasDomainName}`,
-    // });
-
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
@@ -154,5 +82,88 @@ export class PinBoardStack extends Stack {
     });
 
     // TODO: add resolvers for updates and deletes
+
+
+    const deployBucket = S3.Bucket.fromBucketName(
+      thisStack,
+      "composer-dist",
+      "composer-dist"
+    );
+
+    const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
+    const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
+      runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      handler: "index.handler",
+      environment: {
+        STAGE,
+        STACK,
+        APP
+      },
+      functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
+      code: lambda.Code.fromBucket(
+        deployBucket,
+        `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
+      )
+    });
+
+    const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["execute-api:Invoke"],
+      resources: ["arn:aws:execute-api:eu-west-1:*"] //TODO tighten up if possible
+    });
+    bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
+
+    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["appsync:*"],
+      resources: [pinboardAppsyncApi.arn]
+    });
+    bootstrappingLambdaAppSyncPolicyStatement.addAnyPrincipal();
+
+    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
+      handler: bootstrappingLambdaFunction,
+      endpointTypes: [apigateway.EndpointType.EDGE],
+      policy: new iam.PolicyDocument({
+        statements: [
+          bootstrappingLambdaExecutePolicyStatement,
+          bootstrappingLambdaAppSyncPolicyStatement
+        ]
+      }),
+      defaultMethodOptions: {
+        apiKeyRequired: false
+      }
+    });
+
+    // TODO add certificate etc. e.g...
+    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
+    //   this,
+    //   "user-telemetry-certificate",
+    //   telemetryCertificateArn.valueAsString
+    // );
+    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
+    //   this,
+    //   "user-telemetry-certificate",
+    //   telemetryCertificateArn.valueAsString
+    // );
+    //
+    // const telemetryDomainName = new apigateway.DomainName(
+    //   this,
+    //   "user-telemetry-domain-name",
+    //   {
+    //     domainName: telemetryHostName.valueAsString,
+    //     certificate: telemetryCertificate,
+    //     endpointType: apigateway.EndpointType.EDGE,
+    //   }
+    // );
+    //
+    // telemetryDomainName.addBasePathMapping(telemetryApi, { basePath: "" });
+    //
+    // new CfnOutput(this, "user-telemetry-api-target-hostname", {
+    //   description: "hostname",
+    //   value: `${telemetryDomainName.domainNameAliasDomainName}`,
+    // });
+
   }
 }

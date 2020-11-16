@@ -96,7 +96,6 @@ export class PinBoardStack extends Stack {
       actions: ["appsync:*"],
       resources: [pinboardAppsyncApi.arn]
     });
-    bootstrappingLambdaAppSyncPolicyStatement.addAnyPrincipal();
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
     const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
@@ -135,7 +134,7 @@ export class PinBoardStack extends Stack {
         apiKeyRequired: false
       },
       deployOptions: {
-        stageName: STAGE,
+        stageName: "api"
       }
     });
 

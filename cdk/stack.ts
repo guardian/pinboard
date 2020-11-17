@@ -99,6 +99,8 @@ export class PinBoardStack extends Stack {
     });
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
+    const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`
+
     const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
       runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
       memorySize: 128,
@@ -112,7 +114,7 @@ export class PinBoardStack extends Stack {
       functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
       code: lambda.Code.fromBucket(
         deployBucket,
-        `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
+        `${APP}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
       ),
       initialPolicy: [ bootstrappingLambdaAppSyncPolicyStatement ]
     });
@@ -124,8 +126,8 @@ export class PinBoardStack extends Stack {
     });
     bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
 
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
-      restApiName: `${bootstrappingLambdaBasename}-api-${STAGE}`,
+    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, bootstrappingLambdaApiBaseName, {
+      restApiName: `${bootstrappingLambdaApiBaseName}-${STAGE}`,
       handler: bootstrappingLambdaFunction,
       endpointTypes: [apigateway.EndpointType.REGIONAL],
       policy: new iam.PolicyDocument({
@@ -152,12 +154,12 @@ export class PinBoardStack extends Stack {
 
     const domainName = Fn.findInMap(MAPPING_KEY, DOMAIN_NAME_KEY, STAGE);
 
-    const bootstrappingApiCertificate = new acm.Certificate(thisStack, `${bootstrappingLambdaBasename}-api-certificate`, {
+    const bootstrappingApiCertificate = new acm.Certificate(thisStack, `${bootstrappingLambdaApiBaseName}-certificate`, {
       domainName,
       validationMethod: acm.ValidationMethod.DNS
     });
 
-    const bootstrappingApiDomainName = new apigateway.DomainName(thisStack, `${bootstrappingLambdaBasename}-api-domain-name`, {
+    const bootstrappingApiDomainName = new apigateway.DomainName(thisStack, `${bootstrappingLambdaApiBaseName}-domain-name`, {
       domainName,
       certificate: bootstrappingApiCertificate,
       endpointType: apigateway.EndpointType.REGIONAL,
@@ -165,8 +167,8 @@ export class PinBoardStack extends Stack {
 
     bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, { basePath: "" });
 
-    new CfnOutput(thisStack, `${bootstrappingLambdaBasename}-hostname`, {
-      description: `${bootstrappingLambdaBasename}-hostname`,
+    new CfnOutput(thisStack, `${bootstrappingLambdaApiBaseName}-hostname`, {
+      description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
     });
 

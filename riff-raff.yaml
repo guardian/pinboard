@@ -13,11 +13,11 @@ deployments:
       cloudFormationStackName: pinboard
       templatePath: cloudformation.yaml
 
-  pinboard-bootstrapping-api-lambda:
+  pinboard-bootstrapping-lambda-api:
     type: aws-lambda
     parameters:
       prefixStack: false
       bucket: composer-dist
-      fileName: pinboard-bootstrapping-api-lambda.zip
+      fileName: pinboard-bootstrapping-lambda-api.zip
       functionNames:
         [pinboard-bootstrapping-lambda-]

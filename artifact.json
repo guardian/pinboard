@@ -8,7 +8,7 @@
       "compress": false
     },
     {
-      "action": "pinboard-bootstrapping-api-lambda",
+      "action": "pinboard-bootstrapping-lambda-api",
       "path": "bootstrapping-lambda/dist/index.js",
       "compress": "zip"
     }

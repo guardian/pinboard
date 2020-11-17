@@ -22,3 +22,5 @@ Run `./setup.sh`, which...
   - `nvm use`
   - run `yarn watch` in the `bootstrapping-lambda`
 - to check its up, hit https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js
+
+NOTE: locally it uses the CODE AppSync API instance (since AppSync is a paid feature of localstack)

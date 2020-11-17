@@ -1,10 +1,11 @@
-import {CfnParameter, Construct, Duration, IConstruct, Stack, StackProps, Tags} from "@aws-cdk/core";
+import {CfnMapping, CfnOutput, CfnParameter, Construct, Duration, Fn, Stack, StackProps, Tags} from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as S3 from "@aws-cdk/aws-s3";
 import * as iam from "@aws-cdk/aws-iam";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
+import * as acm from "@aws-cdk/aws-certificatemanager";
 import { join } from "path";
 
 export class PinBoardStack extends Stack {
@@ -138,34 +139,36 @@ export class PinBoardStack extends Stack {
       }
     });
 
-    // TODO add certificate etc. e.g...
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    //
-    // const telemetryDomainName = new apigateway.DomainName(
-    //   this,
-    //   "user-telemetry-domain-name",
-    //   {
-    //     domainName: telemetryHostName.valueAsString,
-    //     certificate: telemetryCertificate,
-    //     endpointType: apigateway.EndpointType.EDGE,
-    //   }
-    // );
-    //
-    // telemetryDomainName.addBasePathMapping(telemetryApi, { basePath: "" });
-    //
-    // new CfnOutput(this, "user-telemetry-api-target-hostname", {
-    //   description: "hostname",
-    //   value: `${telemetryDomainName.domainNameAliasDomainName}`,
-    // });
+    const MAPPING_KEY = "mapping";
+    const DOMAIN_NAME_KEY = "DomainName";
+    new CfnMapping(thisStack, MAPPING_KEY, {
+      [MAPPING_KEY]: {
+        [DOMAIN_NAME_KEY]: {
+          CODE: "pinboard.code.dev-gutools.co.uk",
+          PROD: "pinboard.gutools.co.uk"
+        }
+      }
+    });
+
+    const domainName = Fn.findInMap(MAPPING_KEY, DOMAIN_NAME_KEY, STAGE);
+
+    const bootstrappingApiCertificate = new acm.Certificate(thisStack, `${bootstrappingLambdaBasename}-api-certificate`, {
+      domainName,
+      validationMethod: acm.ValidationMethod.DNS
+    });
+
+    const bootstrappingApiDomainName = new apigateway.DomainName(thisStack, `${bootstrappingLambdaBasename}-api-domain-name`, {
+      domainName,
+      certificate: bootstrappingApiCertificate,
+      endpointType: apigateway.EndpointType.EDGE,
+    });
+
+    bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, { basePath: "" });
+
+    new CfnOutput(thisStack, `${bootstrappingLambdaBasename}-hostname`, {
+      description: "hostname",
+      value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
+    });
 
   }
 }

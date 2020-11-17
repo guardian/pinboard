@@ -127,7 +127,7 @@ export class PinBoardStack extends Stack {
     const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
       restApiName: `${bootstrappingLambdaBasename}-api-${STAGE}`,
       handler: bootstrappingLambdaFunction,
-      endpointTypes: [apigateway.EndpointType.EDGE],
+      endpointTypes: [apigateway.EndpointType.REGIONAL],
       policy: new iam.PolicyDocument({
         statements: [ bootstrappingLambdaExecutePolicyStatement ]
       }),
@@ -136,7 +136,7 @@ export class PinBoardStack extends Stack {
       },
       deployOptions: {
         stageName: "api"
-      }
+      },
     });
 
     const MAPPING_KEY = "mapping";
@@ -160,13 +160,13 @@ export class PinBoardStack extends Stack {
     const bootstrappingApiDomainName = new apigateway.DomainName(thisStack, `${bootstrappingLambdaBasename}-api-domain-name`, {
       domainName,
       certificate: bootstrappingApiCertificate,
-      endpointType: apigateway.EndpointType.EDGE,
+      endpointType: apigateway.EndpointType.REGIONAL,
     });
 
     bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, { basePath: "" });
 
     new CfnOutput(thisStack, `${bootstrappingLambdaBasename}-hostname`, {
-      description: "hostname",
+      description: `${bootstrappingLambdaBasename}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
     });
 

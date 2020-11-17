@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "private": true,
-  "workspaces": ["cdk"],
+  "workspaces": [
+    "cdk"
+  ],
   "devDependencies": {
+    "@guardian/node-riffraff-artifact": "^0.1.9",
     "typescript": "^4.0.5"
   }
 }

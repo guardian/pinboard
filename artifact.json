@@ -1,0 +1,11 @@
+{
+  "projectName": "Editorial Tools::PinBoard",
+  "vcsURL": "https://github.com/guardian/editorial-tools-pinboard",
+  "actions": [
+    {
+      "action": "pinboard-cloudformation",
+      "path": "cdk/cloudformation.yaml",
+      "compress": false
+    }
+  ]
+}

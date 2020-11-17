@@ -1,10 +1,11 @@
-import {CfnParameter, Construct, Duration, IConstruct, Stack, StackProps, Tags} from "@aws-cdk/core";
+import {CfnMapping, CfnOutput, CfnParameter, Construct, Duration, Fn, Stack, StackProps, Tags} from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as S3 from "@aws-cdk/aws-s3";
 import * as iam from "@aws-cdk/aws-iam";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
+import * as acm from "@aws-cdk/aws-certificatemanager";
 import { join } from "path";
 
 export class PinBoardStack extends Stack {
@@ -25,89 +26,12 @@ export class PinBoardStack extends Stack {
       description: "Stage",
     }).valueAsString;
 
-    function withStandardGuardianTags<SCOPE extends IConstruct>(scope: SCOPE) {
-      Tags.of(scope).add("App", APP);
-      Tags.of(scope).add("Stage", STAGE);
-      Tags.of(scope).add("Stack", STACK);
-      return scope;
-    }
-
-    const deployBucket = S3.Bucket.fromBucketName(
-      thisStack,
-      "composer-dist",
-      "composer-dist"
-    );
-
-    const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
-    const bootstrappingLambdaFunction = withStandardGuardianTags(
-      new lambda.Function(thisStack, bootstrappingLambdaBasename, {
-        runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
-        memorySize: 128,
-        timeout: Duration.seconds(5),
-        handler: "index.handler",
-        environment: {
-          STAGE,
-          STACK,
-          APP
-        },
-        functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
-        code: lambda.Code.fromBucket(
-          deployBucket,
-          `${STACK}/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
-        )
-      })
-    );
-
-    const bootstrappingLambdaPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["execute-api:Invoke"],
-      resources: ["*"] //TODO change this to point to the lambda
-    });
-    bootstrappingLambdaPolicyStatement.addAnyPrincipal();
-
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
-      handler: bootstrappingLambdaFunction,
-      endpointTypes: [apigateway.EndpointType.EDGE],
-      policy: new iam.PolicyDocument({
-        statements: [bootstrappingLambdaPolicyStatement]
-      }),
-      defaultMethodOptions: {
-        apiKeyRequired: false
-      }
-    });
-
-    // TODO add certificate etc. e.g...
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    // const telemetryCertificate = acm.Certificate.fromCertificateArn(
-    //   this,
-    //   "user-telemetry-certificate",
-    //   telemetryCertificateArn.valueAsString
-    // );
-    //
-    // const telemetryDomainName = new apigateway.DomainName(
-    //   this,
-    //   "user-telemetry-domain-name",
-    //   {
-    //     domainName: telemetryHostName.valueAsString,
-    //     certificate: telemetryCertificate,
-    //     endpointType: apigateway.EndpointType.EDGE,
-    //   }
-    // );
-    //
-    // telemetryDomainName.addBasePathMapping(telemetryApi, { basePath: "" });
-    //
-    // new CfnOutput(this, "user-telemetry-api-target-hostname", {
-    //   description: "hostname",
-    //   value: `${telemetryDomainName.domainNameAliasDomainName}`,
-    // });
+    Tags.of(thisStack).add("App", APP);
+    Tags.of(thisStack).add("Stage", STAGE);
+    Tags.of(thisStack).add("Stack", STACK);
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
-    const pinboardAppsyncApi = withStandardGuardianTags(
-      new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
+    const pinboardAppsyncApi = new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
         schema: appsync.Schema.fromAsset(join(__dirname, "schema.graphql")),
         authorizationConfig: {
@@ -116,21 +40,19 @@ export class PinBoardStack extends Stack {
           },
         },
         xrayEnabled: true,
-      })
+      }
     );
 
-    const pinboardAppsyncItemTable = withStandardGuardianTags(
-      new db.Table(thisStack, `pinboard-appsync-item-table`, {
-        partitionKey: {
-          name: "id",
-          type: db.AttributeType.STRING,
-        },
-      })
-    );
+    const pinboardAppsyncItemTable = new db.Table(thisStack, `pinboard-appsync-item-table`, {
+      partitionKey: {
+        name: "id",
+        type: db.AttributeType.STRING,
+      },
+    });
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `pinboard-item-datasource`,
-      pinboardAppsyncItemTable
+      `pinboarditemdatasource`,
+      pinboardAppsyncItemTable,
     );
 
     pinboardItemDataSource.createResolver({
@@ -161,5 +83,92 @@ export class PinBoardStack extends Stack {
     });
 
     // TODO: add resolvers for updates and deletes
+
+
+    const deployBucket = S3.Bucket.fromBucketName(
+      thisStack,
+      "composer-dist",
+      "composer-dist"
+    );
+
+    // this allows the lambda to query/create AppSync config/secrets
+    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["appsync:*"],
+      resources: ["arn:aws:appsync:eu-west-1:*"] //TODO tighten up if possible
+    });
+
+    const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
+    const bootstrappingLambdaFunction = new lambda.Function(thisStack, bootstrappingLambdaBasename, {
+      runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      handler: "index.handler",
+      environment: {
+        STAGE,
+        STACK,
+        APP
+      },
+      functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
+      code: lambda.Code.fromBucket(
+        deployBucket,
+        `pinboard/${STAGE}/${bootstrappingLambdaBasename}/${bootstrappingLambdaBasename}.zip`
+      ),
+      initialPolicy: [ bootstrappingLambdaAppSyncPolicyStatement ]
+    });
+
+    const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["execute-api:Invoke"],
+      resources: ["arn:aws:execute-api:eu-west-1:*"] //TODO tighten up if possible
+    });
+    bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
+
+    const bootstrappingApiGateway = new apigateway.LambdaRestApi(thisStack, `${bootstrappingLambdaBasename}-api`, {
+      restApiName: `${bootstrappingLambdaBasename}-api-${STAGE}`,
+      handler: bootstrappingLambdaFunction,
+      endpointTypes: [apigateway.EndpointType.REGIONAL],
+      policy: new iam.PolicyDocument({
+        statements: [ bootstrappingLambdaExecutePolicyStatement ]
+      }),
+      defaultMethodOptions: {
+        apiKeyRequired: false
+      },
+      deployOptions: {
+        stageName: "api"
+      },
+    });
+
+    const MAPPING_KEY = "mapping";
+    const DOMAIN_NAME_KEY = "DomainName";
+    new CfnMapping(thisStack, MAPPING_KEY, {
+      [MAPPING_KEY]: {
+        [DOMAIN_NAME_KEY]: {
+          CODE: "pinboard.code.dev-gutools.co.uk",
+          PROD: "pinboard.gutools.co.uk"
+        }
+      }
+    });
+
+    const domainName = Fn.findInMap(MAPPING_KEY, DOMAIN_NAME_KEY, STAGE);
+
+    const bootstrappingApiCertificate = new acm.Certificate(thisStack, `${bootstrappingLambdaBasename}-api-certificate`, {
+      domainName,
+      validationMethod: acm.ValidationMethod.DNS
+    });
+
+    const bootstrappingApiDomainName = new apigateway.DomainName(thisStack, `${bootstrappingLambdaBasename}-api-domain-name`, {
+      domainName,
+      certificate: bootstrappingApiCertificate,
+      endpointType: apigateway.EndpointType.REGIONAL,
+    });
+
+    bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, { basePath: "" });
+
+    new CfnOutput(thisStack, `${bootstrappingLambdaBasename}-hostname`, {
+      description: `${bootstrappingLambdaBasename}-hostname`,
+      value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
+    });
+
   }
 }

@@ -2,7 +2,7 @@ import * as AWS from "aws-sdk"; // TODO ideally convert to use "@aws-sdk/client-
 
 const AWS_REGION = "eu-west-1";
 
-const PROFILE = "composer"; //TODO change to composer once infra is built properly there
+const PROFILE = "workflow";
 
 const CREDENTIAL_PROVIDER = new AWS.CredentialProviderChain([
   () => new AWS.SharedIniFileCredentials({ profile: PROFILE }),

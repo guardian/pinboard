@@ -17,7 +17,7 @@ Run `./setup.sh`, which...
 - ensures all dependencies are installed
 
 ### Each time
-- Ensure you have the latest AWS credentials (profile: `composer`)
+- Ensure you have the latest AWS credentials (profile: `workflow`)
 - Run `./start.sh`, which should just ...
   - `nvm use`
   - run `yarn watch` in the `bootstrapping-lambda`

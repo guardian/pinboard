@@ -17,7 +17,7 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: composer-dist
+      bucket: workflow-dist
       fileName: pinboard-bootstrapping-lambda-api.zip
       functionNames:
         [pinboard-bootstrapping-lambda-]

@@ -114,7 +114,7 @@ export class PinBoardStack extends Stack {
       functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
       code: lambda.Code.fromBucket(
         deployBucket,
-        `${APP}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
+        `${STACK}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
       ),
       initialPolicy: [ bootstrappingLambdaAppSyncPolicyStatement ]
     });

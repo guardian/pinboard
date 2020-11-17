@@ -87,8 +87,8 @@ export class PinBoardStack extends Stack {
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
-      "composer-dist",
-      "composer-dist"
+      "workflow-dist",
+      "workflow-dist"
     );
 
     // this allows the lambda to query/create AppSync config/secrets

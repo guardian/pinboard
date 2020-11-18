@@ -1,0 +1,13 @@
+{
+  "name": "@guardian/pinboard-client",
+  "version": "1.0.0",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.56",
+    "@types/react-dom": "^16.9.9"
+  }
+}

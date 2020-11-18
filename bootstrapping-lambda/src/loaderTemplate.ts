@@ -2,12 +2,10 @@
 import {AppSyncConfig} from "./appSyncLookup";
 
 export const loaderTemplate = (appSyncConfig: AppSyncConfig, mainJsFilename: string) => `
-
-  console.log('${JSON.stringify(appSyncConfig, null, "  ")}');
-
+  
   const script = document.createElement('script');
   script.onload = function () {
-    Hello(foo);
+    PinBoard.mount(${JSON.stringify(appSyncConfig)});
   };
   script.src = '${mainJsFilename}';
   document.head.appendChild(script);

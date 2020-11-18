@@ -6,8 +6,8 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
-    "watch": "ts-node-dev --respawn src/index.ts",
-    "build": "ncc build src/index.ts -o dist -m -e aws-sdk"
+    "watch": "ts-node-dev --respawn src/server.ts",
+    "build": "ncc build src/server.ts -o dist -m -e aws-sdk"
   },
   "devDependencies": {
     "@types/aws-serverless-express": "^3.3.3",

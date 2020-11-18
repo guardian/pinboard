@@ -1,8 +1,22 @@
 import React, {useEffect, useState} from "react";
-import {AddToPinboardButton} from "./addToPinboardButton";
-import {ButtonPortal, PIN_BUTTON_HTML_TAG} from "./pinButton";
+import {Widget} from "./widget";
+import {ButtonPortal, PIN_BUTTON_HTML_TAG} from "./addToPinboardButton";
+import { render } from "react-dom";
 
-export const PinboardApp = () => {
+export function mount(/* take in AppSync config/secrets to pass as props */) {
+
+    const element = document.createElement("pinboard");
+
+    document.body.appendChild(element);
+
+    render(
+      React.createElement(PinBoardApp),
+      element
+    );
+
+}
+
+const PinBoardApp = () => {
 
     const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
@@ -30,7 +44,7 @@ export const PinboardApp = () => {
 
 
     return <>
-        <AddToPinboardButton />
+        <Widget />
         {buttonNodes.map((node, index) =>
             <ButtonPortal key={index} node={node} />
         )}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title>PinBoard</title>
+        <script src="https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js"></script>
+        <script>
+          setTimeout(
+            () => {
+              document.body.appendChild(
+                document.createElement("add-to-pinboard-button")
+              );
+            },
+            1000 // 1 second delay
+          );
+        </script>
+    </head>
+
+    <body>
+        <h3>button added initially</h3>
+        <add-to-pinboard-button data-hello="world"></add-to-pinboard-button>
+
+        <h3>button added after 1sec delay</h3>
+        <!--
+            the setTimeout in the <script> further up will add an element here after 1 second,
+            which the PinBoard library will detect and convert to a button
+        -->
+    </body>
+
+</html>

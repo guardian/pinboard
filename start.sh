@@ -1,4 +1,4 @@
 nvm use
 
-cd bootstrapping-lambda
-yarn watch
+#
+yarn --cwd 'client' watch & yarn --cwd 'bootstrapping-lambda' watch

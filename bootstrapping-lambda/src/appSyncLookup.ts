@@ -76,8 +76,6 @@ export async function generateAppSyncConfig(userEmail: string): Promise<AppSyncC
     throw Error(`Could not find a ${APP} AppSync instance for ${STAGE}`);
   }
 
-  console.log(appSyncAPI);
-
   const apiKeyPromise = findExistingOrCreateApiKeyForUser(appSyncAPI.apiId, userEmail);
 
   const apiKey = (await apiKeyPromise)?.id;

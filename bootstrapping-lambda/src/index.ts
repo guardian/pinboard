@@ -4,6 +4,7 @@ import {default as express, Response} from "express";
 import {loaderTemplate} from "./loaderTemplate";
 import {generateAppSyncConfig} from "./appSyncLookup";
 import {getVerifiedUser} from "./panDomainAuth";
+import {userHasPermission} from "./permissionCheck";
 
 const server = express();
 
@@ -39,18 +40,22 @@ server.get("/pinboard.loader.js", async (request, response) => {
 
   const maybeAuthedUser = await getVerifiedUser(request.header('Cookie'));
 
-  if(maybeAuthedUser){
+  if(!maybeAuthedUser) {
+    const message = "pan-domain auth cookie missing, invalid or expired"
+    console.warn(message)
+    response.send(`console.error('${message}')`)
+  }
+  else if (await userHasPermission(maybeAuthedUser.email)){
 
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser.email);
 
     response.send(
       loaderTemplate(appSyncConfig, mainJsFilename)
     );
+
   }
   else {
-    const message = "pan-domain auth cookie missing, invalid or expired"
-    console.warn(message)
-    response.send(`console.error('${message}')`)
+    response.send("console.log('You do not have permission to use PinBoard')")
   }
 
 });

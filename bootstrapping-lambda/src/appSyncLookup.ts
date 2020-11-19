@@ -1,27 +1,12 @@
-import * as AWS from "aws-sdk"; // TODO ideally convert to use "@aws-sdk/client-appsync" (couldn't get credentials to work)
-
-const AWS_REGION = "eu-west-1";
-
-const PROFILE = "workflow";
-
-const CREDENTIAL_PROVIDER = new AWS.CredentialProviderChain([
-  () => new AWS.SharedIniFileCredentials({ profile: PROFILE }),
-  ...AWS.CredentialProviderChain.defaultProviders
-]);
-
-const awsConfig = {
-  region: AWS_REGION,
-  credentialProvider: CREDENTIAL_PROVIDER
-};
+import * as AWS from "aws-sdk";
+import { STAGE, standardAwsConfig } from "./awsIntegration";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
 const TWENTY_FIVE_HOURS_IN_SECONDS = 25 * ONE_HOUR_IN_SECONDS;
 
-
 const APP = "pinboard"; // TODO consider creating a shared directory at the top level for constants like this
-const STAGE = process.env.STAGE || "CODE"; // locally we use CODE AppSync API
 
-const client = new AWS.AppSync(awsConfig)
+const client = new AWS.AppSync(standardAwsConfig);
 
 const appSyncApiPromise = client.listGraphqlApis({
   maxResults: 25 // TODO consider implementing paging (for absolute future proofing)

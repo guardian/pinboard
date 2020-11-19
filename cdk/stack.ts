@@ -98,6 +98,12 @@ export class PinBoardStack extends Stack {
       resources: ["arn:aws:appsync:eu-west-1:*"] //TODO tighten up if possible
     });
 
+    const bootstrappingLambdaPermissionsFilePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`]
+    })
+
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda"
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`
 
@@ -116,7 +122,10 @@ export class PinBoardStack extends Stack {
         deployBucket,
         `${STACK}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
       ),
-      initialPolicy: [ bootstrappingLambdaAppSyncPolicyStatement ]
+      initialPolicy: [ 
+        bootstrappingLambdaAppSyncPolicyStatement, 
+        bootstrappingLambdaPermissionsFilePolicyStatement 
+      ]
     });
 
     const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({

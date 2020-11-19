@@ -63,7 +63,8 @@ server.get("/pinboard.loader.js", async (request, response) => {
     response.send(
       loaderTemplate(
         appSyncConfig,
-        MAIN_JS_FILENAME
+        MAIN_JS_FILENAME,
+        request.hostname
       )
     );
 

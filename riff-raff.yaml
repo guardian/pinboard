@@ -12,3 +12,12 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: pinboard
       templatePath: cloudformation.yaml
+
+  pinboard-bootstrapping-lambda-api:
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-bootstrapping-lambda-api.zip
+      functionNames:
+        [pinboard-bootstrapping-lambda-]

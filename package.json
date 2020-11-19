@@ -4,6 +4,7 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "private": true,
   "workspaces": [
+    "bootstrapping-lambda",
     "cdk"
   ],
   "devDependencies": {

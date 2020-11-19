@@ -13,5 +13,8 @@ yarn install
 # generate cloudformation.yaml
 yarn --cwd 'cdk' synth
 
+# build bootstrapping-lambda into a single file
+yarn --cwd 'bootstrapping-lambda' build
+
 # upload riff-raff artifacts
 yarn node-riffraff-artifact

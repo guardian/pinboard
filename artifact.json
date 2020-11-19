@@ -6,6 +6,11 @@
       "action": "pinboard-cloudformation",
       "path": "cdk/cloudformation.yaml",
       "compress": false
+    },
+    {
+      "action": "pinboard-bootstrapping-lambda-api",
+      "path": "bootstrapping-lambda/dist/index.js",
+      "compress": "zip"
     }
   ]
 }

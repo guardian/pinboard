@@ -1,0 +1,4 @@
+name: pinboard
+mappings:
+  - prefix: pinboard
+    port: 3030

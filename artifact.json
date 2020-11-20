@@ -9,7 +9,7 @@
     },
     {
       "action": "pinboard-bootstrapping-lambda-api",
-      "path": "bootstrapping-lambda/dist/index.js",
+      "path": "dist",
       "compress": "zip"
     }
   ]

@@ -5,7 +5,8 @@
   "private": true,
   "workspaces": [
     "bootstrapping-lambda",
-    "cdk"
+    "cdk",
+    "client"
   ],
   "devDependencies": {
     "@guardian/node-riffraff-artifact": "^0.1.9",

@@ -33,7 +33,7 @@ export class PinBoardStack extends Stack {
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
-        schema: appsync.Schema.fromAsset(join(__dirname, "schema.graphql")),
+        schema: appsync.Schema.fromAsset(join(__dirname, "../shared/graphql/schema.graphql")),
         authorizationConfig: {
           defaultAuthorization: {
             authorizationType: appsync.AuthorizationType.API_KEY,

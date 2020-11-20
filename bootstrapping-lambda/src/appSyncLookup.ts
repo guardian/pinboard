@@ -1,4 +1,5 @@
 import * as AWS from "aws-sdk";
+import { AppSyncConfig } from "../../shared/AppSyncConfig";
 import { STAGE, standardAwsConfig } from "./awsIntegration";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
@@ -16,12 +17,6 @@ const appSyncApiPromise = client.listGraphqlApis({
     && api.tags?.["App"]===APP
   )
 )
-
-export interface AppSyncConfig {
-  graphqlEndpoint: string;
-  realtimeEndpoint: string;
-  apiKey: string;
-}
 
 async function findExistingOrCreateApiKeyForUser(apiId: string, userEmail: string, nextToken?: string): Promise<AWS.AppSync.ApiKey | undefined> {
 

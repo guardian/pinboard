@@ -2,21 +2,22 @@ import React, {useEffect, useState} from "react";
 import {Widget} from "./widget";
 import {ButtonPortal, PIN_BUTTON_HTML_TAG} from "./addToPinboardButton";
 import { render } from "react-dom";
+import { AppSyncConfig } from "../../shared/AppSyncConfig";
 
-export function mount(/* take in AppSync config/secrets to pass as props */) {
+export function mount(appSyncConfig: AppSyncConfig) {
 
     const element = document.createElement("pinboard");
 
     document.body.appendChild(element);
 
     render(
-      React.createElement(PinBoardApp),
-      element
+      React.createElement(PinBoardApp, appSyncConfig),
+      element,
     );
 
 }
 
-const PinBoardApp = () => {
+const PinBoardApp = (appSyncConfig: AppSyncConfig) => {
 
     const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 

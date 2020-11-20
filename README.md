@@ -9,6 +9,11 @@ This exists to...
 - lookup the AppSync config/secrets needed for the client
 - return some JavaScript which then injects a further script tag in the page (which will load the main client-side PinBoard code), which upon loading is passed the AppSync config/secrets - so it can make the connection to AppSync.
 
+## Updating the GraphQL schema
+After making any changes to `shared/graphql/schema.graphql`, run `yarn graphql-refresh` in the root of the project. This will regenerate `shared/graphql/graphql.ts`, which contains the TypeScript type and resolver definitions to match the GraphQL schema. We use (GraphQL Code Generator)[https://graphql-code-generator.com/] to generate these definitions and this is configured in `graphql-refresh.yml`.
+
+Note, `shared/graphql/schema.graphql` is also used in CDK to form part of the Cloudformation.
+
 ## Running locally
 
 ### First-time set-up

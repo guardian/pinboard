@@ -86,9 +86,13 @@ export const Widget = ({user}: WidgetProps) => {
       }
     }
   `, {
-    onCompleted: (data) => {
-      setItems((prevState) => [...data.listItems.items, ...prevState])
-    }
+    onCompleted: (data) => setItems((prevState) => [
+      ...data.listItems.items as Item[],
+      ...prevState
+    ].sort(
+      // TODO sort server-side, perhaps when we add workflowID as a column for which we'll need a GSI (see https://github.com/awslabs/aws-mobile-appsync-sdk-js/issues/397#issuecomment-485994792
+      (a, b) => a.timestamp - b.timestamp
+    ))
   })
 
   return (

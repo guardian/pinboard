@@ -58,8 +58,16 @@ export class PinBoardStack extends Stack {
     pinboardItemDataSource.createResolver({
       typeName: "Query",
       fieldName: "listItems",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList(),
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+          "limit": $util.defaultIfNull($ctx.args.limit, 20),
+          "nextToken": $util.toJson($util.defaultIfNullOrEmpty($ctx.args.nextToken, null)),
+        }
+      `),
+      responseMappingTemplate: appsync.MappingTemplate.fromString("$util.toJson($context.result)"),
     });
 
     pinboardItemDataSource.createResolver({
@@ -77,7 +85,7 @@ export class PinBoardStack extends Stack {
       fieldName: "createItem",
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
         appsync.PrimaryKey.partition("id").auto(),
-        appsync.Values.projecting("Item")
+        appsync.Values.projecting("input")
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });

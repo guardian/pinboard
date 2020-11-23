@@ -58,7 +58,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
   }
   else if (await userHasPermission(maybeAuthedUser.email)){
 
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser.email);
+    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser);
 
     response.send(
       loaderTemplate(

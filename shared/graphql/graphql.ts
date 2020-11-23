@@ -9,7 +9,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  AWSJSON: object;
+  AWSJSON: string;
   AWSTimestamp: any;
 };
 

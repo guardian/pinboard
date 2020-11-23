@@ -10,4 +10,4 @@ generates:
       - "typescript-resolvers"
 config:
   scalars:
-    AWSJSON: object
+    AWSJSON: string

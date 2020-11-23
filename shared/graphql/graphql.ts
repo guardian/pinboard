@@ -108,7 +108,6 @@ export type SubscriptionOnUpdateItemArgs = {
 export type CreateItemInput = {
   message?: Maybe<Scalars['String']>;
   payload?: Maybe<Scalars['AWSJSON']>;
-  timestamp: Scalars['AWSTimestamp'];
   type: Scalars['String'];
   user: Scalars['AWSJSON'];
 };

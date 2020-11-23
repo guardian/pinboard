@@ -89,7 +89,7 @@ export class PinBoardStack extends Stack {
       fieldName: "createItem",
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
         appsync.PrimaryKey.partition("id").auto(),
-        appsync.Values.projecting("input")
+        appsync.Values.projecting("input").attribute("timestamp").is("$util.time.nowEpochSeconds()")
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });

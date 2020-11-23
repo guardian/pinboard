@@ -66,8 +66,7 @@ export const Widget = ({user}: WidgetProps) => {
       input: {
         type: "message",
         message: newMessage,
-        user: JSON.stringify(user),
-        timestamp: Date.now()
+        user: JSON.stringify(user)
       }
     }
   });

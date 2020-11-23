@@ -32,7 +32,9 @@ interface ItemsProps {
   items: Item[]
 }
 export const Items = ({items}: ItemsProps) => (
-  <div>
+  <div style={{
+    overflowY: "auto"
+  }}>
     {items.map(ItemDisplay)}
   </div>
 );

@@ -48,6 +48,10 @@ export class PinBoardStack extends Stack {
         name: "id",
         type: db.AttributeType.STRING,
       },
+      sortKey: {
+        name: "timestamp",
+        type: db.AttributeType.NUMBER
+      }
     });
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(

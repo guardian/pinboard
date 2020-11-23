@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {gql, useApolloClient, useMutation, useQuery} from "@apollo/client";
+import {gql, useApolloClient, useMutation, useQuery, useSubscription} from "@apollo/client";
 import {CreateItemInput, Item} from "../../shared/graphql/graphql";
 import {Items} from "./items";
 import {User} from "../../shared/User";
@@ -20,19 +20,46 @@ export const Widget = ({user}: WidgetProps) => {
 
   const [newMessage, setNewMessage] = useState<string>("");
 
-  const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]); // TODO get subscriptions working
-  useEffect(() => {
-    // TODO set up subscription handler
-  }, [apolloClient]);
-
-  const [sendMessage, sendMessageResult] = useMutation<CreateItemInput>(gql`
-    mutation SendMessage($input: CreateItemInput!) {
-      createItem(input: $input) {
+  const onCreateItem =  /* GraphQL */ `
+    subscription OnCreateItem(
+      $id: ID
+      $message: String
+      $timestamp: AWSTimestamp
+      $type: String
+    )
+    {
+      onCreateItem(
+        id: $id
+        message: $message
+        timestamp: $timestamp
+        type: $type
+      ) {
         id
         message
+        timestamp
+        type
       }
     }
-  `, {
+  `
+
+  useSubscription(gql`${onCreateItem}`, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      setItems((prevState) => [...prevState, subscriptionData.data.onCreateItem])
+    },    
+  });
+
+  const [ items, setItems ] = useState<Item[]>([]);
+
+  const [sendMessage, sendMessageResult] = useMutation<CreateItemInput>(
+    gql`mutation SendMessage($input: CreateItemInput!) {
+      createItem(input: $input) { 
+        # including values here makes them accessible in our subscription data
+        id
+        message
+        user
+        timestamp
+      }
+    }`, {
     onCompleted: () => setNewMessage(""),
     onError: console.error, // TODO add some better error handling,
     variables: {
@@ -58,7 +85,11 @@ export const Widget = ({user}: WidgetProps) => {
         }
       }
     }
-  `)
+  `, {
+    onCompleted: (data) => {
+      setItems((prevState) => [...data.listItems.items, ...prevState])
+    }
+  })
 
   return (
     <>
@@ -105,7 +136,7 @@ export const Widget = ({user}: WidgetProps) => {
         }}>
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
-          {initialItems.data && <Items items={[...initialItems.data.listItems.items, ...subscriptionItems]} />}
+          {initialItems.data && <Items items={items} />}
           <div style={{
             display: "flex"
           }}>

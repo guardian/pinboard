@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {gql, useApolloClient, useMutation, useQuery, useSubscription} from "@apollo/client";
 import {CreateItemInput, Item} from "../../shared/graphql/graphql";
 import {Items} from "./items";
@@ -7,6 +7,10 @@ import {User} from "../../shared/User";
 const bottomRight = 10;
 const widgetSize = 50;
 const boxShadow = "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
+
+const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
+  event.key === "Enter" || event.keyCode === 13;
+
 
 interface WidgetProps {
   user: User
@@ -61,7 +65,7 @@ export const Widget = ({user}: WidgetProps) => {
       }
     }`, {
     onCompleted: () => setNewMessage(""),
-    onError: console.error, // TODO add some better error handling,
+    onError: console.error, // TODO add some better error handling
     variables: {
       input: {
         type: "message",
@@ -149,8 +153,13 @@ export const Widget = ({user}: WidgetProps) => {
               rows={2}
               value={newMessage}
               onChange={event => setNewMessage(event.target.value)}
+              onKeyPress={event => isEnterKey(event) && sendMessage()}
             />
-            <button className="btn" onClick={() => sendMessage()}>Send</button>
+            <button className="btn"
+                    onClick={() => sendMessage()}
+            >
+              Send
+            </button>
           </div>
         </div>
       )}

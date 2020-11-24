@@ -19,7 +19,7 @@ const ItemDisplay = (item: Item) => {
         color: "lightgray"
       }}>
         <span>{user.firstName}</span>
-        <span>{new Date(item.timestamp).toTimeString().substr(0, 8)}</span>
+        <span>{new Date(item.timestamp * 1000).toTimeString().substr(0, 8)}</span>
       </div>
       <div>
         {item.message}

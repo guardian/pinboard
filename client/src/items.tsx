@@ -33,7 +33,8 @@ interface ItemsProps {
 }
 export const Items = ({items}: ItemsProps) => (
   <div style={{
-    overflowY: "auto"
+    overflowY: "auto",
+    margin: '5px',
   }}>
     {items.map(ItemDisplay)}
   </div>

@@ -3,6 +3,7 @@ import {gql, useApolloClient, useMutation, useQuery, useSubscription} from "@apo
 import {CreateItemInput, Item} from "../../shared/graphql/graphql";
 import {Items} from "./items";
 import {User} from "../../shared/User";
+import { ConnectionInfo } from "./connectionInfo";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -46,7 +47,7 @@ export const Widget = ({user}: WidgetProps) => {
     }
   `
 
-  useSubscription(gql`${onCreateItem}`, {
+  const subscription = useSubscription(gql`${onCreateItem}`, {
     onSubscriptionData: ({ subscriptionData }) => {
       setItems((prevState) => [...prevState, subscriptionData.data.onCreateItem])
     },    
@@ -124,6 +125,18 @@ export const Widget = ({user}: WidgetProps) => {
         }}>
           📌
         </div>
+        {(initialItems.error || subscription.error) &&
+        <div style={{
+          position: "absolute",
+          fontSize: `${widgetSize/3}px`,
+          bottom: `-${widgetSize/16}px`,
+          right: `-${widgetSize/16}px`,
+          userSelect: "none",
+          textShadow: '0 0 5px black'
+        }}>
+          ⚠️
+        </div>
+      }
       </div>
       {isExpanded && (
         <div style={{
@@ -132,20 +145,24 @@ export const Widget = ({user}: WidgetProps) => {
           background: "white",
           boxShadow,
           border: "2px orange solid",
-          padding: "5px",
           width: "250px",
           height: "calc(100vh - 100px)",
           bottom: `${bottomRight + (widgetSize/2) - 5}px`,
           right: `${bottomRight + (widgetSize/2) - 5}px`,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between"
+          justifyContent: "space-between",
+          fontFamily: "sans-serif",
         }}>
+          <ConnectionInfo>
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
+          {subscription.error && `Error: ${subscription.error}`}
+          </ConnectionInfo>
           {initialItems.data && <Items items={items} />}
           <div style={{
-            display: "flex"
+            display: "flex",
+            margin: '5px',
           }}>
             <textarea
               style={{flexGrow: 1, marginRight: "5px"}}

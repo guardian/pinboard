@@ -23,6 +23,8 @@ export const Widget = ({user}: WidgetProps) => {
 
   const [isExpanded, setIsExpanded] = useState<boolean>();
 
+  const [hasUnread, setHasUnread] = useState<boolean>();
+
   const [newMessage, setNewMessage] = useState<string>("");
 
   const onCreateItem =  /* GraphQL */ `
@@ -50,6 +52,9 @@ export const Widget = ({user}: WidgetProps) => {
   const subscription = useSubscription(gql`${onCreateItem}`, {
     onSubscriptionData: ({ subscriptionData }) => {
       setItems((prevState) => [...prevState, subscriptionData.data.onCreateItem])
+      if(!isExpanded) {
+        setHasUnread(true);
+      }
     },    
   });
 
@@ -114,7 +119,12 @@ export const Widget = ({user}: WidgetProps) => {
           background: "orange",
           boxShadow
         }}
-        onClick={() => setIsExpanded(previous => !previous)}
+        onClick={() =>setIsExpanded(previous => { 
+          if(!previous) {
+            setHasUnread(false)
+          }
+          return !previous 
+        })}
       >
         <div style={{
           position: "absolute",
@@ -135,6 +145,16 @@ export const Widget = ({user}: WidgetProps) => {
           textShadow: '0 0 5px black'
         }}>
           ⚠️
+        </div>
+      }
+      {hasUnread &&
+        <div style={{
+          position: "absolute",
+          fontSize: `${widgetSize/3}px`,
+          top: `-${widgetSize/16}px`,
+          userSelect: "none",
+        }}>
+          🔴
         </div>
       }
       </div>

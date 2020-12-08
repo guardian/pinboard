@@ -117,7 +117,7 @@ export const Widget = ({user}: WidgetProps) => {
           background: "orange",
           boxShadow
         }}
-        onClick={() =>setIsExpanded(previous => { 
+        onClick={() => setIsExpanded(previous => {
           if(!previous) {
             setHasUnread(false)
           }

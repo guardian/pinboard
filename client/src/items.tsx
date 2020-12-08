@@ -34,9 +34,14 @@ const ItemDisplay = ({item, refForLastItem}: ItemDisplayProps) => {
 }
 
 interface ItemsProps {
-  items: Item[]
+  initialItems: Item[],
+  subscriptionItems: Item[],
+  setHasUnread: (hasUnread: boolean) => void,
+  isExpanded: boolean
 }
-export const Items = ({items}: ItemsProps) => {
+export const Items = ({initialItems, subscriptionItems, setHasUnread, isExpanded}: ItemsProps) => {
+
+  const items = [...initialItems, ...subscriptionItems].sort((a, b) => a.timestamp - b.timestamp);
 
   const scrollableAreaRef = useRef<HTMLDivElement>(null);
   const scrollableArea = scrollableAreaRef.current;
@@ -44,26 +49,36 @@ export const Items = ({items}: ItemsProps) => {
   const lastItemRef = useRef<HTMLDivElement>(null);
   const lastItemIndex = items.length-1;
 
-  const scrollToLastItem = () =>
-    lastItemRef.current?.scrollIntoView({behavior: "smooth", block: "end"});
+  const scrollToLastItem = () => { setTimeout(
+    () =>  lastItemRef.current?.scrollIntoView({behavior: "smooth", block: "end"}), 
+    1
+  )};
+  
 
-  useEffect(scrollToLastItem, []); // runs once at the beginning TODO ensure this doesn't happen when expanded subsequent times
+  useEffect(scrollToLastItem, []); // runs once at the beginning
 
-  // calculate this before the render
-  const isScrolledToBottom = scrollableArea &&
-    scrollableArea.scrollTop >= (scrollableArea.scrollHeight - scrollableArea.offsetHeight - 20); // 20 pixels tolerance
+  const isLastItemVisible = () => scrollableArea && lastItemRef.current && scrollableArea.scrollTop > (lastItemRef.current.offsetTop - scrollableArea.offsetHeight - 10)
 
   useEffect(() => {
-    if (isScrolledToBottom){
+    if (isLastItemVisible()){
       scrollToLastItem();
+    } else if(isExpanded) {
+      setHasUnread(true);
+    } 
+  }, [subscriptionItems]); // runs after render when the list of subscription items has changed (e.g. new message received)
+
+  useEffect(() => {
+    if (isExpanded && isLastItemVisible()){
+      setHasUnread(false);
     }
-  }, [items]); // runs after render when the list of items has changed (e.g. new message received)
+  }, [isExpanded]); // runs when the widget is expanded/closed
 
   return (
     <div ref={scrollableAreaRef} style={{
       overflowY: "auto",
       margin: '5px',
-    }}>
+    }}
+    onScroll={() => isLastItemVisible() && setHasUnread(false)}>
       {items.map((item, index) => (
         <ItemDisplay
           key={item.id}

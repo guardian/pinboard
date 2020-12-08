@@ -19,7 +19,7 @@ interface WidgetProps {
 
 export const Widget = ({user}: WidgetProps) => {
 
-  const [isExpanded, setIsExpanded] = useState<boolean>();
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const [hasUnread, setHasUnread] = useState<boolean>();
 
@@ -49,14 +49,14 @@ export const Widget = ({user}: WidgetProps) => {
 
   const subscription = useSubscription(gql`${onCreateItem}`, {
     onSubscriptionData: ({ subscriptionData }) => {
-      setItems((prevState) => [...prevState, subscriptionData.data.onCreateItem])
+      setSubscriptionItems((prevState) => [...prevState, subscriptionData.data.onCreateItem])
       if(!isExpanded) {
         setHasUnread(true);
       }
     },    
   });
 
-  const [ items, setItems ] = useState<Item[]>([]);
+  const [ subscriptionItems, setSubscriptionItems ] = useState<Item[]>([]);
 
   const [sendMessage/*, sendMessageResult TODO do something with the result */] = useMutation<CreateItemInput>(
     gql`mutation SendMessage($input: CreateItemInput!) {
@@ -92,15 +92,7 @@ export const Widget = ({user}: WidgetProps) => {
         }
       }
     }
-  `, {
-    onCompleted: (data) => setItems((prevState) => [
-      ...data.listItems.items as Item[],
-      ...prevState
-    ].sort(
-      // TODO sort server-side, perhaps when we add workflowID as a column for which we'll need a GSI (see https://github.com/awslabs/aws-mobile-appsync-sdk-js/issues/397#issuecomment-485994792
-      (a, b) => a.timestamp - b.timestamp
-    ))
-  })
+  `)
 
   return (
     <>
@@ -117,12 +109,7 @@ export const Widget = ({user}: WidgetProps) => {
           background: "orange",
           boxShadow
         }}
-        onClick={() => setIsExpanded(previous => {
-          if(!previous) {
-            setHasUnread(false)
-          }
-          return !previous 
-        })}
+        onClick={() => setIsExpanded(previous => !previous)}
       >
         <div style={{
           position: "absolute",
@@ -156,7 +143,6 @@ export const Widget = ({user}: WidgetProps) => {
         </div>
       }
       </div>
-      {isExpanded && (
         <div style={{
           position: "fixed",
           zIndex: 99998,
@@ -167,17 +153,17 @@ export const Widget = ({user}: WidgetProps) => {
           height: "calc(100vh - 100px)",
           bottom: `${bottomRight + (widgetSize/2) - 5}px`,
           right: `${bottomRight + (widgetSize/2) - 5}px`,
-          display: "flex",
+          display: isExpanded ? 'flex' : 'none',
           flexDirection: "column",
           justifyContent: "space-between",
           fontFamily: "sans-serif",
         }}>
           <ConnectionInfo>
-          {initialItems.loading && "Loading..."}
-          {initialItems.error && `Error: ${initialItems.error}`}
-          {subscription.error && `Error: ${subscription.error}`}
+            {initialItems.loading && "Loading..."}
+            {initialItems.error && `Error: ${initialItems.error}`}
+            {subscription.error && `Error: ${subscription.error}`}
           </ConnectionInfo>
-          {initialItems.data && <Items items={items} />}
+          {initialItems.data && <Items initialItems={initialItems.data.listItems.items} subscriptionItems={subscriptionItems} setHasUnread={setHasUnread} isExpanded={isExpanded}/>}
           <div style={{
             display: "flex",
             margin: '5px',
@@ -198,7 +184,6 @@ export const Widget = ({user}: WidgetProps) => {
             </button>
           </div>
         </div>
-      )}
     </>
   )
 }

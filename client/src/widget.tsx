@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {gql, useApolloClient, useMutation, useQuery, useSubscription} from "@apollo/client";
+import {gql, useMutation, useQuery, useSubscription} from "@apollo/client";
 import {CreateItemInput, Item} from "../../shared/graphql/graphql";
 import {Items} from "./items";
 import {User} from "../../shared/User";
@@ -19,15 +19,13 @@ interface WidgetProps {
 
 export const Widget = ({user}: WidgetProps) => {
 
-  const apolloClient = useApolloClient();
-
   const [isExpanded, setIsExpanded] = useState<boolean>();
 
   const [hasUnread, setHasUnread] = useState<boolean>();
 
   const [newMessage, setNewMessage] = useState<string>("");
 
-  const onCreateItem =  /* GraphQL */ `
+  const onCreateItem = `
     subscription OnCreateItem(
       $id: ID
       $message: String
@@ -60,10 +58,10 @@ export const Widget = ({user}: WidgetProps) => {
 
   const [ items, setItems ] = useState<Item[]>([]);
 
-  const [sendMessage, sendMessageResult] = useMutation<CreateItemInput>(
+  const [sendMessage/*, sendMessageResult TODO do something with the result */] = useMutation<CreateItemInput>(
     gql`mutation SendMessage($input: CreateItemInput!) {
       createItem(input: $input) { 
-        # including values here makes them accessible in our subscription data
+        # including fields here makes them accessible in our subscription data
         id
         message
         user
@@ -190,10 +188,11 @@ export const Widget = ({user}: WidgetProps) => {
               rows={2}
               value={newMessage}
               onChange={event => setNewMessage(event.target.value)}
-              onKeyPress={event => isEnterKey(event) && sendMessage()}
+              onKeyPress={event => isEnterKey(event) && newMessage && sendMessage() && event.preventDefault()}
             />
             <button className="btn"
                     onClick={() => sendMessage()}
+                    disabled={!newMessage}
             >
               Send
             </button>

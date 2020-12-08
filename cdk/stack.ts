@@ -7,6 +7,7 @@ import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import { join } from "path";
+import { BillingMode } from "@aws-cdk/aws-dynamodb";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -44,6 +45,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardAppsyncItemTable = new db.Table(thisStack, `pinboard-appsync-item-table`, {
+      billingMode: BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: "id",
         type: db.AttributeType.STRING,

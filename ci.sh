@@ -15,6 +15,10 @@ yarn graphql-refresh
 # generate cloudformation.yaml
 yarn --cwd 'cdk' synth
 
+# write the current GIT hash to GIT_COMMIT_HASH.ts (so it's available at build time - so it gets baked into the artifact)
+GIT_COMMIT_HASH=$(git rev-parse HEAD)
+echo 'export const GIT_COMMIT_HASH = "'$GIT_COMMIT_HASH'";' > GIT_COMMIT_HASH.ts
+
 # build bootstrapping-lambda into a single file
 yarn --cwd 'bootstrapping-lambda' build
 

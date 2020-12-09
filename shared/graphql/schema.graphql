@@ -60,7 +60,6 @@ type Subscription {
 input CreateItemInput {
   message: String
   payload: AWSJSON
-  timestamp: AWSTimestamp!
   type: String!
   user: AWSJSON!
 }

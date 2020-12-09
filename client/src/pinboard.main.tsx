@@ -2,21 +2,48 @@ import React, {useEffect, useState} from "react";
 import {Widget} from "./widget";
 import {ButtonPortal, PIN_BUTTON_HTML_TAG} from "./addToPinboardButton";
 import { render } from "react-dom";
+import { AppSyncConfig } from "../../shared/AppSyncConfig";
+import {ApolloClient, ApolloProvider, gql, InMemoryCache} from "@apollo/client";
+import { ApolloLink } from "apollo-link";
+import { AWS_REGION } from "../../shared/awsRegion";
+import { createAuthLink } from 'aws-appsync-auth-link'; //TODO attempt to factor out
+import { createSubscriptionHandshakeLink } from 'aws-appsync-subscription-link';
+import {User} from "../../shared/User"; //TODO attempt to factor out
 
-export function mount(/* take in AppSync config/secrets to pass as props */) {
+
+export function mount({user, ...appSyncConfig}: AppSyncConfig) {
+
+    const apolloLink = ApolloLink.from([
+        createAuthLink({
+            url: appSyncConfig.graphqlEndpoint,
+            region: AWS_REGION,
+            auth: { type: 'API_KEY', apiKey: appSyncConfig.apiKey },
+        }) as any,
+        createSubscriptionHandshakeLink(appSyncConfig.graphqlEndpoint), // TODO build from appSyncConfig.realtimeEndpoint
+    ]);
+
+    const apolloClient = new ApolloClient({
+        link: apolloLink as any, //TODO attempt to avoid all this casting to any
+        cache: new InMemoryCache() as any,
+    });
 
     const element = document.createElement("pinboard");
 
     document.body.appendChild(element);
 
     render(
-      React.createElement(PinBoardApp),
-      element
+      React.createElement(PinBoardApp, { apolloClient, user }),
+      element,
     );
 
 }
 
-const PinBoardApp = () => {
+interface PinBoardAppProps {
+    apolloClient: ApolloClient<unknown>,
+    user: User
+}
+
+const PinBoardApp = ({apolloClient, user}: PinBoardAppProps) => {
 
     const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
@@ -27,6 +54,7 @@ const PinBoardApp = () => {
     )
 
     useEffect(() => {
+
         // Add nodes that already exist at time React app is instantiated
         refreshButtonNodes();
 
@@ -43,11 +71,13 @@ const PinBoardApp = () => {
     }, []);
 
 
-    return <>
-        <Widget />
-        {buttonNodes.map((node, index) =>
+    return (
+      <ApolloProvider client={apolloClient}>
+          <Widget user={user}/>
+          {buttonNodes.map((node, index) =>
             <ButtonPortal key={index} node={node} />
-        )}
-    </>;
+          )}
+      </ApolloProvider>
+    );
 }
 

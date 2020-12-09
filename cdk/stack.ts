@@ -7,6 +7,7 @@ import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import { join } from "path";
+import { BillingMode } from "@aws-cdk/aws-dynamodb";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -33,7 +34,7 @@ export class PinBoardStack extends Stack {
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(thisStack, pinboardAppsyncApiBaseName, {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
-        schema: appsync.Schema.fromAsset(join(__dirname, "schema.graphql")),
+        schema: appsync.Schema.fromAsset(join(__dirname, "../shared/graphql/schema.graphql")),
         authorizationConfig: {
           defaultAuthorization: {
             authorizationType: appsync.AuthorizationType.API_KEY,
@@ -44,10 +45,15 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardAppsyncItemTable = new db.Table(thisStack, `pinboard-appsync-item-table`, {
+      billingMode: BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: "id",
         type: db.AttributeType.STRING,
       },
+      sortKey: {
+        name: "timestamp",
+        type: db.AttributeType.NUMBER
+      }
     });
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
@@ -58,8 +64,17 @@ export class PinBoardStack extends Stack {
     pinboardItemDataSource.createResolver({
       typeName: "Query",
       fieldName: "listItems",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbScanTable(),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultList(),
+      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+        }
+      `),
+      // TODO: move back into mapping template above when we convert to a Query operation, when we support multiple pinboards
+      // "limit": $util.defaultIfNull($ctx.args.limit, 20),
+      // "nextToken": $util.toJson($util.defaultIfNullOrEmpty($ctx.args.nextToken, null)),
+      responseMappingTemplate: appsync.MappingTemplate.fromString("$util.toJson($context.result)"),
     });
 
     pinboardItemDataSource.createResolver({
@@ -77,7 +92,7 @@ export class PinBoardStack extends Stack {
       fieldName: "createItem",
       requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
         appsync.PrimaryKey.partition("id").auto(),
-        appsync.Values.projecting("Item")
+        appsync.Values.projecting("input").attribute("timestamp").is("$util.time.nowEpochSeconds()")
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });

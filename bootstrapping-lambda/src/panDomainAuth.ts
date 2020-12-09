@@ -26,8 +26,12 @@ export const getVerifiedUser = async (cookieHeader: string | undefined) => {
 
     const { status, user } = await panda.verify(cookieHeader);
 
-    if(status === AuthenticationStatus.AUTHORISED) {
-      return user;
+    if(status === AuthenticationStatus.AUTHORISED && user) {
+      return {
+        firstName: user.firstName, 
+        lastName: user.lastName,
+        email: user.email
+      };
     }
 
   }

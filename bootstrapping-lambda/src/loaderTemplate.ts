@@ -1,5 +1,5 @@
 // TODO see if there is some nice library for syntax highlighting the string interpolation e.g. js`...`
-import {AppSyncConfig} from "./appSyncLookup";
+import { AppSyncConfig } from "../../shared/AppSyncConfig";
 
 export const loaderTemplate = (appSyncConfig: AppSyncConfig, mainJsFilename: string, hostname: string) => `
   

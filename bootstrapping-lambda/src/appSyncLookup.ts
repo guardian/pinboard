@@ -1,4 +1,6 @@
 import * as AWS from "aws-sdk";
+import { AppSyncConfig } from "../../shared/AppSyncConfig";
+import { User } from "../../shared/User";
 import { STAGE, standardAwsConfig } from "./awsIntegration";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
@@ -17,13 +19,9 @@ const appSyncApiPromise = client.listGraphqlApis({
   )
 )
 
-export interface AppSyncConfig {
-  graphqlEndpoint: string;
-  realtimeEndpoint: string;
-  apiKey: string;
-}
+async function findExistingOrCreateApiKeyForUser(apiId: string, user: User, nextToken?: string): Promise<AWS.AppSync.ApiKey | undefined> {
 
-async function findExistingOrCreateApiKeyForUser(apiId: string, userEmail: string, nextToken?: string): Promise<AWS.AppSync.ApiKey | undefined> {
+  const userEmail = user.email;
 
   const result = await client.listApiKeys({
     apiId,
@@ -41,7 +39,7 @@ async function findExistingOrCreateApiKeyForUser(apiId: string, userEmail: strin
     return maybeSuitableKey;
   }
   else if (result.nextToken){
-    return await findExistingOrCreateApiKeyForUser(apiId, userEmail, result.nextToken);
+    return await findExistingOrCreateApiKeyForUser(apiId, user, result.nextToken);
   }
   else {
     return (
@@ -54,14 +52,14 @@ async function findExistingOrCreateApiKeyForUser(apiId: string, userEmail: strin
   }
 }
 
-export async function generateAppSyncConfig(userEmail: string): Promise<AppSyncConfig> {
+export async function generateAppSyncConfig(user: User): Promise<AppSyncConfig> {
 
   const appSyncAPI = await appSyncApiPromise;
   if(!appSyncAPI?.apiId) {
     throw Error(`Could not find a ${APP} AppSync instance for ${STAGE}`);
   }
 
-  const apiKeyPromise = findExistingOrCreateApiKeyForUser(appSyncAPI.apiId, userEmail);
+  const apiKeyPromise = findExistingOrCreateApiKeyForUser(appSyncAPI.apiId, user);
 
   const apiKey = (await apiKeyPromise)?.id;
   const graphqlEndpoint = appSyncAPI.uris?.["GRAPHQL"]
@@ -74,7 +72,7 @@ export async function generateAppSyncConfig(userEmail: string): Promise<AppSyncC
     throw Error("Could not retrieve/create an AppSync API Key.")
   }
 
-  return { graphqlEndpoint, realtimeEndpoint, apiKey }
+  return { graphqlEndpoint, realtimeEndpoint, apiKey, user }
 }
 
 

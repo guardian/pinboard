@@ -1,0 +1,13 @@
+overwrite: true
+schema:
+  - "shared/graphql/schema.graphql"
+  - "shared/graphql/aws.graphql"
+documents: null
+generates:
+  shared/graphql/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
+config:
+  scalars:
+    AWSJSON: string

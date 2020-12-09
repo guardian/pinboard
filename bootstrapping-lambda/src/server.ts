@@ -7,10 +7,13 @@ import {getVerifiedUser} from "./panDomainAuth";
 import {userHasPermission} from "./permissionCheck";
 import fs from "fs";
 import {applyAggressiveCaching, applyNoCaching, applyJavascriptContentType} from "./util";
+import {GIT_COMMIT_HASH} from "../../GIT_COMMIT_HASH";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
 const server = express();
+
+server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

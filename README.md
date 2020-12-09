@@ -12,6 +12,8 @@ This exists to...
 ## Updating the GraphQL schema
 After making any changes to `shared/graphql/schema.graphql`, run `yarn graphql-refresh` in the root of the project. This will regenerate `shared/graphql/graphql.ts`, which contains the TypeScript type and resolver definitions to match the GraphQL schema. We use (GraphQL Code Generator)[https://graphql-code-generator.com/] to generate these definitions and this is configured in `graphql-refresh.yml`.
 
+This generation step is run for you as part of the `setup.sh`, `start.sh` and `ci.sh` scripts.
+
 Note, `shared/graphql/schema.graphql` is also used in CDK to form part of the Cloudformation.
 
 ## Running locally

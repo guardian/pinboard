@@ -1,0 +1,15 @@
+.yarn/
+
+node_modules/
+/.idea/
+
+.cache/
+dist/
+
+cloudformation.yaml
+cdk.out/
+
+shared/graphql/graphql.ts
+shared/graphql/schema.graphql
+
+tsconfig.json

@@ -12,6 +12,9 @@ yarn install
 # generate TS definitions for GraphQL schema
 yarn graphql-refresh
 
+# perform a prettier check
+prettier --check .
+
 # generate cloudformation.yaml
 yarn --cwd 'cdk' synth
 

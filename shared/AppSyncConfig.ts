@@ -1,6 +1,7 @@
-import {User} from "./User";
+import { User } from "./User";
 
-export interface AppSyncConfig { //TODO broaden this name and/or move the 3 config items into a sub object
+//TODO broaden this name and/or move the 3 config items into a sub object
+export interface AppSyncConfig {
   graphqlEndpoint: string;
   realtimeEndpoint: string;
   apiKey: string;

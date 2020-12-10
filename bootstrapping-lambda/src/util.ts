@@ -1,15 +1,18 @@
-import {Response} from "express";
+import { Response } from "express";
 
-const setCacheControlHeader = (_: Response, value: string) =>
-  _.header("Cache-Control", value);
+const setCacheControlHeader = (response: Response, value: string) =>
+  response.header("Cache-Control", value);
 
-export const applyAggressiveCaching = (_: Response) => {
-  setCacheControlHeader(_, "public, max-age=604800, immutable")
+export const applyAggressiveCaching = (response: Response) => {
+  setCacheControlHeader(response, "public, max-age=604800, immutable");
 };
 
-export const applyNoCaching = (_: Response) => {
-  setCacheControlHeader(_, "private, no-cache, no-store, must-revalidate, max-age=0")
+export const applyNoCaching = (response: Response) => {
+  setCacheControlHeader(
+    response,
+    "private, no-cache, no-store, must-revalidate, max-age=0"
+  );
 };
 
-export const applyJavascriptContentType = (_: Response) =>
-  _.header("Content-Type", "application/javascript");
+export const applyJavascriptContentType = (response: Response) =>
+  response.header("Content-Type", "application/javascript");

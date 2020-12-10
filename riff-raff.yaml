@@ -3,7 +3,6 @@ regions:
 stacks:
   - workflow
 deployments:
-
   pinboard-cloudformation:
     type: cloud-formation
     app: pinboard
@@ -19,5 +18,4 @@ deployments:
       prefixStack: false
       bucket: workflow-dist
       fileName: pinboard-bootstrapping-lambda-api.zip
-      functionNames:
-        [pinboard-bootstrapping-lambda-]
+      functionNames: [pinboard-bootstrapping-lambda-]

@@ -18,6 +18,7 @@ import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import { join } from "path";
 import { BillingMode } from "@aws-cdk/aws-dynamodb";
+import { AWS_REGION } from "../shared/awsRegion";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -49,17 +50,6 @@ export class PinBoardStack extends Stack {
       "workflow-dist",
       "workflow-dist"
     );
-
-    const lambdaExecutePolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["execute-api:Invoke"],
-      resources: ["arn:aws:execute-api:eu-west-1:*"], //TODO tighten up if possible
-    });
-    lambdaExecutePolicyStatement.addAnyPrincipal();
-
-    const lambdaExecutePolicy = new iam.PolicyDocument({
-      statements: [lambdaExecutePolicyStatement],
-    });
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
@@ -222,7 +212,16 @@ export class PinBoardStack extends Stack {
         restApiName: `${bootstrappingLambdaApiBaseName}-${STAGE}`,
         handler: bootstrappingLambdaFunction,
         endpointTypes: [apigateway.EndpointType.REGIONAL],
-        policy: lambdaExecutePolicy,
+        policy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ["execute-api:Invoke"],
+              resources: [`arn:aws:execute-api:${AWS_REGION}:*`],
+              principals: [new iam.AnyPrincipal()],
+            }),
+          ],
+        }),
         defaultMethodOptions: {
           apiKeyRequired: false,
         },

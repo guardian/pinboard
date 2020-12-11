@@ -3,6 +3,7 @@ import {
   AuthenticationStatus,
   guardianValidation,
 } from "@guardian/pan-domain-node";
+import { AWS_REGION } from "../../shared/awsRegion";
 
 const pandaKeyFilename = (function () {
   // TODO consider doing this via Stage tag OR injecting this value directly as env variable
@@ -17,7 +18,7 @@ const pandaKeyFilename = (function () {
 
 const panda = new PanDomainAuthentication(
   "gutoolsAuth-assym", // cookie name
-  "eu-west-1", // AWS region
+  AWS_REGION, // AWS region
   "pan-domain-auth-settings", // Settings bucket
   pandaKeyFilename, // Settings file
   guardianValidation

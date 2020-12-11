@@ -50,7 +50,18 @@ export class PinBoardStack extends Stack {
       "workflow-dist"
     );
 
-    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda"
+    const lambdaExecutePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["execute-api:Invoke"],
+      resources: ["arn:aws:execute-api:eu-west-1:*"], //TODO tighten up if possible
+    });
+    lambdaExecutePolicyStatement.addAnyPrincipal();
+
+    const lambdaExecutePolicy = new iam.PolicyDocument({
+      statements: [lambdaExecutePolicyStatement],
+    });
+
+    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const pinboardWorkflowBridgeLambda = new lambda.Function(
       thisStack,
@@ -91,9 +102,11 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const pinboardItemTableName = "pinboard-appsync-item-table";
+
     const pinboardAppsyncItemTable = new db.Table(
       thisStack,
-      `pinboard-appsync-item-table`,
+      pinboardItemTableName,
       {
         billingMode: BillingMode.PAY_PER_REQUEST,
         partitionKey: {
@@ -107,8 +120,13 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
+      `${workflowBridgeLambdaBasename.split("-").join("_")}_datasource`,
+      pinboardWorkflowBridgeLambda
+    );
+
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `pinboarditemdatasource`,
+      `${pinboardItemTableName.split("-").join("_")}_datasource`,
       pinboardAppsyncItemTable
     );
 
@@ -197,13 +215,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["execute-api:Invoke"],
-      resources: ["arn:aws:execute-api:eu-west-1:*"], //TODO tighten up if possible
-    });
-    bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
-
     const bootstrappingApiGateway = new apigateway.LambdaRestApi(
       thisStack,
       bootstrappingLambdaApiBaseName,
@@ -211,9 +222,7 @@ export class PinBoardStack extends Stack {
         restApiName: `${bootstrappingLambdaApiBaseName}-${STAGE}`,
         handler: bootstrappingLambdaFunction,
         endpointTypes: [apigateway.EndpointType.REGIONAL],
-        policy: new iam.PolicyDocument({
-          statements: [bootstrappingLambdaExecutePolicyStatement],
-        }),
+        policy: lambdaExecutePolicy,
         defaultMethodOptions: {
           apiKeyRequired: false,
         },

@@ -1,0 +1,12 @@
+{
+  "name": "workflow-bridge-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to transform Workflow datastore API endpoints, for ingesting into AppSync",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist -m -e aws-sdk"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.25.1"
+  }
+}

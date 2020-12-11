@@ -28,6 +28,9 @@ yarn --cwd 'bootstrapping-lambda' build
 # bundle the client code into a single file (which ends up in the dist dir of the bootstrapping-lambda)
 yarn --cwd 'client' build
 
+# build workflow-bridge-lambda into a single file
+yarn --cwd 'workflow-bridge-lambda' build
+
 # create a top level dist directory and copy in the built stuff
 mkdir -p dist/client
 cp bootstrapping-lambda/dist/index.js dist/

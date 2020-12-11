@@ -27,6 +27,9 @@ export class PinBoardStack extends Stack {
 
     const APP = "pinboard";
 
+    // if changing should also change .nvmrc (at the root of repo)
+    const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_12_X;
+
     const STACK = new CfnParameter(thisStack, "Stack", {
       type: "String",
       description: "Stack",
@@ -40,6 +43,35 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
+
+    const deployBucket = S3.Bucket.fromBucketName(
+      thisStack,
+      "workflow-dist",
+      "workflow-dist"
+    );
+
+    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda"
+
+    const pinboardWorkflowBridgeLambda = new lambda.Function(
+      thisStack,
+      workflowBridgeLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(5),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${workflowBridgeLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${workflowBridgeLambdaBasename}/${workflowBridgeLambdaBasename}.zip`
+        ),
+      }
+    );
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(
@@ -122,12 +154,6 @@ export class PinBoardStack extends Stack {
 
     // TODO: add resolvers for updates and deletes
 
-    const deployBucket = S3.Bucket.fromBucketName(
-      thisStack,
-      "workflow-dist",
-      "workflow-dist"
-    );
-
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -150,7 +176,7 @@ export class PinBoardStack extends Stack {
       thisStack,
       bootstrappingLambdaBasename,
       {
-        runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
+        runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
         timeout: Duration.seconds(5),
         handler: "index.handler",

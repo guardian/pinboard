@@ -19,3 +19,11 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-bootstrapping-lambda-api.zip
       functionNames: [pinboard-bootstrapping-lambda-]
+
+  pinboard-workflow-bridge-lambda:
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-workflow-bridge-lambda.zip
+      functionNames: [pinboard-workflow-bridge-lambda-]

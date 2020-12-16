@@ -16,6 +16,7 @@ import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
+import * as ec2 from "@aws-cdk/aws-ec2";
 import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
 
@@ -40,30 +41,6 @@ export class PinBoardStack extends Stack {
       description: "Stage",
     }).valueAsString;
 
-    const VPC = new CfnParameter(thisStack, "VPC", {
-      type: "AWS::EC2::VPC::Id",
-      description: "VPC",
-    }).valueAsString;
-
-    const SUBNETS = new CfnParameter(thisStack, "Subnets", {
-      type: "List<AWS::EC2::Subnet::Id>",
-      description: "Subnets",
-    }).valueAsList;
-
-    const SECURITY_GROUPS = new CfnParameter(thisStack, "SecurityGroup", {
-      type: "AWS::EC2::SecurityGroup::Id",
-      description: "SecurityGroup",
-    }).valueAsString;
-
-    const WORKFLOW_DATASTORE_API_URL = new CfnParameter(
-      thisStack,
-      "WorkflowDatastoreAPIURL",
-      {
-        type: "String",
-        description: "Workflow Datastore API URL",
-      }
-    ).valueAsString;
-
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
@@ -75,6 +52,23 @@ export class PinBoardStack extends Stack {
     );
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
+
+    const vpcId = Fn.importValue(
+      `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
+    );
+
+    const workflowDatastoreVPC = ec2.Vpc.fromVpcAttributes(
+      thisStack,
+      "workflow-datastore-vpc",
+      {
+        vpcId: vpcId,
+        availabilityZones: Fn.getAzs(AWS_REGION),
+        privateSubnetIds: Fn.split(
+          ",",
+          Fn.importValue(`WorkflowPrivateSubnetIds-${STAGE}`)
+        ),
+      }
+    );
 
     const pinboardWorkflowBridgeLambda = new lambda.Function(
       thisStack,
@@ -88,7 +82,9 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          WORKFLOW_DATASTORE_API_URL,
+          WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME: Fn.importValue(
+            `WorkflowDatastoreLoadBalancerDNSName-${STAGE}`
+          ),
         },
         functionName: `${workflowBridgeLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -106,10 +102,16 @@ export class PinBoardStack extends Stack {
             ),
           ],
         }),
-        // TODO: determine how to assign lambda to the workflow VPC
-        // vpc: ,
-        // vpcSubnets: ,
-        // securityGroups: []
+        vpc: workflowDatastoreVPC,
+        securityGroups: [
+          ec2.SecurityGroup.fromSecurityGroupId(
+            thisStack,
+            "workflow-datastore-load-balancer-security-group",
+            Fn.importValue(
+              `WorkflowDatastoreLoadBalancerSecurityGroupId-${STAGE}`
+            )
+          ),
+        ],
       }
     );
 

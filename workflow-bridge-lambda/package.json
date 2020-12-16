@@ -10,5 +10,8 @@
     "@types/node-fetch": "^2.5.7",
     "@vercel/ncc": "^0.25.1",
     "node-fetch": "^2.6.1"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-ec2": "^1.78.0"
   }
 }

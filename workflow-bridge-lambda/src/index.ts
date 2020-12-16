@@ -1,7 +1,7 @@
 import * as lambda from "aws-lambda";
 import fetch from "node-fetch";
 
-const WORKFLOW_DATASTORE_API_URL = process.env.WORKFLOW_DATASTORE_API_URL;
+const WORKFLOW_DATASTORE_API_URL = `http://${process.env.WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME}/api`;
 
 exports.handler = async (
   event: any, // TODO find the AppSync event type or define our own

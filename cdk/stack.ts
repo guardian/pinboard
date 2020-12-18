@@ -155,7 +155,7 @@ export class PinBoardStack extends Stack {
       `${workflowBridgeLambdaBasename
         .replace("pinboard-", "")
         .split("-")
-        .join("_")}_datasource`,
+        .join("_")}_ds`,
       pinboardWorkflowBridgeLambda
     );
 

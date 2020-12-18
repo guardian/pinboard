@@ -17,6 +17,7 @@ type WorkflowStub {
 	id: Float!
 	title: String
 	composerId: String
+  status: String
 }
 
 type ItemConnection {

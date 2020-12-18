@@ -7,10 +7,20 @@ exports.handler = async (
   event: any, // TODO find the AppSync event type or define our own
   context: lambda.Context
 ) => {
+  const fields = ["id", "title", "composerId"].join(",");
+  
   const stubsResponse = await fetch(
-    `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=minimal`
+    `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
   );
   const stubsResponseBody = await stubsResponse.json();
+  const groupedStubs: { [status: string]: object[] } =
+    stubsResponseBody.data.content;
 
-  return stubsResponseBody.data.content;
+  return Object.entries(groupedStubs).reduce(
+    (accumulator, [status, stubs]) => [
+      ...accumulator,
+      ...stubs.map((stub) => ({ ...stub, status })),
+    ],
+    [] as object[]
+  );
 };

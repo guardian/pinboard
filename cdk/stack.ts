@@ -201,7 +201,12 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
-    // TODO: add resolvers for updates and deletes
+    // TODO: add resolvers for updates and deletes to dynamo
+
+    pinboardWorkflowBridgeLambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "listPinboards",
+    });
 
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({

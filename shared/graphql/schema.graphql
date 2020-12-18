@@ -13,6 +13,12 @@ type Item {
   user: AWSJSON!
 }
 
+type WorkflowStub {
+	id: Float!
+	title: String
+	composerId: String
+}
+
 type ItemConnection {
   items: [Item]
   nextToken: String
@@ -31,6 +37,7 @@ type Query {
     limit: Int
     nextToken: String
   ): ItemConnection
+  listPinboards: [WorkflowStub]
 }
 
 type Subscription {

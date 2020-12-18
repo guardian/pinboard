@@ -133,7 +133,7 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardItemTableName = "pinboard-appsync-item-table";
+    const pinboardItemTableName = "pinboard-item-table";
 
     const pinboardAppsyncItemTable = new db.Table(
       thisStack,
@@ -152,12 +152,18 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${workflowBridgeLambdaBasename.split("-").join("_")}_datasource`,
+      `${workflowBridgeLambdaBasename
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_datasource`,
       pinboardWorkflowBridgeLambda
     );
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardItemTableName.split("-").join("_")}_datasource`,
+      `${pinboardItemTableName
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_datasource`,
       pinboardAppsyncItemTable
     );
 

@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
-import { CreateItemInput, Item } from "../../shared/graphql/graphql";
+import {
+  CreateItemInput,
+  Item,
+  WorkflowStub,
+} from "../../shared/graphql/graphql";
 import { Items } from "./items";
-import { User } from "../../shared/User";
-import { ConnectionInfo } from "./connectionInfo";
+import { HeadingPanel } from "./headingPanel";
+import { WidgetProps } from "./widget";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -13,55 +17,48 @@ const boxShadow =
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
-interface WidgetProps {
-  user: User;
+export type PinboardData = WorkflowStub;
+
+interface PinboardProps extends WidgetProps {
+  pinboardData: PinboardData;
 }
 
-export const Pinboard = ({ user }: WidgetProps) => {
+export const Pinboard = ({ user, pinboardData }: PinboardProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const [hasUnread, setHasUnread] = useState<boolean>();
 
   const [newMessage, setNewMessage] = useState<string>("");
 
-  const onCreateItem = `
-    subscription OnCreateItem(
-      $id: ID
-      $message: String
-      $timestamp: AWSTimestamp
-      $type: String
-    )
-    {
+  const pinboardId = pinboardData.id.toFixed(0);
+
+  const onCreateItem = gql`
+    subscription OnCreateItem {
       onCreateItem(
-        id: $id
-        message: $message
-        timestamp: $timestamp
-        type: $type
+        pinboardId: "${pinboardId}"
       ) {
         id
         message
         timestamp
         type
+        pinboardId
       }
     }
   `;
 
-  const subscription = useSubscription(
-    gql`
-      ${onCreateItem}
-    `,
-    {
-      onSubscriptionData: ({ subscriptionData }) => {
-        setSubscriptionItems((prevState) => [
-          ...prevState,
-          subscriptionData.data.onCreateItem,
-        ]);
-        if (!isExpanded) {
-          setHasUnread(true);
-        }
-      },
-    }
-  );
+  // TODO: extract to widget level?
+  const subscription = useSubscription(onCreateItem, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const updateForSubscription = subscriptionData.data.onCreateItem;
+      setSubscriptionItems((prevState) => [
+        ...prevState,
+        updateForSubscription,
+      ]);
+      if (!isExpanded) {
+        setHasUnread(true);
+      }
+    },
+  });
 
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
@@ -76,6 +73,7 @@ export const Pinboard = ({ user }: WidgetProps) => {
           message
           user
           timestamp
+          pinboardId
         }
       }
     `,
@@ -87,25 +85,30 @@ export const Pinboard = ({ user }: WidgetProps) => {
           type: "message",
           message: newMessage,
           user: JSON.stringify(user),
+          pinboardId,
         },
       },
     }
   );
 
-  const initialItems = useQuery(gql`
-    query MyQuery {
-      listItems {
-        items {
-          id
-          message
-          timestamp
-          type
-          payload
-          user
+  // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
+  const initialItems = useQuery(
+    gql`
+      query MyQuery {
+        listItems(filter: { pinboardId: { eq: "${pinboardId}" } }) {
+          items {
+            id
+            message
+            timestamp
+            type
+            payload
+            user
+            pinboardId
+          }
         }
       }
-    }
-  `);
+    `
+  );
 
   return (
     <>
@@ -179,11 +182,12 @@ export const Pinboard = ({ user }: WidgetProps) => {
           fontFamily: "sans-serif",
         }}
       >
-        <ConnectionInfo>
+        <HeadingPanel>
+          <strong>{pinboardData.title}</strong>
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
           {subscription.error && `Error: ${subscription.error}`}
-        </ConnectionInfo>
+        </HeadingPanel>
         {initialItems.data && (
           <Items
             initialItems={initialItems.data.listItems.items}

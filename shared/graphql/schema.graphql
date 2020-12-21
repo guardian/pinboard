@@ -11,6 +11,7 @@ type Item {
   timestamp: AWSTimestamp!
   type: String!
   user: AWSJSON!
+  pinboardId: String!
 }
 
 type WorkflowStub {
@@ -48,6 +49,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
   onDeleteItem(
     id: ID
@@ -55,6 +57,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["deleteItem"])
   onUpdateItem(
     id: ID
@@ -62,6 +65,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["updateItem"])
 }
 
@@ -70,6 +74,7 @@ input CreateItemInput {
   payload: AWSJSON
   type: String!
   user: AWSJSON!
+  pinboardId: String!
 }
 
 input DeleteItemInput {

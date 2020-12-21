@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Pinboard } from "./pinboard";
 import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
@@ -14,6 +13,7 @@ import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { User } from "../../shared/User"; //TODO attempt to factor out
+import { Widget } from "./widget";
 
 export function mount({ user, ...appSyncConfig }: AppSyncConfig) {
   const apolloLink = ApolloLink.from([
@@ -65,7 +65,7 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <Pinboard user={user} />
+      <Widget user={user} />
       {buttonNodes.map((node, index) => (
         <ButtonPortal key={index} node={node} />
       ))}

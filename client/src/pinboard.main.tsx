@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Widget } from "./widget";
+import { Pinboard } from "./pinboard";
 import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
@@ -65,7 +65,7 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <Widget user={user} />
+      <Pinboard user={user} />
       {buttonNodes.map((node, index) => (
         <ButtonPortal key={index} node={node} />
       ))}

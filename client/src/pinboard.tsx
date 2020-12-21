@@ -17,7 +17,7 @@ interface WidgetProps {
   user: User;
 }
 
-export const Widget = ({ user }: WidgetProps) => {
+export const Pinboard = ({ user }: WidgetProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const [hasUnread, setHasUnread] = useState<boolean>();

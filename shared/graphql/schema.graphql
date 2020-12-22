@@ -40,6 +40,7 @@ type Query {
     nextToken: String
   ): ItemConnection
   listPinboards: [WorkflowStub]
+  getPinboardByComposerId(composerId: String): WorkflowStub
 }
 
 type Subscription {

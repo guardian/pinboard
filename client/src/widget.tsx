@@ -3,17 +3,36 @@ import { User } from "../../shared/User";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import Modal from "react-modal";
+import { gql, useQuery } from "@apollo/client";
 
 export interface WidgetProps {
   user: User;
+  preselectedComposerId: string | undefined;
 }
 
 export const Widget = (props: WidgetProps) => {
-  const [pinboards, setPinboards] = useState<PinboardData[]>([]);
+  const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
+    PinboardData[]
+  >([]);
+
+  const preselectedPinboard = useQuery(gql`
+      query MyQuery {
+        getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
+        {    
+          title
+          status
+          id
+          composerId
+        }
+      }`).data?.getPinboardByComposerId;
+
+  const pinboards: PinboardData[] = preselectedPinboard
+    ? [preselectedPinboard, ...manuallyOpenedPinboards]
+    : manuallyOpenedPinboards;
 
   const openPinboard = (pinboardData: PinboardData) =>
     !pinboards.includes(pinboardData) &&
-    setPinboards([...pinboards, pinboardData]);
+    setManuallyOpenedPinboards([...manuallyOpenedPinboards, pinboardData]);
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 

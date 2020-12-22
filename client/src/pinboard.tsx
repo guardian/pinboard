@@ -182,12 +182,13 @@ export const Pinboard = ({ user, pinboardData }: PinboardProps) => {
           fontFamily: "sans-serif",
         }}
       >
-        <HeadingPanel>
-          <strong>{pinboardData.title}</strong>
-          {initialItems.loading && "Loading..."}
-          {initialItems.error && `Error: ${initialItems.error}`}
-          {subscription.error && `Error: ${subscription.error}`}
-        </HeadingPanel>
+        <div style={{ flexGrow: 1 }}>
+          <HeadingPanel heading={pinboardData.title || ""}>
+            {initialItems.loading && "Loading..."}
+            {initialItems.error && `Error: ${initialItems.error}`}
+            {subscription.error && `Error: ${subscription.error}`}
+          </HeadingPanel>
+        </div>
         {initialItems.data && (
           <Items
             initialItems={initialItems.data.listItems.items}

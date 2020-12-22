@@ -43,6 +43,23 @@ interface ItemsProps {
   setHasUnread: (hasUnread: boolean) => void;
   isExpanded: boolean;
 }
+
+const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
+  scrollableArea.scrollHeight <= scrollableArea.clientHeight;
+
+const elementIsVisible = (
+  scrollableArea: HTMLDivElement,
+  element: HTMLElement
+) => {
+  const elementTopRelativeToScrollableArea =
+    element.offsetTop - scrollableArea.offsetTop;
+  const scrollTop = scrollableArea.scrollTop;
+  const scrollableAreaHeight = scrollableArea.clientHeight;
+  const scrollTopThreshold =
+    elementTopRelativeToScrollableArea - scrollableAreaHeight - 10;
+  return scrollTop > scrollTopThreshold;
+};
+
 export const Items = ({
   initialItems,
   subscriptionItems,
@@ -61,6 +78,7 @@ export const Items = ({
 
   const scrollToLastItem = () => {
     setTimeout(
+      // TODO: could we use request animation frame?
       () =>
         lastItemRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -75,8 +93,8 @@ export const Items = ({
   const isLastItemVisible = () =>
     scrollableArea &&
     lastItemRef.current &&
-    scrollableArea.scrollTop >
-      lastItemRef.current.offsetTop - scrollableArea.offsetHeight - 10;
+    (isScrollbarVisible(scrollableArea) ||
+      elementIsVisible(scrollableArea, lastItemRef.current));
 
   useEffect(() => {
     if (isLastItemVisible()) {

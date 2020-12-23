@@ -129,6 +129,7 @@ input TableItemFilterInput {
   message: TableStringFilterInput
   timestamp: TableIntFilterInput
   type: TableStringFilterInput
+  pinboardId: TableStringFilterInput
 }
 
 input TableStringFilterInput {

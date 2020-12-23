@@ -15,7 +15,7 @@ type Item {
 }
 
 type WorkflowStub {
-	id: Float!
+	id: String!
 	title: String
 	composerId: String
   status: String

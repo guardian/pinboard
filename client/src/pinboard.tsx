@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
+import React, { useEffect, useState } from "react";
+import {
+  ApolloError,
+  gql,
+  useMutation,
+  useQuery,
+  useSubscription,
+} from "@apollo/client";
 import {
   CreateItemInput,
   Item,
@@ -9,11 +15,6 @@ import { Items } from "./items";
 import { HeadingPanel } from "./headingPanel";
 import { WidgetProps } from "./widget";
 
-const bottomRight = 10;
-const widgetSize = 50;
-const boxShadow =
-  "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
-
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
@@ -21,16 +22,27 @@ export type PinboardData = WorkflowStub;
 
 interface PinboardProps extends WidgetProps {
   pinboardData: PinboardData;
+  setError: (pinboardId: string, error: ApolloError | undefined) => void;
+  setUnreadFlag: (pinboardId: string, hasUnread: boolean | undefined) => void;
+  isExpanded: boolean;
+  isSelected: boolean;
+  clearSelectedPinboard: () => void;
 }
 
-export const Pinboard = ({ user, pinboardData }: PinboardProps) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
+export const Pinboard = ({
+  user,
+  pinboardData,
+  setError,
+  setUnreadFlag,
+  isExpanded,
+  isSelected,
+  clearSelectedPinboard,
+}: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
   const [newMessage, setNewMessage] = useState<string>("");
 
-  const pinboardId = pinboardData.id.toFixed(0);
+  const pinboardId = pinboardData.id;
 
   const onCreateItem = gql`
     subscription OnCreateItem {
@@ -79,7 +91,7 @@ export const Pinboard = ({ user, pinboardData }: PinboardProps) => {
     `,
     {
       onCompleted: () => setNewMessage(""),
-      onError: console.error, // TODO add some better error handling
+      onError: console.error, // TODO: add some better error handling
       variables: {
         input: {
           type: "message",
@@ -110,120 +122,59 @@ export const Pinboard = ({ user, pinboardData }: PinboardProps) => {
     `
   );
 
-  return (
+  useEffect(() => setUnreadFlag(pinboardId, hasUnread), [hasUnread]);
+
+  useEffect(
+    () => setError(pinboardId, initialItems.error || subscription.error),
+    [initialItems.error, subscription.error]
+  );
+
+  return !isSelected ? null : (
     <>
-      <div
-        style={{
-          position: "fixed",
-          zIndex: 99999,
-          bottom: `${bottomRight}px`,
-          right: `${bottomRight}px`,
-          width: `${widgetSize}px`,
-          height: `${widgetSize}px`,
-          borderRadius: `${widgetSize / 2}px`,
-          cursor: "pointer",
-          background: "orange",
-          boxShadow,
-        }}
-        onClick={() => setIsExpanded((previous) => !previous)}
-      >
-        <div
-          style={{
-            position: "absolute",
-            fontSize: `${widgetSize / 2}px`,
-            top: `${widgetSize / 4}px`,
-            left: `${widgetSize / 4}px`,
-            userSelect: "none",
-          }}
+      <div style={{ flexGrow: 1 }}>
+        <HeadingPanel
+          heading={pinboardData.title || ""}
+          clearSelectedPinboard={clearSelectedPinboard}
         >
-          📌
-        </div>
-        {(initialItems.error || subscription.error) && (
-          <div
-            style={{
-              position: "absolute",
-              fontSize: `${widgetSize / 3}px`,
-              bottom: `-${widgetSize / 16}px`,
-              right: `-${widgetSize / 16}px`,
-              userSelect: "none",
-              textShadow: "0 0 5px black",
-            }}
-          >
-            ⚠️
-          </div>
-        )}
-        {hasUnread && (
-          <div
-            style={{
-              position: "absolute",
-              fontSize: `${widgetSize / 3}px`,
-              top: `-${widgetSize / 16}px`,
-              userSelect: "none",
-            }}
-          >
-            🔴
-          </div>
-        )}
+          {initialItems.loading && "Loading..."}
+          {initialItems.error && `Error: ${initialItems.error}`}
+          {subscription.error && `Error: ${subscription.error}`}
+        </HeadingPanel>
       </div>
+      {initialItems.data && (
+        <Items
+          initialItems={initialItems.data.listItems.items}
+          subscriptionItems={subscriptionItems}
+          setHasUnread={setHasUnread}
+          isExpanded={isExpanded}
+        />
+      )}
       <div
         style={{
-          position: "fixed",
-          zIndex: 99998,
-          background: "white",
-          boxShadow,
-          border: "2px orange solid",
-          width: "250px",
-          height: "calc(100vh - 100px)",
-          bottom: `${bottomRight + widgetSize / 2 - 5}px`,
-          right: `${bottomRight + widgetSize / 2 - 5}px`,
-          display: isExpanded ? "flex" : "none",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          fontFamily: "sans-serif",
+          display: "flex",
+          margin: "5px",
         }}
       >
-        <div style={{ flexGrow: 1 }}>
-          <HeadingPanel heading={pinboardData.title || ""}>
-            {initialItems.loading && "Loading..."}
-            {initialItems.error && `Error: ${initialItems.error}`}
-            {subscription.error && `Error: ${subscription.error}`}
-          </HeadingPanel>
-        </div>
-        {initialItems.data && (
-          <Items
-            initialItems={initialItems.data.listItems.items}
-            subscriptionItems={subscriptionItems}
-            setHasUnread={setHasUnread}
-            isExpanded={isExpanded}
-          />
-        )}
-        <div
-          style={{
-            display: "flex",
-            margin: "5px",
-          }}
+        <textarea
+          style={{ flexGrow: 1, marginRight: "5px" }}
+          placeholder="enter chat message here..."
+          rows={2}
+          value={newMessage}
+          onChange={(event) => setNewMessage(event.target.value)}
+          onKeyPress={(event) =>
+            isEnterKey(event) &&
+            newMessage &&
+            sendMessage() &&
+            event.preventDefault()
+          }
+        />
+        <button
+          className="btn"
+          onClick={() => sendMessage()}
+          disabled={!newMessage}
         >
-          <textarea
-            style={{ flexGrow: 1, marginRight: "5px" }}
-            placeholder="enter chat message here..."
-            rows={2}
-            value={newMessage}
-            onChange={(event) => setNewMessage(event.target.value)}
-            onKeyPress={(event) =>
-              isEnterKey(event) &&
-              newMessage &&
-              sendMessage() &&
-              event.preventDefault()
-            }
-          />
-          <button
-            className="btn"
-            onClick={() => sendMessage()}
-            disabled={!newMessage}
-          >
-            Send
-          </button>
-        </div>
+          Send
+        </button>
       </div>
     </>
   );

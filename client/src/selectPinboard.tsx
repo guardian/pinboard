@@ -5,11 +5,13 @@ import { PinboardData } from "./pinboard";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
+  closePinboard: (pinboardData: PinboardData) => void;
   pinboardIds: string[];
 }
 
 export const SelectPinboard = ({
   openPinboard,
+  closePinboard,
   pinboardIds,
 }: SelectPinboardProps) => {
   const { data, loading } = useQuery(gql`
@@ -23,13 +25,14 @@ export const SelectPinboard = ({
     }
   `);
 
-  // TODO: improve styling, add unread/error badges beside open pinboards, and the ability to close a pinboard
+  // TODO: improve styling, add unread/error badges beside open pinboards
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
     <div key={pinboardData.id}>
       <button onClick={() => openPinboard(pinboardData)}>
         {pinboardData.title}
       </button>
+      <button onClick={() => closePinboard(pinboardData)}>❌</button>
     </div>
   );
 

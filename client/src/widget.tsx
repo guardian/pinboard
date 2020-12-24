@@ -53,6 +53,17 @@ export const Widget = (props: WidgetProps) => {
     setSelectedPinboardId(pinboardData.id);
   };
 
+  const closePinboard = (pinboardData: PinboardData) => {
+    if (pinboardIds.includes(pinboardData.id)) {
+      setManuallyOpenedPinboards([
+        ...manuallyOpenedPinboards.filter(
+          (pinboard) => pinboard.id != pinboardData.id
+        ),
+      ]);
+    }
+    setSelectedPinboardId(null);
+  };
+
   const [errors, setErrors] = useState<{
     [pinboardId: string]: ApolloError | undefined;
   }>({});
@@ -74,8 +85,6 @@ export const Widget = (props: WidgetProps) => {
   const hasUnread = Object.entries(unreadFlags).find(
     ([pinboardId, unreadFlag]) => pinboardIds.includes(pinboardId) && unreadFlag
   );
-
-  // TODO: provide visual indicator that more than one pinboard is open and a way to toggle between pinboards
 
   return (
     <div>
@@ -153,6 +162,7 @@ export const Widget = (props: WidgetProps) => {
           <SelectPinboard
             openPinboard={openPinboard}
             pinboardIds={pinboardIds}
+            closePinboard={closePinboard}
           />
         )}
         {pinboards.map((pinboardData) => (

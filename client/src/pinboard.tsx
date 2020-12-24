@@ -91,7 +91,7 @@ export const Pinboard = ({
     `,
     {
       onCompleted: () => setNewMessage(""),
-      onError: console.error, // TODO: add some better error handling
+      onError: (error) => setError(pinboardId, error),
       variables: {
         input: {
           type: "message",

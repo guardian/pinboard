@@ -9,7 +9,7 @@ import { PinboardData } from "./pinboard";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
-  closePinboard: (pinboardData: PinboardData) => void;
+  closePinboard: (pinboardId: string) => void;
   pinboardIds: string[];
 }
 
@@ -37,7 +37,7 @@ export const SelectPinboard = ({
         {pinboardData.title}
       </button>
       {pinboardIds.includes(pinboardData.id) && (
-        <button onClick={() => closePinboard(pinboardData)}>❌</button>
+        <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
       )}
     </div>
   );

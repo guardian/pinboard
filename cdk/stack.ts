@@ -24,6 +24,7 @@ export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const thisStack = this;
 
     const APP = "pinboard";

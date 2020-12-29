@@ -56,11 +56,11 @@ export const Widget = (props: WidgetProps) => {
     setSelectedPinboardId(pinboardData.id);
   };
 
-  const closePinboard = (pinboardData: PinboardData) => {
-    if (pinboardIds.includes(pinboardData.id)) {
+  const closePinboard = (pinboardIdToClose: string) => {
+    if (pinboardIds.includes(pinboardIdToClose)) {
       setManuallyOpenedPinboards([
         ...manuallyOpenedPinboards.filter(
-          (pinboard) => pinboard.id != pinboardData.id
+          (pinboard) => pinboard.id !== pinboardIdToClose
         ),
       ]);
     }

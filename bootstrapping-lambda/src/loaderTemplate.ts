@@ -5,7 +5,7 @@ export const loaderTemplate = (
   appSyncConfig: AppSyncConfig,
   mainJsFilename: string,
   hostname: string
-) => `
+): string => `
   
   if(typeof PinBoard === 'undefined') { // this avoids pinboard being added to the page more than once
     const script = document.createElement('script');

@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Item } from "../../shared/graphql/graphql";
-import React, { useEffect, useRef } from "react";
+import React, { ReactElement, useEffect, useRef } from "react";
 import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
 
@@ -67,7 +67,7 @@ export const Items = ({
   subscriptionItems,
   setHasUnread,
   isExpanded,
-}: ItemsProps) => {
+}: ItemsProps): ReactElement => {
   const items = [...initialItems, ...subscriptionItems].sort(
     (a, b) => a.timestamp - b.timestamp
   );

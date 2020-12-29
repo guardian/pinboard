@@ -1,3 +1,4 @@
+/** @jsx jsx */
 import React, { useEffect, useState } from "react";
 import {
   ApolloError,
@@ -14,6 +15,7 @@ import {
 import { Items } from "./items";
 import { HeadingPanel } from "./headingPanel";
 import { WidgetProps } from "./widget";
+import { css, jsx } from "@emotion/react";
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
@@ -130,8 +132,12 @@ export const Pinboard = ({
   );
 
   return !isSelected ? null : (
-    <>
-      <div style={{ flexGrow: 1 }}>
+    <React.Fragment>
+      <div
+        css={css`
+          flex-grow: 1;
+        `}
+      >
         <HeadingPanel
           heading={pinboardData.title || ""}
           clearSelectedPinboard={clearSelectedPinboard}
@@ -150,13 +156,16 @@ export const Pinboard = ({
         />
       )}
       <div
-        style={{
-          display: "flex",
-          margin: "5px",
-        }}
+        css={css`
+          display: "flex";
+          margin: 5px;
+        `}
       >
         <textarea
-          style={{ flexGrow: 1, marginRight: "5px" }}
+          css={css`
+            flex-grow: 1;
+            margin-right: 5px;
+          `}
           placeholder="enter chat message here..."
           rows={2}
           value={newMessage}
@@ -176,6 +185,6 @@ export const Pinboard = ({
           Send
         </button>
       </div>
-    </>
+    </React.Fragment>
   );
 };

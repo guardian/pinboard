@@ -1,8 +1,11 @@
+/** @jsx jsx */
+import { ApolloError, gql, useQuery } from "@apollo/client";
+import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
+
 import { User } from "../../shared/User";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
-import { ApolloError, gql, useQuery } from "@apollo/client";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -89,74 +92,74 @@ export const Widget = (props: WidgetProps) => {
   return (
     <div>
       <div
-        style={{
-          position: "fixed",
-          zIndex: 99999,
-          bottom: `${bottomRight}px`,
-          right: `${bottomRight}px`,
-          width: `${widgetSize}px`,
-          height: `${widgetSize}px`,
-          borderRadius: `${widgetSize / 2}px`,
-          cursor: "pointer",
-          background: "orange",
-          boxShadow,
-        }}
+        css={css`
+          position: fixed;
+          z-index: 99999;
+          bottom: ${bottomRight}px;
+          right: ${bottomRight}px;
+          width: ${widgetSize}px;
+          height: ${widgetSize}px;
+          border-radius: ${widgetSize / 2}px;
+          cursor: pointer;
+          background: orange;
+          box-shadow: ${boxShadow};
+        `}
         onClick={() => setIsExpanded((previous) => !previous)}
       >
         <div
-          style={{
-            position: "absolute",
-            fontSize: `${widgetSize / 2}px`,
-            top: `${widgetSize / 4}px`,
-            left: `${widgetSize / 4}px`,
-            userSelect: "none",
-          }}
+          css={css`
+            position: absolute;
+            font-size: ${widgetSize / 2}px;
+            top: ${widgetSize / 4}px;
+            left: ${widgetSize / 4}px;
+            user-select: none;
+          `}
         >
           📌
         </div>
         {hasError && (
           <div
-            style={{
-              position: "absolute",
-              fontSize: `${widgetSize / 3}px`,
-              bottom: `-${widgetSize / 16}px`,
-              right: `-${widgetSize / 16}px`,
-              userSelect: "none",
-              textShadow: "0 0 5px black",
-            }}
+            css={css`
+              position: absolute;
+              font-size: ${widgetSize / 3}px;
+              bottom: -${widgetSize / 16}px;
+              right: -${widgetSize / 16}px;
+              user-select: none;
+              text-shadow: 0 0 5px black;
+            `}
           >
             ⚠️
           </div>
         )}
         {hasUnread && (
           <div
-            style={{
-              position: "absolute",
-              fontSize: `${widgetSize / 3}px`,
-              top: `-${widgetSize / 16}px`,
-              userSelect: "none",
-            }}
+            css={css`
+              position: absolute;
+              font-size: ${widgetSize / 3}px;
+              top: -${widgetSize / 16}px;
+              user-select: none;
+            `}
           >
             🔴
           </div>
         )}
       </div>
       <div
-        style={{
-          position: "fixed",
-          zIndex: 99998,
-          background: "white",
-          boxShadow,
-          border: "2px orange solid",
-          width: "250px",
-          height: "calc(100vh - 100px)",
-          bottom: `${bottomRight + widgetSize / 2 - 5}px`,
-          right: `${bottomRight + widgetSize / 2 - 5}px`,
-          display: isExpanded ? "flex" : "none",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          fontFamily: "sans-serif",
-        }}
+        css={css`
+          position: fixed;
+          z-index: 99998;
+          background: white;
+          box-shadow: ${boxShadow};
+          border: 2px orange solid;
+          width: 250px;
+          height: calc(100vh - 100px);
+          bottom: ${bottomRight + widgetSize / 2 - 5}px;
+          right: ${bottomRight + widgetSize / 2 - 5}px;
+          display: ${isExpanded ? "flex" : "none"};
+          flex-direction: column;
+          justify-content: space-between;
+          font-family: sans-serif;
+        `}
       >
         {!selectedPinboardId && (
           <SelectPinboard

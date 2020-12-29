@@ -1,6 +1,9 @@
+/** @jsx jsx */
+
 import { gql, useQuery } from "@apollo/client";
 import React from "react";
 import FuzzySearch from "react-fuzzy";
+import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
 
@@ -41,10 +44,10 @@ export const SelectPinboard = ({
 
   return (
     <div
-      style={{
-        overflowY: "auto",
-        margin: "5px",
-      }}
+      css={css`
+        overflow-y: auto;
+        margin: 5px;
+      `}
     >
       {loading && <p>Loading pinboards...</p>}
       <h4>Open pinboards</h4>

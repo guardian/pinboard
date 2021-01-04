@@ -133,7 +133,7 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardItemTableName = "pinboard-appsync-item-table";
+    const pinboardItemTableName = "pinboard-item-table";
 
     const pinboardAppsyncItemTable = new db.Table(
       thisStack,
@@ -152,12 +152,18 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${workflowBridgeLambdaBasename.split("-").join("_")}_datasource`,
+      `${workflowBridgeLambdaBasename
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_ds`,
       pinboardWorkflowBridgeLambda
     );
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardItemTableName.split("-").join("_")}_datasource`,
+      `${pinboardItemTableName
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_datasource`,
       pinboardAppsyncItemTable
     );
 
@@ -201,7 +207,12 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
-    // TODO: add resolvers for updates and deletes
+    // TODO: add resolvers for updates and deletes to dynamo
+
+    pinboardWorkflowBridgeLambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "listPinboards",
+    });
 
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({

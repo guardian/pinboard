@@ -1,8 +1,8 @@
-import { gql, useQuery } from '@apollo/client';
-import React from 'react';
-import FuzzySearch from 'react-fuzzy';
+import { gql, useQuery } from "@apollo/client";
+import React from "react";
+import FuzzySearch from "react-fuzzy";
 
-import { PinboardData } from './pinboard';
+import { PinboardData } from "./pinboard";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -33,7 +33,9 @@ export const SelectPinboard = ({
       <button onClick={() => openPinboard(pinboardData)}>
         {pinboardData.title}
       </button>
-      <button onClick={() => closePinboard(pinboardData)}>❌</button>
+      {pinboardIds.includes(pinboardData.id) && (
+        <button onClick={() => closePinboard(pinboardData)}>❌</button>
+      )}
     </div>
   );
 

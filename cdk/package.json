@@ -13,12 +13,12 @@
     "ts-node": "^9.0.0"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "^1.73.0",
-    "@aws-cdk/aws-appsync": "^1.73.0",
-    "@aws-cdk/aws-dynamodb": "^1.73.0",
-    "@aws-cdk/aws-iam": "^1.73.0",
-    "@aws-cdk/aws-lambda": "^1.73.0",
-    "@aws-cdk/aws-s3": "^1.73.0",
-    "@aws-cdk/core": "^1.73.0"
+    "@aws-cdk/aws-apigateway": "^1.77.0",
+    "@aws-cdk/aws-appsync": "^1.77.0",
+    "@aws-cdk/aws-dynamodb": "^1.77.0",
+    "@aws-cdk/aws-iam": "^1.77.0",
+    "@aws-cdk/aws-lambda": "^1.77.0",
+    "@aws-cdk/aws-s3": "^1.77.0",
+    "@aws-cdk/core": "^1.77.0"
   }
 }

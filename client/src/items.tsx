@@ -1,6 +1,8 @@
+/** @jsx jsx */
 import { Item } from "../../shared/graphql/graphql";
 import React, { useEffect, useRef } from "react";
 import { User } from "../../shared/User";
+import { css, jsx } from "@emotion/react";
 
 interface ItemDisplayProps {
   item: Item;
@@ -13,19 +15,19 @@ const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
   return (
     <div
       ref={refForLastItem}
-      style={{
-        borderBottom: "1px solid gray",
-        paddingBottom: "3px",
-        marginBottom: "3px",
-      }}
+      css={css`
+        border-bottom: 1px solid gray;
+        padding-bottom: 3px;
+        margin-bottom: 3px;
+      `}
     >
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: "80%",
-          color: "lightgray",
-        }}
+        css={css`
+          display: "flex";
+          justify-content: space-between;
+          font-size: 80%;
+          color: lightgray;
+        `}
       >
         <span>{user.firstName}</span>
         <span>
@@ -113,10 +115,10 @@ export const Items = ({
   return (
     <div
       ref={scrollableAreaRef}
-      style={{
-        overflowY: "auto",
-        margin: "5px",
-      }}
+      css={css`
+        overflow-y: auto;
+        margin: 5px;
+      `}
       onScroll={() => isLastItemVisible() && setHasUnread(false)}
     >
       {items.map((item, index) => (

@@ -16,8 +16,9 @@ import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
+import * as ec2 from "@aws-cdk/aws-ec2";
 import { join } from "path";
-import { BillingMode } from "@aws-cdk/aws-dynamodb";
+import { AWS_REGION } from "../shared/awsRegion";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -26,6 +27,9 @@ export class PinBoardStack extends Stack {
     const thisStack = this;
 
     const APP = "pinboard";
+
+    // if changing should also change .nvmrc (at the root of repo)
+    const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_12_X;
 
     const STACK = new CfnParameter(thisStack, "Stack", {
       type: "String",
@@ -40,6 +44,76 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
+
+    const deployBucket = S3.Bucket.fromBucketName(
+      thisStack,
+      "workflow-dist",
+      "workflow-dist"
+    );
+
+    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
+
+    const vpcId = Fn.importValue(
+      `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
+    );
+
+    const workflowDatastoreVPC = ec2.Vpc.fromVpcAttributes(
+      thisStack,
+      "workflow-datastore-vpc",
+      {
+        vpcId: vpcId,
+        availabilityZones: Fn.getAzs(AWS_REGION),
+        privateSubnetIds: Fn.split(
+          ",",
+          Fn.importValue(`WorkflowPrivateSubnetIds-${STAGE}`)
+        ),
+      }
+    );
+
+    const pinboardWorkflowBridgeLambda = new lambda.Function(
+      thisStack,
+      workflowBridgeLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(5),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+          WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME: Fn.importValue(
+            `WorkflowDatastoreLoadBalancerDNSName-${STAGE}`
+          ),
+        },
+        functionName: `${workflowBridgeLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${workflowBridgeLambdaBasename}/${workflowBridgeLambdaBasename}.zip`
+        ),
+        role: new iam.Role(thisStack, `${workflowBridgeLambdaBasename}-role`, {
+          assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+          managedPolicies: [
+            iam.ManagedPolicy.fromAwsManagedPolicyName(
+              "service-role/AWSLambdaBasicExecutionRole"
+            ),
+            iam.ManagedPolicy.fromAwsManagedPolicyName(
+              "service-role/AWSLambdaVPCAccessExecutionRole"
+            ),
+          ],
+        }),
+        vpc: workflowDatastoreVPC,
+        securityGroups: [
+          ec2.SecurityGroup.fromSecurityGroupId(
+            thisStack,
+            "workflow-datastore-load-balancer-security-group",
+            Fn.importValue(
+              `WorkflowDatastoreLoadBalancerSecurityGroupId-${STAGE}`
+            )
+          ),
+        ],
+      }
+    );
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(
@@ -59,11 +133,13 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const pinboardItemTableName = "pinboard-appsync-item-table";
+
     const pinboardAppsyncItemTable = new db.Table(
       thisStack,
-      `pinboard-appsync-item-table`,
+      pinboardItemTableName,
       {
-        billingMode: BillingMode.PAY_PER_REQUEST,
+        billingMode: db.BillingMode.PAY_PER_REQUEST,
         partitionKey: {
           name: "id",
           type: db.AttributeType.STRING,
@@ -75,8 +151,13 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
+      `${workflowBridgeLambdaBasename.split("-").join("_")}_datasource`,
+      pinboardWorkflowBridgeLambda
+    );
+
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `pinboarditemdatasource`,
+      `${pinboardItemTableName.split("-").join("_")}_datasource`,
       pinboardAppsyncItemTable
     );
 
@@ -122,12 +203,6 @@ export class PinBoardStack extends Stack {
 
     // TODO: add resolvers for updates and deletes
 
-    const deployBucket = S3.Bucket.fromBucketName(
-      thisStack,
-      "workflow-dist",
-      "workflow-dist"
-    );
-
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -150,7 +225,7 @@ export class PinBoardStack extends Stack {
       thisStack,
       bootstrappingLambdaBasename,
       {
-        runtime: lambda.Runtime.NODEJS_12_X, // if changing should also change .nvmrc (at the root of repo)
+        runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
         timeout: Duration.seconds(5),
         handler: "index.handler",
@@ -171,13 +246,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const bootstrappingLambdaExecutePolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["execute-api:Invoke"],
-      resources: ["arn:aws:execute-api:eu-west-1:*"], //TODO tighten up if possible
-    });
-    bootstrappingLambdaExecutePolicyStatement.addAnyPrincipal();
-
     const bootstrappingApiGateway = new apigateway.LambdaRestApi(
       thisStack,
       bootstrappingLambdaApiBaseName,
@@ -186,7 +254,14 @@ export class PinBoardStack extends Stack {
         handler: bootstrappingLambdaFunction,
         endpointTypes: [apigateway.EndpointType.REGIONAL],
         policy: new iam.PolicyDocument({
-          statements: [bootstrappingLambdaExecutePolicyStatement],
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ["execute-api:Invoke"],
+              resources: [`arn:aws:execute-api:${AWS_REGION}:*`],
+              principals: [new iam.AnyPrincipal()],
+            }),
+          ],
         }),
         defaultMethodOptions: {
           apiKeyRequired: false,

@@ -11,6 +11,11 @@
       "action": "pinboard-bootstrapping-lambda-api",
       "path": "dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-workflow-bridge-lambda",
+      "path": "workflow-bridge-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

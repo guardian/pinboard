@@ -136,6 +136,7 @@ export const Pinboard = ({
       <div
         css={css`
           flex-grow: 1;
+          color: black;
         `}
       >
         <HeadingPanel
@@ -157,7 +158,7 @@ export const Pinboard = ({
       )}
       <div
         css={css`
-          display: "flex";
+          display: flex;
           margin: 5px;
         `}
       >

@@ -1,114 +1,93 @@
-import React, { useState } from "react";
-import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
-import { CreateItemInput, Item } from "../../shared/graphql/graphql";
-import { Items } from "./items";
+import React, { useEffect, useState } from "react";
 import { User } from "../../shared/User";
-import { ConnectionInfo } from "./connectionInfo";
+import { Pinboard, PinboardData } from "./pinboard";
+import { SelectPinboard } from "./selectPinboard";
+import { ApolloError, gql, useQuery } from "@apollo/client";
 
 const bottomRight = 10;
 const widgetSize = 50;
 const boxShadow =
   "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
-
-const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
-  event.key === "Enter" || event.keyCode === 13;
-
-interface WidgetProps {
+export interface WidgetProps {
   user: User;
+  preselectedComposerId: string | undefined;
 }
 
-export const Widget = ({ user }: WidgetProps) => {
+export const Widget = (props: WidgetProps) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const [hasUnread, setHasUnread] = useState<boolean>();
+  const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
+    PinboardData[]
+  >([]);
 
-  const [newMessage, setNewMessage] = useState<string>("");
-
-  const onCreateItem = `
-    subscription OnCreateItem(
-      $id: ID
-      $message: String
-      $timestamp: AWSTimestamp
-      $type: String
-    )
-    {
-      onCreateItem(
-        id: $id
-        message: $message
-        timestamp: $timestamp
-        type: $type
-      ) {
-        id
-        message
-        timestamp
-        type
-      }
-    }
-  `;
-
-  const subscription = useSubscription(
-    gql`
-      ${onCreateItem}
-    `,
-    {
-      onSubscriptionData: ({ subscriptionData }) => {
-        setSubscriptionItems((prevState) => [
-          ...prevState,
-          subscriptionData.data.onCreateItem,
-        ]);
-        if (!isExpanded) {
-          setHasUnread(true);
+  const preselectedPinboard: PinboardData | undefined = useQuery(gql`
+      query MyQuery {
+        getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
+        {    
+          title
+          status
+          id
+          composerId
         }
-      },
+      }`).data?.getPinboardByComposerId;
+
+  const pinboards: PinboardData[] = preselectedPinboard
+    ? [preselectedPinboard, ...manuallyOpenedPinboards]
+    : manuallyOpenedPinboards;
+
+  const pinboardIds = pinboards.map((_) => _.id);
+
+  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>();
+
+  useEffect(() => setSelectedPinboardId(preselectedPinboard?.id), [
+    preselectedPinboard,
+  ]);
+
+  const clearSelectedPinboard = () => setSelectedPinboardId(null);
+
+  const openPinboard = (pinboardData: PinboardData) => {
+    if (!pinboardIds.includes(pinboardData.id)) {
+      setManuallyOpenedPinboards([...manuallyOpenedPinboards, pinboardData]);
     }
+
+    setSelectedPinboardId(pinboardData.id);
+  };
+
+  const closePinboard = (pinboardData: PinboardData) => {
+    if (pinboardIds.includes(pinboardData.id)) {
+      setManuallyOpenedPinboards([
+        ...manuallyOpenedPinboards.filter(
+          (pinboard) => pinboard.id != pinboardData.id
+        ),
+      ]);
+    }
+    setSelectedPinboardId(null);
+  };
+
+  const [errors, setErrors] = useState<{
+    [pinboardId: string]: ApolloError | undefined;
+  }>({});
+
+  const setError = (pinboardId: string, error: ApolloError | undefined) =>
+    setErrors({ ...errors, [pinboardId]: error });
+
+  const hasError = Object.entries(errors).find(
+    ([pinboardId, error]) => pinboardIds.includes(pinboardId) && error
   );
 
-  const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const [unreadFlags, setUnreadFlags] = useState<{
+    [pinboardId: string]: boolean | undefined;
+  }>({});
 
-  const [
-    sendMessage /*, sendMessageResult TODO do something with the result */,
-  ] = useMutation<CreateItemInput>(
-    gql`
-      mutation SendMessage($input: CreateItemInput!) {
-        createItem(input: $input) {
-          # including fields here makes them accessible in our subscription data
-          id
-          message
-          user
-          timestamp
-        }
-      }
-    `,
-    {
-      onCompleted: () => setNewMessage(""),
-      onError: console.error, // TODO add some better error handling
-      variables: {
-        input: {
-          type: "message",
-          message: newMessage,
-          user: JSON.stringify(user),
-        },
-      },
-    }
+  const setUnreadFlag = (pinboardId: string, unreadFlag: boolean | undefined) =>
+    setUnreadFlags({ ...unreadFlags, [pinboardId]: unreadFlag });
+
+  const hasUnread = Object.entries(unreadFlags).find(
+    ([pinboardId, unreadFlag]) => pinboardIds.includes(pinboardId) && unreadFlag
   );
-
-  const initialItems = useQuery(gql`
-    query MyQuery {
-      listItems {
-        items {
-          id
-          message
-          timestamp
-          type
-          payload
-          user
-        }
-      }
-    }
-  `);
 
   return (
-    <>
+    <div>
       <div
         style={{
           position: "fixed",
@@ -135,7 +114,7 @@ export const Widget = ({ user }: WidgetProps) => {
         >
           📌
         </div>
-        {(initialItems.error || subscription.error) && (
+        {hasError && (
           <div
             style={{
               position: "absolute",
@@ -179,47 +158,26 @@ export const Widget = ({ user }: WidgetProps) => {
           fontFamily: "sans-serif",
         }}
       >
-        <ConnectionInfo>
-          {initialItems.loading && "Loading..."}
-          {initialItems.error && `Error: ${initialItems.error}`}
-          {subscription.error && `Error: ${subscription.error}`}
-        </ConnectionInfo>
-        {initialItems.data && (
-          <Items
-            initialItems={initialItems.data.listItems.items}
-            subscriptionItems={subscriptionItems}
-            setHasUnread={setHasUnread}
-            isExpanded={isExpanded}
+        {!selectedPinboardId && (
+          <SelectPinboard
+            openPinboard={openPinboard}
+            pinboardIds={pinboardIds}
+            closePinboard={closePinboard}
           />
         )}
-        <div
-          style={{
-            display: "flex",
-            margin: "5px",
-          }}
-        >
-          <textarea
-            style={{ flexGrow: 1, marginRight: "5px" }}
-            placeholder="enter chat message here..."
-            rows={2}
-            value={newMessage}
-            onChange={(event) => setNewMessage(event.target.value)}
-            onKeyPress={(event) =>
-              isEnterKey(event) &&
-              newMessage &&
-              sendMessage() &&
-              event.preventDefault()
-            }
+        {pinboards.map((pinboardData) => (
+          <Pinboard
+            {...props}
+            pinboardData={pinboardData}
+            key={pinboardData.id}
+            setError={setError}
+            setUnreadFlag={setUnreadFlag}
+            isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
+            isSelected={pinboardData.id === selectedPinboardId}
+            clearSelectedPinboard={clearSelectedPinboard}
           />
-          <button
-            className="btn"
-            onClick={() => sendMessage()}
-            disabled={!newMessage}
-          >
-            Send
-          </button>
-        </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 };

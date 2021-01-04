@@ -4,11 +4,25 @@ import fetch from "node-fetch";
 const WORKFLOW_DATASTORE_API_URL = `http://${process.env.WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME}/api`;
 
 exports.handler = async (
-  event: any, // TODO find the AppSync event type or define our own
+  event: { arguments?: { composerId?: string } },
   context: lambda.Context
 ) => {
+  return await (event.arguments?.composerId
+    ? getPinboardByComposerId(event.arguments?.composerId)
+    : getAllPinboards());
+};
+
+async function getPinboardByComposerId(composerId: string) {
+  const contentResponse = await fetch(
+    `${WORKFLOW_DATASTORE_API_URL}/content/${composerId}`
+  );
+  const data = (await contentResponse.json()).data;
+  return { ...data, status: data?.externalData?.status };
+}
+
+async function getAllPinboards() {
   const fields = ["id", "title", "composerId"].join(",");
-  
+
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
   );
@@ -23,4 +37,4 @@ exports.handler = async (
     ],
     [] as object[]
   );
-};
+}

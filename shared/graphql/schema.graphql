@@ -11,10 +11,11 @@ type Item {
   timestamp: AWSTimestamp!
   type: String!
   user: AWSJSON!
+  pinboardId: String!
 }
 
 type WorkflowStub {
-	id: Float!
+	id: String!
 	title: String
 	composerId: String
   status: String
@@ -39,6 +40,7 @@ type Query {
     nextToken: String
   ): ItemConnection
   listPinboards: [WorkflowStub]
+  getPinboardByComposerId(composerId: String): WorkflowStub
 }
 
 type Subscription {
@@ -48,6 +50,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
   onDeleteItem(
     id: ID
@@ -55,6 +58,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["deleteItem"])
   onUpdateItem(
     id: ID
@@ -62,6 +66,7 @@ type Subscription {
     payload: AWSJSON
     timestamp: AWSTimestamp
     type: String
+    pinboardId: String
   ): Item @aws_subscribe(mutations: ["updateItem"])
 }
 
@@ -70,6 +75,7 @@ input CreateItemInput {
   payload: AWSJSON
   type: String!
   user: AWSJSON!
+  pinboardId: String!
 }
 
 input DeleteItemInput {
@@ -123,6 +129,7 @@ input TableItemFilterInput {
   message: TableStringFilterInput
   timestamp: TableIntFilterInput
   type: TableStringFilterInput
+  pinboardId: TableStringFilterInput
 }
 
 input TableStringFilterInput {

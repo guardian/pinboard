@@ -214,6 +214,11 @@ export class PinBoardStack extends Stack {
       fieldName: "listPinboards",
     });
 
+    pinboardWorkflowBridgeLambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getPinboardByComposerId",
+    });
+
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,

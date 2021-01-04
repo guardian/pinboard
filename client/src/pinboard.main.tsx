@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Widget } from "./widget";
 import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
@@ -14,6 +13,9 @@ import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { User } from "../../shared/User"; //TODO attempt to factor out
+import { Widget } from "./widget";
+
+const PRESELECT_PINBOARD_HTML_TAG = "preselect-pinboard";
 
 export function mount({ user, ...appSyncConfig }: AppSyncConfig) {
   const apolloLink = ApolloLink.from([
@@ -45,15 +47,28 @@ interface PinBoardAppProps {
 const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
   const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
+  const [preSelectedComposerId, setPreselectedComposerId] = useState<string>();
+
   const refreshButtonNodes = () =>
     setButtonNodes(Array.from(document.querySelectorAll(PIN_BUTTON_HTML_TAG)));
+
+  const refreshPreselectedPinboard = () =>
+    setPreselectedComposerId(
+      (document.querySelector(PRESELECT_PINBOARD_HTML_TAG) as HTMLElement)
+        ?.dataset?.composerId
+    );
 
   useEffect(() => {
     // Add nodes that already exist at time React app is instantiated
     refreshButtonNodes();
 
+    refreshPreselectedPinboard();
+
     // begin watching for any DOM changes
-    new MutationObserver(refreshButtonNodes).observe(document.body, {
+    new MutationObserver(() => {
+      refreshButtonNodes();
+      refreshPreselectedPinboard();
+    }).observe(document.body, {
       attributes: false,
       characterData: false,
       childList: true,
@@ -65,7 +80,7 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <Widget user={user} />
+      <Widget user={user} preselectedComposerId={preSelectedComposerId} />
       {buttonNodes.map((node, index) => (
         <ButtonPortal key={index} node={node} />
       ))}

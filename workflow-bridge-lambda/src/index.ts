@@ -1,5 +1,6 @@
 import * as lambda from "aws-lambda";
 import fetch from "node-fetch";
+import { WorkflowStub } from "../../shared/graphql/graphql";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${process.env.WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME}/api`;
 
@@ -27,7 +28,7 @@ async function getAllPinboards() {
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
   );
   const stubsResponseBody = await stubsResponse.json();
-  const groupedStubs: { [status: string]: object[] } =
+  const groupedStubs: { [status: string]: WorkflowStub[] } =
     stubsResponseBody.data.content;
 
   return Object.entries(groupedStubs).reduce(
@@ -35,6 +36,6 @@ async function getAllPinboards() {
       ...accumulator,
       ...stubs.map((stub) => ({ ...stub, status })),
     ],
-    [] as object[]
+    [] as WorkflowStub[]
   );
 }

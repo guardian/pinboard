@@ -15,6 +15,9 @@ yarn graphql-refresh
 # perform a prettier check
 prettier --check .
 
+# perform a linting check
+yarn lint
+
 # generate cloudformation.yaml
 yarn --cwd 'cdk' synth
 

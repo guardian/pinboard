@@ -2,12 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
-import {
-  ApolloClient,
-  ApolloProvider,
-  gql,
-  InMemoryCache,
-} from "@apollo/client";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { ApolloLink } from "apollo-link";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
@@ -17,7 +12,7 @@ import { Widget } from "./widget";
 
 const PRESELECT_PINBOARD_HTML_TAG = "preselect-pinboard";
 
-export function mount({ user, ...appSyncConfig }: AppSyncConfig) {
+export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
     createAuthLink({
       url: appSyncConfig.graphqlEndpoint,

@@ -14,7 +14,7 @@ interface Permission {
   }>;
 }
 
-export const userHasPermission = (userEmail: string) =>
+export const userHasPermission = (userEmail: string): Promise<boolean> =>
   s3Client
     .getObject({
       Bucket: "permissions-cache",

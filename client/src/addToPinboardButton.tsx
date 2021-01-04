@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom";
-import React from "react";
+import React, { ReactPortal } from "react";
 
 export const PIN_BUTTON_HTML_TAG = "add-to-pinboard-button";
 
@@ -20,7 +20,7 @@ interface ButtonPortalProps {
   node: HTMLElement;
 }
 
-export const ButtonPortal = ({ node }: ButtonPortalProps) =>
+export const ButtonPortal = ({ node }: ButtonPortalProps): ReactPortal =>
   ReactDOM.createPortal(
     <AddToPinboardButton dataAttributes={node.dataset} />,
     node

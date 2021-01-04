@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",
@@ -19,6 +20,10 @@
     "@graphql-codegen/typescript": "1.17.11",
     "@graphql-codegen/typescript-resolvers": "1.17.11",
     "@guardian/node-riffraff-artifact": "^0.1.9",
+    "@typescript-eslint/eslint-plugin": "^4.11.1",
+    "@typescript-eslint/parser": "^4.11.1",
+    "eslint": "^7.16.0",
+    "eslint-plugin-react": "^7.21.5",
     "husky": ">=4",
     "lint-staged": ">=10",
     "prettier": "2.2.1",
@@ -30,6 +35,6 @@
     }
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "**/*": ["eslint --fix", "prettier --write --ignore-unknown"]
   }
 }

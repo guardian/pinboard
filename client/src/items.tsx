@@ -23,7 +23,7 @@ const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
     >
       <div
         css={css`
-          display: "flex";
+          display: flex;
           justify-content: space-between;
           font-size: 80%;
           color: lightgray;
@@ -118,6 +118,7 @@ export const Items = ({
       css={css`
         overflow-y: auto;
         margin: 5px;
+        color: black;
       `}
       onScroll={() => isLastItemVisible() && setHasUnread(false)}
     >

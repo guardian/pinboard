@@ -32,8 +32,21 @@ export const SelectPinboard = ({
   // TODO: improve styling, add unread/error badges beside open pinboards
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
-    <div key={pinboardData.id}>
-      <button onClick={() => openPinboard(pinboardData)}>
+    <div
+      css={css`
+        display: flex;
+      `}
+      key={pinboardData.id}
+    >
+      <button
+        css={css`
+          text-align: left;
+          background-color: white;
+          flex-grow: 1;
+          color: #131212;
+        `}
+        onClick={() => openPinboard(pinboardData)}
+      >
         {pinboardData.title}
       </button>
       {pinboardIds.includes(pinboardData.id) && (
@@ -47,6 +60,9 @@ export const SelectPinboard = ({
       css={css`
         overflow-y: auto;
         margin: 5px;
+        h4 {
+          color: black;
+        }
       `}
     >
       {loading && <p>Loading pinboards...</p>}

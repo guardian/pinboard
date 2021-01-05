@@ -149,6 +149,7 @@ export class PinBoardStack extends Stack {
           name: "timestamp",
           type: db.AttributeType.NUMBER,
         },
+        encryption: db.TableEncryption.CUSTOMER_MANAGED,
       }
     );
 

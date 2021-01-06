@@ -1,50 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PinBoard</title>
+    <script src="https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>PinBoard</title>
-  <script src="https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js"></script>
-  <script>
-    setTimeout(
-      () => {
-        document.body.appendChild(
-          document.createElement("pinboard-add-button")
-        );
+  <body>
+    <h3>Pinboard preselection (for composer ID 54f39ac9e4b09d0edf204cb0)</h3>
+    <button id="btn-add-preselection">Add pinboard pre-selection</button>
+    <button id="btn-remove-preselection">Remove pinboard pre-selection</button>
 
-      },
-      1000 // 1 second delay
-    )
-    setTimeout(
-      () => {
-        document.getElementById("initial-preselected-pinboard").remove();
-        const preSelectPinboardElement = document.createElement("pinboard-preselect");
-        preSelectPinboardElement.dataset.composerId = "54f2d2fee4b011581586e710"
-        document.body.appendChild(
-          preSelectPinboardElement
-        );
-      },
-      5000 // 5 second delay
-    )
-  </script>
-</head>
-
-<body>
-  <h3>Hidden element to preselect pinboard with composer ID 54f39ac9e4b09d0edf204cb0</h3>
-  <pinboard-preselect data-composer-id="54f39ac9e4b09d0edf204cb0" id="initial-preselected-pinboard">
-  </pinboard-preselect>
-
-  <h3>Hidden element added after 5 seconds to preselect pinboard with composer ID 54f2d2fee4b011581586e710</h3>
-
-  <h3>button added initially</h3>
-  <pinboard-add-button data-hello="world"></pinboard-add-button>
-  <h3>button added after 1 second</h3>
-  <!--
+    <h3>button added initially</h3>
+    <pinboard-add-button data-hello="world"></pinboard-add-button>
+    <h3>button added after 1 second</h3>
+    <!--
             the setTimeout in the <script> further up will add an element here after 1 second,
             which the PinBoard library will detect and convert to a button
         -->
+  </body>
+  <script>
+    setTimeout(
+      () => {
+        const delayedAddButton = document.createElement("pinboard-add-button");
+        delayedAddButton.dataset.foo = "bar";
+        document.body.appendChild(delayedAddButton);
+      },
+      1000 // 1 second delay
+    );
 
-
-</body>
-
+    const preSelectPinboardElement = document.createElement(
+      "pinboard-preselect"
+    );
+    preSelectPinboardElement.dataset.composerId = "54f2d2fee4b011581586e710";
+    document
+      .getElementById("btn-add-preselection")
+      .addEventListener("click", () => {
+        document.body.appendChild(preSelectPinboardElement);
+      });
+    document
+      .getElementById("btn-remove-preselection")
+      .addEventListener("click", () => {
+        preSelectPinboardElement.remove();
+      });
+  </script>
 </html>

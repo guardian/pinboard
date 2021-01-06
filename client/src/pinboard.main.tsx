@@ -10,7 +10,7 @@ import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { User } from "../../shared/User"; //TODO attempt to factor out
 import { Widget } from "./widget";
 
-const PRESELECT_PINBOARD_HTML_TAG = "preselect-pinboard";
+const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 
 export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([

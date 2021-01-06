@@ -18,7 +18,7 @@
     setTimeout(
       () => {
         document.getElementById("initial-preselected-pinboard").remove();
-        const preSelectPinboardElement = document.createElement("preselect-pinboard");
+        const preSelectPinboardElement = document.createElement("pinboard-preselect");
         preSelectPinboardElement.dataset.composerId = "54f2d2fee4b011581586e710"
         document.body.appendChild(
           preSelectPinboardElement
@@ -31,8 +31,8 @@
 
 <body>
   <h3>Hidden element to preselect pinboard with composer ID 54f39ac9e4b09d0edf204cb0</h3>
-  <preselect-pinboard data-composer-id="54f39ac9e4b09d0edf204cb0" id="initial-preselected-pinboard">
-  </preselect-pinboard>
+  <pinboard-preselect data-composer-id="54f39ac9e4b09d0edf204cb0" id="initial-preselected-pinboard">
+  </pinboard-preselect>
 
   <h3>Hidden element added after 5 seconds to preselect pinboard with composer ID 54f2d2fee4b011581586e710</h3>
 

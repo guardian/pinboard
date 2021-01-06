@@ -3,7 +3,7 @@ import React, { PropsWithChildren } from "react";
 import { css, jsx } from "@emotion/react";
 interface HeadingPanelProps {
   heading: string;
-  clearSelectedPinboard: () => void;
+  clearSelectedPinboard: undefined | (() => void);
 }
 
 export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
@@ -18,7 +18,9 @@ export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
         font-weight: bold;
       `}
     >
-      <button onClick={props.clearSelectedPinboard}>👈</button>
+      {props.clearSelectedPinboard && (
+        <button onClick={props.clearSelectedPinboard}>👈</button>
+      )}
       {props.heading}
     </div>
     {props.children}

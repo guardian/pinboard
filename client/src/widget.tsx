@@ -35,7 +35,7 @@ export const Widget = (props: WidgetProps) => {
       }`).data?.getPinboardByComposerId;
 
   const pinboards: PinboardData[] = preselectedPinboard
-    ? [preselectedPinboard, ...manuallyOpenedPinboards]
+    ? [preselectedPinboard]
     : manuallyOpenedPinboards;
 
   const pinboardIds = pinboards.map((_) => _.id);
@@ -161,7 +161,7 @@ export const Widget = (props: WidgetProps) => {
           font-family: sans-serif;
         `}
       >
-        {!selectedPinboardId && (
+        {!preselectedPinboard && !selectedPinboardId && (
           <SelectPinboard
             openPinboard={openPinboard}
             pinboardIds={pinboardIds}
@@ -177,7 +177,9 @@ export const Widget = (props: WidgetProps) => {
             setUnreadFlag={setUnreadFlag}
             isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
             isSelected={pinboardData.id === selectedPinboardId}
-            clearSelectedPinboard={clearSelectedPinboard}
+            clearSelectedPinboard={
+              preselectedPinboard ? undefined : clearSelectedPinboard
+            }
           />
         ))}
       </div>

@@ -28,7 +28,7 @@ interface PinboardProps extends WidgetProps {
   setUnreadFlag: (pinboardId: string, hasUnread: boolean | undefined) => void;
   isExpanded: boolean;
   isSelected: boolean;
-  clearSelectedPinboard: () => void;
+  clearSelectedPinboard: undefined | (() => void);
 }
 
 export const Pinboard = ({

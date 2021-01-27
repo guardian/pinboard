@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import React, { ReactPortal } from "react";
 
-export const PIN_BUTTON_HTML_TAG = "add-to-pinboard-button";
+export const PIN_BUTTON_HTML_TAG = "pinboard-add-button";
 
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;

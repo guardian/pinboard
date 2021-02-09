@@ -32,9 +32,7 @@ Run `./scripts/setup.sh`, which...
 ### Each time
 
 - Ensure you have the latest AWS credentials (profile: `workflow`)
-- Run `./scripts/start.sh`, which should just ...
-  - `nvm use`
-  - run `yarn watch` in the `bootstrapping-lambda`
+- Run `./scripts/start.sh`
 - to check its up, hit https://pinboard.local.dev-gutools.co.uk (to see the PinBoard widget etc. on a blank page - having gone through the auth and permission checks - if you don't see anything take a look at the console in the browser)
 
 NOTE: locally it uses the CODE AppSync API instance (since AppSync is a paid feature of localstack)

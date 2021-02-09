@@ -24,7 +24,7 @@ Note, `shared/graphql/schema.graphql` is also used in CDK to form part of the Cl
 
 ### First-time set-up
 
-Run `./setup.sh`, which...
+Run `./scripts/setup.sh`, which...
 
 - configures dev-nginx (according to `dev-nginx.yaml`)
 - ensures all dependencies are installed
@@ -32,7 +32,7 @@ Run `./setup.sh`, which...
 ### Each time
 
 - Ensure you have the latest AWS credentials (profile: `workflow`)
-- Run `./start.sh`, which should just ...
+- Run `./scripts/start.sh`, which should just ...
   - `nvm use`
   - run `yarn watch` in the `bootstrapping-lambda`
 - to check its up, hit https://pinboard.local.dev-gutools.co.uk (to see the PinBoard widget etc. on a blank page - having gone through the auth and permission checks - if you don't see anything take a look at the console in the browser)

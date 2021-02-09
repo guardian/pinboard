@@ -1,8 +1,7 @@
 /** @jsx jsx */
 
 import { gql, useQuery } from "@apollo/client";
-import React from "react";
-import FuzzySearch from "react-fuzzy";
+import React, { useState } from "react";
 import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
@@ -18,6 +17,8 @@ export const SelectPinboard = ({
   closePinboard,
   pinboardIds,
 }: SelectPinboardProps) => {
+  const [searchText, setSearchText] = useState<string>("");
+
   const { data, loading } = useQuery(gql`
     query MyQuery {
       listPinboards {
@@ -35,6 +36,7 @@ export const SelectPinboard = ({
     <div
       css={css`
         display: flex;
+        margin-bottom: 2px;
       `}
       key={pinboardData.id}
     >
@@ -62,6 +64,7 @@ export const SelectPinboard = ({
         margin: 5px;
         h4 {
           color: black;
+          margin-bottom: 5px;
         }
       `}
     >
@@ -73,22 +76,26 @@ export const SelectPinboard = ({
             pinboardIds.includes(pinboardData.id)
           )
           .map(OpenPinboardButton)}
-      <h4>Find pinboard</h4>
-      {data && (
-        <FuzzySearch
-          list={data.listPinboards}
-          keys={["title"]}
-          onSelect={openPinboard}
-          width={225}
-          threshold={0.3}
-        ></FuzzySearch>
-      )}
       <h4>Open a pinboard</h4>
+      {data && (
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="Search for a Pinboard..."
+          css={{
+            marginBottom: "5px",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        />
+      )}
       {data &&
         data.listPinboards
           .filter(
             (pinboardData: PinboardData) =>
-              !pinboardIds.includes(pinboardData.id)
+              !pinboardIds.includes(pinboardData.id) &&
+              pinboardData.title?.includes(searchText)
           )
           .map(OpenPinboardButton)}
     </div>

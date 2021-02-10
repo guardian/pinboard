@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # https://classic.yarnpkg.com/en/docs/cli/policies/#toc-policies-set-version
 # This could be removed if all TC agents guaranteed global yarn installed

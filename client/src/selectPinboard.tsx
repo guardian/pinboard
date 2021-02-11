@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
+import { standardWidgetContainerCss } from "./widget";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -59,14 +60,7 @@ export const SelectPinboard = ({
 
   return (
     <div
-      css={css`
-        overflow-y: auto;
-        margin: 5px;
-        h4 {
-          color: black;
-          margin-bottom: 5px;
-        }
-      `}
+      css={standardWidgetContainerCss}
     >
       {loading && <p>Loading pinboards...</p>}
       <h4>Active pinboards</h4>

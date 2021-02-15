@@ -4,6 +4,7 @@ import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 
 import { User } from "../../shared/User";
+import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 
@@ -11,6 +12,13 @@ const bottomRight = 10;
 const widgetSize = 50;
 const boxShadow =
   "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
+export const standardWidgetContainerCss = css`
+  overflow-y: auto;
+  margin: 5px;
+  h4 {
+    color: black;
+  }
+`;
 export interface WidgetProps {
   user: User;
   preselectedComposerId: string | undefined;
@@ -23,16 +31,19 @@ export const Widget = (props: WidgetProps) => {
     PinboardData[]
   >([]);
 
-  const preselectedPinboard: PinboardData | undefined = useQuery(gql`
-      query MyQuery {
-        getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
-        {    
-          title
-          status
-          id
-          composerId
-        }
-      }`).data?.getPinboardByComposerId;
+  const preselectedPinboardQuery = useQuery(gql`
+  query MyQuery {
+    getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
+    {    
+      title
+      status
+      id
+      composerId
+    }
+  }`);
+
+  const preselectedPinboard: PinboardData | undefined =
+    preselectedPinboardQuery.data?.getPinboardByComposerId;
 
   const pinboards: PinboardData[] = preselectedPinboard
     ? [preselectedPinboard]
@@ -161,27 +172,36 @@ export const Widget = (props: WidgetProps) => {
           font-family: sans-serif;
         `}
       >
-        {!preselectedPinboard && !selectedPinboardId && (
-          <SelectPinboard
-            openPinboard={openPinboard}
-            pinboardIds={pinboardIds}
-            closePinboard={closePinboard}
-          />
-        )}
-        {pinboards.map((pinboardData) => (
-          <Pinboard
-            {...props}
-            pinboardData={pinboardData}
-            key={pinboardData.id}
-            setError={setError}
-            setUnreadFlag={setUnreadFlag}
-            isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
-            isSelected={pinboardData.id === selectedPinboardId}
-            clearSelectedPinboard={
-              preselectedPinboard ? undefined : clearSelectedPinboard
-            }
-          />
-        ))}
+        {!preselectedPinboard &&
+          !selectedPinboardId &&
+          !props.preselectedComposerId && (
+            <SelectPinboard
+              openPinboard={openPinboard}
+              pinboardIds={pinboardIds}
+              closePinboard={closePinboard}
+            />
+          )}
+        {props.preselectedComposerId &&
+          !preselectedPinboard &&
+          !preselectedPinboardQuery.loading && <NotTrackedInWorkflow />}
+        {
+          // The active pinboards are always mounted, so that we receive new item notifications
+          // Note that the pinboard hides itself based on 'isSelected' prop
+          pinboards.map((pinboardData) => (
+            <Pinboard
+              {...props}
+              pinboardData={pinboardData}
+              key={pinboardData.id}
+              setError={setError}
+              setUnreadFlag={setUnreadFlag}
+              isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
+              isSelected={pinboardData.id === selectedPinboardId}
+              clearSelectedPinboard={
+                preselectedPinboard ? undefined : clearSelectedPinboard
+              }
+            />
+          ))
+        }
       </div>
     </div>
   );

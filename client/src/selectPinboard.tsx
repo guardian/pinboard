@@ -69,7 +69,7 @@ export const SelectPinboard = ({
       `}
     >
       {loading && <p>Loading pinboards...</p>}
-      <h4>Open pinboards</h4>
+      <h4>Active pinboards</h4>
       {data &&
         data.listPinboards
           .filter((pinboardData: PinboardData) =>

@@ -183,23 +183,25 @@ export const Widget = (props: WidgetProps) => {
           )}
         {props.preselectedComposerId &&
           !preselectedPinboard &&
-          !preselectedPinboardQuery.loading && (
-            <NotTrackedInWorkflow />
-          )}
-        {pinboards.map((pinboardData) => (
-          <Pinboard
-            {...props}
-            pinboardData={pinboardData}
-            key={pinboardData.id}
-            setError={setError}
-            setUnreadFlag={setUnreadFlag}
-            isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
-            isSelected={pinboardData.id === selectedPinboardId}
-            clearSelectedPinboard={
-              preselectedPinboard ? undefined : clearSelectedPinboard
-            }
-          />
-        ))}
+          !preselectedPinboardQuery.loading && <NotTrackedInWorkflow />}
+        {
+          // The active pinboards are always mounted, so that we receive new item notifications
+          // Note that the pinboard hides itself based on 'isSelected' prop
+          pinboards.map((pinboardData) => (
+            <Pinboard
+              {...props}
+              pinboardData={pinboardData}
+              key={pinboardData.id}
+              setError={setError}
+              setUnreadFlag={setUnreadFlag}
+              isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
+              isSelected={pinboardData.id === selectedPinboardId}
+              clearSelectedPinboard={
+                preselectedPinboard ? undefined : clearSelectedPinboard
+              }
+            />
+          ))
+        }
       </div>
     </div>
   );

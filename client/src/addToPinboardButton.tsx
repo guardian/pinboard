@@ -1,5 +1,7 @@
 import ReactDOM from "react-dom";
 import React, { ReactPortal } from "react";
+import PinIcon from "../icons/pin-icon.svg";
+import {css} from "@emotion/react";
 
 export const PIN_BUTTON_HTML_TAG = "pinboard-add-button";
 
@@ -12,7 +14,12 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => (
     className="btn btn--deep"
     onClick={() => alert(JSON.stringify(props.dataAttributes, null, "  "))}
   >
-    📌 Add to pinboard
+    <PinIcon
+      css={css`
+        width: 50px;
+      `}
+    />{" "}
+    Add to pinboard
   </button>
 );
 

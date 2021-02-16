@@ -12,7 +12,10 @@
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",
     "prettier": "prettier --write .",
-    "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts"
+    "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts",
+    "watch-client": "yarn --cwd 'client' watch",
+    "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch",
+    "watch": "run-p watch-client watch-bootstrapping-lambda"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",
@@ -27,7 +30,8 @@
     "husky": ">=4",
     "lint-staged": ">=10",
     "prettier": "2.2.1",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "yarn-run-all": "^3.1.1"
   },
   "husky": {
     "hooks": {

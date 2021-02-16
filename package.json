@@ -13,8 +13,8 @@
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",
     "prettier": "prettier --write .",
     "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts",
-    "watch-client": "yarn --cwd 'client' watch",
-    "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch",
+    "watch-client": "yarn --cwd 'client' watch | sed -e 's/^/[CLIENT] /' ",
+    "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch | sed -e 's/^/[BOOTSTRAPPING-LAMBDA] /'",
     "watch": "run-p watch-client watch-bootstrapping-lambda"
   },
   "devDependencies": {

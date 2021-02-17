@@ -5,8 +5,10 @@ import React, { useEffect, useState } from "react";
 
 import { User } from "../../shared/User";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
+import { pinboardPrimary } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
+import PinIconCircle from "../icons/pin-icon-circle.svg";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -112,22 +114,19 @@ export const Widget = (props: WidgetProps) => {
           height: ${widgetSize}px;
           border-radius: ${widgetSize / 2}px;
           cursor: pointer;
-          background: orange;
           box-shadow: ${boxShadow};
         `}
         onClick={() => setIsExpanded((previous) => !previous)}
       >
-        <div
+        <PinIconCircle
           css={css`
-            position: absolute;
-            font-size: ${widgetSize / 2}px;
-            top: ${widgetSize / 4}px;
-            left: ${widgetSize / 4}px;
-            user-select: none;
+            width: ${widgetSize}px;
+            height: ${widgetSize}px;
+            circle {
+              fill: ${pinboardPrimary};
+            }
           `}
-        >
-          📌
-        </div>
+        />
         {hasError && (
           <div
             css={css`
@@ -161,7 +160,7 @@ export const Widget = (props: WidgetProps) => {
           z-index: 99998;
           background: white;
           box-shadow: ${boxShadow};
-          border: 2px orange solid;
+          border: 2px ${pinboardPrimary} solid;
           width: 250px;
           height: calc(100vh - 100px);
           bottom: ${bottomRight + widgetSize / 2 - 5}px;

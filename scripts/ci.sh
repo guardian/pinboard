@@ -14,7 +14,7 @@ yarn install
 yarn graphql-refresh
 
 # perform a prettier check
-prettier --check .
+yarn prettier-check
 
 # perform a linting check
 yarn lint

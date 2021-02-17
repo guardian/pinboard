@@ -59,9 +59,7 @@ export const SelectPinboard = ({
   );
 
   return (
-    <div
-      css={standardWidgetContainerCss}
-    >
+    <div css={standardWidgetContainerCss}>
       {loading && <p>Loading pinboards...</p>}
       <h4>Active pinboards</h4>
       {data &&

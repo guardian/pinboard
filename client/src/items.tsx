@@ -47,7 +47,7 @@ interface ItemsProps {
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
-  scrollableArea.scrollHeight <= scrollableArea.clientHeight;
+  scrollableArea.scrollHeight >= scrollableArea.clientHeight;
 
 const elementIsVisible = (
   scrollableArea: HTMLDivElement,
@@ -93,16 +93,16 @@ export const Items = ({
   useEffect(scrollToLastItem, []); // runs once at the beginning
 
   const isLastItemVisible = () =>
-    scrollableArea &&
-    lastItemRef.current &&
-    (isScrollbarVisible(scrollableArea) ||
-      elementIsVisible(scrollableArea, lastItemRef.current));
+    !scrollableArea ||
+    !lastItemRef.current ||
+    !isScrollbarVisible(scrollableArea) ||
+      elementIsVisible(scrollableArea, lastItemRef.current);
 
   useEffect(() => {
     if (isLastItemVisible()) {
       scrollToLastItem();
     } else if (isExpanded) {
-      setHasUnread(true);
+      setHasUnread(true); 
     }
   }, [subscriptionItems]); // runs after render when the list of subscription items has changed (e.g. new message received)
 

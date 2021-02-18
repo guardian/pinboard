@@ -199,6 +199,8 @@ export const Widget = (props: WidgetProps) => {
               key={pinboardData.id}
               setError={setError}
               setUnreadFlag={setUnreadFlag}
+              hasUnreadOnOtherPinboard={!!hasUnread && !!Object.entries(unreadFlags).find(([pinboardId, isUnread]) => isUnread && pinboardId !== pinboardData.id)}
+              hasErrorOnOtherPinboard={!!hasError && !!Object.entries(errors).find(([pinboardId, isError]) => isError && pinboardId !== pinboardData.id)}
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
               clearSelectedPinboard={

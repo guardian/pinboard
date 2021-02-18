@@ -26,6 +26,8 @@ interface PinboardProps extends WidgetProps {
   pinboardData: PinboardData;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
   setUnreadFlag: (pinboardId: string, hasUnread: boolean | undefined) => void;
+  hasUnreadOnOtherPinboard: boolean;
+  hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
   isSelected: boolean;
   clearSelectedPinboard: undefined | (() => void);
@@ -36,6 +38,8 @@ export const Pinboard = ({
   pinboardData,
   setError,
   setUnreadFlag,
+  hasUnreadOnOtherPinboard,
+  hasErrorOnOtherPinboard,
   isExpanded,
   isSelected,
   clearSelectedPinboard,
@@ -142,6 +146,8 @@ export const Pinboard = ({
         <HeadingPanel
           heading={pinboardData.title || ""}
           clearSelectedPinboard={clearSelectedPinboard}
+          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard}
+          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard}
         >
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}

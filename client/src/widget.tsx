@@ -21,6 +21,10 @@ export const standardWidgetContainerCss = css`
     color: black;
   }
 `;
+
+export type PerPinboard<T> = {
+  [pinboardId: string]: T | undefined;
+}
 export interface WidgetProps {
   user: User;
   preselectedComposerId: string | undefined;
@@ -47,11 +51,11 @@ export const Widget = (props: WidgetProps) => {
   const preselectedPinboard: PinboardData | undefined =
     preselectedPinboardQuery.data?.getPinboardByComposerId;
 
-  const pinboards: PinboardData[] = preselectedPinboard
+  const activePinboards: PinboardData[] = preselectedPinboard
     ? [preselectedPinboard]
     : manuallyOpenedPinboards;
 
-  const pinboardIds = pinboards.map((_) => _.id);
+  const activePinboardIds = activePinboards.map((_) => _.id);
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>();
 
@@ -62,7 +66,7 @@ export const Widget = (props: WidgetProps) => {
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   const openPinboard = (pinboardData: PinboardData) => {
-    if (!pinboardIds.includes(pinboardData.id)) {
+    if (!activePinboardIds.includes(pinboardData.id)) {
       setManuallyOpenedPinboards([...manuallyOpenedPinboards, pinboardData]);
     }
 
@@ -70,7 +74,7 @@ export const Widget = (props: WidgetProps) => {
   };
 
   const closePinboard = (pinboardIdToClose: string) => {
-    if (pinboardIds.includes(pinboardIdToClose)) {
+    if (activePinboardIds.includes(pinboardIdToClose)) {
       setManuallyOpenedPinboards([
         ...manuallyOpenedPinboards.filter(
           (pinboard) => pinboard.id !== pinboardIdToClose
@@ -80,27 +84,27 @@ export const Widget = (props: WidgetProps) => {
     setSelectedPinboardId(null);
   };
 
-  const [errors, setErrors] = useState<{
-    [pinboardId: string]: ApolloError | undefined;
-  }>({});
+  const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 
   const setError = (pinboardId: string, error: ApolloError | undefined) =>
-    setErrors({ ...errors, [pinboardId]: error });
+    setErrors((prevErrors) => ({ ...prevErrors, [pinboardId]: error }));
 
   const hasError = Object.entries(errors).find(
-    ([pinboardId, error]) => pinboardIds.includes(pinboardId) && error
+    ([pinboardId, error]) => activePinboardIds.includes(pinboardId) && error
   );
 
-  const [unreadFlags, setUnreadFlags] = useState<{
-    [pinboardId: string]: boolean | undefined;
-  }>({});
+  const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
 
   const setUnreadFlag = (pinboardId: string, unreadFlag: boolean | undefined) =>
-    setUnreadFlags({ ...unreadFlags, [pinboardId]: unreadFlag });
+    setUnreadFlags((prevUnreadFlags) => ({ ...prevUnreadFlags, [pinboardId]: unreadFlag }));
 
   const hasUnread = Object.entries(unreadFlags).find(
-    ([pinboardId, unreadFlag]) => pinboardIds.includes(pinboardId) && unreadFlag
+    ([pinboardId, unreadFlag]) => activePinboardIds.includes(pinboardId) && unreadFlag
   );
+
+  useEffect(() => {
+    console.log(unreadFlags);
+  }, [unreadFlags]);
 
   return (
     <div>
@@ -176,8 +180,10 @@ export const Widget = (props: WidgetProps) => {
           !props.preselectedComposerId && (
             <SelectPinboard
               openPinboard={openPinboard}
-              pinboardIds={pinboardIds}
+              pinboardIds={activePinboardIds}
               closePinboard={closePinboard}
+              unreadFlags={unreadFlags}
+              errors={errors}
             />
           )}
         {props.preselectedComposerId &&
@@ -186,7 +192,7 @@ export const Widget = (props: WidgetProps) => {
         {
           // The active pinboards are always mounted, so that we receive new item notifications
           // Note that the pinboard hides itself based on 'isSelected' prop
-          pinboards.map((pinboardData) => (
+          activePinboards.map((pinboardData) => (
             <Pinboard
               {...props}
               pinboardData={pinboardData}

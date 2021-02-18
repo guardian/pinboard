@@ -1,22 +1,26 @@
 /** @jsx jsx */
 
-import { gql, useQuery } from "@apollo/client";
+import { ApolloError, gql, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
-import { standardWidgetContainerCss } from "./widget";
+import { PerPinboard, standardWidgetContainerCss } from "./widget";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   pinboardIds: string[];
+  unreadFlags: PerPinboard<boolean>;
+  errors: PerPinboard<ApolloError>;
 }
 
 export const SelectPinboard = ({
   openPinboard,
   closePinboard,
-  pinboardIds,
+  pinboardIds: activePinboardIds,
+  unreadFlags,
+  errors
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
@@ -50,9 +54,11 @@ export const SelectPinboard = ({
         `}
         onClick={() => openPinboard(pinboardData)}
       >
+        {activePinboardIds.includes(pinboardData.id) && unreadFlags[pinboardData.id] && "🔴 "}
+        {activePinboardIds.includes(pinboardData.id) && errors[pinboardData.id] && "⚠️ "}
         {pinboardData.title}
       </button>
-      {pinboardIds.includes(pinboardData.id) && (
+      {activePinboardIds.includes(pinboardData.id) && (
         <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
       )}
     </div>
@@ -65,7 +71,7 @@ export const SelectPinboard = ({
       {data &&
         data.listPinboards
           .filter((pinboardData: PinboardData) =>
-            pinboardIds.includes(pinboardData.id)
+            activePinboardIds.includes(pinboardData.id)
           )
           .map(OpenPinboardButton)}
       <h4>Open a pinboard</h4>
@@ -86,7 +92,7 @@ export const SelectPinboard = ({
         data.listPinboards
           .filter(
             (pinboardData: PinboardData) =>
-              !pinboardIds.includes(pinboardData.id) &&
+              !activePinboardIds.includes(pinboardData.id) &&
               pinboardData.title?.includes(searchText)
           )
           .map(OpenPinboardButton)}

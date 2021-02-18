@@ -42,22 +42,39 @@ const clientDirectory = IS_RUNNING_LOCALLY
 const MAIN_JS_FILENAME_PREFIX = "pinboard.main";
 const JS_EXTENSION = ".js";
 
-const MAIN_JS_FILENAME = fs
-  .readdirSync(clientDirectory)
-  .find(
-    (filename) =>
-      filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
-      filename.endsWith(JS_EXTENSION)
-  );
-
-if (!MAIN_JS_FILENAME) {
-  throw Error("no hashed main js file available");
+interface FileWithLastModified {
+  filename: string;
+  lastModified: Date;
 }
 
 server.get("/pinboard.loader.js", async (request, response) => {
   applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
 
   applyJavascriptContentType(response);
+
+  const mainJsFilename: string | undefined = fs
+    .readdirSync(clientDirectory)
+    .filter(
+      (filename) =>
+        filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
+        filename.endsWith(JS_EXTENSION)
+    )
+    .reduce((mostRecentSoFar, filename) => {
+      const lastModified = fs.statSync(`${clientDirectory}/${filename}`).mtime;
+      if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
+        return mostRecentSoFar;
+      }
+      return {
+        filename,
+        lastModified,
+      };
+    }, undefined as FileWithLastModified | undefined)?.filename;
+
+  if (!mainJsFilename) {
+    const message = "no hashed pinboard.main js file available";
+    console.error(message);
+    return response.send(`console.error('${message}')`);
+  }
 
   const maybeAuthedUser = await getVerifiedUser(request.header("Cookie"));
 
@@ -69,23 +86,26 @@ server.get("/pinboard.loader.js", async (request, response) => {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser);
 
     response.send(
-      loaderTemplate(appSyncConfig, MAIN_JS_FILENAME, request.hostname)
+      loaderTemplate(appSyncConfig, mainJsFilename, request.hostname)
     );
   } else {
     response.send("console.log('You do not have permission to use PinBoard')");
   }
 });
 
-server.get(`/${MAIN_JS_FILENAME}`, (request, response, next) => {
-  // when running in watch mode, sometimes the filename hash doesn't get updated, so we don't want to cache locally
-  IS_RUNNING_LOCALLY
-    ? applyNoCaching(response)
-    : applyAggressiveCaching(response);
+server.get(
+  `/${MAIN_JS_FILENAME_PREFIX}*${JS_EXTENSION}`,
+  (request, response, next) => {
+    // when running in watch mode, sometimes the filename hash doesn't get updated, so we don't want to cache locally
+    IS_RUNNING_LOCALLY
+      ? applyNoCaching(response)
+      : applyAggressiveCaching(response);
 
-  applyJavascriptContentType(response);
+    applyJavascriptContentType(response);
 
-  next();
-});
+    next();
+  }
+);
 
 server.use(express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
 

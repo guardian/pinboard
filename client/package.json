@@ -4,7 +4,6 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
     "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep -v 'Could not load source file'",
-    "devBuild": "tsc --noEmit && NODE_ENV=development parcel build parcel-entry.html --global PinBoard --no-minify | grep -v 'Could not load source file'",
     "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard"
   },
   "dependencies": {
@@ -18,9 +17,9 @@
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
+    "@svgr/parcel-plugin-svgr": "^5.5.0",
     "@types/react": "^16.9.56",
     "@types/react-dom": "^16.9.9",
-    "parcel-bundler": "^1.12.4",
-    "@svgr/parcel-plugin-svgr": "^5.5.0"
+    "parcel-bundler": "^1.12.4"
   }
 }

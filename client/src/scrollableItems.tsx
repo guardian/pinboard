@@ -3,6 +3,7 @@ import { Item } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
 import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
+import { pinboardPrimary } from "../colours";
 
 interface ItemDisplayProps {
   item: Item;
@@ -39,11 +40,12 @@ const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
   );
 };
 
-interface ItemsProps {
+interface ScrollableItemsProps {
   initialItems: Item[];
   subscriptionItems: Item[];
   setHasUnread: (hasUnread: boolean) => void;
   isExpanded: boolean;
+  hasUnread: boolean | undefined;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -62,12 +64,13 @@ const elementIsVisible = (
   return scrollTop > scrollTopThreshold;
 };
 
-export const Items = ({
+export const ScrollableItems = ({
   initialItems,
   subscriptionItems,
   setHasUnread,
   isExpanded,
-}: ItemsProps): ReactElement => {
+  hasUnread,
+}: ScrollableItemsProps): ReactElement => {
   const items = [...initialItems, ...subscriptionItems].sort(
     (a, b) => a.timestamp - b.timestamp
   );
@@ -96,13 +99,13 @@ export const Items = ({
     !scrollableArea ||
     !lastItemRef.current ||
     !isScrollbarVisible(scrollableArea) ||
-      elementIsVisible(scrollableArea, lastItemRef.current);
+    elementIsVisible(scrollableArea, lastItemRef.current);
 
   useEffect(() => {
     if (isLastItemVisible()) {
       scrollToLastItem();
     } else if (isExpanded) {
-      setHasUnread(true); 
+      setHasUnread(true);
     }
   }, [subscriptionItems]); // runs after render when the list of subscription items has changed (e.g. new message received)
 
@@ -119,6 +122,7 @@ export const Items = ({
         overflow-y: auto;
         margin: 5px;
         color: black;
+        position: relative;
       `}
       onScroll={() => isLastItemVisible() && setHasUnread(false)}
     >
@@ -129,6 +133,32 @@ export const Items = ({
           refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
         />
       ))}
+      {hasUnread && (
+        <div
+          css={css`
+            position: sticky;
+            bottom: 20px;
+            text-align: center;
+          `}
+        >
+          <button
+            onClick={scrollToLastItem}
+            css={css`
+              color: white;
+              background-color: red;
+              padding: 3px 8px 4px;
+              font-weight: bold;
+              height: 24px;
+              border-radius: 12px;
+              font-size: 14px;
+              border: none;
+              box-shadow: 0 0 6px 3px ${pinboardPrimary};
+            `}
+          >
+            ↓ Unread ↓
+          </button>
+        </div>
+      )}
     </div>
   );
 };

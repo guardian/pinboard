@@ -20,7 +20,7 @@ export const SelectPinboard = ({
   closePinboard,
   pinboardIds: activePinboardIds,
   unreadFlags,
-  errors
+  errors,
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
@@ -54,8 +54,12 @@ export const SelectPinboard = ({
         `}
         onClick={() => openPinboard(pinboardData)}
       >
-        {activePinboardIds.includes(pinboardData.id) && unreadFlags[pinboardData.id] && "🔴 "}
-        {activePinboardIds.includes(pinboardData.id) && errors[pinboardData.id] && "⚠️ "}
+        {activePinboardIds.includes(pinboardData.id) &&
+          unreadFlags[pinboardData.id] &&
+          "🔴 "}
+        {activePinboardIds.includes(pinboardData.id) &&
+          errors[pinboardData.id] &&
+          "⚠️ "}
         {pinboardData.title}
       </button>
       {activePinboardIds.includes(pinboardData.id) && (

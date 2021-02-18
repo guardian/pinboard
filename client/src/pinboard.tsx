@@ -12,7 +12,7 @@ import {
   Item,
   WorkflowStub,
 } from "../../shared/graphql/graphql";
-import { Items } from "./items";
+import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { WidgetProps } from "./widget";
 import { css, jsx } from "@emotion/react";
@@ -155,11 +155,12 @@ export const Pinboard = ({
         </HeadingPanel>
       </div>
       {initialItems.data && (
-        <Items
+        <ScrollableItems
           initialItems={initialItems.data.listItems.items}
           subscriptionItems={subscriptionItems}
           setHasUnread={setHasUnread}
           isExpanded={isExpanded}
+          hasUnread={hasUnread}
         />
       )}
       <div

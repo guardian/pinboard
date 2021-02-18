@@ -24,7 +24,7 @@ export const standardWidgetContainerCss = css`
 
 export type PerPinboard<T> = {
   [pinboardId: string]: T | undefined;
-}
+};
 export interface WidgetProps {
   user: User;
   preselectedComposerId: string | undefined;
@@ -96,10 +96,14 @@ export const Widget = (props: WidgetProps) => {
   const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
 
   const setUnreadFlag = (pinboardId: string, unreadFlag: boolean | undefined) =>
-    setUnreadFlags((prevUnreadFlags) => ({ ...prevUnreadFlags, [pinboardId]: unreadFlag }));
+    setUnreadFlags((prevUnreadFlags) => ({
+      ...prevUnreadFlags,
+      [pinboardId]: unreadFlag,
+    }));
 
   const hasUnread = Object.entries(unreadFlags).find(
-    ([pinboardId, unreadFlag]) => activePinboardIds.includes(pinboardId) && unreadFlag
+    ([pinboardId, unreadFlag]) =>
+      activePinboardIds.includes(pinboardId) && unreadFlag
   );
 
   useEffect(() => {
@@ -199,8 +203,20 @@ export const Widget = (props: WidgetProps) => {
               key={pinboardData.id}
               setError={setError}
               setUnreadFlag={setUnreadFlag}
-              hasUnreadOnOtherPinboard={!!hasUnread && !!Object.entries(unreadFlags).find(([pinboardId, isUnread]) => isUnread && pinboardId !== pinboardData.id)}
-              hasErrorOnOtherPinboard={!!hasError && !!Object.entries(errors).find(([pinboardId, isError]) => isError && pinboardId !== pinboardData.id)}
+              hasUnreadOnOtherPinboard={
+                !!hasUnread &&
+                !!Object.entries(unreadFlags).find(
+                  ([pinboardId, isUnread]) =>
+                    isUnread && pinboardId !== pinboardData.id
+                )
+              }
+              hasErrorOnOtherPinboard={
+                !!hasError &&
+                !!Object.entries(errors).find(
+                  ([pinboardId, isError]) =>
+                    isError && pinboardId !== pinboardData.id
+                )
+              }
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
               clearSelectedPinboard={

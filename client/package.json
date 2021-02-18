@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
-    "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard | grep -v 'Could not load source file'",
+    "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep -v 'Could not load source file'",
     "devBuild": "tsc --noEmit && NODE_ENV=development parcel build parcel-entry.html --global PinBoard --no-minify | grep -v 'Could not load source file'",
     "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard"
   },

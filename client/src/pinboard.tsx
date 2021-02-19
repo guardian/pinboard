@@ -12,7 +12,7 @@ import {
   Item,
   WorkflowStub,
 } from "../../shared/graphql/graphql";
-import { ScrollableItems } from "./scrollableItems";
+import { ScrollableItems, PendingItem } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { WidgetProps } from "./widget";
 import { css, jsx } from "@emotion/react";
@@ -80,9 +80,9 @@ export const Pinboard = ({
 
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
-  const [
-    sendMessage /*, sendMessageResult TODO do something with the result */,
-  ] = useMutation<CreateItemInput>(
+  const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+
+  const [sendMessage] = useMutation<{ createItem: Item }>(
     gql`
       mutation SendMessage($input: CreateItemInput!) {
         createItem(input: $input) {
@@ -96,7 +96,16 @@ export const Pinboard = ({
       }
     `,
     {
-      onCompleted: () => setNewMessage(""),
+      onCompleted: (sendMessageResult) => {
+        setSuccessfulSends((previousSends) => [
+          ...previousSends,
+          {
+            ...sendMessageResult.createItem,
+            pending: true,
+          },
+        ]);
+        setNewMessage("");
+      },
       onError: (error) => setError(pinboardId, error),
       variables: {
         input: {
@@ -157,6 +166,7 @@ export const Pinboard = ({
       {initialItems.data && (
         <ScrollableItems
           initialItems={initialItems.data.listItems.items}
+          successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
           setHasUnread={setHasUnread}
           isExpanded={isExpanded}

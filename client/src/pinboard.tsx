@@ -82,7 +82,7 @@ export const Pinboard = ({
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
 
-  const [sendMessage] = useMutation<CreateItemInput>(
+  const [sendMessage] = useMutation<{ createItem: Item }>(
     gql`
       mutation SendMessage($input: CreateItemInput!) {
         createItem(input: $input) {
@@ -96,7 +96,7 @@ export const Pinboard = ({
       }
     `,
     {
-      onCompleted: (sendMessageResult: { createItem: Item }) => {
+      onCompleted: (sendMessageResult) => {
         setSuccessfulSends((previousSends) => [
           ...previousSends,
           {

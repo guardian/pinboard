@@ -5,6 +5,8 @@ import { pinboardPrimary } from "../colours";
 interface HeadingPanelProps {
   heading: string;
   clearSelectedPinboard: undefined | (() => void);
+  hasUnreadOnOtherPinboard: boolean;
+  hasErrorOnOtherPinboard: boolean;
 }
 
 export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
@@ -20,7 +22,11 @@ export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
       `}
     >
       {props.clearSelectedPinboard && (
-        <button onClick={props.clearSelectedPinboard}>👈</button>
+        <button onClick={props.clearSelectedPinboard}>
+          👈
+          {props.hasUnreadOnOtherPinboard && <sup>&nbsp;🔴</sup>}
+          {props.hasErrorOnOtherPinboard && <sup>&nbsp;⚠️</sup>}
+        </button>
       )}
       {props.heading}
     </div>

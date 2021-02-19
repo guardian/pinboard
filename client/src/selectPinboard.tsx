@@ -97,7 +97,9 @@ export const SelectPinboard = ({
           .filter(
             (pinboardData: PinboardData) =>
               !activePinboardIds.includes(pinboardData.id) &&
-              pinboardData.title?.includes(searchText)
+              pinboardData.title
+                ?.toLowerCase()
+                .includes(searchText?.toLowerCase())
           )
           .map(OpenPinboardButton)}
     </div>

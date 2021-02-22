@@ -106,10 +106,6 @@ export const Widget = (props: WidgetProps) => {
       activePinboardIds.includes(pinboardId) && unreadFlag
   );
 
-  useEffect(() => {
-    console.log(unreadFlags);
-  }, [unreadFlags]);
-
   return (
     <div>
       <div

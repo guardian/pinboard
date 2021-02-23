@@ -5,10 +5,11 @@ import React, { useEffect, useState } from "react";
 
 import { User } from "../../shared/User";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
-import { pinboardPrimary } from "../colours";
+import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
-import PinIconCircle from "../icons/pin-icon-circle.svg";
+
+import PinIcon from "../icons/pin-icon.svg";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -119,15 +120,21 @@ export const Widget = (props: WidgetProps) => {
           border-radius: ${widgetSize / 2}px;
           cursor: pointer;
           box-shadow: ${boxShadow};
+          background-color: ${pinboardPrimary};
         `}
         onClick={() => setIsExpanded((previous) => !previous)}
       >
-        <PinIconCircle
+        <PinIcon
           css={css`
-            width: ${widgetSize}px;
+            position: absolute;
+            top: 50%;
+            left: 54%;
+            transform: translate(-50%, -50%);
             height: ${widgetSize}px;
-            circle {
-              fill: ${pinboardPrimary};
+            width: ${widgetSize / 2}px;
+            path {
+              stroke: ${pinMetal};
+              stroke-width: 0.5px;
             }
           `}
         />
@@ -135,9 +142,9 @@ export const Widget = (props: WidgetProps) => {
           <div
             css={css`
               position: absolute;
-              font-size: ${widgetSize / 3}px;
+              font-size: ${widgetSize / 4}px;
               bottom: -${widgetSize / 16}px;
-              right: -${widgetSize / 16}px;
+              right: 0px;
               user-select: none;
               text-shadow: 0 0 5px black;
             `}
@@ -149,13 +156,15 @@ export const Widget = (props: WidgetProps) => {
           <div
             css={css`
               position: absolute;
-              font-size: ${widgetSize / 3}px;
-              top: -${widgetSize / 16}px;
+              top: 0;
+              right: 0;
               user-select: none;
+              background-color: ${unread};
+              width: 12px;
+              height: 12px;
+              border-radius: 100%;
             `}
-          >
-            🔴
-          </div>
+          />
         )}
       </div>
       <div

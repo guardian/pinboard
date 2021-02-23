@@ -195,11 +195,7 @@ export const Pinboard = ({
             event.preventDefault()
           }
         />
-        <button
-          className="btn"
-          onClick={() => sendMessage()}
-          disabled={!newMessage}
-        >
+        <button onClick={() => sendMessage()} disabled={!newMessage}>
           Send
         </button>
       </div>

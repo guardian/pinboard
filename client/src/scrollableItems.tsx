@@ -3,7 +3,7 @@ import { Item } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
 import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
-import { pinboardPrimary } from "../colours";
+import { unread } from "../colours";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -169,14 +169,15 @@ export const ScrollableItems = ({
             onClick={scrollToLastItem}
             css={css`
               color: white;
-              background-color: red;
+              background-color: ${unread};
               padding: 3px 8px 4px;
               font-weight: bold;
               height: 24px;
               border-radius: 12px;
               font-size: 14px;
               border: none;
-              box-shadow: 0 0 6px 3px ${pinboardPrimary};
+              box-shadow: 2px 2px 6px 3px lightgrey;
+              cursor: pointer;
             `}
           >
             ↓ Unread ↓

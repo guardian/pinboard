@@ -10,6 +10,7 @@ import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 
 import PinIcon from "../icons/pin-icon.svg";
+import { PayloadAndType } from "./payloadDisplay";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -29,10 +30,14 @@ export type PerPinboard<T> = {
 export interface WidgetProps {
   user: User;
   preselectedComposerId: string | undefined;
+  payloadToBeSent: PayloadAndType | null;
+  clearPayloadToBeSent: () => void;
+  isExpanded: boolean;
+  setIsExpanded: (_: boolean) => void;
 }
 
 export const Widget = (props: WidgetProps) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const { isExpanded, setIsExpanded } = props;
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
@@ -122,7 +127,7 @@ export const Widget = (props: WidgetProps) => {
           box-shadow: ${boxShadow};
           background-color: ${pinboardPrimary};
         `}
-        onClick={() => setIsExpanded((previous) => !previous)}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
         <PinIcon
           css={css`
@@ -193,6 +198,8 @@ export const Widget = (props: WidgetProps) => {
               closePinboard={closePinboard}
               unreadFlags={unreadFlags}
               errors={errors}
+              payloadToBeSent={props.payloadToBeSent}
+              clearPayloadToBeSent={props.clearPayloadToBeSent}
             />
           )}
         {props.preselectedComposerId &&

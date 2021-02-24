@@ -7,18 +7,18 @@ import {
   useQuery,
   useSubscription,
 } from "@apollo/client";
-import {
-  CreateItemInput,
-  Item,
-  WorkflowStub,
-} from "../../shared/graphql/graphql";
-import { ScrollableItems, PendingItem } from "./scrollableItems";
+import { Item, WorkflowStub } from "../../shared/graphql/graphql";
+import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
-import { WidgetProps } from "./widget";
 import { css, jsx } from "@emotion/react";
+import { PendingItem } from "./itemDisplay";
+import { WidgetProps } from "./widget";
+import { PayloadDisplay } from "./payloadDisplay";
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
+
+const payloadToBeSentThumbnailHeightPx = 50;
 
 export type PinboardData = WorkflowStub;
 
@@ -43,6 +43,8 @@ export const Pinboard = ({
   isExpanded,
   isSelected,
   clearSelectedPinboard,
+  payloadToBeSent,
+  clearPayloadToBeSent,
 }: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
@@ -59,6 +61,7 @@ export const Pinboard = ({
         message
         timestamp
         type
+        payload
         pinboardId
       }
     }
@@ -82,13 +85,15 @@ export const Pinboard = ({
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
 
-  const [sendMessage] = useMutation<{ createItem: Item }>(
+  const [sendItem] = useMutation<{ createItem: Item }>(
     gql`
       mutation SendMessage($input: CreateItemInput!) {
         createItem(input: $input) {
           # including fields here makes them accessible in our subscription data
           id
           message
+          type
+          payload
           user
           timestamp
           pinboardId
@@ -105,12 +110,14 @@ export const Pinboard = ({
           },
         ]);
         setNewMessage("");
+        clearPayloadToBeSent();
       },
       onError: (error) => setError(pinboardId, error),
       variables: {
         input: {
-          type: "message",
+          type: payloadToBeSent?.type || "message-only",
           message: newMessage,
+          payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
           user: JSON.stringify(user),
           pinboardId,
         },
@@ -120,6 +127,7 @@ export const Pinboard = ({
 
   // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
   const initialItems = useQuery(
+    // TODO: move list of fields into reusable const
     gql`
       query MyQuery {
         listItems(filter: { pinboardId: { eq: "${pinboardId}" } }) {
@@ -183,6 +191,9 @@ export const Pinboard = ({
           css={css`
             flex-grow: 1;
             margin-right: 5px;
+            padding-bottom: ${payloadToBeSent
+              ? payloadToBeSentThumbnailHeightPx + 5
+              : 0}px;
           `}
           placeholder="enter chat message here..."
           rows={2}
@@ -191,11 +202,29 @@ export const Pinboard = ({
           onKeyPress={(event) =>
             isEnterKey(event) &&
             newMessage &&
-            sendMessage() &&
+            sendItem() &&
             event.preventDefault()
           }
         />
-        <button onClick={() => sendMessage()} disabled={!newMessage}>
+        {payloadToBeSent && (
+          <div
+            css={css`
+              position: absolute;
+              bottom: 5px;
+              left: 8px;
+            `}
+          >
+            <PayloadDisplay
+              {...payloadToBeSent}
+              clearPayloadToBeSent={clearPayloadToBeSent}
+              heightPx={payloadToBeSentThumbnailHeightPx}
+            />
+          </div>
+        )}
+        <button
+          onClick={() => sendItem()}
+          disabled={!newMessage && !payloadToBeSent}
+        >
           Send
         </button>
       </div>

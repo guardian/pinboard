@@ -6,6 +6,7 @@ import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
 import { PerPinboard, standardWidgetContainerCss } from "./widget";
+import { PayloadAndType, PayloadDisplay } from "./payloadDisplay";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -13,6 +14,8 @@ interface SelectPinboardProps {
   pinboardIds: string[];
   unreadFlags: PerPinboard<boolean>;
   errors: PerPinboard<ApolloError>;
+  payloadToBeSent: PayloadAndType | null;
+  clearPayloadToBeSent: () => void;
 }
 
 export const SelectPinboard = ({
@@ -21,6 +24,8 @@ export const SelectPinboard = ({
   pinboardIds: activePinboardIds,
   unreadFlags,
   errors,
+  payloadToBeSent,
+  clearPayloadToBeSent,
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
@@ -70,6 +75,15 @@ export const SelectPinboard = ({
 
   return (
     <div css={standardWidgetContainerCss}>
+      {payloadToBeSent && (
+        <div>
+          <p>Choose the pinboard for this asset</p>
+          <PayloadDisplay
+            {...payloadToBeSent}
+            clearPayloadToBeSent={clearPayloadToBeSent}
+          />
+        </div>
+      )}
       {loading && <p>Loading pinboards...</p>}
       <h4>Active pinboards</h4>
       {data &&

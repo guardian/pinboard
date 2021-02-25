@@ -7,6 +7,7 @@ import { css, jsx } from "@emotion/react";
 import { PinboardData } from "./pinboard";
 import { PerPinboard, standardWidgetContainerCss } from "./widget";
 import { PayloadAndType, PayloadDisplay } from "./payloadDisplay";
+import { pinboardSecondaryPastel, pinMetal } from "../colours";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -76,8 +77,27 @@ export const SelectPinboard = ({
   return (
     <div css={standardWidgetContainerCss}>
       {payloadToBeSent && (
-        <div>
-          <p>Choose the pinboard for this asset</p>
+        <div
+          css={css`
+            width: 150px;
+            position: absolute;
+            top: 20px;
+            left: -180px;
+            background-color: ${pinboardSecondaryPastel};
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            color: ${pinMetal};
+          `}
+        >
+          <p
+            css={css`
+              margin-top: 0;
+            `}
+          >
+            Choose the pinboard for this asset 👉
+          </p>
+
           <PayloadDisplay
             {...payloadToBeSent}
             clearPayloadToBeSent={clearPayloadToBeSent}

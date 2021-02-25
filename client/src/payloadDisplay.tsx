@@ -55,6 +55,7 @@ export const PayloadDisplay = ({
             src={payload?.gridCropThumbnail}
             css={css`
               max-height: ${heightPx ?? 75}px;
+              box-shadow: 2px 2px 5px 0px ${pinMetal};
             `}
           />
         </div>

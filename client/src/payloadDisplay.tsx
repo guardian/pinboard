@@ -14,12 +14,29 @@ interface PayloadDisplayProps extends PayloadAndType {
   heightPx?: number;
 }
 
+const getToolsStageDomain = (specificURL: string) => {
+  if (specificURL.includes(".local.dev")) {
+    return "local.dev-gutools.co.uk";
+  } else if (specificURL.includes(".test.dev")) {
+    return "test.dev-gutools.co.uk";
+  } else if (specificURL.includes(".code.dev")) {
+    return "code.dev-gutools.co.uk";
+  }
+  return "gutools.co.uk";
+};
+
 export const PayloadDisplay = ({
   type,
   payload,
   clearPayloadToBeSent,
   heightPx,
 }: PayloadDisplayProps) => {
+  const dragURL =
+    payload?.gridCropThumbnail &&
+    `https://media.${getToolsStageDomain(payload.gridCropThumbnail)}/images/${
+      payload.gridImageId
+    }?crop=${payload.gridCropId}`;
+
   switch (type) {
     case "grid-crop":
       return (
@@ -57,6 +74,9 @@ export const PayloadDisplay = ({
               max-height: ${heightPx ?? 75}px;
               box-shadow: 2px 2px 5px 0px ${pinMetal};
             `}
+            onDragStart={(event) =>
+              dragURL && event.dataTransfer.setData("URL", dragURL)
+            }
           />
         </div>
       );

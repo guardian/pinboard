@@ -9,6 +9,7 @@
   "dependencies": {
     "@apollo/client": "^3.2.7",
     "@emotion/react": "^11.1.4",
+    "@guardian/src-foundations": "^3.3.0",
     "apollo-link": "^1.2.14",
     "aws-appsync-auth-link": "^3.0.2",
     "aws-appsync-subscription-link": "^3.0.3",

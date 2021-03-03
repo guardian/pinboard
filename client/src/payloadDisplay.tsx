@@ -3,6 +3,7 @@ import { css, jsx } from "@emotion/react";
 import { pinMetal } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
+import CrossIcon from "../icons/cross-icon.svg";
 
 interface PayloadDisplayProps extends PayloadAndType {
   clearPayloadToBeSent?: () => void;
@@ -34,14 +35,17 @@ export const PayloadDisplay = ({
             background-color: ${pinMetal};
             box-shadow: 0 0 ${space[1]}px 2px white;
             opacity: 0.8;
-            color: white;
             border-radius: 50%;
             text-align: center;
             cursor: pointer;
           `}
           onClick={clearPayloadToBeSent}
         >
-          ╳
+          <CrossIcon
+            css={css`
+              padding-top: 2px;
+            `}
+          />
         </div>
       )}
       <img // TODO: hover for larger thumbnail

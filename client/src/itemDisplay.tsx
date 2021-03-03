@@ -5,6 +5,7 @@ import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
+import { space } from "@guardian/src-foundations";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -21,8 +22,8 @@ export const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
       ref={refForLastItem}
       css={css`
         border-bottom: 1px solid gray;
-        padding-bottom: 3px;
-        margin-bottom: 3px;
+        padding-bottom: ${space[1]}px;
+        margin-bottom: ${space[1]}px;
         font-style: ${isPendingSend ? "italic" : "normal"};
       `}
     >

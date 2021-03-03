@@ -14,9 +14,9 @@
     "prettier-write": "prettier --write .",
     "prettier-check": "prettier --check .",
     "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts",
-    "watch-client": "yarn --cwd 'client' watch 2>&1 | sed -e 's/^/[CLIENT] /' ",
-    "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1 | sed -e 's/^/[BOOTSTRAPPING-LAMBDA] /'",
-    "watch": "run-p watch-client watch-bootstrapping-lambda"
+    "watch-client": "yarn --cwd 'client' watch 2>&1",
+    "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
+    "watch": "run-p --print-label watch-client watch-bootstrapping-lambda"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",

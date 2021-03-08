@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
+import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
@@ -54,7 +54,9 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
   const expandWidget = () => setIsWidgetExpanded(true);
 
   const refreshButtonNodes = () =>
-    setButtonNodes(Array.from(document.querySelectorAll(PIN_BUTTON_HTML_TAG)));
+    setButtonNodes(
+      Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
+    );
 
   const refreshPreselectedPinboard = () =>
     setPreselectedComposerId(

@@ -31,11 +31,11 @@ export const PayloadDisplay = ({
   clearPayloadToBeSent,
   heightPx,
 }: PayloadDisplayProps) => {
-  const dragURL =
-    payload?.gridCropThumbnail &&
-    `https://media.${getToolsStageDomain(payload.gridCropThumbnail)}/images/${
-      payload.gridImageId
-    }?crop=${payload.gridCropId}`;
+  const gridDragURL =
+    payload?.thumbnail &&
+    `https://media.${getToolsStageDomain(payload.thumbnail)}/images/${
+      payload.primaryId
+    }?crop=${payload.secondaryId}`;
 
   switch (type) {
     case "grid-crop":
@@ -69,13 +69,13 @@ export const PayloadDisplay = ({
             </div>
           )}
           <img // TODO: hover for larger thumbnail
-            src={payload?.gridCropThumbnail}
+            src={payload?.thumbnail}
             css={css`
               max-height: ${heightPx ?? 75}px;
               box-shadow: 2px 2px 5px 0px ${pinMetal};
             `}
             onDragStart={(event) =>
-              dragURL && event.dataTransfer.setData("URL", dragURL)
+              gridDragURL && event.dataTransfer.setData("URL", gridDragURL)
             }
           />
         </div>

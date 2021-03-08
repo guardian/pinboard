@@ -7,7 +7,7 @@ import { pinMetal, pinboardPrimary } from "../colours";
 import { User } from "../../shared/User";
 import { PayloadAndType } from "./payloadDisplay";
 
-export const PIN_BUTTON_HTML_TAG = "pinboard-add-button";
+export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
@@ -17,13 +17,13 @@ interface AddToPinboardButtonProps {
 }
 
 const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
-  const { type, ...payload } = props.dataAttributes;
+  const { source, sourceType, ...payload } = props.dataAttributes;
 
-  return type ? (
+  return source && sourceType ? (
     <button
       onClick={() => {
         props.setPayloadToBeSent({
-          type,
+          type: `${source}-${sourceType}`,
           payload,
         });
         props.expandWidget();

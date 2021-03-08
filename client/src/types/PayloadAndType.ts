@@ -1,8 +1,7 @@
-type Payload = Record<string, string | undefined> & {
+type Payload = {
   thumbnail?: string;
-  primaryId?: string;
-  secondaryId?: string;
-};
+  embeddableUrl?: string;
+}; // & Record<string, string | undefined>
 
 export interface PayloadAndType {
   type: string;

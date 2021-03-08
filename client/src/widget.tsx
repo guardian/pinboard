@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ApolloError, gql, useQuery } from "@apollo/client";
+import { ApolloError, useQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 
@@ -11,6 +11,7 @@ import { SelectPinboard } from "./selectPinboard";
 
 import PinIcon from "../icons/pin-icon.svg";
 import { PayloadAndType } from "./types/PayloadAndType";
+import { gqlGetPinboard } from "../gql";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -43,16 +44,9 @@ export const Widget = (props: WidgetProps) => {
     PinboardData[]
   >([]);
 
-  const preselectedPinboardQuery = useQuery(gql`
-  query MyQuery {
-    getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
-    {    
-      title
-      status
-      id
-      composerId
-    }
-  }`);
+  const preselectedPinboardQuery = useQuery(
+    gqlGetPinboard(props.preselectedComposerId)
+  );
 
   const preselectedPinboard: PinboardData | undefined =
     preselectedPinboardQuery.data?.getPinboardByComposerId;

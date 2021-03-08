@@ -1,6 +1,6 @@
 /** @jsx jsx */
 
-import { ApolloError, gql, useQuery } from "@apollo/client";
+import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { css, jsx } from "@emotion/react";
 
@@ -9,6 +9,7 @@ import { PerPinboard, standardWidgetContainerCss } from "./widget";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
+import { gqlListPinboards } from "../gql";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -31,16 +32,7 @@ export const SelectPinboard = ({
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery(gql`
-    query MyQuery {
-      listPinboards {
-        composerId
-        id
-        status
-        title
-      }
-    }
-  `);
+  const { data, loading } = useQuery(gqlListPinboards);
 
   // TODO: improve styling, add unread/error badges beside open pinboards
 

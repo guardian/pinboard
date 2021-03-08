@@ -2,14 +2,13 @@
 import { ApolloError, useQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
-
 import { User } from "../../shared/User";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
-
 import PinIcon from "../icons/pin-icon.svg";
+import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboard } from "../gql";
 
@@ -19,7 +18,7 @@ const boxShadow =
   "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
 export const standardWidgetContainerCss = css`
   overflow-y: auto;
-  margin: 5px;
+  margin: ${space[1]}px;
   h4 {
     color: black;
   }
@@ -159,8 +158,8 @@ export const Widget = (props: WidgetProps) => {
               right: 0;
               user-select: none;
               background-color: ${unread};
-              width: 12px;
-              height: 12px;
+              width: ${space[3]}px;
+              height: ${space[3]}px;
               border-radius: 100%;
             `}
           />

@@ -12,6 +12,7 @@ import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
 import { WidgetProps } from "./widget";
 import { PayloadDisplay } from "./payloadDisplay";
+import { space } from "@guardian/src-foundations";
 import { PendingItem } from "./types/PendingItem";
 import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
 
@@ -135,13 +136,13 @@ export const Pinboard = ({
       <div
         css={css`
           display: flex;
-          margin: 5px;
+          margin: ${space[1]}px;
         `}
       >
         <textarea
           css={css`
             flex-grow: 1;
-            margin-right: 5px;
+            margin-right: ${space[1]}px;
             padding-bottom: ${payloadToBeSent
               ? payloadToBeSentThumbnailHeightPx + 5
               : 0}px;
@@ -161,8 +162,8 @@ export const Pinboard = ({
           <div
             css={css`
               position: absolute;
-              bottom: 5px;
-              left: 8px;
+              bottom: ${space[1]}px;
+              left: ${space[2]}px;
             `}
           >
             <PayloadDisplay

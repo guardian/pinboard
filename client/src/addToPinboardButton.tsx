@@ -6,6 +6,8 @@ import { css, jsx } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
 import { User } from "../../shared/User";
 import { PayloadAndType } from "./types/PayloadAndType";
+import { space } from "@guardian/src-foundations";
+import { textSans } from "@guardian/src-foundations/typography";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -32,10 +34,10 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         display: flex;
         align-items: center;
         background-color: ${pinboardPrimary};
+        ${textSans.xsmall()};
         border: none;
         border-radius: 100px;
-        padding: 1px 8px 0 12px;
-        font-size: 14px;
+        padding: 0 ${space[2]}px 0 ${space[3]}px;
         line-height: 2;
         cursor: pointer;
         color: ${pinMetal};
@@ -45,7 +47,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
       <PinIcon
         css={css`
           height: 30px;
-          margin-left: 4px;
+          margin-left: ${space[1]}px;
           path {
             stroke: ${pinMetal};
             stroke-width: 1px;

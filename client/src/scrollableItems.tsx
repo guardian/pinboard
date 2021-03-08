@@ -3,6 +3,7 @@ import { Item } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
+import { space } from "@guardian/src-foundations";
 import { ItemDisplay } from "./itemDisplay";
 import { PendingItem } from "./types/PendingItem";
 
@@ -104,7 +105,7 @@ export const ScrollableItems = ({
       ref={scrollableAreaRef}
       css={css`
         overflow-y: auto;
-        margin: 5px;
+        margin: ${space[1]}px;
         color: black;
         position: relative;
       `}
@@ -121,7 +122,7 @@ export const ScrollableItems = ({
         <div
           css={css`
             position: sticky;
-            bottom: 20px;
+            bottom: ${space[5]}px;
             text-align: center;
           `}
         >
@@ -130,10 +131,10 @@ export const ScrollableItems = ({
             css={css`
               color: white;
               background-color: ${unread};
-              padding: 3px 8px 4px;
+              padding: ${space[1]}px ${space[2]}px ${space[1]}px;
               font-weight: bold;
-              height: 24px;
-              border-radius: 12px;
+              height: ${space[6]}px;
+              border-radius: ${space[3]}px;
               font-size: 14px;
               border: none;
               box-shadow: 2px 2px 6px 3px lightgrey;

@@ -3,11 +3,11 @@
 import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { css, jsx } from "@emotion/react";
-
 import { PinboardData } from "./pinboard";
 import { PerPinboard, standardWidgetContainerCss } from "./widget";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
+import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
 
@@ -74,12 +74,12 @@ export const SelectPinboard = ({
           css={css`
             width: 150px;
             position: absolute;
-            top: 20px;
+            top: ${space[5]}px;
             left: -180px;
             background-color: ${pinboardSecondaryPastel};
-            padding: 10px;
+            padding: ${space[3]}px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: ${space[2]}px;
             color: ${pinMetal};
           `}
         >

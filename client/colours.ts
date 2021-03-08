@@ -1,4 +1,6 @@
-export const pinboardPrimary = "#F3C100"; // brand alt 200
-export const pinboardSecondaryPastel = "#90DCFF"; // sport pastel
-export const pinMetal = "#333333"; // neutral 20
-export const unread = "#C70000"; // news 400
+import { palette } from "@guardian/src-foundations";
+
+export const pinboardPrimary = palette.brandAltBackground.ctaSecondary; // "#F3C100"
+export const pinboardSecondaryPastel = palette.sport[600]; // "#90DCFF"
+export const pinMetal = palette.neutral[20]; //"#333333"
+export const unread = palette.news[400]; // "#C70000

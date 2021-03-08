@@ -20,7 +20,13 @@
     </button>
 
     <h3>button added initially</h3>
-    <pinboard-add-button data-hello="world"></pinboard-add-button>
+    <asset-handle
+      data-source="grid"
+      data-source-type="crop"
+      data-thumbnail="https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg"
+      data-primary-id="24733ea386c7fcb37496c55cc86e8f1468b9dfcf"
+      data-secondary-id="817_0_1866_2333"
+    ></asset-handle>
     <h3>button added after 1 second</h3>
     <!--
             the setTimeout in the <script> further up will add an element here after 1 second,
@@ -30,8 +36,14 @@
   <script>
     setTimeout(
       () => {
-        const delayedAddButton = document.createElement("pinboard-add-button");
-        delayedAddButton.dataset.foo = "bar";
+        const delayedAddButton = document.createElement("asset-handle");
+        delayedAddButton.dataset.source = "grid";
+        delayedAddButton.dataset.sourceType = "crop";
+        delayedAddButton.dataset.thumbnail =
+          "https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg";
+        delayedAddButton.dataset.primaryId =
+          "24733ea386c7fcb37496c55cc86e8f1468b9dfcf";
+        delayedAddButton.dataset.secondaryId = "817_0_1866_2333";
         document.body.appendChild(delayedAddButton);
       },
       1000 // 1 second delay

@@ -2,23 +2,23 @@
 import React, { useEffect, useState } from "react";
 import {
   ApolloError,
-  gql,
   useMutation,
   useQuery,
   useSubscription,
 } from "@apollo/client";
-import {
-  CreateItemInput,
-  Item,
-  WorkflowStub,
-} from "../../shared/graphql/graphql";
-import { ScrollableItems, PendingItem } from "./scrollableItems";
+import { Item, WorkflowStub } from "../../shared/graphql/graphql";
+import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
-import { WidgetProps } from "./widget";
 import { css, jsx } from "@emotion/react";
+import { WidgetProps } from "./widget";
+import { PayloadDisplay } from "./payloadDisplay";
+import { PendingItem } from "./types/PendingItem";
+import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
+
+const payloadToBeSentThumbnailHeightPx = 50;
 
 export type PinboardData = WorkflowStub;
 
@@ -43,6 +43,8 @@ export const Pinboard = ({
   isExpanded,
   isSelected,
   clearSelectedPinboard,
+  payloadToBeSent,
+  clearPayloadToBeSent,
 }: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
@@ -50,22 +52,8 @@ export const Pinboard = ({
 
   const pinboardId = pinboardData.id;
 
-  const onCreateItem = gql`
-    subscription OnCreateItem {
-      onCreateItem(
-        pinboardId: "${pinboardId}"
-      ) {
-        id
-        message
-        timestamp
-        type
-        pinboardId
-      }
-    }
-  `;
-
   // TODO: extract to widget level?
-  const subscription = useSubscription(onCreateItem, {
+  const subscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const updateForSubscription = subscriptionData.data.onCreateItem;
       setSubscriptionItems((prevState) => [
@@ -82,60 +70,31 @@ export const Pinboard = ({
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
 
-  const [sendMessage] = useMutation<{ createItem: Item }>(
-    gql`
-      mutation SendMessage($input: CreateItemInput!) {
-        createItem(input: $input) {
-          # including fields here makes them accessible in our subscription data
-          id
-          message
-          user
-          timestamp
-          pinboardId
-        }
-      }
-    `,
-    {
-      onCompleted: (sendMessageResult) => {
-        setSuccessfulSends((previousSends) => [
-          ...previousSends,
-          {
-            ...sendMessageResult.createItem,
-            pending: true,
-          },
-        ]);
-        setNewMessage("");
-      },
-      onError: (error) => setError(pinboardId, error),
-      variables: {
-        input: {
-          type: "message",
-          message: newMessage,
-          user: JSON.stringify(user),
-          pinboardId,
+  const [sendItem] = useMutation<{ createItem: Item }>(gqlCreateItem, {
+    onCompleted: (sendMessageResult) => {
+      setSuccessfulSends((previousSends) => [
+        ...previousSends,
+        {
+          ...sendMessageResult.createItem,
+          pending: true,
         },
+      ]);
+      setNewMessage("");
+      clearPayloadToBeSent();
+    },
+    onError: (error) => setError(pinboardId, error),
+    variables: {
+      input: {
+        type: payloadToBeSent?.type || "message-only",
+        message: newMessage,
+        payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
+        user: JSON.stringify(user),
+        pinboardId,
       },
-    }
-  );
+    },
+  });
 
-  // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
-  const initialItems = useQuery(
-    gql`
-      query MyQuery {
-        listItems(filter: { pinboardId: { eq: "${pinboardId}" } }) {
-          items {
-            id
-            message
-            timestamp
-            type
-            payload
-            user
-            pinboardId
-          }
-        }
-      }
-    `
-  );
+  const initialItems = useQuery(gqlGetInitialItems(pinboardId));
 
   useEffect(() => setUnreadFlag(pinboardId, hasUnread), [hasUnread]);
 
@@ -183,6 +142,9 @@ export const Pinboard = ({
           css={css`
             flex-grow: 1;
             margin-right: 5px;
+            padding-bottom: ${payloadToBeSent
+              ? payloadToBeSentThumbnailHeightPx + 5
+              : 0}px;
           `}
           placeholder="enter chat message here..."
           rows={2}
@@ -191,11 +153,29 @@ export const Pinboard = ({
           onKeyPress={(event) =>
             isEnterKey(event) &&
             newMessage &&
-            sendMessage() &&
+            sendItem() &&
             event.preventDefault()
           }
         />
-        <button onClick={() => sendMessage()} disabled={!newMessage}>
+        {payloadToBeSent && (
+          <div
+            css={css`
+              position: absolute;
+              bottom: 5px;
+              left: 8px;
+            `}
+          >
+            <PayloadDisplay
+              {...payloadToBeSent}
+              clearPayloadToBeSent={clearPayloadToBeSent}
+              heightPx={payloadToBeSentThumbnailHeightPx}
+            />
+          </div>
+        )}
+        <button
+          onClick={() => sendItem()}
+          disabled={!newMessage && !payloadToBeSent}
+        >
           Send
         </button>
       </div>

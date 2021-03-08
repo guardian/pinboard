@@ -1,46 +1,10 @@
 /** @jsx jsx */
 import { Item } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
-import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
-
-interface ItemDisplayProps {
-  item: Item | PendingItem;
-  refForLastItem: React.RefObject<HTMLDivElement> | undefined;
-}
-
-const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
-  const user = JSON.parse(item.user) as User;
-  const isPendingSend = "pending" in item && item.pending;
-
-  return (
-    <div
-      ref={refForLastItem}
-      css={css`
-        border-bottom: 1px solid gray;
-        padding-bottom: 3px;
-        margin-bottom: 3px;
-        font-style: ${isPendingSend ? "italic" : "normal"};
-      `}
-    >
-      <div
-        css={css`
-          display: flex;
-          justify-content: space-between;
-          font-size: 80%;
-          color: lightgray;
-        `}
-      >
-        <span>{user.firstName}</span>
-        <span>
-          {new Date(item.timestamp * 1000).toTimeString().substr(0, 8)}
-        </span>
-      </div>
-      <div>{item.message}</div>
-    </div>
-  );
-};
+import { ItemDisplay } from "./itemDisplay";
+import { PendingItem } from "./types/PendingItem";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -66,10 +30,6 @@ const elementIsVisible = (
     elementTopRelativeToScrollableArea - scrollableAreaHeight - 10;
   return scrollTop > scrollTopThreshold;
 };
-
-export interface PendingItem extends Item {
-  pending: true;
-}
 
 interface ItemsMap {
   [id: string]: Item | PendingItem;

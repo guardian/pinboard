@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ButtonPortal, PIN_BUTTON_HTML_TAG } from "./addToPinboardButton";
+import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
@@ -9,6 +9,7 @@ import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { User } from "../../shared/User"; //TODO attempt to factor out
 import { Widget } from "./widget";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 
@@ -40,12 +41,22 @@ interface PinBoardAppProps {
 }
 
 const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
+  const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
+    null
+  );
+  const clearPayloadToBeSent = () => setPayloadToBeSent(null);
+
   const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
   const [preSelectedComposerId, setPreselectedComposerId] = useState<string>();
 
+  const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(false);
+  const expandWidget = () => setIsWidgetExpanded(true);
+
   const refreshButtonNodes = () =>
-    setButtonNodes(Array.from(document.querySelectorAll(PIN_BUTTON_HTML_TAG)));
+    setButtonNodes(
+      Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
+    );
 
   const refreshPreselectedPinboard = () =>
     setPreselectedComposerId(
@@ -75,9 +86,22 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <Widget user={user} preselectedComposerId={preSelectedComposerId} />
+      <Widget
+        user={user}
+        preselectedComposerId={preSelectedComposerId}
+        payloadToBeSent={payloadToBeSent}
+        clearPayloadToBeSent={clearPayloadToBeSent}
+        isExpanded={isWidgetExpanded}
+        setIsExpanded={setIsWidgetExpanded}
+      />
       {buttonNodes.map((node, index) => (
-        <ButtonPortal key={index} node={node} />
+        <ButtonPortal
+          key={index}
+          node={node}
+          user={user}
+          setPayloadToBeSent={setPayloadToBeSent}
+          expandWidget={expandWidget}
+        />
       ))}
     </ApolloProvider>
   );

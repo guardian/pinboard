@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ApolloError, gql, useQuery } from "@apollo/client";
+import { ApolloError, useQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 
@@ -10,6 +10,8 @@ import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 
 import PinIcon from "../icons/pin-icon.svg";
+import { PayloadAndType } from "./types/PayloadAndType";
+import { gqlGetPinboard } from "../gql";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -29,25 +31,22 @@ export type PerPinboard<T> = {
 export interface WidgetProps {
   user: User;
   preselectedComposerId: string | undefined;
+  payloadToBeSent: PayloadAndType | null;
+  clearPayloadToBeSent: () => void;
+  isExpanded: boolean;
+  setIsExpanded: (_: boolean) => void;
 }
 
 export const Widget = (props: WidgetProps) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const { isExpanded, setIsExpanded } = props;
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
   >([]);
 
-  const preselectedPinboardQuery = useQuery(gql`
-  query MyQuery {
-    getPinboardByComposerId(composerId: "${props.preselectedComposerId}")
-    {    
-      title
-      status
-      id
-      composerId
-    }
-  }`);
+  const preselectedPinboardQuery = useQuery(
+    gqlGetPinboard(props.preselectedComposerId)
+  );
 
   const preselectedPinboard: PinboardData | undefined =
     preselectedPinboardQuery.data?.getPinboardByComposerId;
@@ -122,7 +121,7 @@ export const Widget = (props: WidgetProps) => {
           box-shadow: ${boxShadow};
           background-color: ${pinboardPrimary};
         `}
-        onClick={() => setIsExpanded((previous) => !previous)}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
         <PinIcon
           css={css`
@@ -193,6 +192,8 @@ export const Widget = (props: WidgetProps) => {
               closePinboard={closePinboard}
               unreadFlags={unreadFlags}
               errors={errors}
+              payloadToBeSent={props.payloadToBeSent}
+              clearPayloadToBeSent={props.clearPayloadToBeSent}
             />
           )}
         {props.preselectedComposerId &&

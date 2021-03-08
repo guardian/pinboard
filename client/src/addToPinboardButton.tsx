@@ -5,7 +5,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { css, jsx } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
 import { User } from "../../shared/User";
-import { PayloadAndType } from "./payloadDisplay";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 

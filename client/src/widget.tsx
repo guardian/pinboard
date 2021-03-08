@@ -10,7 +10,7 @@ import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 
 import PinIcon from "../icons/pin-icon.svg";
-import { PayloadAndType } from "./payloadDisplay";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 const bottomRight = 10;
 const widgetSize = 50;

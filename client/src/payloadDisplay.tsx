@@ -1,18 +1,7 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/react";
 import { pinMetal } from "../colours";
-
-export type Payload = Record<string, string | undefined>;
-
-export interface PayloadAndType {
-  type: string;
-  payload: Payload;
-}
-
-interface PayloadDisplayProps extends PayloadAndType {
-  clearPayloadToBeSent?: () => void;
-  heightPx?: number;
-}
+import { PayloadAndType } from "./types/PayloadAndType";
 
 const getToolsStageDomain = (specificURL: string) => {
   if (specificURL.includes(".local.dev")) {
@@ -24,6 +13,11 @@ const getToolsStageDomain = (specificURL: string) => {
   }
   return "gutools.co.uk";
 };
+
+interface PayloadDisplayProps extends PayloadAndType {
+  clearPayloadToBeSent?: () => void;
+  heightPx?: number;
+}
 
 export const PayloadDisplay = ({
   type,

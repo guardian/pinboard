@@ -6,8 +6,9 @@ import { css, jsx } from "@emotion/react";
 
 import { PinboardData } from "./pinboard";
 import { PerPinboard, standardWidgetContainerCss } from "./widget";
-import { PayloadAndType, PayloadDisplay } from "./payloadDisplay";
+import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;

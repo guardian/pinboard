@@ -11,9 +11,9 @@ import { Item, WorkflowStub } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
-import { PendingItem } from "./itemDisplay";
 import { WidgetProps } from "./widget";
 import { PayloadDisplay } from "./payloadDisplay";
+import { PendingItem } from "./types/PendingItem";
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;

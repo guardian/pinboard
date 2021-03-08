@@ -3,7 +3,8 @@ import { Item } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
-import { ItemDisplay, PendingItem } from "./itemDisplay";
+import { ItemDisplay } from "./itemDisplay";
+import { PendingItem } from "./types/PendingItem";
 
 interface ScrollableItemsProps {
   initialItems: Item[];

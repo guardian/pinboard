@@ -9,7 +9,7 @@ import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { User } from "../../shared/User"; //TODO attempt to factor out
 import { Widget } from "./widget";
-import { PayloadAndType } from "./payloadDisplay";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 

@@ -4,10 +4,7 @@ import React from "react";
 import { User } from "../../shared/User";
 import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
-
-export interface PendingItem extends Item {
-  pending: true;
-}
+import { PendingItem } from "./types/PendingItem";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;

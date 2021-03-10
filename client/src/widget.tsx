@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ApolloError, useLazyQuery, useQuery } from "@apollo/client";
+import { ApolloError, useLazyQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { User } from "../../shared/User";
@@ -11,6 +11,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId } from "../gql";
+import { cssReset } from "../cssReset";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -114,7 +115,7 @@ export const Widget = (props: WidgetProps) => {
   );
 
   return (
-    <div>
+    <div css={cssReset}>
       <div
         css={css`
           position: fixed;

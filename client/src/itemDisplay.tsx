@@ -31,7 +31,7 @@ export const ItemDisplay = ({ item, refForLastItem }: ItemDisplayProps) => {
         css={css`
           display: flex;
           justify-content: space-between;
-          font-size: 80%;
+          /* font-size: 80%; */
           color: lightgray;
         `}
       >

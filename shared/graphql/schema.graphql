@@ -45,27 +45,12 @@ type Query {
 
 type Subscription {
   onCreateItem(
-    id: ID
-    message: String
-    payload: AWSJSON
-    timestamp: AWSTimestamp
-    type: String
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
   onDeleteItem(
-    id: ID
-    message: String
-    payload: AWSJSON
-    timestamp: AWSTimestamp
-    type: String
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["deleteItem"])
   onUpdateItem(
-    id: ID
-    message: String
-    payload: AWSJSON
-    timestamp: AWSTimestamp
-    type: String
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["updateItem"])
 }

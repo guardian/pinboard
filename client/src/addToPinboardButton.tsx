@@ -7,8 +7,7 @@ import { pinMetal, pinboardPrimary } from "../colours";
 import { User } from "../../shared/User";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
-import { textSans } from "@guardian/src-foundations/typography";
-import { cssReset } from "../cssReset";
+import { cssReset, textSans } from "../cssReset";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -39,7 +38,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           display: flex;
           align-items: center;
           background-color: ${pinboardPrimary};
-          /* ${textSans.xsmall()}; */
+          ${textSans.xsmall()};
           border: none;
           border-radius: 100px;
           padding: 0 ${space[2]}px 0 ${space[3]}px;

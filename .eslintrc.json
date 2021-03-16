@@ -16,10 +16,19 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": ["react", "@typescript-eslint"],
+  "plugins": ["react", "@typescript-eslint", "node"],
   "rules": {
     "react/prop-types": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off"
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "node/no-restricted-import": [
+      "error",
+      [
+        {
+          "name": "@guardian/src-foundations/typography",
+          "message": "Please use the modified fonts from cssReset.ts"
+        }
+      ]
+    ]
   },
   "settings": {
     "react": {

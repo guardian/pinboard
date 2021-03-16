@@ -10,7 +10,7 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlGetPinboard } from "../gql";
+import { gqlGetPinboardByComposerId } from "../gql";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -29,7 +29,7 @@ export type PerPinboard<T> = {
 };
 export interface WidgetProps {
   user: User;
-  preselectedComposerId: string | undefined;
+  preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
@@ -44,7 +44,7 @@ export const Widget = (props: WidgetProps) => {
   >([]);
 
   const preselectedPinboardQuery = useQuery(
-    gqlGetPinboard(props.preselectedComposerId)
+    gqlGetPinboardByComposerId(props.preselectedComposerId)
   );
 
   const preselectedPinboard: PinboardData | undefined =

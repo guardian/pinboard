@@ -7,31 +7,59 @@
   </head>
 
   <body>
-    <h3>Pinboard preselection (for composer ID 54f39ac9e4b09d0edf204cb0)</h3>
-    <button id="btn-add-preselection">Add pinboard pre-selection</button>
-    <button id="btn-remove-preselection">Remove pinboard pre-selection</button>
+    <h3>Pinboard pre-selection</h3>
+    <ul>
+      <h4>
+        via query param (for composer ID <code>54f2d2fee4b011581586e710</code>)
+      </h4>
+      <ul>
+        <li>
+          <a href="?pinboardComposerID=54f2d2fee4b011581586e710"
+            >?pinboardComposerID=54f2d2fee4b011581586e710</a
+          >
+        </li>
+        <li>
+          <a href="?"><em>REMOVE QUERY PARAM</em></a>
+        </li>
+      </ul>
 
-    <h3>Pinboard preselection (for invalid/untracked composer ID)</h3>
-    <button id="btn-add-invalid-preselection">
-      Add pinboard INVALID pre-selection
-    </button>
-    <button id="btn-remove-invalid-preselection">
-      Remove pinboard INVALID pre-selection
-    </button>
+      <h4>
+        via hidden element (for composer ID
+        <code>54f2d2fee4b011581586e710</code>)
+      </h4>
+      <button id="btn-add-preselection">Add pinboard pre-selection</button>
+      <button id="btn-remove-preselection">
+        Remove pinboard pre-selection
+      </button>
 
-    <h3>button added initially</h3>
-    <asset-handle
-      data-source="grid"
-      data-source-type="crop"
-      data-thumbnail="https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg"
-      data-primary-id="24733ea386c7fcb37496c55cc86e8f1468b9dfcf"
-      data-secondary-id="817_0_1866_2333"
-    ></asset-handle>
-    <h3>button added after 1 second</h3>
-    <!--
-            the setTimeout in the <script> further up will add an element here after 1 second,
-            which the PinBoard library will detect and convert to a button
-        -->
+      <h4>via hidden element (for invalid/untracked composer ID)</h4>
+      <button id="btn-add-invalid-preselection">
+        Add pinboard INVALID pre-selection
+      </button>
+      <button id="btn-remove-invalid-preselection">
+        Remove pinboard INVALID pre-selection
+      </button>
+    </ul>
+
+    <h3><code>Add to 📌</code> button</h3>
+    <ul id="button_section">
+      <h4>present initially</h4>
+      <asset-handle
+        data-source="grid"
+        data-source-type="crop"
+        data-thumbnail="https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg"
+        data-embeddable-url="https://media.test.dev-gutools.co.uk/images/24733ea386c7fcb37496c55cc86e8f1468b9dfcf?crop=817_0_1866_2333"
+      ></asset-handle>
+      <h4>presented after 1 second</h4>
+      <!--
+              the setTimeout in the <script> further up will add an element here after 1 second,
+              which the PinBoard library will detect and convert to a button
+          -->
+      <p>
+        to simulate the host platform presenting re-rendering (i.e. for SPAs)
+        and Pinboard detecting that and still taking over the element
+      </p>
+    </ul>
   </body>
   <script>
     setTimeout(
@@ -41,10 +69,9 @@
         delayedAddButton.dataset.sourceType = "crop";
         delayedAddButton.dataset.thumbnail =
           "https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg";
-        delayedAddButton.dataset.primaryId =
-          "24733ea386c7fcb37496c55cc86e8f1468b9dfcf";
-        delayedAddButton.dataset.secondaryId = "817_0_1866_2333";
-        document.body.appendChild(delayedAddButton);
+        delayedAddButton.dataset.dataEmbeddableUrl =
+          "https://media.test.dev-gutools.co.uk/images/24733ea386c7fcb37496c55cc86e8f1468b9dfcf?crop=817_0_1866_2333";
+        document.getElementById("button_section").appendChild(delayedAddButton);
       },
       1000 // 1 second delay
     );

@@ -1,13 +1,9 @@
-import * as lambda from "aws-lambda";
 import fetch from "node-fetch";
 import { WorkflowStub } from "../../shared/graphql/graphql";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${process.env.WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME}/api`;
 
-exports.handler = async (
-  event: { arguments?: { composerId?: string } },
-  context: lambda.Context
-) => {
+exports.handler = async (event: { arguments?: { composerId?: string } }) => {
   return await (event.arguments?.composerId
     ? getPinboardByComposerId(event.arguments?.composerId)
     : getAllPinboards());

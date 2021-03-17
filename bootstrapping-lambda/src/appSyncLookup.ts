@@ -36,10 +36,35 @@ async function findExistingOrCreateApiKeyForUser(
     })
     .promise();
 
+  const nowInSeconds = Date.now() / 1000;
+
+  const oneHourFromNowInSeconds = nowInSeconds + ONE_HOUR_IN_SECONDS;
+
   const maybeSuitableKey = result.apiKeys?.find(
-    (_) =>
-      _.description === userEmail &&
-      (_.expires || 0) > Date.now() / 1000 + ONE_HOUR_IN_SECONDS // last for at least another hour
+    ({ id, expires, description }) => {
+      // cleanup expired api keys as we go
+      if (id && expires && expires < nowInSeconds) {
+        client.deleteApiKey(
+          {
+            apiId,
+            id,
+          },
+          (err) =>
+            err
+              ? console.error(
+                  `Failed to delete expired API key for ${description} with id ${id}`,
+                  err
+                )
+              : console.log(
+                  `Deleted expired API key for ${description} with id ${id}`
+                )
+        );
+      }
+
+      return (
+        description === userEmail && (expires || 0) > oneHourFromNowInSeconds // lasts for at least another hour
+      );
+    }
   );
 
   if (maybeSuitableKey) {
@@ -57,7 +82,7 @@ async function findExistingOrCreateApiKeyForUser(
         .createApiKey({
           apiId,
           description: userEmail,
-          expires: Date.now() / 1000 + TWENTY_FIVE_HOURS_IN_SECONDS, // minimum expiry is one day
+          expires: nowInSeconds + TWENTY_FIVE_HOURS_IN_SECONDS, // minimum expiry is one day
         })
         .promise()
     ).apiKey;

@@ -11,16 +11,11 @@ import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
 import { WidgetProps } from "./widget";
-import { PayloadDisplay } from "./payloadDisplay";
 import { space } from "@guardian/src-foundations";
 import { PendingItem } from "./types/PendingItem";
 import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
+import { CreateItemInputBox } from "./createItemInputBox";
 import { pinMetal } from "../colours";
-
-const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
-  event.key === "Enter" || event.keyCode === 13;
-
-const payloadToBeSentThumbnailHeightPx = 50;
 
 export type PinboardData = WorkflowStub;
 
@@ -140,42 +135,16 @@ export const Pinboard = ({
           margin: ${space[1]}px;
         `}
       >
-        <textarea
-          css={css`
-            flex-grow: 1;
-            margin-right: ${space[1]}px;
-            padding-bottom: ${payloadToBeSent
-              ? payloadToBeSentThumbnailHeightPx + 5
-              : 0}px;
-          `}
-          placeholder="enter chat message here..."
-          rows={2}
-          value={newMessage}
-          onChange={(event) => setNewMessage(event.target.value)}
-          onKeyPress={(event) =>
-            isEnterKey(event) &&
-            newMessage &&
-            sendItem() &&
-            event.preventDefault()
-          }
+        <CreateItemInputBox
+          payloadToBeSent={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+          message={newMessage}
+          setMessage={setNewMessage}
+          sendItem={sendItem}
         />
-        {payloadToBeSent && (
-          <div
-            css={css`
-              position: absolute;
-              bottom: ${space[1]}px;
-              left: ${space[2]}px;
-            `}
-          >
-            <PayloadDisplay
-              {...payloadToBeSent}
-              clearPayloadToBeSent={clearPayloadToBeSent}
-              heightPx={payloadToBeSentThumbnailHeightPx}
-            />
-          </div>
-        )}
         <button
           css={css`
+            margin-left: ${space[2]}px;
             color: ${pinMetal};
             background-color: #999999;
             padding: ${space[1]}px;

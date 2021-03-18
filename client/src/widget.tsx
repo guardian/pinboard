@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { ApolloError, useQuery } from "@apollo/client";
+import { ApolloError, useLazyQuery, useQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { User } from "../../shared/User";
@@ -43,9 +43,17 @@ export const Widget = (props: WidgetProps) => {
     PinboardData[]
   >([]);
 
-  const preselectedPinboardQuery = useQuery(
-    gqlGetPinboardByComposerId(props.preselectedComposerId)
+  const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
+    gqlGetPinboardByComposerId
   );
+  useEffect(() => {
+    props.preselectedComposerId &&
+      getPreselectedPinboard({
+        variables: {
+          composerId: props.preselectedComposerId,
+        },
+      });
+  }, [props.preselectedComposerId]);
 
   const preselectedPinboard: PinboardData | undefined =
     preselectedPinboardQuery.data?.getPinboardByComposerId;

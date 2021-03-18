@@ -14,6 +14,13 @@ type Item {
   pinboardId: String!
 }
 
+type User {
+  email: String!
+  firstName: String!
+  lastName: String!
+  avatarUrl: String
+}
+
 type WorkflowStub {
 	id: String!
 	title: String
@@ -23,6 +30,11 @@ type WorkflowStub {
 
 type ItemConnection {
   items: [Item]
+  nextToken: String
+}
+
+type UserConnection {
+  items: [User]
   nextToken: String
 }
 
@@ -39,6 +51,12 @@ type Query {
     limit: Int
     nextToken: String
   ): ItemConnection
+  getUser(email: String!): User
+  searchUsers(
+    filter: TableUserFilterInput
+    limit: Int
+    nextToken: String
+  ): UserConnection
   listPinboards: [WorkflowStub]
   getPinboardByComposerId(composerId: String): WorkflowStub
 }
@@ -115,6 +133,11 @@ input TableItemFilterInput {
   timestamp: TableIntFilterInput
   type: TableStringFilterInput
   pinboardId: TableStringFilterInput
+}
+
+input TableUserFilterInput {
+  firstName: TableStringFilterInput
+  lastName: TableStringFilterInput
 }
 
 input TableStringFilterInput {

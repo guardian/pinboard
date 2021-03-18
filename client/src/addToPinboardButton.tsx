@@ -22,9 +22,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   const { source, sourceType, ...payload } = props.dataAttributes;
 
   return source && sourceType ? (
-    <div
-      css={cssReset}
-    >
+    <div css={cssReset}>
       <button
         onClick={() => {
           props.setPayloadToBeSent({
@@ -33,7 +31,6 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           });
           props.expandWidget();
         }}
-
         css={css`
           display: flex;
           align-items: center;

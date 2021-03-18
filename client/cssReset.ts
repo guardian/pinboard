@@ -32,15 +32,29 @@ export const cssReset = css`
   * {
     ${textSans.small()}
     color: ${pinMetal};
-    margin: 0;
-    padding: 0; 
-    border: none;  
+    margin: revert;
+    padding: revert;
+    border: revert;
+    background: revert;
   }
 
   h4 {
-    ${textSans.medium()}
-    font-weight: 700;
-    margin: ${space[1]}px 0;
-    padding: 0;  
+    margin: revert;
+    padding: revert;
+    font: revert;
+  }
+
+  textarea,
+  input {
+    color: revert;
+    border: revert;
+    border-radius: revert;
+    padding: revert;
+    :focus {
+      outline: revert;
+    }
+    ::placeholder {
+      color: revert;
+    }
   }
 `;

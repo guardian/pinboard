@@ -135,7 +135,6 @@ export const ScrollableItems = ({
               font-weight: bold;
               height: ${space[6]}px;
               border-radius: ${space[3]}px;
-              /* font-size: 14px; */
               border: none;
               box-shadow: 2px 2px 6px 3px lightgrey;
               cursor: pointer;

@@ -10,7 +10,7 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlGetPinboardByComposerId } from "../gql";
+import { gqlGetAllUsers, gqlGetPinboardByComposerId } from "../gql";
 import { cssReset } from "../cssReset";
 
 const bottomRight = 10;
@@ -39,6 +39,11 @@ export interface WidgetProps {
 
 export const Widget = (props: WidgetProps) => {
   const { isExpanded, setIsExpanded } = props;
+
+  const usersQuery = useQuery(gqlGetAllUsers);
+
+  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items; //FIXME: use User type from generated graphql
+  //TODO: make use of usersQuery.error and usersQuery.loading
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
@@ -236,6 +241,7 @@ export const Widget = (props: WidgetProps) => {
               clearSelectedPinboard={
                 preselectedPinboard ? undefined : clearSelectedPinboard
               }
+              allUsers={allUsers}
             />
           ))
         }

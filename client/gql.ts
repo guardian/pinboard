@@ -47,3 +47,18 @@ export const gqlOnCreateItem = (pinboardId: string) => gql`
     onCreateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
   }
 `;
+
+const userReturnFields = `
+  email
+  firstName
+  lastName
+  avatarUrl
+`;
+
+export const gqlGetAllUsers = gql`
+query MyQuery {
+  searchUsers {
+    items { ${userReturnFields} }
+  }
+}
+`;

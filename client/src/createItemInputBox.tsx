@@ -5,6 +5,7 @@ import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
+import { User } from "../../shared/User";
 
 interface UserEntity {
   email: string;
@@ -17,24 +18,9 @@ interface WithEntity<E> {
   entity: E;
 }
 
-const mentionsDataProvider = (token: string) => {
+const mentionsDataProvider = (allUsers: User[]) => (token: string) => {
   const tokenLower = token.toLowerCase();
-  return [
-    {
-      firstName: "Tom",
-      lastName: "Richards",
-      email: "tom.richards@guardian.co.uk",
-      avatarUrl:
-        "https://lh3.googleusercontent.com/a-/AOh14GjgooRBJQIK7N1V79SPCgdQPAnBiW0o-3NttcwiMw=s32-w32-h32-c-k",
-    },
-    {
-      firstName: "Thalia",
-      lastName: "Silver",
-      email: "thalia.silver@guardian.co.uk",
-      avatarUrl:
-        "https://lh3.googleusercontent.com/a-/AOh14Gh0DaY8EOTYtIqZ1hpBJvtSZt-AowEtFhJQ2HePzg=s64-w64-h64-c-k",
-    },
-  ].filter(
+  return allUsers?.filter(
     (_) =>
       _.firstName.toLowerCase().startsWith(tokenLower) ||
       _.lastName.toLowerCase().startsWith(tokenLower)
@@ -81,9 +67,11 @@ interface CreateItemInputBoxProps {
   message: string;
   setMessage: (newMessage: string) => void;
   sendItem: () => void;
+  allUsers: User[] | undefined;
 }
 
 export const CreateItemInputBox = ({
+  allUsers,
   payloadToBeSent,
   clearPayloadToBeSent,
   message,
@@ -97,13 +85,18 @@ export const CreateItemInputBox = ({
     `}
   >
     <ReactTextareaAutocomplete
-      trigger={{
-        "@": {
-          dataProvider: mentionsDataProvider,
-          component: UserSuggestion,
-          output: (rowData) => rowData.email,
-        },
-      }}
+      trigger={
+        allUsers
+          ? {
+              "@": {
+                dataProvider: mentionsDataProvider(allUsers),
+                component: UserSuggestion,
+                output: (rowData) => rowData.email,
+              },
+            }
+          : {}
+      }
+      minChar={0}
       loadingComponent={() => <span>Loading</span>}
       placeholder="enter message here..."
       value={message}

@@ -16,6 +16,7 @@ import { PendingItem } from "./types/PendingItem";
 import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
 import { CreateItemInputBox } from "./createItemInputBox";
 import { pinMetal } from "../colours";
+import { User } from "../../shared/User";
 
 export type PinboardData = WorkflowStub;
 
@@ -28,10 +29,12 @@ interface PinboardProps extends WidgetProps {
   isExpanded: boolean;
   isSelected: boolean;
   clearSelectedPinboard: undefined | (() => void);
+  allUsers: User[] | undefined;
 }
 
 export const Pinboard = ({
   user,
+  allUsers,
   pinboardData,
   setError,
   setUnreadFlag,
@@ -141,6 +144,7 @@ export const Pinboard = ({
           message={newMessage}
           setMessage={setNewMessage}
           sendItem={sendItem}
+          allUsers={allUsers}
         />
         <button
           css={css`

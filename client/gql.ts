@@ -11,9 +11,9 @@ export const gqlListPinboards = gql`
     listPinboards { ${pinboardReturnFields} }
   }
 `;
-export const gqlGetPinboard = (composerId: string | undefined) => gql`
-  query MyQuery {
-    getPinboardByComposerId(composerId: "${composerId}") { ${pinboardReturnFields} }
+export const gqlGetPinboardByComposerId = gql`
+  query MyQuery($composerId: String!) {
+    getPinboardByComposerId(composerId: $composerId) { ${pinboardReturnFields} }
   }
 `;
 

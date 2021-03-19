@@ -12,6 +12,7 @@ import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
+const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 
 export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
@@ -48,9 +49,21 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
-  const [preSelectedComposerId, setPreselectedComposerId] = useState<string>();
+  // using state here but without setter, because host application/SPA might change url
+  // and lose the query param but we don't want to lose the preselection
+  const [preSelectedComposerIdFromQueryParam] = useState(
+    new URLSearchParams(window.location.search).get(
+      PRESELECT_PINBOARD_QUERY_PARAM
+    )
+  );
 
-  const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(false);
+  const [preSelectedComposerId, setPreselectedComposerId] = useState<
+    string | null | undefined
+  >(preSelectedComposerIdFromQueryParam);
+
+  const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(
+    !!preSelectedComposerIdFromQueryParam // expand by default when preselected via url query param
+  );
   const expandWidget = () => setIsWidgetExpanded(true);
 
   const refreshButtonNodes = () =>
@@ -60,8 +73,9 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   const refreshPreselectedPinboard = () =>
     setPreselectedComposerId(
-      (document.querySelector(PRESELECT_PINBOARD_HTML_TAG) as HTMLElement)
-        ?.dataset?.composerId
+      preSelectedComposerIdFromQueryParam ||
+        (document.querySelector(PRESELECT_PINBOARD_HTML_TAG) as HTMLElement)
+          ?.dataset?.composerId
     );
 
   useEffect(() => {

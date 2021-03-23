@@ -3,7 +3,7 @@ import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./appSyncLookup";
-import { getVerifiedUser } from "./panDomainAuth";
+import { getVerifiedUserEmail } from "./panDomainAuth";
 import { userHasPermission } from "./permissionCheck";
 import fs from "fs";
 import {
@@ -76,14 +76,16 @@ server.get("/pinboard.loader.js", async (request, response) => {
     return response.send(`console.error('${message}')`);
   }
 
-  const maybeAuthedUser = await getVerifiedUser(request.header("Cookie"));
+  const maybeAuthedUserEmail = await getVerifiedUserEmail(
+    request.header("Cookie")
+  );
 
-  if (!maybeAuthedUser) {
+  if (!maybeAuthedUserEmail) {
     const message = "pan-domain auth cookie missing, invalid or expired";
     console.warn(message);
     response.send(`console.error('${message}')`);
-  } else if (await userHasPermission(maybeAuthedUser.email)) {
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUser);
+  } else if (await userHasPermission(maybeAuthedUserEmail)) {
+    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail);
 
     response.send(
       loaderTemplate(appSyncConfig, mainJsFilename, request.hostname)

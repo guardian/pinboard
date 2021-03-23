@@ -7,14 +7,13 @@ import { ApolloLink } from "apollo-link";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
-import { User } from "../../shared/User"; //TODO attempt to factor out
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 
-export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
+export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
     createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
@@ -33,15 +32,18 @@ export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
 
   document.body.appendChild(element);
 
-  render(React.createElement(PinBoardApp, { apolloClient, user }), element);
+  render(
+    React.createElement(PinBoardApp, { apolloClient, userEmail }),
+    element
+  );
 }
 
 interface PinBoardAppProps {
   apolloClient: ApolloClient<unknown>;
-  user: User;
+  userEmail: string;
 }
 
-const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
+const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
@@ -101,7 +103,7 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
   return (
     <ApolloProvider client={apolloClient}>
       <Widget
-        user={user}
+        userEmail={userEmail}
         preselectedComposerId={preSelectedComposerId}
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
@@ -112,7 +114,6 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
         <ButtonPortal
           key={index}
           node={node}
-          user={user}
           setPayloadToBeSent={setPayloadToBeSent}
           expandWidget={expandWidget}
         />

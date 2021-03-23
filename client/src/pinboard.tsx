@@ -6,7 +6,7 @@ import {
   useQuery,
   useSubscription,
 } from "@apollo/client";
-import { Item, WorkflowStub } from "../../shared/graphql/graphql";
+import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
@@ -16,7 +16,6 @@ import { PendingItem } from "./types/PendingItem";
 import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
 import { CreateItemInputBox } from "./createItemInputBox";
 import { pinMetal } from "../colours";
-import { User } from "../../shared/User";
 
 export type PinboardData = WorkflowStub;
 
@@ -30,11 +29,13 @@ interface PinboardProps extends WidgetProps {
   isSelected: boolean;
   clearSelectedPinboard: undefined | (() => void);
   allUsers: User[] | undefined;
+  userLookup: { [email: string]: User } | undefined;
 }
 
 export const Pinboard = ({
-  user,
+  userEmail,
   allUsers,
+  userLookup,
   pinboardData,
   setError,
   setUnreadFlag,
@@ -88,7 +89,7 @@ export const Pinboard = ({
         type: payloadToBeSent?.type || "message-only",
         message: newMessage,
         payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
-        user: JSON.stringify(user),
+        userEmail,
         pinboardId,
       },
     },
@@ -130,6 +131,7 @@ export const Pinboard = ({
           setHasUnread={setHasUnread}
           isExpanded={isExpanded}
           hasUnread={hasUnread}
+          userLookup={userLookup}
         />
       )}
       <div

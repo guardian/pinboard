@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { Item } from "../../shared/graphql/graphql";
+import { Item, User } from "../../shared/graphql/graphql";
 import React, { ReactElement, useEffect, useRef } from "react";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
@@ -14,6 +14,7 @@ interface ScrollableItemsProps {
   setHasUnread: (hasUnread: boolean) => void;
   isExpanded: boolean;
   hasUnread: boolean | undefined;
+  userLookup: { [email: string]: User } | undefined;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -43,6 +44,7 @@ export const ScrollableItems = ({
   setHasUnread,
   isExpanded,
   hasUnread,
+  userLookup,
 }: ScrollableItemsProps): ReactElement => {
   const itemsMap = [
     ...initialItems,
@@ -116,6 +118,7 @@ export const ScrollableItems = ({
           key={item.id}
           item={item}
           refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
+          userLookup={userLookup}
         />
       ))}
       {hasUnread && (

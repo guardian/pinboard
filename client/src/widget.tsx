@@ -1,8 +1,7 @@
 /** @jsx jsx */
-import { ApolloError, useLazyQuery } from "@apollo/client";
+import { ApolloError, useQuery, useLazyQuery } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
-import { User } from "../../shared/User";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
@@ -12,6 +11,7 @@ import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetAllUsers, gqlGetPinboardByComposerId } from "../gql";
 import { cssReset } from "../cssReset";
+import { User } from "../../shared/graphql/graphql";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -29,7 +29,7 @@ export type PerPinboard<T> = {
   [pinboardId: string]: T | undefined;
 };
 export interface WidgetProps {
-  user: User;
+  userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
@@ -42,8 +42,16 @@ export const Widget = (props: WidgetProps) => {
 
   const usersQuery = useQuery(gqlGetAllUsers);
 
-  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items; //FIXME: use User type from generated graphql
+  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
   //TODO: make use of usersQuery.error and usersQuery.loading
+
+  const userLookup = allUsers?.reduce(
+    (lookup, user) => ({
+      ...lookup,
+      [user.email]: user,
+    }),
+    {} as { [email: string]: User }
+  );
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
@@ -242,6 +250,7 @@ export const Widget = (props: WidgetProps) => {
                 preselectedPinboard ? undefined : clearSelectedPinboard
               }
               allUsers={allUsers}
+              userLookup={userLookup}
             />
           ))
         }

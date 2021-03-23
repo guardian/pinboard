@@ -1,6 +1,5 @@
 import * as AWS from "aws-sdk";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
-import { User } from "../../shared/User";
 import { STAGE, standardAwsConfig } from "./awsIntegration";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
@@ -23,11 +22,9 @@ const appSyncApiPromise = client
 
 async function findExistingOrCreateApiKeyForUser(
   apiId: string,
-  user: User,
+  userEmail: string,
   nextToken?: string
 ): Promise<AWS.AppSync.ApiKey | undefined> {
-  const userEmail = user.email;
-
   const result = await client
     .listApiKeys({
       apiId,
@@ -73,7 +70,7 @@ async function findExistingOrCreateApiKeyForUser(
   } else if (result.nextToken) {
     return await findExistingOrCreateApiKeyForUser(
       apiId,
-      user,
+      userEmail,
       result.nextToken
     );
   } else {
@@ -90,7 +87,7 @@ async function findExistingOrCreateApiKeyForUser(
 }
 
 export async function generateAppSyncConfig(
-  user: User
+  userEmail: string
 ): Promise<AppSyncConfig> {
   const appSyncAPI = await appSyncApiPromise;
   if (!appSyncAPI?.apiId) {
@@ -99,7 +96,7 @@ export async function generateAppSyncConfig(
 
   const apiKeyPromise = findExistingOrCreateApiKeyForUser(
     appSyncAPI.apiId,
-    user
+    userEmail
   );
 
   const apiKey = (await apiKeyPromise)?.id;
@@ -113,5 +110,5 @@ export async function generateAppSyncConfig(
     throw Error("Could not retrieve/create an AppSync API Key.");
   }
 
-  return { graphqlEndpoint, realtimeEndpoint, apiKey, user };
+  return { graphqlEndpoint, realtimeEndpoint, apiKey, userEmail };
 }

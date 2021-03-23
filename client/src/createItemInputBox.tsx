@@ -5,15 +5,7 @@ import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
-import { User } from "../../shared/User";
-
-interface UserEntity {
-  email: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string;
-}
-
+import { User } from "../../shared/graphql/graphql";
 interface WithEntity<E> {
   entity: E;
 }
@@ -27,14 +19,14 @@ const mentionsDataProvider = (allUsers: User[]) => (token: string) => {
   );
 };
 
-const UserSuggestion = ({ entity }: WithEntity<UserEntity>) => (
+const UserSuggestion = ({ entity }: WithEntity<User>) => (
   <div
     css={css`
       display: flex;
     `}
   >
     <img
-      src={entity.avatarUrl}
+      src={entity.avatarUrl || ""} // TODO: use generic silhouette rather than empty string
       css={css`
         border-radius: 50%;
         width: 20px;

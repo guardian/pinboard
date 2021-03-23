@@ -20,7 +20,7 @@ export const gqlGetPinboardByComposerId = gql`
 const itemReturnFields = `
   id
   type
-  user
+  userEmail
   timestamp
   pinboardId
   message

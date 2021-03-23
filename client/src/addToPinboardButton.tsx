@@ -4,7 +4,6 @@ import React, { ReactPortal } from "react";
 import PinIcon from "../icons/pin-icon.svg";
 import { css, jsx } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
-import { User } from "../../shared/User";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
 import { cssReset, textSans } from "../cssReset";
@@ -13,7 +12,6 @@ export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
-  user: User;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expandWidget: () => void;
 }
@@ -62,7 +60,6 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
 
 interface ButtonPortalProps {
   node: HTMLElement;
-  user: User;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expandWidget: () => void;
 }

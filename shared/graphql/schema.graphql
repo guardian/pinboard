@@ -10,7 +10,7 @@ type Item {
   payload: AWSJSON
   timestamp: AWSTimestamp!
   type: String!
-  user: AWSJSON!
+  userEmail: String!
   pinboardId: String!
 }
 
@@ -77,7 +77,7 @@ input CreateItemInput {
   message: String
   payload: AWSJSON
   type: String!
-  user: AWSJSON!
+  userEmail: String!
   pinboardId: String!
 }
 
@@ -159,5 +159,5 @@ input UpdateItemInput {
   payload: AWSJSON
   timestamp: AWSTimestamp
   type: String
-  user: AWSJSON
+  userEmail: String
 }

@@ -1,21 +1,14 @@
 /** @jsx jsx */
 import React, { useEffect, useState } from "react";
-import {
-  ApolloError,
-  useMutation,
-  useQuery,
-  useSubscription,
-} from "@apollo/client";
+import { ApolloError, useQuery, useSubscription } from "@apollo/client";
 import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
 import { WidgetProps } from "./widget";
-import { space } from "@guardian/src-foundations";
 import { PendingItem } from "./types/PendingItem";
-import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
-import { CreateItemInputBox } from "./createItemInputBox";
-import { pinMetal } from "../colours";
+import { gqlGetInitialItems, gqlOnCreateItem } from "../gql";
+import { SendMessageArea } from "./sendMessageArea";
 
 export type PinboardData = WorkflowStub;
 
@@ -49,8 +42,6 @@ export const Pinboard = ({
 }: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
-  const [newMessage, setNewMessage] = useState<string>("");
-
   const pinboardId = pinboardData.id;
 
   // TODO: extract to widget level?
@@ -70,30 +61,6 @@ export const Pinboard = ({
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
-
-  const [sendItem] = useMutation<{ createItem: Item }>(gqlCreateItem, {
-    onCompleted: (sendMessageResult) => {
-      setSuccessfulSends((previousSends) => [
-        ...previousSends,
-        {
-          ...sendMessageResult.createItem,
-          pending: true,
-        },
-      ]);
-      setNewMessage("");
-      clearPayloadToBeSent();
-    },
-    onError: (error) => setError(pinboardId, error),
-    variables: {
-      input: {
-        type: payloadToBeSent?.type || "message-only",
-        message: newMessage,
-        payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
-        userEmail,
-        pinboardId,
-      },
-    },
-  });
 
   const initialItems = useQuery(gqlGetInitialItems(pinboardId));
 
@@ -132,40 +99,20 @@ export const Pinboard = ({
           isExpanded={isExpanded}
           hasUnread={hasUnread}
           userLookup={userLookup}
+          userEmail={userEmail}
         />
       )}
-      <div
-        css={css`
-          display: flex;
-          margin: ${space[1]}px;
-        `}
-      >
-        <CreateItemInputBox
-          payloadToBeSent={payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-          message={newMessage}
-          setMessage={setNewMessage}
-          sendItem={sendItem}
-          allUsers={allUsers}
-        />
-        <button
-          css={css`
-            margin-left: ${space[2]}px;
-            color: ${pinMetal};
-            background-color: #999999;
-            padding: ${space[1]}px;
-            :disabled {
-              color: #999999;
-              background-color: #dcdcdc;
-              box-shadow: none;
-            }
-          `}
-          onClick={() => sendItem()}
-          disabled={!newMessage && !payloadToBeSent}
-        >
-          Send
-        </button>
-      </div>
+      <SendMessageArea
+        onSuccessfulSend={(pendingItem) =>
+          setSuccessfulSends((previousSends) => [...previousSends, pendingItem])
+        }
+        payloadToBeSent={payloadToBeSent}
+        clearPayloadToBeSent={clearPayloadToBeSent}
+        allUsers={allUsers}
+        onError={(error) => setError(pinboardId, error)}
+        userEmail={userEmail}
+        pinboardId={pinboardId}
+      />
     </React.Fragment>
   );
 };

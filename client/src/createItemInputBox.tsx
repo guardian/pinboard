@@ -6,6 +6,7 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { User } from "../../shared/graphql/graphql";
+import { userToMentionHandle } from "./util";
 interface WithEntity<E> {
   entity: E;
 }
@@ -60,6 +61,7 @@ interface CreateItemInputBoxProps {
   setMessage: (newMessage: string) => void;
   sendItem: () => void;
   allUsers: User[] | undefined;
+  addUnverifiedMention: (user: User) => void;
 }
 
 export const CreateItemInputBox = ({
@@ -69,6 +71,7 @@ export const CreateItemInputBox = ({
   message,
   setMessage,
   sendItem,
+  addUnverifiedMention,
 }: CreateItemInputBoxProps) => (
   <div
     css={css`
@@ -76,14 +79,14 @@ export const CreateItemInputBox = ({
       ${rtaStyles}
     `}
   >
-    <ReactTextareaAutocomplete
+    <ReactTextareaAutocomplete<User>
       trigger={
         allUsers
           ? {
               "@": {
                 dataProvider: mentionsDataProvider(allUsers),
                 component: UserSuggestion,
-                output: (rowData) => rowData.email,
+                output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
               },
             }
           : {}
@@ -96,6 +99,7 @@ export const CreateItemInputBox = ({
       onKeyPress={(event) =>
         isEnterKey(event) && message && sendItem() && event.preventDefault()
       }
+      onItemSelected={({ item }) => addUnverifiedMention(item)}
       rows={2}
       css={css`
         padding-bottom: ${payloadToBeSent

@@ -15,6 +15,7 @@ interface ScrollableItemsProps {
   isExpanded: boolean;
   hasUnread: boolean | undefined;
   userLookup: { [email: string]: User } | undefined;
+  userEmail: string;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -45,6 +46,7 @@ export const ScrollableItems = ({
   isExpanded,
   hasUnread,
   userLookup,
+  userEmail,
 }: ScrollableItemsProps): ReactElement => {
   const itemsMap = [
     ...initialItems,
@@ -119,6 +121,7 @@ export const ScrollableItems = ({
           item={item}
           refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
           userLookup={userLookup}
+          userEmail={userEmail}
         />
       ))}
       {hasUnread && (

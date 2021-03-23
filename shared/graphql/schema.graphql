@@ -12,6 +12,7 @@ type Item {
   type: String!
   userEmail: String!
   pinboardId: String!
+  mentions: [String!]
 }
 
 type User {
@@ -79,6 +80,7 @@ input CreateItemInput {
   type: String!
   userEmail: String!
   pinboardId: String!
+  mentions: [String!]
 }
 
 input DeleteItemInput {

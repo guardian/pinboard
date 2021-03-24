@@ -13,7 +13,7 @@
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",
     "prettier-write": "prettier --write .",
     "prettier-check": "prettier --check .",
-    "lint": "eslint ./**/src/*.ts ./**/src/*.tsx ./cdk/stack.ts",
+    "lint": "eslint . --ext .ts --ext .tsx",
     "watch-client": "yarn --cwd 'client' watch 2>&1",
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
     "watch": "run-p --print-label watch-client watch-bootstrapping-lambda"
@@ -27,6 +27,7 @@
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
     "eslint": "^7.16.0",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-react": "^7.21.5",
     "husky": ">=4",
     "lint-staged": ">=10",
@@ -42,5 +43,8 @@
   "lint-staged": {
     "**/*.{ts, tsx}": "eslint --fix",
     "**/*": "prettier --write --ignore-unknown"
+  },
+  "engines": {
+    "node": ">=14.15.5"
   }
 }

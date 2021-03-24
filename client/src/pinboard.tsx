@@ -15,6 +15,7 @@ import { PayloadDisplay } from "./payloadDisplay";
 import { space } from "@guardian/src-foundations";
 import { PendingItem } from "./types/PendingItem";
 import { gqlGetInitialItems, gqlCreateItem, gqlOnCreateItem } from "../gql";
+import { pinMetal } from "../colours";
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
@@ -174,6 +175,16 @@ export const Pinboard = ({
           </div>
         )}
         <button
+          css={css`
+            color: ${pinMetal};
+            background-color: #999999;
+            padding: ${space[1]}px;
+            :disabled {
+              color: #999999;
+              background-color: #dcdcdc;
+              box-shadow: none;
+            }
+          `}
           onClick={() => sendItem()}
           disabled={!newMessage && !payloadToBeSent}
         >

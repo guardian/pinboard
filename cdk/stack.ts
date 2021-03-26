@@ -149,7 +149,7 @@ export class PinBoardStack extends Stack {
           name: "timestamp",
           type: db.AttributeType.NUMBER,
         },
-        encryption: db.TableEncryption.CUSTOMER_MANAGED,
+        encryption: db.TableEncryption.DEFAULT,
       }
     );
 
@@ -164,7 +164,7 @@ export class PinBoardStack extends Stack {
           name: "email",
           type: db.AttributeType.STRING,
         },
-        encryption: db.TableEncryption.CUSTOMER_MANAGED,
+        encryption: db.TableEncryption.DEFAULT,
       }
     );
 
@@ -192,16 +192,17 @@ export class PinBoardStack extends Stack {
       pinboardAppsyncUserTable
     );
 
-    const dynamoFilterRequestMappingTemplate = appsync.MappingTemplate.fromString(`
-    {
-      "version": "2017-02-28",
-      "operation": "Scan",
-      "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-    }
-  `);
+    const dynamoFilterRequestMappingTemplate = appsync.MappingTemplate
+      .fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+        }
+      `);
     const dynamoFilterRepsonseMappingTemplate = appsync.MappingTemplate.fromString(
-    "$util.toJson($context.result)"
-  );
+      "$util.toJson($context.result)"
+    );
 
     pinboardItemDataSource.createResolver({
       typeName: "Query",
@@ -246,7 +247,7 @@ export class PinBoardStack extends Stack {
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
-      fieldName: "searchUsers",     
+      fieldName: "searchUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
       responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
     });

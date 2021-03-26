@@ -1,5 +1,5 @@
 import * as AWS from "aws-sdk";
-import { AWS_REGION } from "../../shared/awsRegion";
+import { AWS_REGION } from "./awsRegion";
 
 const PROFILE = "workflow";
 

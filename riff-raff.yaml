@@ -27,3 +27,11 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-workflow-bridge-lambda.zip
       functionNames: [pinboard-workflow-bridge-lambda-]
+
+  pinboard-users-refresher-lambda:
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-users-refresher-lambda.zip
+      functionNames: [pinboard-users-refresher-lambda-]

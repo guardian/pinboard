@@ -16,6 +16,11 @@
       "action": "pinboard-workflow-bridge-lambda",
       "path": "workflow-bridge-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-users-refresher-lambda",
+      "path": "users-refresher-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

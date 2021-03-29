@@ -1,5 +1,10 @@
 /** @jsx jsx */
-import { ApolloError, useQuery, useLazyQuery } from "@apollo/client";
+import {
+  ApolloError,
+  useQuery,
+  useLazyQuery,
+  useSubscription,
+} from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
@@ -9,7 +14,11 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlGetAllUsers, gqlGetPinboardByComposerId } from "../gql";
+import {
+  gqlGetAllUsers,
+  gqlGetPinboardByComposerId,
+  gqlOnCreateItem,
+} from "../gql";
 import { cssReset } from "../cssReset";
 import { User } from "../../shared/graphql/graphql";
 
@@ -94,17 +103,6 @@ export const Widget = (props: WidgetProps) => {
     setSelectedPinboardId(pinboardData.id);
   };
 
-  const closePinboard = (pinboardIdToClose: string) => {
-    if (activePinboardIds.includes(pinboardIdToClose)) {
-      setManuallyOpenedPinboards([
-        ...manuallyOpenedPinboards.filter(
-          (pinboard) => pinboard.id !== pinboardIdToClose
-        ),
-      ]);
-    }
-    setSelectedPinboardId(null);
-  };
-
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 
   const setError = (pinboardId: string, error: ApolloError | undefined) =>
@@ -122,10 +120,34 @@ export const Widget = (props: WidgetProps) => {
       [pinboardId]: unreadFlag,
     }));
 
-  const hasUnread = Object.entries(unreadFlags).find(
-    ([pinboardId, unreadFlag]) =>
-      activePinboardIds.includes(pinboardId) && unreadFlag
-  );
+  const hasUnread = Object.values(unreadFlags).find((unreadFlag) => unreadFlag);
+
+  const closePinboard = (pinboardIdToClose: string) => {
+    if (activePinboardIds.includes(pinboardIdToClose)) {
+      setManuallyOpenedPinboards([
+        ...manuallyOpenedPinboards.filter(
+          (pinboard) => pinboard.id !== pinboardIdToClose
+        ),
+      ]);
+    }
+    setSelectedPinboardId(null);
+    setUnreadFlag(pinboardIdToClose, undefined);
+    setError(pinboardIdToClose, undefined);
+  };
+
+  useSubscription(gqlOnCreateItem(), {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const { pinboardId, mentions } = subscriptionData.data.onCreateItem;
+
+      const isMentioned = mentions.includes(props.userEmail); // TODO also check group membership here (once added)
+
+      const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
+
+      if (isMentioned && !pinboardIsOpen) {
+        setUnreadFlag(pinboardId, true);
+      }
+    },
+  });
 
   return (
     <div css={cssReset}>
@@ -209,7 +231,7 @@ export const Widget = (props: WidgetProps) => {
           !props.preselectedComposerId && (
             <SelectPinboard
               openPinboard={openPinboard}
-              pinboardIds={activePinboardIds}
+              activePinboardIds={activePinboardIds}
               closePinboard={closePinboard}
               unreadFlags={unreadFlags}
               errors={errors}

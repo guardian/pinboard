@@ -27,6 +27,10 @@ const itemReturnFields = `
   payload
   mentions
 `;
+const mentionReturnFields = `
+  pinboardId
+  mentions
+`;
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
 export const gqlGetInitialItems = (pinboardId: string) => gql`
   query MyQuery {
@@ -43,9 +47,16 @@ export const gqlCreateItem = gql`
     }
   }
 `;
-export const gqlOnCreateItem = (pinboardId: string) => gql`
+export const gqlOnCreateItem = (pinboardId?: string) =>
+  pinboardId
+    ? gql`
   subscription OnCreateItem {
     onCreateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
+  }
+`
+    : gql`
+  subscription OnCreateItem {
+    onCreateItem { ${mentionReturnFields} }
   }
 `;
 

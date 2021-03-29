@@ -14,7 +14,7 @@ import { gqlListPinboards } from "../gql";
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
-  pinboardIds: string[];
+  activePinboardIds: string[];
   unreadFlags: PerPinboard<boolean>;
   errors: PerPinboard<ApolloError>;
   payloadToBeSent: PayloadAndType | null;
@@ -24,7 +24,7 @@ interface SelectPinboardProps {
 export const SelectPinboard = ({
   openPinboard,
   closePinboard,
-  pinboardIds: activePinboardIds,
+  activePinboardIds,
   unreadFlags,
   errors,
   payloadToBeSent,
@@ -32,9 +32,13 @@ export const SelectPinboard = ({
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery(gqlListPinboards);
+  const { data, loading } = useQuery<{ listPinboards: PinboardData[] }>(
+    gqlListPinboards
+  );
 
-  // TODO: improve styling, add unread/error badges beside open pinboards
+  const allPinboards = [...(data?.listPinboards || [])].sort(
+    (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
+  );
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
     <div
@@ -53,9 +57,7 @@ export const SelectPinboard = ({
         `}
         onClick={() => openPinboard(pinboardData)}
       >
-        {activePinboardIds.includes(pinboardData.id) &&
-          unreadFlags[pinboardData.id] &&
-          "🔴 "}
+        {unreadFlags[pinboardData.id] && "🔴 "}
         {activePinboardIds.includes(pinboardData.id) &&
           errors[pinboardData.id] &&
           "⚠️ "}
@@ -100,7 +102,7 @@ export const SelectPinboard = ({
       {loading && <p>Loading pinboards...</p>}
       <h4>Active pinboards</h4>
       {data &&
-        data.listPinboards
+        allPinboards
           .filter((pinboardData: PinboardData) =>
             activePinboardIds.includes(pinboardData.id)
           )
@@ -120,7 +122,7 @@ export const SelectPinboard = ({
         />
       )}
       {data &&
-        data.listPinboards
+        allPinboards
           .filter(
             (pinboardData: PinboardData) =>
               !activePinboardIds.includes(pinboardData.id) &&

@@ -20,14 +20,11 @@ interface PinboardProps extends WidgetProps {
   hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
   isSelected: boolean;
-  clearSelectedPinboard: undefined | (() => void);
-  allUsers: User[] | undefined;
-  userLookup: { [email: string]: User } | undefined;
+  clearSelectedPinboard: () => void;
 }
 
 export const Pinboard = ({
   userEmail,
-  allUsers,
   userLookup,
   pinboardData,
   setError,
@@ -108,7 +105,7 @@ export const Pinboard = ({
         }
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
-        allUsers={allUsers}
+        allUsers={userLookup && Object.values(userLookup)}
         onError={(error) => setError(pinboardId, error)}
         userEmail={userEmail}
         pinboardId={pinboardId}

@@ -1,10 +1,5 @@
 /** @jsx jsx */
-import {
-  ApolloError,
-  useQuery,
-  useLazyQuery,
-  useSubscription,
-} from "@apollo/client";
+import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
@@ -14,11 +9,7 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import {
-  gqlGetAllUsers,
-  gqlGetPinboardByComposerId,
-  gqlOnCreateItem,
-} from "../gql";
+import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { cssReset } from "../cssReset";
 import { User } from "../../shared/graphql/graphql";
 
@@ -44,23 +35,11 @@ export interface WidgetProps {
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
+  userLookup: { [email: string]: User } | undefined;
 }
 
 export const Widget = (props: WidgetProps) => {
   const { isExpanded, setIsExpanded } = props;
-
-  const usersQuery = useQuery(gqlGetAllUsers);
-
-  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
-  //TODO: make use of usersQuery.error and usersQuery.loading
-
-  const userLookup = allUsers?.reduce(
-    (lookup, user) => ({
-      ...lookup,
-      [user.email]: user,
-    }),
-    {} as { [email: string]: User }
-  );
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
@@ -96,11 +75,21 @@ export const Widget = (props: WidgetProps) => {
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   const openPinboard = (pinboardData: PinboardData) => {
+    const composerUrl = `https://composer.code.dev-gutools.co.uk/content/${
+      pinboardData.composerId || ".."
+    }?pinboardComposerID=${pinboardData.composerId}`;
     if (!activePinboardIds.includes(pinboardData.id)) {
-      setManuallyOpenedPinboards([...manuallyOpenedPinboards, pinboardData]);
+      preselectedPinboard
+        ? window?.open(composerUrl, "_blank")?.focus()
+        : setManuallyOpenedPinboards([
+            ...manuallyOpenedPinboards,
+            pinboardData,
+          ]);
     }
 
-    setSelectedPinboardId(pinboardData.id);
+    if (!preselectedPinboard || preselectedPinboard.id === pinboardData.id) {
+      setSelectedPinboardId(pinboardData.id);
+    }
   };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
@@ -148,6 +137,11 @@ export const Widget = (props: WidgetProps) => {
       }
     },
   });
+
+  const isNotTrackedInWorkflow =
+    props.preselectedComposerId &&
+    !preselectedPinboard &&
+    !preselectedPinboardQuery.loading;
 
   return (
     <div css={cssReset}>
@@ -226,9 +220,10 @@ export const Widget = (props: WidgetProps) => {
           font-family: sans-serif;
         `}
       >
-        {!preselectedPinboard &&
-          !selectedPinboardId &&
-          !props.preselectedComposerId && (
+        {isNotTrackedInWorkflow ? (
+          <NotTrackedInWorkflow />
+        ) : (
+          !selectedPinboardId && (
             <SelectPinboard
               openPinboard={openPinboard}
               activePinboardIds={activePinboardIds}
@@ -237,11 +232,11 @@ export const Widget = (props: WidgetProps) => {
               errors={errors}
               payloadToBeSent={props.payloadToBeSent}
               clearPayloadToBeSent={props.clearPayloadToBeSent}
+              preselectedPinboard={preselectedPinboard}
             />
-          )}
-        {props.preselectedComposerId &&
-          !preselectedPinboard &&
-          !preselectedPinboardQuery.loading && <NotTrackedInWorkflow />}
+          )
+        )}
+
         {
           // The active pinboards are always mounted, so that we receive new item notifications
           // Note that the pinboard hides itself based on 'isSelected' prop
@@ -268,11 +263,7 @@ export const Widget = (props: WidgetProps) => {
               }
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
-              clearSelectedPinboard={
-                preselectedPinboard ? undefined : clearSelectedPinboard
-              }
-              allUsers={allUsers}
-              userLookup={userLookup}
+              clearSelectedPinboard={clearSelectedPinboard}
             />
           ))
         }

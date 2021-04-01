@@ -13,11 +13,13 @@ interface WithEntity<E> {
 
 const mentionsDataProvider = (allUsers: User[]) => (token: string) => {
   const tokenLower = token.toLowerCase();
-  return allUsers?.filter(
-    (_) =>
-      _.firstName.toLowerCase().startsWith(tokenLower) ||
-      _.lastName.toLowerCase().startsWith(tokenLower)
-  );
+  return allUsers
+    ?.filter(
+      (_) =>
+        _.firstName.toLowerCase().startsWith(tokenLower) ||
+        _.lastName.toLowerCase().startsWith(tokenLower)
+    )
+    .slice(0, 5);
 };
 
 const UserSuggestion = ({ entity }: WithEntity<User>) => (
@@ -32,6 +34,7 @@ const UserSuggestion = ({ entity }: WithEntity<User>) => (
         border-radius: 50%;
         width: 20px;
         height: 20px;
+        visibility: ${entity.avatarUrl ? "visible" : "hidden"};
       `}
     />
     <div>

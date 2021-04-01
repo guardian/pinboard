@@ -10,6 +10,7 @@ import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
+import { WorkflowStub } from "../../shared/graphql/graphql";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -19,6 +20,7 @@ interface SelectPinboardProps {
   errors: PerPinboard<ApolloError>;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
+  preselectedPinboard: WorkflowStub | undefined;
 }
 
 export const SelectPinboard = ({
@@ -29,6 +31,7 @@ export const SelectPinboard = ({
   errors,
   payloadToBeSent,
   clearPayloadToBeSent,
+  preselectedPinboard,
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
@@ -63,7 +66,7 @@ export const SelectPinboard = ({
           "⚠️ "}
         {pinboardData.title}
       </button>
-      {activePinboardIds.includes(pinboardData.id) && (
+      {activePinboardIds.includes(pinboardData.id) && !preselectedPinboard && (
         <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
       )}
     </div>
@@ -100,7 +103,11 @@ export const SelectPinboard = ({
         </div>
       )}
       {loading && <p>Loading pinboards...</p>}
-      <h4>Active pinboards</h4>
+      <h4>
+        {preselectedPinboard
+          ? `Pinboard associated with this piece`
+          : `Active pinboards`}
+      </h4>
       {data &&
         allPinboards
           .filter((pinboardData: PinboardData) =>

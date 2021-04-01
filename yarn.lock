@@ -3141,9 +3141,12 @@
   dependencies:
     "@types/node" "*"
 
-"@types/webscopeio__react-textarea-autocomplete@https://gitpkg.now.sh/tjsilver/DefinitelyTyped/types/webscopeio__react-textarea-autocomplete?patch-1":
-  version "0.0.0"
-  resolved "https://gitpkg.now.sh/tjsilver/DefinitelyTyped/types/webscopeio__react-textarea-autocomplete?patch-1#1c7381902bc867be0069998b78c0cf26c1afe72c"
+"@types/webscopeio__react-textarea-autocomplete@^4.7.0":
+  version "4.7.0"
+  resolved "https://registry.yarnpkg.com/@types/webscopeio__react-textarea-autocomplete/-/webscopeio__react-textarea-autocomplete-4.7.0.tgz#dd04ccdda3eb2c729de290699a003ce4c4b2f883"
+  integrity sha512-VW5iJKsEkW+XAsL+PAXPXbpgRyykGsI/N6yBFJoZ6uXvs0uduptg3lhKr4vzd+dUSz0wPzzgXY/p1u4/vgxMvg==
+  dependencies:
+    "@types/react" "*"
 
 "@types/websocket@1.0.1":
   version "1.0.1"

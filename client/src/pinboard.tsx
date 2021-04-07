@@ -21,6 +21,7 @@ interface PinboardProps extends WidgetProps {
   isExpanded: boolean;
   isSelected: boolean;
   clearSelectedPinboard: () => void;
+  widgetElement: HTMLDivElement | null;
 }
 
 export const Pinboard = ({
@@ -36,6 +37,7 @@ export const Pinboard = ({
   clearSelectedPinboard,
   payloadToBeSent,
   clearPayloadToBeSent,
+  widgetElement,
 }: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
@@ -109,6 +111,7 @@ export const Pinboard = ({
         onError={(error) => setError(pinboardId, error)}
         userEmail={userEmail}
         pinboardId={pinboardId}
+        widgetElement={widgetElement}
       />
     </React.Fragment>
   );

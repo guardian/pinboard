@@ -65,6 +65,7 @@ interface CreateItemInputBoxProps {
   sendItem: () => void;
   allUsers: User[] | undefined;
   addUnverifiedMention: (user: User) => void;
+  widgetElement: HTMLDivElement | null;
 }
 
 export const CreateItemInputBox = ({
@@ -75,6 +76,7 @@ export const CreateItemInputBox = ({
   setMessage,
   sendItem,
   addUnverifiedMention,
+  widgetElement,
 }: CreateItemInputBoxProps) => (
   <div
     css={css`
@@ -110,6 +112,7 @@ export const CreateItemInputBox = ({
           : 0}px;
       `}
       autoFocus
+      boundariesElement={widgetElement || undefined}
     />
     {payloadToBeSent && (
       <div

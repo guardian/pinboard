@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
@@ -77,6 +77,7 @@ export const Widget = (props: WidgetProps) => {
 
   const openPinboard = (pinboardData: PinboardData) => {
     const composerUrl = `https://composer.code.dev-gutools.co.uk/content/${
+      // FIXME: use STAGE in here
       pinboardData.composerId || ".."
     }?pinboardComposerID=${pinboardData.composerId}`;
     if (!activePinboardIds.includes(pinboardData.id)) {
@@ -144,6 +145,7 @@ export const Widget = (props: WidgetProps) => {
     !preselectedPinboard &&
     !preselectedPinboardQuery.loading;
 
+  const widgetRef = useRef<HTMLDivElement>(null);
   return (
     <div css={cssReset}>
       <div
@@ -220,6 +222,7 @@ export const Widget = (props: WidgetProps) => {
           justify-content: space-between;
           font-family: sans-serif;
         `}
+        ref={widgetRef}
       >
         {isNotTrackedInWorkflow ? (
           <NotTrackedInWorkflow />
@@ -265,6 +268,7 @@ export const Widget = (props: WidgetProps) => {
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
               clearSelectedPinboard={clearSelectedPinboard}
+              widgetElement={widgetRef.current}
             />
           ))
         }

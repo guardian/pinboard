@@ -109,6 +109,7 @@ export const CreateItemInputBox = ({
           ? payloadToBeSentThumbnailHeightPx + 5
           : 0}px;
       `}
+      autoFocus
     />
     {payloadToBeSent && (
       <div

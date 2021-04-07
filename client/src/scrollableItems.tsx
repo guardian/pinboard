@@ -83,25 +83,25 @@ export const ScrollableItems = ({
     });
   };
 
-  const [isSeenForFirstTime, setIsSeenForFirstTime] = useState(false);
+  const [hasBeenSeenAtLeastOnce, setHasBeenSeenAtLeastOnce] = useState(false);
 
   useEffect(() => {
     scrollableArea &&
       scrollableArea.scrollHeight > 0 &&
-      !isSeenForFirstTime &&
-      setIsSeenForFirstTime(true);
+      !hasBeenSeenAtLeastOnce &&
+      setHasBeenSeenAtLeastOnce(true);
   });
 
-  useLayoutEffect(scrollToLastItem, [isSeenForFirstTime]);
+  useLayoutEffect(scrollToLastItem, [hasBeenSeenAtLeastOnce]);
 
-  const isLastItemVisible = () =>
+  const shouldBeScrolledToLastItem = () =>
     !scrollableArea ||
     !lastItemRef.current ||
     !isScrollbarVisible(scrollableArea) ||
     elementIsVisible(scrollableArea, lastItemRef.current);
 
   useEffect(() => {
-    if (isLastItemVisible()) {
+    if (shouldBeScrolledToLastItem()) {
       scrollToLastItem();
     } else if (isExpanded) {
       setHasUnread(true);
@@ -109,7 +109,7 @@ export const ScrollableItems = ({
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && isLastItemVisible()) {
+    if (isExpanded && shouldBeScrolledToLastItem()) {
       setHasUnread(false);
     }
   }, [isExpanded]); // runs when the widget is expanded/closed
@@ -123,7 +123,7 @@ export const ScrollableItems = ({
         color: black;
         position: relative;
       `}
-      onScroll={() => isLastItemVisible() && setHasUnread(false)}
+      onScroll={() => shouldBeScrolledToLastItem() && setHasUnread(false)}
     >
       {items.map((item, index) => (
         <ItemDisplay

@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import React, { useEffect, useState } from "react";
 import { ApolloError, useQuery, useSubscription } from "@apollo/client";
-import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
+import { Item, WorkflowStub } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";

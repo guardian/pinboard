@@ -19,6 +19,7 @@ import { gqlGetAllUsers } from "../gql";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
+export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
 export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
@@ -58,12 +59,11 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
+  const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
   // and lose the query param but we don't want to lose the preselection
   const [preSelectedComposerIdFromQueryParam] = useState(
-    new URLSearchParams(window.location.search).get(
-      PRESELECT_PINBOARD_QUERY_PARAM
-    )
+    queryParams.get(PRESELECT_PINBOARD_QUERY_PARAM)
   );
 
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
@@ -71,7 +71,8 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   >(preSelectedComposerIdFromQueryParam);
 
   const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(
-    !!preSelectedComposerIdFromQueryParam // expand by default when preselected via url query param
+    !!preSelectedComposerIdFromQueryParam || // expand by default when preselected via url query param
+      queryParams.get(EXPAND_PINBOARD_QUERY_PARAM)?.toLowerCase() === "true"
   );
   const expandWidget = () => setIsWidgetExpanded(true);
 

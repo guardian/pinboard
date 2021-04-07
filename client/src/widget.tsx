@@ -12,6 +12,7 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { cssReset } from "../cssReset";
 import { User } from "../../shared/graphql/graphql";
+import { EXPAND_PINBOARD_QUERY_PARAM } from "./pinboard.main";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -76,10 +77,16 @@ export const Widget = (props: WidgetProps) => {
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   const openPinboard = (pinboardData: PinboardData) => {
-    const composerUrl = `https://composer.code.dev-gutools.co.uk/content/${
-      // FIXME: use STAGE in here
+    const hostname = window.location.hostname;
+    const composerDomain =
+      hostname.includes(".local.") ||
+      hostname.includes(".code.") ||
+      hostname.includes(".test.")
+        ? "code.dev-gutools.co.uk"
+        : "gutools.co.uk";
+    const composerUrl = `https://composer.${composerDomain}/content/${
       pinboardData.composerId || ".."
-    }?pinboardComposerID=${pinboardData.composerId}`;
+    }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
     if (!activePinboardIds.includes(pinboardData.id)) {
       preselectedPinboard
         ? window?.open(composerUrl, "_blank")?.focus()

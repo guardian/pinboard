@@ -58,6 +58,7 @@ export const Widget = (props: WidgetProps) => {
   }, [props.preselectedComposerId]);
 
   const preselectedPinboard: PinboardData | undefined =
+    props.preselectedComposerId &&
     preselectedPinboardQuery.data?.getPinboardByComposerId;
 
   const activePinboards: PinboardData[] = preselectedPinboard

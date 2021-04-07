@@ -50,7 +50,6 @@ export const cssReset = css`
     color: revert;
     border: revert;
     border-radius: revert;
-    padding: revert;
     :focus {
       outline: revert;
     }

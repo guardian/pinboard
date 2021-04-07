@@ -1,6 +1,12 @@
 /** @jsx jsx */
 import { Item, User } from "../../shared/graphql/graphql";
-import React, { ReactElement, useEffect, useRef } from "react";
+import React, {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
 import { space } from "@guardian/src-foundations";
@@ -71,18 +77,22 @@ export const ScrollableItems = ({
   const lastItemIndex = items.length - 1;
 
   const scrollToLastItem = () => {
-    setTimeout(
-      // TODO: could we use request animation frame?
-      () =>
-        lastItemRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        }),
-      1
-    );
+    lastItemRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   };
 
-  useEffect(scrollToLastItem, []); // runs once at the beginning
+  const [isSeenForFirstTime, setIsSeenForFirstTime] = useState(false);
+
+  useEffect(() => {
+    scrollableArea &&
+      scrollableArea.scrollHeight > 0 &&
+      !isSeenForFirstTime &&
+      setIsSeenForFirstTime(true);
+  });
+
+  useLayoutEffect(scrollToLastItem, [isSeenForFirstTime]);
 
   const isLastItemVisible = () =>
     !scrollableArea ||

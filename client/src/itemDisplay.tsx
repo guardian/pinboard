@@ -71,6 +71,10 @@ export const ItemDisplay = ({
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
 
+  const formattedDateTime = () => {
+    return new Date(item.timestamp * 1000).toTimeString().substr(0, 5);
+  };
+
   return (
     <div
       ref={refForLastItem}
@@ -92,9 +96,7 @@ export const ItemDisplay = ({
         <span>
           {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
         </span>
-        <span>
-          {new Date(item.timestamp * 1000).toTimeString().substr(0, 8)}
-        </span>
+        <span>{formattedDateTime()}</span>
       </div>
       <div>{formattedMessage}</div>
       {payload && <PayloadDisplay type={item.type} payload={payload} />}

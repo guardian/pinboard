@@ -149,7 +149,22 @@ export class PinBoardStack extends Stack {
           name: "timestamp",
           type: db.AttributeType.NUMBER,
         },
-        encryption: db.TableEncryption.CUSTOMER_MANAGED,
+        encryption: db.TableEncryption.DEFAULT,
+      }
+    );
+
+    const pinboardUserTableName = "pinboard-user-table";
+
+    const pinboardAppsyncUserTable = new db.Table(
+      thisStack,
+      pinboardUserTableName,
+      {
+        billingMode: db.BillingMode.PAY_PER_REQUEST,
+        partitionKey: {
+          name: "email",
+          type: db.AttributeType.STRING,
+        },
+        encryption: db.TableEncryption.DEFAULT,
       }
     );
 
@@ -169,22 +184,31 @@ export class PinBoardStack extends Stack {
       pinboardAppsyncItemTable
     );
 
-    pinboardItemDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listItems",
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
+    const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
+      `${pinboardUserTableName
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_datasource`,
+      pinboardAppsyncUserTable
+    );
+
+    const dynamoFilterRequestMappingTemplate = appsync.MappingTemplate
+      .fromString(`
         {
           "version": "2017-02-28",
           "operation": "Scan",
           "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
         }
-      `),
-      // TODO: move back into mapping template above when we convert to a Query operation, when we support multiple pinboards
-      // "limit": $util.defaultIfNull($ctx.args.limit, 20),
-      // "nextToken": $util.toJson($util.defaultIfNullOrEmpty($ctx.args.nextToken, null)),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(
-        "$util.toJson($context.result)"
-      ),
+      `);
+    const dynamoFilterRepsonseMappingTemplate = appsync.MappingTemplate.fromString(
+      "$util.toJson($context.result)"
+    );
+
+    pinboardItemDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "listItems",
+      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
+      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
     });
 
     pinboardItemDataSource.createResolver({
@@ -219,6 +243,23 @@ export class PinBoardStack extends Stack {
     pinboardWorkflowBridgeLambdaDataSource.createResolver({
       typeName: "Query",
       fieldName: "getPinboardByComposerId",
+    });
+
+    pinboardUserDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "searchUsers",
+      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
+      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+    });
+
+    pinboardUserDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getUser",
+      requestMappingTemplate: appsync.MappingTemplate.dynamoDbGetItem(
+        "email",
+        "email"
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
     // this allows the lambda to query/create AppSync config/secrets

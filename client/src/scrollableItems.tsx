@@ -83,16 +83,19 @@ export const ScrollableItems = ({
     });
   };
 
-  const [hasBeenSeenAtLeastOnce, setHasBeenSeenAtLeastOnce] = useState(false);
+  const [
+    hasThisPinboardEverBeenExpanded,
+    setHasThisPinboardEverBeenExpanded,
+  ] = useState(false);
 
   useEffect(() => {
     scrollableArea &&
       scrollableArea.scrollHeight > 0 &&
-      !hasBeenSeenAtLeastOnce &&
-      setHasBeenSeenAtLeastOnce(true);
+      !hasThisPinboardEverBeenExpanded &&
+      setHasThisPinboardEverBeenExpanded(true);
   });
 
-  useLayoutEffect(scrollToLastItem, [hasBeenSeenAtLeastOnce]);
+  useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
 
   const shouldBeScrolledToLastItem = () =>
     !scrollableArea ||

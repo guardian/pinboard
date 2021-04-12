@@ -59,6 +59,7 @@ interface ItemDisplayProps {
   refForLastItem: React.RefObject<HTMLDivElement> | undefined;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
+  timestampLastRefreshed: number;
 }
 
 export const ItemDisplay = ({

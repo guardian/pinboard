@@ -117,6 +117,17 @@ export const ScrollableItems = ({
     }
   }, [isExpanded]); // runs when the widget is expanded/closed
 
+  const [timestampLastRefreshed, setTimestampLastRefreshed] = useState<number>(
+    Date.now()
+  );
+  useEffect(() => {
+    const intervalHandle = setInterval(
+      () => setTimestampLastRefreshed(Date.now()),
+      60000 // once per minute
+    );
+    return () => clearInterval(intervalHandle);
+  }, []);
+
   return (
     <div
       ref={scrollableAreaRef}
@@ -135,6 +146,7 @@ export const ScrollableItems = ({
           refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
           userLookup={userLookup}
           userEmail={userEmail}
+          timestampLastRefreshed={timestampLastRefreshed}
         />
       ))}
       {hasUnread && (

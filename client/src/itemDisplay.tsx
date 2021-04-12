@@ -5,15 +5,7 @@ import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { space } from "@guardian/src-foundations";
-import { userToMentionHandle } from "./util";
-import differenceInMinutes from "date-fns/differenceInMinutes";
-import format from "date-fns/format";
-import formatDistanceStrict from "date-fns/formatDistanceStrict";
-import isThisWeek from "date-fns/isThisWeek";
-import isThisYear from "date-fns/isThisYear";
-import isToday from "date-fns/isToday";
-import isYesterday from "date-fns/isYesterday";
-import differenceInHours from "date-fns/esm/differenceInHours";
+import { formattedDateTime, userToMentionHandle } from "./util";
 
 const formatMentionHandlesInText = (
   userEmail: string,
@@ -80,26 +72,7 @@ export const ItemDisplay = ({
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
 
-  const formattedDateTime = () => {
-    const dateInMillisecs = new Date(item.timestamp * 1000); // the AWS timestamp is in seconds
-    const now = Date.now();
-    if (isToday(dateInMillisecs)) {
-      if (differenceInMinutes(now, dateInMillisecs) < 1) {
-        return "Now";
-      } else if (differenceInHours(now, dateInMillisecs) < 1) {
-        return formatDistanceStrict(dateInMillisecs, now).slice(0, -4);
-      }
-      return format(dateInMillisecs, "HH:mm");
-    } else if (isYesterday(dateInMillisecs)) {
-      return format(dateInMillisecs, "'Yesterday' HH:mm");
-    } else if (isThisWeek(dateInMillisecs)) {
-      return format(dateInMillisecs, "eee HH:mm");
-    } else if (isThisYear(dateInMillisecs)) {
-      return format(dateInMillisecs, "d MMM HH:mm");
-    } else {
-      return format(dateInMillisecs, "d MMM yyyy HH:mm");
-    }
-  };
+  const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
 
   return (
     <div
@@ -122,7 +95,7 @@ export const ItemDisplay = ({
         <span>
           {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
         </span>
-        <span>{formattedDateTime()}</span>
+        <span>{formattedDateTime(dateInMillisecs)}</span>
       </div>
       <div>{formattedMessage}</div>
       {payload && <PayloadDisplay type={item.type} payload={payload} />}

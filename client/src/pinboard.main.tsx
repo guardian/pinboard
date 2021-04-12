@@ -2,19 +2,26 @@ import React, { useEffect, useState } from "react";
 import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import {
+  ApolloClient,
+  ApolloProvider,
+  InMemoryCache,
+  useQuery,
+} from "@apollo/client";
 import { ApolloLink } from "apollo-link";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
-import { User } from "../../shared/User"; //TODO attempt to factor out
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
+import { User } from "../../shared/graphql/graphql";
+import { gqlGetAllUsers } from "../gql";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
+export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
-export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
+export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
     createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
@@ -33,15 +40,18 @@ export function mount({ user, ...appSyncConfig }: AppSyncConfig): void {
 
   document.body.appendChild(element);
 
-  render(React.createElement(PinBoardApp, { apolloClient, user }), element);
+  render(
+    React.createElement(PinBoardApp, { apolloClient, userEmail }),
+    element
+  );
 }
 
 interface PinBoardAppProps {
   apolloClient: ApolloClient<unknown>;
-  user: User;
+  userEmail: string;
 }
 
-const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
+const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
@@ -49,12 +59,11 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
 
   const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
 
+  const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
   // and lose the query param but we don't want to lose the preselection
   const [preSelectedComposerIdFromQueryParam] = useState(
-    new URLSearchParams(window.location.search).get(
-      PRESELECT_PINBOARD_QUERY_PARAM
-    )
+    queryParams.get(PRESELECT_PINBOARD_QUERY_PARAM)
   );
 
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
@@ -62,7 +71,8 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
   >(preSelectedComposerIdFromQueryParam);
 
   const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(
-    !!preSelectedComposerIdFromQueryParam // expand by default when preselected via url query param
+    !!preSelectedComposerIdFromQueryParam || // expand by default when preselected via url query param
+      queryParams.get(EXPAND_PINBOARD_QUERY_PARAM)?.toLowerCase() === "true"
   );
   const expandWidget = () => setIsWidgetExpanded(true);
 
@@ -98,21 +108,34 @@ const PinBoardApp = ({ apolloClient, user }: PinBoardAppProps) => {
     });
   }, []);
 
+  const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
+
+  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
+  //TODO: make use of usersQuery.error and usersQuery.loading
+
+  const userLookup = allUsers?.reduce(
+    (lookup, user) => ({
+      ...lookup,
+      [user.email]: user,
+    }),
+    {} as { [email: string]: User }
+  );
+
   return (
     <ApolloProvider client={apolloClient}>
       <Widget
-        user={user}
+        userEmail={userEmail}
         preselectedComposerId={preSelectedComposerId}
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
         isExpanded={isWidgetExpanded}
         setIsExpanded={setIsWidgetExpanded}
+        userLookup={userLookup}
       />
       {buttonNodes.map((node, index) => (
         <ButtonPortal
           key={index}
           node={node}
-          user={user}
           setPayloadToBeSent={setPayloadToBeSent}
           expandWidget={expandWidget}
         />

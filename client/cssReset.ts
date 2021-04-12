@@ -29,9 +29,10 @@ export const titlepiece = pixelSizedFont(typography.titlepiece);
 export const body = pixelSizedFont(typography.body);
 
 export const cssReset = css`
+  ${textSans.small()}
+  color: ${pinMetal};
+
   * {
-    ${textSans.small()}
-    color: ${pinMetal};
     margin: revert;
     padding: revert;
     border: revert;
@@ -49,7 +50,6 @@ export const cssReset = css`
     color: revert;
     border: revert;
     border-radius: revert;
-    padding: revert;
     :focus {
       outline: revert;
     }

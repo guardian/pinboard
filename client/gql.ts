@@ -20,11 +20,16 @@ export const gqlGetPinboardByComposerId = gql`
 const itemReturnFields = `
   id
   type
-  user
+  userEmail
   timestamp
   pinboardId
   message
   payload
+  mentions
+`;
+const mentionReturnFields = `
+  pinboardId
+  mentions
 `;
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
 export const gqlGetInitialItems = (pinboardId: string) => gql`
@@ -42,8 +47,30 @@ export const gqlCreateItem = gql`
     }
   }
 `;
-export const gqlOnCreateItem = (pinboardId: string) => gql`
+export const gqlOnCreateItem = (pinboardId?: string) =>
+  pinboardId
+    ? gql`
   subscription OnCreateItem {
     onCreateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
   }
+`
+    : gql`
+  subscription OnCreateItem {
+    onCreateItem { ${mentionReturnFields} }
+  }
+`;
+
+const userReturnFields = `
+  email
+  firstName
+  lastName
+  avatarUrl
+`;
+
+export const gqlGetAllUsers = gql`
+query MyQuery {
+  searchUsers {
+    items { ${userReturnFields} }
+  }
+}
 `;

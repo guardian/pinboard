@@ -4,7 +4,6 @@ import {
   guardianValidation,
 } from "@guardian/pan-domain-node";
 import { AWS_REGION } from "../../shared/awsRegion";
-import { User } from "../../shared/User";
 
 const pandaKeyFilename = (function () {
   // TODO consider doing this via Stage tag OR injecting this value directly as env variable
@@ -25,18 +24,14 @@ const panda = new PanDomainAuthentication(
   guardianValidation
 );
 
-export const getVerifiedUser = async (
+export const getVerifiedUserEmail = async (
   cookieHeader: string | undefined
-): Promise<void | User> => {
+): Promise<void | string> => {
   if (cookieHeader) {
     const { status, user } = await panda.verify(cookieHeader);
 
     if (status === AuthenticationStatus.AUTHORISED && user) {
-      return {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-      };
+      return user.email;
     }
   }
 };

@@ -1,6 +1,12 @@
 /** @jsx jsx */
-import { Item } from "../../shared/graphql/graphql";
-import React, { ReactElement, useEffect, useRef } from "react";
+import { Item, User } from "../../shared/graphql/graphql";
+import React, {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { css, jsx } from "@emotion/react";
 import { unread } from "../colours";
 import { space } from "@guardian/src-foundations";
@@ -14,6 +20,8 @@ interface ScrollableItemsProps {
   setHasUnread: (hasUnread: boolean) => void;
   isExpanded: boolean;
   hasUnread: boolean | undefined;
+  userLookup: { [email: string]: User } | undefined;
+  userEmail: string;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -43,6 +51,8 @@ export const ScrollableItems = ({
   setHasUnread,
   isExpanded,
   hasUnread,
+  userLookup,
+  userEmail,
 }: ScrollableItemsProps): ReactElement => {
   const itemsMap = [
     ...initialItems,
@@ -67,27 +77,34 @@ export const ScrollableItems = ({
   const lastItemIndex = items.length - 1;
 
   const scrollToLastItem = () => {
-    setTimeout(
-      // TODO: could we use request animation frame?
-      () =>
-        lastItemRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        }),
-      1
-    );
+    lastItemRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   };
 
-  useEffect(scrollToLastItem, []); // runs once at the beginning
+  const [
+    hasThisPinboardEverBeenExpanded,
+    setHasThisPinboardEverBeenExpanded,
+  ] = useState(false);
 
-  const isLastItemVisible = () =>
+  useEffect(() => {
+    scrollableArea &&
+      scrollableArea.scrollHeight > 0 &&
+      !hasThisPinboardEverBeenExpanded &&
+      setHasThisPinboardEverBeenExpanded(true);
+  });
+
+  useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
+
+  const shouldBeScrolledToLastItem = () =>
     !scrollableArea ||
     !lastItemRef.current ||
     !isScrollbarVisible(scrollableArea) ||
     elementIsVisible(scrollableArea, lastItemRef.current);
 
   useEffect(() => {
-    if (isLastItemVisible()) {
+    if (shouldBeScrolledToLastItem()) {
       scrollToLastItem();
     } else if (isExpanded) {
       setHasUnread(true);
@@ -95,7 +112,7 @@ export const ScrollableItems = ({
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && isLastItemVisible()) {
+    if (isExpanded && shouldBeScrolledToLastItem()) {
       setHasUnread(false);
     }
   }, [isExpanded]); // runs when the widget is expanded/closed
@@ -109,13 +126,15 @@ export const ScrollableItems = ({
         color: black;
         position: relative;
       `}
-      onScroll={() => isLastItemVisible() && setHasUnread(false)}
+      onScroll={() => shouldBeScrolledToLastItem() && setHasUnread(false)}
     >
       {items.map((item, index) => (
         <ItemDisplay
           key={item.id}
           item={item}
           refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
+          userLookup={userLookup}
+          userEmail={userEmail}
         />
       ))}
       {hasUnread && (

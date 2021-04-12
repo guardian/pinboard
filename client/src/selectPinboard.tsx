@@ -10,31 +10,38 @@ import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
+import { WorkflowStub } from "../../shared/graphql/graphql";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
-  pinboardIds: string[];
+  activePinboardIds: string[];
   unreadFlags: PerPinboard<boolean>;
   errors: PerPinboard<ApolloError>;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
+  preselectedPinboard: WorkflowStub | undefined;
 }
 
 export const SelectPinboard = ({
   openPinboard,
   closePinboard,
-  pinboardIds: activePinboardIds,
+  activePinboardIds,
   unreadFlags,
   errors,
   payloadToBeSent,
   clearPayloadToBeSent,
+  preselectedPinboard,
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery(gqlListPinboards);
+  const { data, loading } = useQuery<{ listPinboards: PinboardData[] }>(
+    gqlListPinboards
+  );
 
-  // TODO: improve styling, add unread/error badges beside open pinboards
+  const allPinboards = [...(data?.listPinboards || [])].sort(
+    (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
+  );
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
     <div
@@ -53,15 +60,13 @@ export const SelectPinboard = ({
         `}
         onClick={() => openPinboard(pinboardData)}
       >
-        {activePinboardIds.includes(pinboardData.id) &&
-          unreadFlags[pinboardData.id] &&
-          "🔴 "}
+        {unreadFlags[pinboardData.id] && "🔴 "}
         {activePinboardIds.includes(pinboardData.id) &&
           errors[pinboardData.id] &&
           "⚠️ "}
         {pinboardData.title}
       </button>
-      {activePinboardIds.includes(pinboardData.id) && (
+      {activePinboardIds.includes(pinboardData.id) && !preselectedPinboard && (
         <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
       )}
     </div>
@@ -98,9 +103,13 @@ export const SelectPinboard = ({
         </div>
       )}
       {loading && <p>Loading pinboards...</p>}
-      <h4>Active pinboards</h4>
+      <h4>
+        {preselectedPinboard
+          ? `Pinboard associated with this piece`
+          : `Active pinboards`}
+      </h4>
       {data &&
-        data.listPinboards
+        allPinboards
           .filter((pinboardData: PinboardData) =>
             activePinboardIds.includes(pinboardData.id)
           )
@@ -120,7 +129,7 @@ export const SelectPinboard = ({
         />
       )}
       {data &&
-        data.listPinboards
+        allPinboards
           .filter(
             (pinboardData: PinboardData) =>
               !activePinboardIds.includes(pinboardData.id) &&

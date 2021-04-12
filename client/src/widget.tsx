@@ -1,8 +1,7 @@
 /** @jsx jsx */
-import { ApolloError, useLazyQuery } from "@apollo/client";
+import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css, jsx } from "@emotion/react";
-import React, { useEffect, useState } from "react";
-import { User } from "../../shared/User";
+import React, { useEffect, useRef, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
@@ -10,8 +9,10 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlGetPinboardByComposerId } from "../gql";
+import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { cssReset } from "../cssReset";
+import { User } from "../../shared/graphql/graphql";
+import { EXPAND_PINBOARD_QUERY_PARAM } from "./pinboard.main";
 
 const bottomRight = 10;
 const widgetSize = 50;
@@ -29,12 +30,13 @@ export type PerPinboard<T> = {
   [pinboardId: string]: T | undefined;
 };
 export interface WidgetProps {
-  user: User;
+  userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
+  userLookup: { [email: string]: User } | undefined;
 }
 
 export const Widget = (props: WidgetProps) => {
@@ -57,6 +59,7 @@ export const Widget = (props: WidgetProps) => {
   }, [props.preselectedComposerId]);
 
   const preselectedPinboard: PinboardData | undefined =
+    props.preselectedComposerId &&
     preselectedPinboardQuery.data?.getPinboardByComposerId;
 
   const activePinboards: PinboardData[] = preselectedPinboard
@@ -74,22 +77,28 @@ export const Widget = (props: WidgetProps) => {
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   const openPinboard = (pinboardData: PinboardData) => {
+    const hostname = window.location.hostname;
+    const composerDomain =
+      hostname.includes(".local.") ||
+      hostname.includes(".code.") ||
+      hostname.includes(".test.")
+        ? "code.dev-gutools.co.uk"
+        : "gutools.co.uk";
+    const composerUrl = `https://composer.${composerDomain}/content/${
+      pinboardData.composerId || ".."
+    }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
     if (!activePinboardIds.includes(pinboardData.id)) {
-      setManuallyOpenedPinboards([...manuallyOpenedPinboards, pinboardData]);
+      preselectedPinboard
+        ? window?.open(composerUrl, "_blank")?.focus()
+        : setManuallyOpenedPinboards([
+            ...manuallyOpenedPinboards,
+            pinboardData,
+          ]);
     }
 
-    setSelectedPinboardId(pinboardData.id);
-  };
-
-  const closePinboard = (pinboardIdToClose: string) => {
-    if (activePinboardIds.includes(pinboardIdToClose)) {
-      setManuallyOpenedPinboards([
-        ...manuallyOpenedPinboards.filter(
-          (pinboard) => pinboard.id !== pinboardIdToClose
-        ),
-      ]);
+    if (!preselectedPinboard || preselectedPinboard.id === pinboardData.id) {
+      setSelectedPinboardId(pinboardData.id);
     }
-    setSelectedPinboardId(null);
   };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
@@ -109,11 +118,41 @@ export const Widget = (props: WidgetProps) => {
       [pinboardId]: unreadFlag,
     }));
 
-  const hasUnread = Object.entries(unreadFlags).find(
-    ([pinboardId, unreadFlag]) =>
-      activePinboardIds.includes(pinboardId) && unreadFlag
-  );
+  const hasUnread = Object.values(unreadFlags).find((unreadFlag) => unreadFlag);
 
+  const closePinboard = (pinboardIdToClose: string) => {
+    if (activePinboardIds.includes(pinboardIdToClose)) {
+      setManuallyOpenedPinboards([
+        ...manuallyOpenedPinboards.filter(
+          (pinboard) => pinboard.id !== pinboardIdToClose
+        ),
+      ]);
+    }
+    setSelectedPinboardId(null);
+    setUnreadFlag(pinboardIdToClose, undefined);
+    setError(pinboardIdToClose, undefined);
+  };
+
+  useSubscription(gqlOnCreateItem(), {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const { pinboardId, mentions } = subscriptionData.data.onCreateItem;
+
+      const isMentioned = mentions.includes(props.userEmail); // TODO also check group membership here (once added)
+
+      const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
+
+      if (isMentioned && !pinboardIsOpen) {
+        setUnreadFlag(pinboardId, true);
+      }
+    },
+  });
+
+  const isNotTrackedInWorkflow =
+    props.preselectedComposerId &&
+    !preselectedPinboard &&
+    !preselectedPinboardQuery.loading;
+
+  const widgetRef = useRef<HTMLDivElement>(null);
   return (
     <div css={cssReset}>
       <div
@@ -190,23 +229,25 @@ export const Widget = (props: WidgetProps) => {
           justify-content: space-between;
           font-family: sans-serif;
         `}
+        ref={widgetRef}
       >
-        {!preselectedPinboard &&
-          !selectedPinboardId &&
-          !props.preselectedComposerId && (
+        {isNotTrackedInWorkflow ? (
+          <NotTrackedInWorkflow />
+        ) : (
+          !selectedPinboardId && (
             <SelectPinboard
               openPinboard={openPinboard}
-              pinboardIds={activePinboardIds}
+              activePinboardIds={activePinboardIds}
               closePinboard={closePinboard}
               unreadFlags={unreadFlags}
               errors={errors}
               payloadToBeSent={props.payloadToBeSent}
               clearPayloadToBeSent={props.clearPayloadToBeSent}
+              preselectedPinboard={preselectedPinboard}
             />
-          )}
-        {props.preselectedComposerId &&
-          !preselectedPinboard &&
-          !preselectedPinboardQuery.loading && <NotTrackedInWorkflow />}
+          )
+        )}
+
         {
           // The active pinboards are always mounted, so that we receive new item notifications
           // Note that the pinboard hides itself based on 'isSelected' prop
@@ -233,9 +274,8 @@ export const Widget = (props: WidgetProps) => {
               }
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
-              clearSelectedPinboard={
-                preselectedPinboard ? undefined : clearSelectedPinboard
-              }
+              clearSelectedPinboard={clearSelectedPinboard}
+              widgetElement={widgetRef.current}
             />
           ))
         }

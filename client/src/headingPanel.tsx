@@ -5,7 +5,7 @@ import { pinboardPrimary } from "../colours";
 import { space } from "@guardian/src-foundations";
 interface HeadingPanelProps {
   heading: string;
-  clearSelectedPinboard: undefined | (() => void);
+  clearSelectedPinboard: () => void;
   hasUnreadOnOtherPinboard: boolean;
   hasErrorOnOtherPinboard: boolean;
 }
@@ -22,13 +22,11 @@ export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
         font-weight: bold;
       `}
     >
-      {props.clearSelectedPinboard && (
-        <button onClick={props.clearSelectedPinboard}>
-          👈
-          {props.hasUnreadOnOtherPinboard && <sup>&nbsp;🔴</sup>}
-          {props.hasErrorOnOtherPinboard && <sup>&nbsp;⚠️</sup>}
-        </button>
-      )}
+      <button onClick={props.clearSelectedPinboard}>
+        👈
+        {props.hasUnreadOnOtherPinboard && <sup>&nbsp;🔴</sup>}
+        {props.hasErrorOnOtherPinboard && <sup>&nbsp;⚠️</sup>}
+      </button>
       {props.heading}
     </div>
     {props.children}

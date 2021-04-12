@@ -3,12 +3,11 @@ import { User } from "../../shared/graphql/graphql";
 import differenceInMinutes from "date-fns/differenceInMinutes";
 import format from "date-fns/format";
 import formatDistanceStrict from "date-fns/formatDistanceStrict";
-import isThisWeek from "date-fns/isThisWeek";
 import isThisYear from "date-fns/isThisYear";
 import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 import differenceInHours from "date-fns/differenceInHours";
-import { differenceInCalendarWeeks } from "date-fns";
+import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
 
 export const userToMentionHandle = (user: User) =>
   `@${user.firstName} ${user.lastName}`;

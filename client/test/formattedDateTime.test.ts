@@ -1,4 +1,8 @@
-import { subDays, subHours, subMinutes, subYears } from "date-fns";
+import subDays from "date-fns/subDays";
+import subHours from "date-fns/subHours";
+import subMinutes from "date-fns/subMinutes";
+import subYears from "date-fns/subYears";
+
 import { formattedDateTime } from "../src/util";
 
 const MOCK_TIMESTAMP = new Date(2021, 3, 15, 14, 32).valueOf(); // Thu Apr 15 2021 14:32:00 GMT+0100 (British Summer Time)

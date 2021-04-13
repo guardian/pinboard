@@ -5,7 +5,7 @@ import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { space } from "@guardian/src-foundations";
-import { userToMentionHandle } from "./util";
+import { formattedDateTime, userToMentionHandle } from "./util";
 
 const formatMentionHandlesInText = (
   userEmail: string,
@@ -51,6 +51,7 @@ interface ItemDisplayProps {
   refForLastItem: React.RefObject<HTMLDivElement> | undefined;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
+  timestampLastRefreshed: number;
 }
 
 export const ItemDisplay = ({
@@ -70,6 +71,8 @@ export const ItemDisplay = ({
     !item.message || !mentions
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
+
+  const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
 
   return (
     <div
@@ -92,9 +95,7 @@ export const ItemDisplay = ({
         <span>
           {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
         </span>
-        <span>
-          {new Date(item.timestamp * 1000).toTimeString().substr(0, 8)}
-        </span>
+        <span>{formattedDateTime(dateInMillisecs)}</span>
       </div>
       <div>{formattedMessage}</div>
       {payload && <PayloadDisplay type={item.type} payload={payload} />}

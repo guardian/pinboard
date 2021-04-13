@@ -16,7 +16,8 @@
     "lint": "eslint . --ext .ts --ext .tsx",
     "watch-client": "yarn --cwd 'client' watch 2>&1",
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
-    "watch": "run-p --print-label watch-client watch-bootstrapping-lambda"
+    "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
+    "test": "yarn --cwd 'client' jest 2>&1"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",

@@ -21,6 +21,7 @@ import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
+import { userTableTTLAttribute } from "../shared/constants";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -166,6 +167,7 @@ export class PinBoardStack extends Stack {
           name: "email",
           type: db.AttributeType.STRING,
         },
+        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );

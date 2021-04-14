@@ -13,8 +13,11 @@ import {
 } from "../../shared/panda";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
+import { userTableTTLAttribute } from "../../shared/constants";
 
-const guardianEmailDomain = "@guardian.co.uk";
+const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+
+const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 
 const pandaConfigLocation = {
   Bucket: pandaSettingsBucketName,
@@ -119,14 +122,19 @@ export const handler = async () => {
     email: string;
     firstName: string;
     lastName: string;
+    [userTableTTLAttribute]: number;
   }
+
+  // users will be removed from the table after a day of not being updated
+  // (because they have either had their 'pinboard' permission has been removed or they've left the organisation)
+  const ttlEpochSeconds = Date.now() / 1000 + ONE_DAY_IN_SECONDS;
 
   const basicUsersWithPinboardPermission = (await getAllUsers()).reduce(
     (acc, { id, ...user }) => {
-      const email = user.primaryEmail?.endsWith(guardianEmailDomain)
+      const email = user.primaryEmail?.endsWith(GUARDIAN_EMAIL_DOMAIN)
         ? user.primaryEmail
         : user.emails.find((_: { address: string }) =>
-            _.address.endsWith(guardianEmailDomain)
+            _.address.endsWith(GUARDIAN_EMAIL_DOMAIN)
           );
 
       if (!emailsOfUsersWithPinboardPermission.includes(email)) {
@@ -142,6 +150,7 @@ export const handler = async () => {
             email,
             firstName: user.name.givenName,
             lastName: user.name.familyName,
+            [userTableTTLAttribute]: ttlEpochSeconds,
           },
         ];
       } else {

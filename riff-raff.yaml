@@ -13,6 +13,8 @@ deployments:
       templatePath: cloudformation.yaml
 
   pinboard-bootstrapping-lambda-api:
+    dependencies:
+      - pinboard-cloudformation
     type: aws-lambda
     parameters:
       prefixStack: false
@@ -21,6 +23,8 @@ deployments:
       functionNames: [pinboard-bootstrapping-lambda-]
 
   pinboard-workflow-bridge-lambda:
+    dependencies:
+      - pinboard-cloudformation
     type: aws-lambda
     parameters:
       prefixStack: false
@@ -29,6 +33,8 @@ deployments:
       functionNames: [pinboard-workflow-bridge-lambda-]
 
   pinboard-users-refresher-lambda:
+    dependencies:
+      - pinboard-cloudformation
     type: aws-lambda
     parameters:
       prefixStack: false

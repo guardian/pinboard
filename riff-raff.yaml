@@ -15,6 +15,8 @@ deployments:
   pinboard-bootstrapping-lambda-api:
     dependencies:
       - pinboard-cloudformation
+      - pinboard-workflow-bridge-lambda
+      - pinboard-users-refresher-lambda
     type: aws-lambda
     parameters:
       prefixStack: false

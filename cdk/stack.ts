@@ -17,8 +17,11 @@ import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as ec2 from "@aws-cdk/aws-ec2";
+import * as events from "@aws-cdk/aws-events";
+import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
+import { userTableTTLAttribute } from "../shared/constants";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -134,11 +137,11 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardItemTableName = "pinboard-item-table";
+    const pinboardItemTableBaseName = "pinboard-item-table";
 
     const pinboardAppsyncItemTable = new db.Table(
       thisStack,
-      pinboardItemTableName,
+      pinboardItemTableBaseName,
       {
         billingMode: db.BillingMode.PAY_PER_REQUEST,
         partitionKey: {
@@ -153,17 +156,18 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardUserTableName = "pinboard-user-table";
+    const pinboardUserTableBaseName = "pinboard-user-table";
 
     const pinboardAppsyncUserTable = new db.Table(
       thisStack,
-      pinboardUserTableName,
+      pinboardUserTableBaseName,
       {
         billingMode: db.BillingMode.PAY_PER_REQUEST,
         partitionKey: {
           name: "email",
           type: db.AttributeType.STRING,
         },
+        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );
@@ -177,7 +181,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardItemTableName
+      `${pinboardItemTableBaseName
         .replace("pinboard-", "")
         .split("-")
         .join("_")}_datasource`,
@@ -185,7 +189,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardUserTableName
+      `${pinboardUserTableBaseName
         .replace("pinboard-", "")
         .split("-")
         .join("_")}_datasource`,
@@ -262,20 +266,66 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
+    const permissionsFilePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
+    });
+
+    const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
+    });
+
+    const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
+
+    const usersRefresherLambdaFunction = new lambda.Function(
+      thisStack,
+      usersRefresherLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.minutes(15),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+          USERS_TABLE_NAME: pinboardAppsyncUserTable.tableName,
+        },
+        functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${usersRefresherLambdaBasename}/${usersRefresherLambdaBasename}.zip`
+        ),
+        initialPolicy: [
+          permissionsFilePolicyStatement,
+          pandaConfigAndKeyPolicyStatement,
+        ],
+      }
+    );
+    pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
+
+    const usersRefresherLambdaSchedule = new events.Rule(
+      thisStack,
+      `${usersRefresherLambdaBasename}-schedule`,
+      {
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 6 hours.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
+        ],
+        schedule: events.Schedule.rate(Duration.hours(6)),
+      }
+    );
+
     // this allows the lambda to query/create AppSync config/secrets
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["appsync:*"],
       resources: ["arn:aws:appsync:eu-west-1:*"], //TODO tighten up if possible
     });
-
-    const bootstrappingLambdaPermissionsFilePolicyStatement = new iam.PolicyStatement(
-      {
-        effect: iam.Effect.ALLOW,
-        actions: ["s3:GetObject"],
-        resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
-      }
-    );
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;
@@ -300,7 +350,7 @@ export class PinBoardStack extends Stack {
         ),
         initialPolicy: [
           bootstrappingLambdaAppSyncPolicyStatement,
-          bootstrappingLambdaPermissionsFilePolicyStatement,
+          permissionsFilePolicyStatement,
         ],
       }
     );

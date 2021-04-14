@@ -7,7 +7,8 @@
     "bootstrapping-lambda",
     "cdk",
     "client",
-    "workflow-bridge-lambda"
+    "workflow-bridge-lambda",
+    "users-refresher-lambda"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",

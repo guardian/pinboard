@@ -1,6 +1,6 @@
 import * as AWS from "aws-sdk";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
-import { STAGE, standardAwsConfig } from "./awsIntegration";
+import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
 const TWENTY_FIVE_HOURS_IN_SECONDS = 25 * ONE_HOUR_IN_SECONDS;

@@ -4,23 +4,16 @@ import {
   guardianValidation,
 } from "@guardian/pan-domain-node";
 import { AWS_REGION } from "../../shared/awsRegion";
-
-const pandaKeyFilename = (function () {
-  // TODO consider doing this via Stage tag OR injecting this value directly as env variable
-  const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
-  if (functionName?.includes("PROD")) {
-    return "gutools.co.uk.settings.public";
-  } else if (functionName?.includes("CODE")) {
-    return "code.dev-gutools.co.uk.settings.public";
-  }
-  return "local.dev-gutools.co.uk.settings.public";
-})();
+import {
+  pandaPublicConfigFilename,
+  pandaSettingsBucketName,
+} from "../../shared/panda";
 
 const panda = new PanDomainAuthentication(
   "gutoolsAuth-assym", // cookie name
   AWS_REGION, // AWS region
-  "pan-domain-auth-settings", // Settings bucket
-  pandaKeyFilename, // Settings file
+  pandaSettingsBucketName, // Settings bucket
+  pandaPublicConfigFilename, // Settings file
   guardianValidation
 );
 

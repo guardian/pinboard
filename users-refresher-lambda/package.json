@@ -1,0 +1,23 @@
+{
+  "name": "users-refresher-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to keep the users Dynamo table(s) up to date (run on a schedule)",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "scripts": {
+    "watch": "ts-node-dev --respawn run.ts",
+    "build": "ncc build src/index.ts -o dist -m -e aws-sdk"
+  },
+  "devDependencies": {
+    "@types/iniparser": "^0.0.29",
+    "@types/node-forge": "^0.9.7",
+    "@vercel/ncc": "^0.25.1",
+    "aws-sdk": "^2.840.0",
+    "ts-node-dev": "^1.0.0"
+  },
+  "dependencies": {
+    "@googleapis/admin": "^0.2.0",
+    "@googleapis/people": "^0.2.1",
+    "iniparser": "^1.0.5",
+    "node-forge": "^0.10.0"
+  }
+}

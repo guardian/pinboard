@@ -216,11 +216,12 @@ export const handler = async () => {
             },
             UpdateExpression: `set firstName = :firstName, lastName = :lastName${
               maybeAvatarUrl ? ", avatarUrl = :avatarUrl" : ""
-            }`,
+            }, ${userTableTTLAttribute} = :${userTableTTLAttribute}`,
             ExpressionAttributeValues: {
               ":firstName": firstName,
               ":lastName": lastName,
               ":avatarUrl": maybeAvatarUrl,
+              [`:${userTableTTLAttribute}`]: ttlEpochSeconds,
             },
           })
           .promise();

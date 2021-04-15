@@ -22,6 +22,7 @@ import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
 import { userTableTTLAttribute } from "../shared/constants";
+import crypto from "crypto";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -119,15 +120,17 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const gqlSchema = appsync.Schema.fromAsset(
+      join(__dirname, "../shared/graphql/schema.graphql")
+    );
+
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(
       thisStack,
       pinboardAppsyncApiBaseName,
       {
         name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
-        schema: appsync.Schema.fromAsset(
-          join(__dirname, "../shared/graphql/schema.graphql")
-        ),
+        schema: gqlSchema,
         authorizationConfig: {
           defaultAuthorization: {
             authorizationType: appsync.AuthorizationType.API_KEY,
@@ -196,14 +199,27 @@ export class PinBoardStack extends Stack {
       pinboardAppsyncUserTable
     );
 
-    const dynamoFilterRequestMappingTemplate = appsync.MappingTemplate
-      .fromString(`
+    const gqlSchemaChecksum = crypto
+      .createHash("md5")
+      .update(gqlSchema.definition, "utf8")
+      .digest("hex");
+
+    // workaround for resolvers sometimes getting disconnected
+    // see https://github.com/aws/aws-appsync-community/issues/146
+    const resolverBugWorkaround = (mappingTemplate: appsync.MappingTemplate) =>
+      appsync.MappingTemplate.fromString(
+        `## schema checksum : ${gqlSchemaChecksum}\n${mappingTemplate.renderTemplate()}`
+      );
+
+    const dynamoFilterRequestMappingTemplate = resolverBugWorkaround(
+      appsync.MappingTemplate.fromString(`
         {
           "version": "2017-02-28",
           "operation": "Scan",
           "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
         }
-      `);
+      `)
+    );
     const dynamoFilterRepsonseMappingTemplate = appsync.MappingTemplate.fromString(
       "$util.toJson($context.result)"
     );
@@ -218,9 +234,8 @@ export class PinBoardStack extends Stack {
     pinboardItemDataSource.createResolver({
       typeName: "Query",
       fieldName: "getItem",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbGetItem(
-        "id",
-        "id"
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.dynamoDbGetItem("id", "id")
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
@@ -228,11 +243,13 @@ export class PinBoardStack extends Stack {
     pinboardItemDataSource.createResolver({
       typeName: "Mutation",
       fieldName: "createItem",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbPutItem(
-        appsync.PrimaryKey.partition("id").auto(),
-        appsync.Values.projecting("input")
-          .attribute("timestamp")
-          .is("$util.time.nowEpochSeconds()")
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.dynamoDbPutItem(
+          appsync.PrimaryKey.partition("id").auto(),
+          appsync.Values.projecting("input")
+            .attribute("timestamp")
+            .is("$util.time.nowEpochSeconds()")
+        )
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
@@ -242,11 +259,17 @@ export class PinBoardStack extends Stack {
     pinboardWorkflowBridgeLambdaDataSource.createResolver({
       typeName: "Query",
       fieldName: "listPinboards",
+      responseMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.lambdaResult()
+      ),
     });
 
     pinboardWorkflowBridgeLambdaDataSource.createResolver({
       typeName: "Query",
       fieldName: "getPinboardByComposerId",
+      responseMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.lambdaResult()
+      ),
     });
 
     pinboardUserDataSource.createResolver({
@@ -259,9 +282,8 @@ export class PinBoardStack extends Stack {
     pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "getUser",
-      requestMappingTemplate: appsync.MappingTemplate.dynamoDbGetItem(
-        "email",
-        "email"
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.dynamoDbGetItem("email", "email")
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });

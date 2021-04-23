@@ -33,6 +33,10 @@ export const SendMessageArea = ({
   widgetElement,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
+  const [
+    octopusImagingOrderType,
+    setOctopusImagingOrderType,
+  ] = useState<string>("");
   const [unverifiedMentions, setUnverifiedMentions] = useState<User[]>([]);
   const addUnverifiedMention = (user: User) =>
     setUnverifiedMentions((prevState) => [...prevState, user]); // TODO: also make user unique in list
@@ -47,6 +51,7 @@ export const SendMessageArea = ({
         pending: true,
       });
       setMessage("");
+      setOctopusImagingOrderType("");
       clearPayloadToBeSent();
       setUnverifiedMentions([]);
     },
@@ -55,7 +60,12 @@ export const SendMessageArea = ({
       input: {
         type: payloadToBeSent?.type || "message-only",
         message,
-        payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
+        payload:
+          payloadToBeSent &&
+          JSON.stringify({
+            ...payloadToBeSent.payload,
+            octopusImagingOrderType,
+          }),
         userEmail,
         pinboardId,
         mentions: verifiedMentionEmails,
@@ -75,6 +85,8 @@ export const SendMessageArea = ({
         clearPayloadToBeSent={clearPayloadToBeSent}
         message={message}
         setMessage={setMessage}
+        octopusImagingOrderType={octopusImagingOrderType}
+        setOctopusImagingOrderType={setOctopusImagingOrderType}
         sendItem={sendItem}
         allUsers={allUsers}
         addUnverifiedMention={addUnverifiedMention}

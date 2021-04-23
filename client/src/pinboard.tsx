@@ -38,6 +38,7 @@ export const Pinboard = ({
   payloadToBeSent,
   clearPayloadToBeSent,
   widgetElement,
+  assetUsageNodes,
 }: PinboardProps) => {
   const [hasUnread, setHasUnread] = useState<boolean>();
 
@@ -99,6 +100,7 @@ export const Pinboard = ({
           hasUnread={hasUnread}
           userLookup={userLookup}
           userEmail={userEmail}
+          assetUsageNodes={assetUsageNodes}
         />
       )}
       <SendMessageArea

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
+import {
+  AddToPinboardButtonPortal,
+  ASSET_HANDLE_HTML_TAG,
+  ASSET_USAGE_HTML_TAG,
+} from "./addToPinboardButton";
 import { render } from "react-dom";
 import { AppSyncConfig } from "../../shared/AppSyncConfig";
 import {
@@ -13,7 +17,10 @@ import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { Widget } from "./widget";
-import { PayloadAndType } from "./types/PayloadAndType";
+import {
+  OCTOPUS_IMAGING_ORDER_TYPE,
+  PayloadAndType,
+} from "./types/PayloadAndType";
 import { User } from "../../shared/graphql/graphql";
 import { gqlGetAllUsers } from "../gql";
 
@@ -57,7 +64,9 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   );
   const clearPayloadToBeSent = () => setPayloadToBeSent(null);
 
-  const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
+  const [assetHandleNodes, setAssetHandleNodes] = useState<HTMLElement[]>([]);
+
+  const [assetUsageNodes, setAssetUsageNodes] = useState<HTMLElement[]>([]);
 
   const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
@@ -76,10 +85,14 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   );
   const expandWidget = () => setIsWidgetExpanded(true);
 
-  const refreshButtonNodes = () =>
-    setButtonNodes(
+  const refreshButtonNodes = () => {
+    setAssetHandleNodes(
       Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
     );
+    setAssetUsageNodes(
+      Array.from(document.querySelectorAll(ASSET_USAGE_HTML_TAG))
+    );
+  };
 
   const refreshPreselectedPinboard = () =>
     setPreselectedComposerId(
@@ -131,11 +144,28 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
         isExpanded={isWidgetExpanded}
         setIsExpanded={setIsWidgetExpanded}
         userLookup={userLookup}
+        assetUsageNodes={assetUsageNodes}
       />
-      {buttonNodes.map((node, index) => (
-        <ButtonPortal
+      {assetHandleNodes.map((node, index) => {
+        const { source, sourceType, ...payload } = node.dataset;
+        return source && sourceType ? (
+          <AddToPinboardButtonPortal
+            key={index}
+            node={node}
+            type={`${source}-${sourceType}`}
+            payload={payload}
+            setPayloadToBeSent={setPayloadToBeSent}
+            expandWidget={expandWidget}
+          />
+        ) : null;
+      })}
+      {assetUsageNodes.map((node, index) => (
+        <AddToPinboardButtonPortal
           key={index}
           node={node}
+          label="Order changes from 'Imaging' via "
+          type={OCTOPUS_IMAGING_ORDER_TYPE}
+          payload={node.dataset}
           setPayloadToBeSent={setPayloadToBeSent}
           expandWidget={expandWidget}
         />

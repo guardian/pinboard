@@ -7,3 +7,5 @@ export interface PayloadAndType {
   type: string;
   payload: Payload;
 }
+
+export const OCTOPUS_IMAGING_ORDER_TYPE = "octopus-imaging-order";

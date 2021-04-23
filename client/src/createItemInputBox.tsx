@@ -2,7 +2,10 @@
 import React from "react";
 import { css, jsx } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
-import { PayloadAndType } from "./types/PayloadAndType";
+import {
+  OCTOPUS_IMAGING_ORDER_TYPE,
+  PayloadAndType,
+} from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { User } from "../../shared/graphql/graphql";
@@ -57,11 +60,15 @@ const payloadToBeSentThumbnailHeightPx = 50;
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
+const octopusImagingOrderTypes = ["re-colour", "stretch", "cut-out"];
+
 interface CreateItemInputBoxProps {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   message: string;
   setMessage: (newMessage: string) => void;
+  octopusImagingOrderType: string | undefined;
+  setOctopusImagingOrderType: (orderType: string) => void;
   sendItem: () => void;
   allUsers: User[] | undefined;
   addUnverifiedMention: (user: User) => void;
@@ -74,63 +81,101 @@ export const CreateItemInputBox = ({
   clearPayloadToBeSent,
   message,
   setMessage,
+  octopusImagingOrderType,
+  setOctopusImagingOrderType,
   sendItem,
   addUnverifiedMention,
   widgetElement,
-}: CreateItemInputBoxProps) => (
-  <div
-    css={css`
-      flex-grow: 1;
-      ${rtaStyles}
-    `}
-  >
-    <ReactTextareaAutocomplete<User>
-      trigger={
-        allUsers
-          ? {
-              "@": {
-                dataProvider: mentionsDataProvider(allUsers),
-                component: UserSuggestion,
-                output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
-              },
-            }
-          : {}
-      }
-      minChar={0}
-      loadingComponent={() => <span>Loading</span>}
-      placeholder="enter message here..."
-      value={message}
-      onChange={(event) => setMessage(event.target.value)}
-      onKeyPress={(event) =>
-        isEnterKey(event) && message && sendItem() && event.preventDefault()
-      }
-      onItemSelected={({ item }) => addUnverifiedMention(item)}
-      rows={2}
+}: CreateItemInputBoxProps) => {
+  const isOctopusImagingOrder =
+    payloadToBeSent?.type === OCTOPUS_IMAGING_ORDER_TYPE;
+  return (
+    <div
       css={css`
-        padding-bottom: ${payloadToBeSent
-          ? payloadToBeSentThumbnailHeightPx + 5
-          : 0}px;
+        flex-grow: 1;
+        ${rtaStyles}
       `}
-      autoFocus
-      boundariesElement={widgetElement || undefined}
-    />
-    {payloadToBeSent && (
-      <div
+    >
+      <ReactTextareaAutocomplete<User>
+        trigger={
+          allUsers
+            ? {
+                "@": {
+                  dataProvider: mentionsDataProvider(allUsers),
+                  component: UserSuggestion,
+                  output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
+                },
+              }
+            : {}
+        }
+        minChar={0}
+        loadingComponent={() => <span>Loading</span>}
+        placeholder={`enter ${
+          isOctopusImagingOrder ? "notes for imaging team" : "message"
+        } here...`}
+        value={message}
+        onChange={(event) => setMessage(event.target.value)}
+        onKeyPress={(event) =>
+          isEnterKey(event) && message && sendItem() && event.preventDefault()
+        }
+        onItemSelected={({ item }) => addUnverifiedMention(item)}
+        rows={2}
         css={css`
-          position: absolute;
-          bottom: ${space[1]}px;
-          left: ${space[2]}px;
+          margin-bottom: ${payloadToBeSent
+            ? payloadToBeSentThumbnailHeightPx + 5
+            : 0}px;
         `}
-      >
-        <PayloadDisplay
-          {...payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-          heightPx={payloadToBeSentThumbnailHeightPx}
-        />
-      </div>
-    )}
-  </div>
-);
+        autoFocus
+        boundariesElement={widgetElement || undefined}
+      />
+      {payloadToBeSent && (
+        <div
+          css={css`
+            display: flex;
+            position: absolute;
+            bottom: ${space[1]}px;
+            left: ${space[2]}px;
+          `}
+        >
+          <PayloadDisplay
+            {...payloadToBeSent}
+            clearPayloadToBeSent={clearPayloadToBeSent}
+            heightPx={payloadToBeSentThumbnailHeightPx}
+          />
+          {isOctopusImagingOrder && (
+            <div
+              css={css`
+                margin-left: 5px;
+              `}
+            >
+              <div
+                css={css`
+                  font-size: 80%;
+                `}
+              >
+                Imaging Order Type
+              </div>
+              <select
+                css={css`
+                  appearance: auto;
+                  display: block;
+                `}
+                value={octopusImagingOrderType || "Please select..."}
+                onChange={(e) => setOctopusImagingOrderType(e.target.value)}
+              >
+                {octopusImagingOrderTypes.map((orderType, index) => (
+                  <option key={index} value={orderType}>
+                    {orderType}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const rtaStyles = css`
   .rta {

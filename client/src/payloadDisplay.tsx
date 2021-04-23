@@ -16,7 +16,7 @@ export const PayloadDisplay = ({
   clearPayloadToBeSent,
   heightPx,
 }: PayloadDisplayProps) =>
-  thumbnail && embeddableUrl ? (
+  thumbnail ? (
     <div
       css={css`
         position: relative;
@@ -54,8 +54,10 @@ export const PayloadDisplay = ({
           max-height: ${heightPx ?? 75}px;
           box-shadow: 2px 2px 5px 0px ${pinMetal};
         `}
-        onDragStart={(event) =>
-          event.dataTransfer.setData("URL", embeddableUrl)
+        onDragStart={
+          !clearPayloadToBeSent && embeddableUrl
+            ? (event) => event.dataTransfer.setData("URL", embeddableUrl)
+            : undefined
         }
       />
     </div>

@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import ReactDOM from "react-dom";
-import React, { ReactPortal } from "react";
+import React from "react";
 import PinIcon from "../icons/pin-icon.svg";
 import { css, jsx } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
@@ -9,25 +9,35 @@ import { space } from "@guardian/src-foundations";
 import { cssReset, textSans } from "../cssReset";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
+export const ASSET_USAGE_HTML_TAG = "asset-usage";
 
-interface AddToPinboardButtonProps {
-  dataAttributes: DOMStringMap;
+interface AddToPinboardButtonPortalProps {
+  node: HTMLElement;
+  type: string;
+  payload: DOMStringMap;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expandWidget: () => void;
+  label?: string;
 }
 
-const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
-  const { source, sourceType, ...payload } = props.dataAttributes;
-
-  return source && sourceType ? (
+export const AddToPinboardButtonPortal = ({
+  node,
+  type,
+  payload,
+  setPayloadToBeSent,
+  expandWidget,
+  label,
+}: AddToPinboardButtonPortalProps) =>
+  ReactDOM.createPortal(
     <div css={cssReset}>
       <button
-        onClick={() => {
-          props.setPayloadToBeSent({
-            type: `${source}-${sourceType}`,
+        onClick={(event) => {
+          event.stopPropagation();
+          setPayloadToBeSent({
+            type,
             payload,
           });
-          props.expandWidget();
+          expandWidget();
         }}
         css={css`
           display: flex;
@@ -42,7 +52,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           color: ${pinMetal};
         `}
       >
-        Add to
+        {label || "Add to "}
         <PinIcon
           css={css`
             height: 30px;
@@ -52,23 +62,8 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
               stroke-width: 1px;
             }
           `}
-        />{" "}
+        />
       </button>
-    </div>
-  ) : null;
-};
-
-interface ButtonPortalProps {
-  node: HTMLElement;
-  setPayloadToBeSent: (payload: PayloadAndType | null) => void;
-  expandWidget: () => void;
-}
-
-export const ButtonPortal = ({
-  node,
-  ...props
-}: ButtonPortalProps): ReactPortal =>
-  ReactDOM.createPortal(
-    <AddToPinboardButton dataAttributes={node.dataset} {...props} />,
+    </div>,
     node
   );

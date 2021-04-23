@@ -37,6 +37,7 @@ export interface WidgetProps {
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
   userLookup: { [email: string]: User } | undefined;
+  assetUsageNodes: HTMLElement[];
 }
 
 export const Widget = (props: WidgetProps) => {

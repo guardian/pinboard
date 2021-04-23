@@ -52,6 +52,7 @@ interface ItemDisplayProps {
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
   timestampLastRefreshed: number;
+  assetUsageNodes: HTMLElement[];
 }
 
 export const ItemDisplay = ({
@@ -59,6 +60,7 @@ export const ItemDisplay = ({
   refForLastItem,
   userLookup,
   userEmail,
+  assetUsageNodes,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payload = item.payload && JSON.parse(item.payload);
@@ -67,12 +69,22 @@ export const ItemDisplay = ({
     ?.map((mentionEmail) => userLookup?.[mentionEmail])
     .filter((mentionUser): mentionUser is User => !!mentionUser);
 
+  const maybeUsages =
+    payload &&
+    assetUsageNodes.filter(
+      (usageNode) =>
+        usageNode?.dataset?.assetId &&
+        payload.thumbnail?.includes(usageNode?.dataset?.assetId)
+    );
+
   const formattedMessage =
     !item.message || !mentions
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
 
   const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
+
+  const maybeOctopusImagingOrderType = payload?.octopusImagingOrderType;
 
   return (
     <div
@@ -97,8 +109,60 @@ export const ItemDisplay = ({
         </span>
         <span>{formattedDateTime(dateInMillisecs)}</span>
       </div>
+      {maybeOctopusImagingOrderType && (
+        <div
+          css={css`
+            font-style: italic;
+          `}
+        >
+          Imaging Order for <strong>{maybeOctopusImagingOrderType}</strong> with
+          note:
+        </div>
+      )}
       <div>{formattedMessage}</div>
-      {payload && <PayloadDisplay type={item.type} payload={payload} />}
+      {payload && (
+        <div
+          css={css`
+            display: flex;
+          `}
+        >
+          <PayloadDisplay type={item.type} payload={payload} />
+          {maybeUsages?.length > 0 && (
+            <div
+              css={css`
+                font-size: 75%;
+                margin-left: 5px;
+              `}
+            >
+              Used for:
+              <ul
+                css={css`
+                  margin: 0;
+                  padding-inline-start: 20px;
+                `}
+              >
+                {maybeUsages?.map((usageNode, index) => (
+                  <li
+                    key={index}
+                    css={css`
+                      cursor: pointer;
+                      font-weight: bold;
+                    `}
+                    onClick={() =>
+                      usageNode.scrollIntoView({
+                        behavior: "smooth",
+                        block: "end",
+                      })
+                    }
+                  >
+                    {usageNode.dataset.usageLocation || <em>somewhere</em>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
-import { cssReset } from "../cssReset";
+import { textSans } from "../fontNormaliser";
 import { User } from "../../shared/graphql/graphql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./pinboard.main";
 import root from "react-shadow/emotion";
@@ -155,7 +155,12 @@ export const Widget = (props: WidgetProps) => {
 
   const widgetRef = useRef<HTMLDivElement>(null);
   return (
-    <root.div css={cssReset}>
+    <root.div
+      css={css`
+        ${textSans.small()}
+        color: ${pinMetal};
+      `}
+    >
       <div
         css={css`
           position: fixed;

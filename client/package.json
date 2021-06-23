@@ -6,6 +6,10 @@
     "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep --line-buffered -v 'Could not load source file'",
     "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard"
   },
+  "alias": {
+    "react": "preact/compat",
+    "react-dom": "preact/compat"
+  },
   "dependencies": {
     "@apollo/client": "^3.2.7",
     "@emotion/react": "^11.1.4",
@@ -16,8 +20,7 @@
     "aws-appsync-subscription-link": "^3.0.3",
     "date-fns": "^2.19.0",
     "graphql": "^15.4.0",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "preact": "^10.5.13"
   },
   "devDependencies": {
     "@svgr/parcel-plugin-svgr": "^5.5.0",

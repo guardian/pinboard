@@ -120,6 +120,29 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const workflowNotificationsBasename = "pinboard-notifications-lambda";
+
+    const pinboardNotificationsLambda = new lambda.Function(
+      thisStack,
+      workflowNotificationsBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(30),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${workflowNotificationsBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${workflowNotificationsBasename}/${workflowNotificationsBasename}.zip`
+        ),
+      }
+    );
+
     const gqlSchema = appsync.Schema.fromAsset(
       join(__dirname, "../shared/graphql/schema.graphql")
     );

@@ -21,6 +21,11 @@
       "action": "pinboard-users-refresher-lambda",
       "path": "users-refresher-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-notifications-lambda",
+      "path": "notifications-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

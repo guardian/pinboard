@@ -38,6 +38,10 @@ yarn --cwd 'workflow-bridge-lambda' build
 # build users-refresher-lambda into a single file
 yarn --cwd 'users-refresher-lambda' build
 
+# build notifications-lambda into a single file
+yarn --cwd 'notifications-lambda' build
+
+
 # create a top level dist directory and copy in the built stuff
 mkdir -p dist/client
 cp bootstrapping-lambda/dist/index.js dist/

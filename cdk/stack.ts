@@ -23,6 +23,7 @@ import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
 import { userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
+import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -179,7 +180,15 @@ export class PinBoardStack extends Stack {
           type: db.AttributeType.NUMBER,
         },
         encryption: db.TableEncryption.DEFAULT,
+        stream: db.StreamViewType.NEW_IMAGE,
       }
+    );
+
+    pinboardNotificationsLambda.addEventSource(
+      new DynamoEventSource(pinboardAppsyncItemTable, {
+        maxBatchingWindow: Duration.seconds(10),
+        startingPosition: lambda.StartingPosition.LATEST,
+      })
     );
 
     const pinboardLastItemSeenByUserTableBaseName =

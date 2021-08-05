@@ -151,13 +151,23 @@ export class PinBoardStack extends Stack {
           name: "id",
           type: db.AttributeType.STRING,
         },
-        sortKey: {
-          name: "timestamp",
-          type: db.AttributeType.NUMBER,
-        },
         encryption: db.TableEncryption.DEFAULT,
       }
     );
+
+    const pinboardItemTableSortedIndexName = "sorted-index";
+
+    pinboardAppsyncItemTable.addGlobalSecondaryIndex({
+      indexName: pinboardItemTableSortedIndexName,
+      partitionKey: {
+        name: "id",
+        type: db.AttributeType.STRING,
+      },
+      sortKey: {
+        name: "timestamp",
+        type: db.AttributeType.NUMBER,
+      },
+    });
 
     const pinboardUserTableBaseName = "pinboard-user-table";
 
@@ -216,6 +226,7 @@ export class PinBoardStack extends Stack {
         {
           "version": "2017-02-28",
           "operation": "Scan",
+          "index": "${pinboardItemTableSortedIndexName}",
           "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
         }
       `)

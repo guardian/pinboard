@@ -5,7 +5,7 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
-    "synth": "cdk synth --app 'npx ts-node cdk.ts' > cloudformation.yaml"
+    "synth": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts' > cloudformation.yaml"
   },
   "devDependencies": {
     "@types/node": "^14.14.7",

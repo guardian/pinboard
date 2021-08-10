@@ -159,6 +159,26 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const pinboardLastItemSeenByUserTableBaseName =
+      "pinboard-last-item-seen-by-user-table";
+
+    const pinboardAppsyncLastItemSeenByUserTable = new db.Table(
+      thisStack,
+      pinboardLastItemSeenByUserTableBaseName,
+      {
+        billingMode: db.BillingMode.PAY_PER_REQUEST,
+        partitionKey: {
+          name: "pinboardId",
+          type: db.AttributeType.STRING,
+        },
+        sortKey: {
+          name: "userEmail",
+          type: db.AttributeType.STRING,
+        },
+        encryption: db.TableEncryption.DEFAULT,
+      }
+    );
+
     const pinboardUserTableBaseName = "pinboard-user-table";
 
     const pinboardAppsyncUserTable = new db.Table(
@@ -189,6 +209,14 @@ export class PinBoardStack extends Stack {
         .split("-")
         .join("_")}_datasource`,
       pinboardAppsyncItemTable
+    );
+
+    const pinboardLastItemSeenByUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
+      `${pinboardLastItemSeenByUserTableBaseName
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_datasource`,
+      pinboardAppsyncLastItemSeenByUserTable
     );
 
     const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
@@ -232,15 +260,6 @@ export class PinBoardStack extends Stack {
     });
 
     pinboardItemDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "getItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbGetItem("id", "id")
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
-
-    pinboardItemDataSource.createResolver({
       typeName: "Mutation",
       fieldName: "createItem",
       requestMappingTemplate: resolverBugWorkaround(
@@ -254,7 +273,37 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
-    // TODO: add resolvers for updates and deletes to dynamo
+    pinboardLastItemSeenByUserDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "listLastItemSeenByUsers",
+      requestMappingTemplate: dynamoFilterRequestMappingTemplate, // TODO consider custom resolver for performance
+      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+    });
+
+    pinboardLastItemSeenByUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "seenItem",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
+            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.args.input.userEmail)
+          },
+          "update" : {
+            "expression" : "SET seenAt = :seenAt, itemID = :itemID",
+            "expressionValues": {
+              ":seenAt" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
+              ":itemID" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+    });
 
     pinboardWorkflowBridgeLambdaDataSource.createResolver({
       typeName: "Query",

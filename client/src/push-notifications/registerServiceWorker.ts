@@ -1,3 +1,5 @@
+import { publicVapidKey } from "../../../shared/constants";
+
 const toggleButton = document.getElementById("toggleNotificationsButton");
 
 const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
@@ -28,8 +30,7 @@ if (toggleButton && "serviceWorker" in navigator) {
                   swRegistration.pushManager
                     .subscribe({
                       userVisibleOnly: true,
-                      applicationServerKey:
-                        "BN90j1vBKosQik3VeWkS8tYyA9XooaAKhqJAvZR6WNqZRc2l6FYY0qeaj_Yss8IJjVYM88h5DSY7rZuQumI7ckA",
+                      applicationServerKey: publicVapidKey,
                     })
                     .then(parentCallback);
                 } else {

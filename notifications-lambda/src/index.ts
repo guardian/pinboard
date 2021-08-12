@@ -1,3 +1,98 @@
-exports.handler = async (event: any) => {
-  event.Records.forEach((record: any) => console.log(record.dynamodb));
+import * as webPush from "web-push";
+import * as AWS from "aws-sdk";
+import { standardAwsConfig } from "../../shared/awsIntegration";
+import { AttributeMap, Key } from "aws-sdk/clients/dynamodb";
+import { Item } from "../../shared/graphql/graphql";
+import { publicVapidKey } from "../../shared/constants";
+
+// FIXME: Move privateVapidKey to config
+const privateVapidKey = "oZKFV-242t9UzmeqAijDJJvl0yy5AungkELjBcfFlYc";
+
+interface DynamoStreamRecord {
+  dynamodb: {
+    NewImage: AttributeMap;
+  };
+}
+
+interface DynamoStreamEvent {
+  Records: DynamoStreamRecord[];
+}
+
+export const handler = async (event: DynamoStreamEvent) => {
+  const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
+  const usersTableName = process.env.USERS_TABLE_NAME;
+
+  if (!usersTableName) {
+    throw Error("'USERS_TABLE_NAME' environment variable not set.");
+  }
+
+  const processPageOfUsers = async (startKey?: Key) => {
+    const userResults = await dynamo
+      .scan({
+        TableName: usersTableName,
+        ExclusiveStartKey: startKey,
+        ProjectionExpression: "email, webPushSubscription",
+        FilterExpression: "attribute_exists(webPushSubscription)",
+      })
+      .promise();
+
+    if (userResults.Items) {
+      await Promise.all(
+        userResults.Items.filter((user) => !!user.webPushSubscription)?.flatMap(
+          (user) =>
+            event.Records.map(
+              (record) =>
+                AWS.DynamoDB.Converter.unmarshall(
+                  record.dynamodb.NewImage
+                ) as Item
+            )
+              .filter(
+                // TODO: Include more scenarios that trigger desktop notification
+                (item) => item.mentions?.includes(user.email)
+              )
+              .map((item) =>
+                webPush
+                  .sendNotification(
+                    user.webPushSubscription,
+                    JSON.stringify({
+                      message: item.message,
+                      userEmail: item.userEmail,
+                      payload: item.payload,
+                      timestamp: item.timestamp,
+                    }),
+                    {
+                      vapidDetails: {
+                        subject: "mailto:digitalcms.bugs@guardian.co.uk",
+                        publicKey: publicVapidKey,
+                        privateKey: privateVapidKey,
+                      },
+                    }
+                  )
+                  .then((result) => {
+                    if (result.statusCode < 300) {
+                      console.log(
+                        `Sent web push to ${user.email} with message ${item.message}`,
+                        result.body
+                      );
+                    } else {
+                      throw Error(result.body);
+                    }
+                  })
+                  .catch((errorPushing) => {
+                    console.error(
+                      `Failed to push to ${user.email} with message ${item.message}`,
+                      errorPushing
+                    );
+                  })
+              )
+        )
+      );
+    }
+
+    if (userResults.LastEvaluatedKey) {
+      await processPageOfUsers(userResults.LastEvaluatedKey);
+    }
+  };
+
+  await processPageOfUsers();
 };

@@ -121,11 +121,27 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const workflowNotificationsBasename = "pinboard-notifications-lambda";
+    const pinboardUserTableBaseName = "pinboard-user-table";
+
+    const pinboardAppsyncUserTable = new db.Table(
+      thisStack,
+      pinboardUserTableBaseName,
+      {
+        billingMode: db.BillingMode.PAY_PER_REQUEST,
+        partitionKey: {
+          name: "email",
+          type: db.AttributeType.STRING,
+        },
+        timeToLiveAttribute: userTableTTLAttribute,
+        encryption: db.TableEncryption.DEFAULT,
+      }
+    );
+
+    const pinboardNotificationsLambdaBasename = "pinboard-notifications-lambda";
 
     const pinboardNotificationsLambda = new lambda.Function(
       thisStack,
-      workflowNotificationsBasename,
+      pinboardNotificationsLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
@@ -135,14 +151,16 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
+          USERS_TABLE_NAME: pinboardAppsyncUserTable.tableName,
         },
-        functionName: `${workflowNotificationsBasename}-${STAGE}`,
+        functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${workflowNotificationsBasename}/${workflowNotificationsBasename}.zip`
+          `${STACK}/${STAGE}/${pinboardNotificationsLambdaBasename}/${pinboardNotificationsLambdaBasename}.zip`
         ),
       }
     );
+    pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
 
     const gqlSchema = appsync.Schema.fromAsset(
       join(__dirname, "../shared/graphql/schema.graphql")
@@ -207,22 +225,6 @@ export class PinBoardStack extends Stack {
           name: "userEmail",
           type: db.AttributeType.STRING,
         },
-        encryption: db.TableEncryption.DEFAULT,
-      }
-    );
-
-    const pinboardUserTableBaseName = "pinboard-user-table";
-
-    const pinboardAppsyncUserTable = new db.Table(
-      thisStack,
-      pinboardUserTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "email",
-          type: db.AttributeType.STRING,
-        },
-        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );

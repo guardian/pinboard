@@ -1,7 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 self.addEventListener("push", (event: any) => {
   const { message, userEmail, payload, timestamp } = event.data.json();
-  const notificationTitle = `Pinboard: ${userEmail} at ${new Date(timestamp)}`;
+  const notificationTitle = `Pinboard: ${userEmail.substring(
+    0,
+    userEmail.indexOf("@")
+  )} at ${new Date(timestamp).toLocaleTimeString()}`;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   self.registration.showNotification(notificationTitle, {
@@ -11,7 +14,7 @@ self.addEventListener("push", (event: any) => {
       { action: "grid", title: "Open in Grid" },
       { action: "composer", title: "Open in Composer" },
     ],
-    // icon: 'https://ame.com', // TODO: Serve proper Pinboard icon
+    icon: payload?.thumbnail,
     image: payload?.thumbnail,
   });
 });

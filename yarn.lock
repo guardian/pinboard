@@ -3852,10 +3852,9 @@
   resolved "https://registry.yarnpkg.com/@vercel/ncc/-/ncc-0.25.1.tgz#a4aacdb508ac496fc0c63a3c3203d700a619cc0e"
   integrity sha512-dGecC5+1wLof1MQpey4+6i2KZv4Sfs6WfXkl9KfO32GED4ZPiKxRfvtGPjbjZv0IbqMl6CxtcV1RotXYfd5SSA==
 
-"@webscopeio/react-textarea-autocomplete@^4.7.3":
+"@webscopeio/react-textarea-autocomplete@https://github.com/twrichards/react-textarea-autocomplete/releases/download/v4.7.3_PLUS_shadow_DOM/package.tar.gz":
   version "4.7.3"
-  resolved "https://registry.yarnpkg.com/@webscopeio/react-textarea-autocomplete/-/react-textarea-autocomplete-4.7.3.tgz#48909621ca754d36a997359f8d9ff13513863fe1"
-  integrity sha512-Bdpl6/J+lI3cxTXJ+NsVj4D4A8Guy7t1FWtMZQLH46F63VHGCcBTGeZfnxlNEHns0FqHV8DTnHcJUeN2N4h82g==
+  resolved "https://github.com/twrichards/react-textarea-autocomplete/releases/download/v4.7.3_PLUS_shadow_DOM/package.tar.gz#5b458f93447861fe97835f7eb3b393edfa178215"
   dependencies:
     custom-event "^1.0.1"
     textarea-caret "3.0.2"

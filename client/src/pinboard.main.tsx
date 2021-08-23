@@ -1,3 +1,4 @@
+import "preact/debug";
 import React, { useEffect, useState } from "react";
 import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";

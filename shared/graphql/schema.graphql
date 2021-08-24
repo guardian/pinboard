@@ -27,6 +27,7 @@ type User {
   firstName: String!
   lastName: String!
   avatarUrl: String
+  hasWebPushSubscription: Boolean
 }
 
 type WorkflowStub {
@@ -54,6 +55,7 @@ type LastItemSeenByUserConnection {
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(userEmail: String!, webPushSubscription: AWSJSON): User
 }
 
 type Query {

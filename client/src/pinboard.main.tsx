@@ -9,6 +9,7 @@ import {
   InMemoryCache,
   useQuery,
   ApolloLink,
+  useMutation,
 } from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
@@ -16,7 +17,7 @@ import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { User } from "../../shared/graphql/graphql";
-import { gqlGetAllUsers } from "../gql";
+import { gqlGetAllUsers, gqlSetWebPushSubscriptionForUser } from "../gql";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -50,7 +51,7 @@ export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
 }
 
 interface PinBoardAppProps {
-  apolloClient: ApolloClient<unknown>;
+  apolloClient: ApolloClient<Record<string, unknown>>;
   userEmail: string;
 }
 
@@ -112,17 +113,56 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   }, []);
 
   const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
-
-  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
   //TODO: make use of usersQuery.error and usersQuery.loading
 
-  const userLookup = allUsers?.reduce(
-    (lookup, user) => ({
-      ...lookup,
-      [user.email]: user,
-    }),
-    {} as { [email: string]: User }
+  const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
+
+  const [userLookup, setUserLookup] = useState<{ [email: string]: User }>();
+
+  useEffect(
+    () =>
+      setUserLookup(
+        allUsers?.reduce(
+          (lookup, user) => ({
+            ...lookup,
+            [user.email]: user,
+          }),
+          {} as { [email: string]: User }
+        )
+      ),
+    [allUsers]
   );
+
+  const [setWebPushSubscriptionForUser] = useMutation<{
+    setWebPushSubscriptionForUser: User;
+  }>(gqlSetWebPushSubscriptionForUser, {
+    client: apolloClient,
+    onCompleted: (updatedUserResult) => {
+      const user = updatedUserResult.setWebPushSubscriptionForUser;
+      setUserLookup((prevUserLookup) => ({
+        ...prevUserLookup,
+        [user.email]: user,
+      }));
+    },
+    onError: (error) => {
+      const message = "Could not subscribe to desktop notifications";
+      alert(message);
+      console.error(message, error);
+    },
+  });
+
+  useEffect(() => {
+    window.addEventListener("message", (event) => {
+      if (event.source !== window) {
+        setWebPushSubscriptionForUser({
+          variables: {
+            userEmail,
+            webPushSubscription: event.data,
+          },
+        });
+      }
+    });
+  }, []);
 
   return (
     <ApolloProvider client={apolloClient}>

@@ -11,6 +11,7 @@ import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
 import { WorkflowStub } from "../../shared/graphql/graphql";
+import { PushNotificationPreferencesOpener } from "./pushNotificationsOpener";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -21,6 +22,7 @@ interface SelectPinboardProps {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   preselectedPinboard: WorkflowStub | undefined;
+  hasWebPushSubscription: boolean | null | undefined;
 }
 
 export const SelectPinboard = ({
@@ -32,6 +34,7 @@ export const SelectPinboard = ({
   payloadToBeSent,
   clearPayloadToBeSent,
   preselectedPinboard,
+  hasWebPushSubscription,
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
@@ -102,6 +105,11 @@ export const SelectPinboard = ({
           />
         </div>
       )}
+      {!hasWebPushSubscription && (
+        <PushNotificationPreferencesOpener
+          hasWebPushSubscription={hasWebPushSubscription}
+        />
+      )}
       {loading && <p>Loading pinboards...</p>}
       <h4>
         {preselectedPinboard
@@ -138,6 +146,11 @@ export const SelectPinboard = ({
                 .includes(searchText?.toLowerCase())
           )
           .map(OpenPinboardButton)}
+      {hasWebPushSubscription && (
+        <PushNotificationPreferencesOpener
+          hasWebPushSubscription={hasWebPushSubscription}
+        />
+      )}
     </div>
   );
 };

@@ -280,7 +280,7 @@ export class PinBoardStack extends Stack {
         }
       `)
     );
-    const dynamoFilterRepsonseMappingTemplate = appsync.MappingTemplate.fromString(
+    const dynamoFilterResponseMappingTemplate = appsync.MappingTemplate.fromString(
       "$util.toJson($context.result)"
     );
 
@@ -288,7 +288,7 @@ export class PinBoardStack extends Stack {
       typeName: "Query",
       fieldName: "listItems",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 
     pinboardItemDataSource.createResolver({
@@ -309,7 +309,7 @@ export class PinBoardStack extends Stack {
       typeName: "Query",
       fieldName: "listLastItemSeenByUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate, // TODO consider custom resolver for performance
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 
     pinboardLastItemSeenByUserDataSource.createResolver({
@@ -353,11 +353,42 @@ export class PinBoardStack extends Stack {
       ),
     });
 
+    const removePushNotificationSecretsFromUser = `
+        #set($output = $ctx.result)
+        $util.qr($output.put("hasWebPushSubscription", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    `;
+
     pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "searchUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate, // TODO: Loop through and apply removePushNotificationSecretsFromUser to each user
+    });
+
+    pinboardUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "setWebPushSubscriptionForUser",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.args.userEmail)
+          },
+          "update" : {
+            "expression" : "SET webPushSubscription = :webPushSubscription",
+            "expressionValues": {
+              ":webPushSubscription" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: appsync.MappingTemplate.fromString(
+        removePushNotificationSecretsFromUser
+      ),
     });
 
     pinboardUserDataSource.createResolver({

@@ -41,11 +41,15 @@ yarn --cwd 'users-refresher-lambda' build
 # build notifications-lambda into a single file
 yarn --cwd 'notifications-lambda' build
 
+# build push-notifications service-worker
+yarn --cwd 'client' build-service-worker
 
 # create a top level dist directory and copy in the built stuff
 mkdir -p dist/client
 cp bootstrapping-lambda/dist/index.js dist/
 cp client/dist/pinboard.main* dist/client
+cp -r client/dist/push-notifications dist/client/push-notifications
+rm dist/client/push-notifications/report.html
 
 # upload riff-raff artifacts
 yarn node-riffraff-artifact

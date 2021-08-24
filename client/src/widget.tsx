@@ -252,6 +252,9 @@ export const Widget = (props: WidgetProps) => {
               payloadToBeSent={props.payloadToBeSent}
               clearPayloadToBeSent={props.clearPayloadToBeSent}
               preselectedPinboard={preselectedPinboard}
+              hasWebPushSubscription={
+                props.userLookup?.[props.userEmail]?.hasWebPushSubscription
+              }
             />
           )
         )}

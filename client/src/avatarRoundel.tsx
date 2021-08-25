@@ -7,14 +7,20 @@ interface AvatarRoundelProps {
   maybeUser: User | undefined;
   size: number;
   userEmail: string;
+  tooltipSuffix?: string;
 }
 
 export const AvatarRoundel = ({
   maybeUser,
   size,
   userEmail,
-}: AvatarRoundelProps) =>
-  maybeUser?.avatarUrl ? (
+  tooltipSuffix,
+}: AvatarRoundelProps) => {
+  const tooltip = `${
+    maybeUser ? `${maybeUser.firstName} ${maybeUser.lastName}` : userEmail
+  }${tooltipSuffix || ""}`;
+
+  return maybeUser?.avatarUrl ? (
     <img
       key={userEmail}
       css={css`
@@ -22,13 +28,13 @@ export const AvatarRoundel = ({
         width: ${size}px;
         height: ${size}px;
       `}
-      title={userEmail}
+      title={tooltip}
       src={maybeUser?.avatarUrl}
     />
   ) : (
     <div
       key={userEmail}
-      title={userEmail}
+      title={tooltip}
       css={css`
         background-color: #586293;
         border-radius: 50%;
@@ -46,3 +52,4 @@ export const AvatarRoundel = ({
       {maybeUser?.lastName?.charAt(0).toUpperCase()}
     </div>
   );
+};

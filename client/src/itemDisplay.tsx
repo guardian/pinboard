@@ -1,11 +1,12 @@
 /** @jsx jsx */
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, { Fragment } from "react";
 import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { palette, space } from "@guardian/src-foundations";
 import { formattedDateTime, userToMentionHandle } from "./util";
+import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 
 const formatMentionHandlesInText = (
@@ -53,6 +54,7 @@ interface ItemDisplayProps {
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
   timestampLastRefreshed: number;
+  seenBy: LastItemSeenByUser[] | undefined;
 }
 
 export const ItemDisplay = ({
@@ -60,6 +62,7 @@ export const ItemDisplay = ({
   refForLastItem,
   userLookup,
   userEmail,
+  seenBy,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payload = item.payload && JSON.parse(item.payload);
@@ -107,6 +110,7 @@ export const ItemDisplay = ({
       </div>
       <div>{formattedMessage}</div>
       {payload && <PayloadDisplay type={item.type} payload={payload} />}
+      {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );
 };

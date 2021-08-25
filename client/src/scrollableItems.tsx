@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, {
   ReactElement,
   useEffect,
@@ -12,6 +12,9 @@ import { unread } from "../colours";
 import { space } from "@guardian/src-foundations";
 import { ItemDisplay } from "./itemDisplay";
 import { PendingItem } from "./types/PendingItem";
+import { useMutation } from "@apollo/client";
+import { gqlSeenItem } from "../gql";
+import { LastItemSeenByUserLookup } from "./pinboard";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -22,6 +25,8 @@ interface ScrollableItemsProps {
   hasUnread: boolean | undefined;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
+  pinboardId: string;
+  lastItemSeenByUserLookup: LastItemSeenByUserLookup;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -53,6 +58,8 @@ export const ScrollableItems = ({
   hasUnread,
   userLookup,
   userEmail,
+  pinboardId,
+  lastItemSeenByUserLookup,
 }: ScrollableItemsProps): ReactElement => {
   const itemsMap = [
     ...initialItems,
@@ -69,6 +76,22 @@ export const ScrollableItems = ({
   const items = Object.values(itemsMap).sort(
     (a, b) => a.timestamp - b.timestamp
   );
+
+  const lastItemSeenByUsersForItemIDLookup = Object.values(
+    lastItemSeenByUserLookup
+  )
+    .filter((lastItemSeenByUser) => lastItemSeenByUser.userEmail !== userEmail)
+    .reduce((accumulator, lastItemSeenByUser) => {
+      const existingSeenBysForItemID =
+        accumulator[lastItemSeenByUser.itemID] || [];
+      return {
+        ...accumulator,
+        [lastItemSeenByUser.itemID]: [
+          ...existingSeenBysForItemID,
+          lastItemSeenByUser,
+        ],
+      };
+    }, {} as { [itemID: string]: LastItemSeenByUser[] });
 
   const scrollableAreaRef = useRef<HTMLDivElement>(null);
   const scrollableArea = scrollableAreaRef.current;
@@ -103,9 +126,38 @@ export const ScrollableItems = ({
     !isScrollbarVisible(scrollableArea) ||
     elementIsVisible(scrollableArea, lastItemRef.current);
 
+  const lastItemID = items[items.length - 1]?.id;
+
+  const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
+    gqlSeenItem,
+    {
+      onError(error) {
+        console.error("Failed to mark item as seen", error);
+      }, // TODO bubble up as proper error
+    }
+  );
+
+  const seenLastItem = () => {
+    // don't keep sending mutations if everyone already knows we've seen it
+    if (lastItemID !== lastItemSeenByUserLookup[userEmail]?.itemID) {
+      seenItem({
+        variables: {
+          input: {
+            pinboardId,
+            userEmail,
+            itemID: lastItemID,
+          },
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     if (shouldBeScrolledToLastItem()) {
       scrollToLastItem();
+      if (isExpanded) {
+        seenLastItem();
+      }
     } else if (isExpanded) {
       setHasUnread(true);
     }
@@ -114,6 +166,7 @@ export const ScrollableItems = ({
   useEffect(() => {
     if (isExpanded && shouldBeScrolledToLastItem()) {
       setHasUnread(false);
+      lastItemID && seenLastItem();
     }
   }, [isExpanded]); // runs when the widget is expanded/closed
 
@@ -137,7 +190,12 @@ export const ScrollableItems = ({
         color: black;
         position: relative;
       `}
-      onScroll={() => shouldBeScrolledToLastItem() && setHasUnread(false)}
+      onScroll={() =>
+        shouldBeScrolledToLastItem() &&
+        lastItemID &&
+        seenLastItem() &&
+        setHasUnread(false)
+      }
     >
       {items.map((item, index) => (
         <ItemDisplay
@@ -147,6 +205,7 @@ export const ScrollableItems = ({
           userLookup={userLookup}
           userEmail={userEmail}
           timestampLastRefreshed={timestampLastRefreshed}
+          seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
         />
       ))}
       {hasUnread && (

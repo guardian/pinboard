@@ -6,7 +6,8 @@ import { css, jsx } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";
-import { cssReset, textSans } from "../cssReset";
+import { textSans } from "../fontNormaliser";
+import root from "react-shadow/emotion";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -20,7 +21,11 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   const { source, sourceType, ...payload } = props.dataAttributes;
 
   return source && sourceType ? (
-    <div css={cssReset}>
+    <root.div
+      css={css`
+        ${textSans.small()}
+      `}
+    >
       <button
         onClick={() => {
           props.setPayloadToBeSent({
@@ -54,7 +59,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           `}
         />{" "}
       </button>
-    </div>
+    </root.div>
   ) : null;
 };
 

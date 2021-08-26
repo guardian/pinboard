@@ -14,13 +14,14 @@
     "@apollo/client": "^3.2.7",
     "@emotion/react": "^11.1.4",
     "@guardian/src-foundations": "^3.3.0",
-    "@webscopeio/react-textarea-autocomplete": "^4.7.3",
+    "@webscopeio/react-textarea-autocomplete": "https://github.com/twrichards/react-textarea-autocomplete/releases/download/v4.7.3_PLUS_shadow_DOM/package.tar.gz",
     "apollo-link": "^1.2.14",
     "aws-appsync-auth-link": "^3.0.2",
     "aws-appsync-subscription-link": "^3.0.3",
     "date-fns": "^2.19.0",
     "graphql": "^15.4.0",
-    "preact": "^10.5.13"
+    "preact": "^10.5.13",
+    "react-shadow": "^19.0.2"
   },
   "devDependencies": {
     "@svgr/parcel-plugin-svgr": "^5.5.0",

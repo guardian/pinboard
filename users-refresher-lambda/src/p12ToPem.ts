@@ -13,8 +13,8 @@ export const p12ToPem = (body: S3.Body | undefined) => {
   const p12Asn1 = forge.asn1.fromDer(p12Der);
   const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, "notasecret");
   const bags = p12.getBags({ friendlyName: "privatekey" });
-  if (bags.friendlyName) {
-    const privateKey = bags.friendlyName[0].key!;
+  const privateKey = bags?.friendlyName?.[0].key;
+  if (privateKey) {
     const pem = forge.pki.privateKeyToPem(privateKey);
     return pem.replace(/\r\n/g, "\n");
   } else {

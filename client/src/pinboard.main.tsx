@@ -8,8 +8,8 @@ import {
   ApolloProvider,
   InMemoryCache,
   useQuery,
+  ApolloLink,
 } from "@apollo/client";
-import { ApolloLink } from "apollo-link";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
@@ -24,17 +24,19 @@ export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
 export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   const apolloLink = ApolloLink.from([
-    createAuthLink({
+    (createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
       region: AWS_REGION,
       auth: { type: "API_KEY", apiKey: appSyncConfig.apiKey },
-    }) as any,
-    createSubscriptionHandshakeLink(appSyncConfig.graphqlEndpoint), // TODO build from appSyncConfig.realtimeEndpoint
+    }) as unknown) as ApolloLink, //TODO attempt to avoid all this casting
+    (createSubscriptionHandshakeLink(
+      appSyncConfig.graphqlEndpoint
+    ) as unknown) as ApolloLink, // TODO build from appSyncConfig.realtimeEndpoint
   ]);
 
   const apolloClient = new ApolloClient({
-    link: apolloLink as any, //TODO attempt to avoid all this casting to any
-    cache: new InMemoryCache() as any,
+    link: apolloLink,
+    cache: new InMemoryCache(),
   });
 
   const element = document.createElement("pinboard");

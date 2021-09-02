@@ -329,7 +329,7 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
 
-    const usersRefresherLambdaSchedule = new events.Rule(
+    /*const usersRefresherLambdaSchedule =*/ new events.Rule(
       thisStack,
       `${usersRefresherLambdaBasename}-schedule`,
       {

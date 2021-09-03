@@ -51,6 +51,7 @@ export const Pinboard = ({
   payloadToBeSent,
   clearPayloadToBeSent,
   widgetElement,
+  showNotification,
 }: PinboardProps) => {
   const pinboardId = pinboardData.id;
 
@@ -63,6 +64,7 @@ export const Pinboard = ({
         updateForSubscription,
       ]);
       if (!isExpanded) {
+        showNotification(updateForSubscription);
         setUnreadFlag(true);
       }
     },
@@ -155,6 +157,7 @@ export const Pinboard = ({
       </div>
       {initialItems.data && (
         <ScrollableItems
+          showNotification={showNotification}
           initialItems={initialItems.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}

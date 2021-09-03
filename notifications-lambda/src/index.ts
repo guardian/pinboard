@@ -54,12 +54,7 @@ export const handler = async (event: DynamoStreamEvent) => {
                 webPush
                   .sendNotification(
                     user.webPushSubscription,
-                    JSON.stringify({
-                      message: item.message,
-                      userEmail: item.userEmail,
-                      payload: item.payload,
-                      timestamp: item.timestamp,
-                    }),
+                    JSON.stringify(item),
                     {
                       vapidDetails: {
                         subject: "mailto:digitalcms.bugs@guardian.co.uk",

@@ -11,7 +11,7 @@ import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
 import { WorkflowStub } from "../../shared/graphql/graphql";
-import { PushNotificationPreferencesOpener } from "./pushNotificationsOpener";
+import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;
@@ -106,6 +106,7 @@ export const SelectPinboard = ({
         </div>
       )}
       {!hasWebPushSubscription && (
+        /* TODO move this and the one at the bottom of the file to widget */
         <PushNotificationPreferencesOpener
           hasWebPushSubscription={hasWebPushSubscription}
         />
@@ -147,6 +148,7 @@ export const SelectPinboard = ({
           )
           .map(OpenPinboardButton)}
       {hasWebPushSubscription && (
+        /* TODO move this to some settings menu (rather than bottom of selection list) */
         <PushNotificationPreferencesOpener
           hasWebPushSubscription={hasWebPushSubscription}
         />

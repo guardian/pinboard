@@ -65,6 +65,9 @@ const userReturnFields = `
   firstName
   lastName
   avatarUrl
+`;
+
+const userReturnFieldsWithHasWebPushSubscription = `${userReturnFields}
   hasWebPushSubscription
 `;
 
@@ -76,11 +79,18 @@ query MyQuery {
 }
 `;
 
+export const gqlGetUser = (email: string) => gql`
+query MyQuery {
+  getUser(email: "${email}") {
+    ${userReturnFieldsWithHasWebPushSubscription}
+  }
+}
+`;
+
 export const gqlSetWebPushSubscriptionForUser = gql`
   mutation SetWebPushSubscriptionForUser($userEmail: String!, $webPushSubscription: AWSJSON) {
     setWebPushSubscriptionForUser(userEmail: $userEmail, webPushSubscription: $webPushSubscription) {
-      # including fields here makes them accessible in our subscription data
-      ${userReturnFields}
+      ${userReturnFieldsWithHasWebPushSubscription}
     }
   }
 `;

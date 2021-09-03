@@ -355,17 +355,18 @@ export class PinBoardStack extends Stack {
       ),
     });
 
-    const removePushNotificationSecretsFromUser = `
+    const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
+      .MappingTemplate.fromString(`
         #set($output = $ctx.result)
         $util.qr($output.put("hasWebPushSubscription", $util.isMap($ctx.result.webPushSubscription)))
         $util.toJson($output)
-    `;
+    `);
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "searchUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate, // TODO: Loop through and apply removePushNotificationSecretsFromUser to each user
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 
     pinboardUserDataSource.createResolver({
@@ -388,9 +389,7 @@ export class PinBoardStack extends Stack {
         }
       `)
       ),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(
-        removePushNotificationSecretsFromUser
-      ),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
 
     pinboardUserDataSource.createResolver({
@@ -399,7 +398,7 @@ export class PinBoardStack extends Stack {
       requestMappingTemplate: resolverBugWorkaround(
         appsync.MappingTemplate.dynamoDbGetItem("email", "email")
       ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
 
     const permissionsFilePolicyStatement = new iam.PolicyStatement({

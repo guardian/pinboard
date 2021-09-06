@@ -4,8 +4,9 @@ import React, { Fragment } from "react";
 import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
-import { space } from "@guardian/src-foundations";
+import { palette, space } from "@guardian/src-foundations";
 import { formattedDateTime, userToMentionHandle } from "./util";
+import { AvatarRoundel } from "./avatarRoundel";
 
 const formatMentionHandlesInText = (
   userEmail: string,
@@ -87,12 +88,19 @@ export const ItemDisplay = ({
       <div
         css={css`
           display: flex;
-          justify-content: space-between;
-          color: lightgray;
+          align-items: center;
+          color: ${palette.neutral["46"]};
+          font-size: 12px;
+          line-height: 12px;
         `}
       >
-        {/* TODO: add avatar as well */}
-        <span>
+        <AvatarRoundel maybeUser={user} size={15} userEmail={item.userEmail} />
+        <span
+          css={css`
+            flex-grow: 1;
+            margin-left: 3px;
+          `}
+        >
           {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
         </span>
         <span>{formattedDateTime(dateInMillisecs)}</span>

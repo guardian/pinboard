@@ -55,6 +55,8 @@ interface ItemDisplayProps {
   userEmail: string;
   timestampLastRefreshed: number;
   seenBy: LastItemSeenByUser[] | undefined;
+  maybePreviousItem: Item | PendingItem | undefined;
+  maybeNextItem: Item | PendingItem | undefined;
 }
 
 export const ItemDisplay = ({
@@ -63,6 +65,8 @@ export const ItemDisplay = ({
   userLookup,
   userEmail,
   seenBy,
+  maybePreviousItem,
+  maybeNextItem,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payload = item.payload && JSON.parse(item.payload);
@@ -78,11 +82,17 @@ export const ItemDisplay = ({
 
   const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
 
+  const isSameUserAsNextItem = maybeNextItem?.userEmail === item.userEmail;
+  const isDifferentUserFromPreviousItem =
+    maybePreviousItem?.userEmail !== item.userEmail;
+
   return (
     <div
       ref={refForLastItem}
       css={css`
-        border-bottom: 1px solid gray;
+        ${!maybeNextItem || isSameUserAsNextItem
+          ? ""
+          : "border-bottom: 1px solid gray;"}
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;
         font-style: ${isPendingSend ? "italic" : "normal"};
@@ -95,17 +105,27 @@ export const ItemDisplay = ({
           color: ${palette.neutral["46"]};
           font-size: 12px;
           line-height: 12px;
+          margin-bottom: 5px;
+          ${isDifferentUserFromPreviousItem ? "" : "float: right"}
         `}
       >
-        <AvatarRoundel maybeUser={user} size={15} userEmail={item.userEmail} />
-        <span
-          css={css`
-            flex-grow: 1;
-            margin-left: 3px;
-          `}
-        >
-          {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
-        </span>
+        {isDifferentUserFromPreviousItem && (
+          <React.Fragment>
+            <AvatarRoundel
+              maybeUser={user}
+              size={15}
+              userEmail={item.userEmail}
+            />
+            <span
+              css={css`
+                flex-grow: 1;
+                margin-left: 3px;
+              `}
+            >
+              {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
+            </span>
+          </React.Fragment>
+        )}
         <span>{formattedDateTime(dateInMillisecs)}</span>
       </div>
       <div>{formattedMessage}</div>

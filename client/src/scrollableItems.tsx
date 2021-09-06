@@ -206,6 +206,8 @@ export const ScrollableItems = ({
           userEmail={userEmail}
           timestampLastRefreshed={timestampLastRefreshed}
           seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+          maybePreviousItem={items[index - 1]}
+          maybeNextItem={items[index + 1]}
         />
       ))}
       {hasUnread && (

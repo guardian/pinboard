@@ -28,7 +28,7 @@ export interface LastItemSeenByUserLookup {
 interface PinboardProps extends WidgetProps {
   pinboardData: PinboardData;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
-  setUnreadFlag: (pinboardId: string, hasUnread: boolean | undefined) => void;
+  setUnreadFlag: (hasUnread: boolean | undefined) => void;
   hasUnreadOnOtherPinboard: boolean;
   hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
@@ -52,8 +52,6 @@ export const Pinboard = ({
   clearPayloadToBeSent,
   widgetElement,
 }: PinboardProps) => {
-  const [hasUnread, setHasUnread] = useState<boolean>();
-
   const pinboardId = pinboardData.id;
 
   // TODO: extract to widget level?
@@ -65,7 +63,7 @@ export const Pinboard = ({
         updateForSubscription,
       ]);
       if (!isExpanded) {
-        setHasUnread(true);
+        setUnreadFlag(true);
       }
     },
   });
@@ -131,8 +129,6 @@ export const Pinboard = ({
     [initialLastItemSeenByUsers.data]
   );
 
-  useEffect(() => setUnreadFlag(pinboardId, hasUnread), [hasUnread]);
-
   useEffect(
     () => setError(pinboardId, initialItems.error || itemSubscription.error),
     [initialItems.error, itemSubscription.error]
@@ -162,9 +158,8 @@ export const Pinboard = ({
           initialItems={initialItems.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
-          setHasUnread={setHasUnread}
+          setUnreadFlag={setUnreadFlag}
           isExpanded={isExpanded}
-          hasUnread={hasUnread}
           userLookup={userLookup}
           userEmail={userEmail}
           pinboardId={pinboardId}

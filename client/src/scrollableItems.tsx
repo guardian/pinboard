@@ -20,9 +20,8 @@ interface ScrollableItemsProps {
   initialItems: Item[];
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
-  setHasUnread: (hasUnread: boolean) => void;
+  setUnreadFlag: (hasUnread: boolean) => void;
   isExpanded: boolean;
-  hasUnread: boolean | undefined;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
   pinboardId: string;
@@ -53,9 +52,8 @@ export const ScrollableItems = ({
   initialItems,
   successfulSends,
   subscriptionItems,
-  setHasUnread,
+  setUnreadFlag,
   isExpanded,
-  hasUnread,
   userLookup,
   userEmail,
   pinboardId,
@@ -152,21 +150,24 @@ export const ScrollableItems = ({
     }
   };
 
+  const hasUnread =
+    lastItemSeenByUserLookup &&
+    lastItemSeenByUserLookup[userEmail]?.itemID !== lastItemID;
+
+  useEffect(() => {
+    setUnreadFlag(hasUnread);
+  }, [hasUnread]);
+
   useEffect(() => {
     if (shouldBeScrolledToLastItem()) {
       scrollToLastItem();
-      if (isExpanded) {
-        seenLastItem();
-      }
-    } else if (isExpanded) {
-      setHasUnread(true);
+      isExpanded && seenLastItem();
     }
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && shouldBeScrolledToLastItem()) {
-      setHasUnread(false);
-      lastItemID && seenLastItem();
+    if (isExpanded && shouldBeScrolledToLastItem() && lastItemID) {
+      seenLastItem();
     }
   }, [isExpanded]); // runs when the widget is expanded/closed
 
@@ -191,10 +192,7 @@ export const ScrollableItems = ({
         position: relative;
       `}
       onScroll={() =>
-        shouldBeScrolledToLastItem() &&
-        lastItemID &&
-        seenLastItem() &&
-        setHasUnread(false)
+        shouldBeScrolledToLastItem() && lastItemID && seenLastItem()
       }
     >
       {items.map((item, index) => (

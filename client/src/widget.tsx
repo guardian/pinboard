@@ -113,7 +113,9 @@ export const Widget = (props: WidgetProps) => {
 
   const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
 
-  const setUnreadFlag = (pinboardId: string, unreadFlag: boolean | undefined) =>
+  const setUnreadFlag = (pinboardId: string) => (
+    unreadFlag: boolean | undefined
+  ) =>
     setUnreadFlags((prevUnreadFlags) => ({
       ...prevUnreadFlags,
       [pinboardId]: unreadFlag,
@@ -130,7 +132,7 @@ export const Widget = (props: WidgetProps) => {
       ]);
     }
     setSelectedPinboardId(null);
-    setUnreadFlag(pinboardIdToClose, undefined);
+    setUnreadFlag(pinboardIdToClose)(undefined);
     setError(pinboardIdToClose, undefined);
   };
 
@@ -143,7 +145,7 @@ export const Widget = (props: WidgetProps) => {
       const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
 
       if (isMentioned && !pinboardIsOpen) {
-        setUnreadFlag(pinboardId, true);
+        setUnreadFlag(pinboardId)(true);
       }
     },
   });
@@ -263,7 +265,7 @@ export const Widget = (props: WidgetProps) => {
               pinboardData={pinboardData}
               key={pinboardData.id}
               setError={setError}
-              setUnreadFlag={setUnreadFlag}
+              setUnreadFlag={setUnreadFlag(pinboardData.id)}
               hasUnreadOnOtherPinboard={
                 !!hasUnread &&
                 !!Object.entries(unreadFlags).find(

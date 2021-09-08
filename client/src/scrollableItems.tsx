@@ -119,10 +119,11 @@ export const ScrollableItems = ({
   useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
 
   const shouldBeScrolledToLastItem = () =>
-    !scrollableArea ||
-    !lastItemRef.current ||
-    !isScrollbarVisible(scrollableArea) ||
-    elementIsVisible(scrollableArea, lastItemRef.current);
+    document.hasFocus() &&
+    (!scrollableArea ||
+      !lastItemRef.current ||
+      !isScrollbarVisible(scrollableArea) ||
+      elementIsVisible(scrollableArea, lastItemRef.current));
 
   const lastItemID = items[items.length - 1]?.id;
 

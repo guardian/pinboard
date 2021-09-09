@@ -88,7 +88,14 @@ server.get("/pinboard.loader.js", async (request, response) => {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail);
 
     response.send(
-      loaderTemplate(appSyncConfig, mainJsFilename, request.hostname)
+      loaderTemplate(
+        {
+          appSyncConfig,
+          userEmail: maybeAuthedUserEmail,
+        },
+        mainJsFilename,
+        request.hostname
+      )
     );
   } else {
     response.send("console.log('You do not have permission to use PinBoard')");

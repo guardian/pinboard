@@ -2,7 +2,7 @@ import "preact/debug";
 import React, { useEffect, useRef, useState } from "react";
 import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
-import { AppSyncConfig } from "../../shared/AppSyncConfig";
+import { ClientConfig } from "../../shared/clientConfig";
 import {
   ApolloClient,
   ApolloProvider,
@@ -36,7 +36,7 @@ const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
-export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
+export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
   const apolloLink = ApolloLink.from([
     (createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
@@ -58,7 +58,10 @@ export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   document.body.appendChild(element);
 
   render(
-    React.createElement(PinBoardApp, { apolloClient, userEmail }),
+    React.createElement(PinBoardApp, {
+      apolloClient,
+      userEmail,
+    }),
     element
   );
 }

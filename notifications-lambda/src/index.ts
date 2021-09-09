@@ -3,10 +3,11 @@ import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../shared/awsIntegration";
 import { AttributeMap, Key } from "aws-sdk/clients/dynamodb";
 import { Item } from "../../shared/graphql/graphql";
-import { publicVapidKey } from "../../shared/constants";
-
-// FIXME: Move privateVapidKey to config
-const privateVapidKey = "oZKFV-242t9UzmeqAijDJJvl0yy5AungkELjBcfFlYc";
+import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import {
+  getPrivateVapidKeyPromise,
+  publicVapidKey,
+} from "../../shared/constants";
 
 interface DynamoStreamRecord {
   dynamodb: {
@@ -20,11 +21,8 @@ interface DynamoStreamEvent {
 
 export const handler = async (event: DynamoStreamEvent) => {
   const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
-  const usersTableName = process.env.USERS_TABLE_NAME;
-
-  if (!usersTableName) {
-    throw Error("'USERS_TABLE_NAME' environment variable not set.");
-  }
+  const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
+  const privateVapidKey = await getPrivateVapidKeyPromise();
 
   const processPageOfUsers = async (startKey?: Key) => {
     const userResults = await dynamo

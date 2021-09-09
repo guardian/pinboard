@@ -1,6 +1,6 @@
 import * as AWS from "aws-sdk";
-import { AppSyncConfig } from "../../shared/AppSyncConfig";
 import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
+import { AppSyncConfig } from "../../shared/appSyncConfig";
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
 const TWENTY_FIVE_HOURS_IN_SECONDS = 25 * ONE_HOUR_IN_SECONDS;
@@ -110,5 +110,5 @@ export async function generateAppSyncConfig(
     throw Error("Could not retrieve/create an AppSync API Key.");
   }
 
-  return { graphqlEndpoint, realtimeEndpoint, apiKey, userEmail };
+  return { graphqlEndpoint, realtimeEndpoint, apiKey };
 }

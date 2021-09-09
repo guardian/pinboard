@@ -1,4 +1,10 @@
+import { pinboardSecretPromiseGetter } from "./awsIntegration";
+
 export const userTableTTLAttribute = "ttlEpochSeconds";
 
 export const publicVapidKey =
-  "BOcJ374xwlj5FDpOKWmnZagv1jw_2QFQKd6v5BTkIReI6ytyc4w6wiK7Hfog8J22v1_tqDcUeCNWAa6LUGzM358";
+  "BAJ1E479bw4iqDH3nTg-OhzLw1daQ9Hfn6EY0x40M9AXGgEew4dBpAb_LE35plZ6YhU2VY87LLJtytE7hJKP9GM";
+
+export const getPrivateVapidKeyPromise = pinboardSecretPromiseGetter(
+  "notifications/privateVapidKey"
+);

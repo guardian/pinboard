@@ -24,6 +24,7 @@ import { AWS_REGION } from "../shared/awsRegion";
 import { userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -31,6 +32,10 @@ export class PinBoardStack extends Stack {
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const thisStack = this;
+
+    const context = Stack.of(this);
+    const account = context.account;
+    const region = context.region;
 
     const APP = "pinboard";
 
@@ -56,6 +61,12 @@ export class PinBoardStack extends Stack {
       "workflow-dist",
       "workflow-dist"
     );
+
+    const readPinboardParamStorePolicyStatement = new iam.PolicyStatement({
+      actions: ["ssm:GetParameter"],
+      effect: iam.Effect.ALLOW,
+      resources: [`arn:aws:ssm:${region}:${account}:parameter/${APP}/*`],
+    });
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
@@ -88,7 +99,7 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME: Fn.importValue(
+          [ENVIRONMENT_VARIABLE_KEYS.workflowDnsName]: Fn.importValue(
             `WorkflowDatastoreLoadBalancerDNSName-${STAGE}`
           ),
         },
@@ -151,13 +162,15 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          USERS_TABLE_NAME: pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
+            pinboardAppsyncUserTable.tableName,
         },
         functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
           deployBucket,
           `${STACK}/${STAGE}/${pinboardNotificationsLambdaBasename}/${pinboardNotificationsLambdaBasename}.zip`
         ),
+        initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
     pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
@@ -427,7 +440,8 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          USERS_TABLE_NAME: pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
+            pinboardAppsyncUserTable.tableName,
         },
         functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(

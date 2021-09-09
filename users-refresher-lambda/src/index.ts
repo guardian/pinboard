@@ -14,6 +14,7 @@ import {
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { userTableTTLAttribute } from "../../shared/constants";
+import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
 
@@ -26,12 +27,9 @@ const pandaConfigLocation = {
 
 const S3 = new AWS.S3(standardAwsConfig);
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
-const usersTableName = process.env.USERS_TABLE_NAME;
 
 export const handler = async () => {
-  if (!usersTableName) {
-    throw Error("'USERS_TABLE_NAME' environment variable not set.");
-  }
+  const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
 
   const emailsOfUsersWithPinboardPermission = (
     await getPinboardPermissionOverrides(S3)

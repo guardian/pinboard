@@ -14,3 +14,22 @@ export const standardAwsConfig = {
   region: AWS_REGION,
   credentialProvider: CREDENTIAL_PROVIDER,
 };
+
+const ssm = new AWS.SSM();
+
+export const pinboardSecretPromiseGetter = (nameSuffix: string) => () => {
+  const Name = `/${process.env.APP}/${nameSuffix}`;
+  return ssm
+    .getParameter({
+      Name,
+      WithDecryption: true,
+    })
+    .promise()
+    .then((result) => {
+      const value = result.Parameter?.Value;
+      if (!value) {
+        throw Error(`Could not retrieve parameter value for '${Name}'`);
+      }
+      return value;
+    });
+};

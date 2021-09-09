@@ -74,3 +74,33 @@ query MyQuery {
   }
 }
 `;
+
+const lastItemSeenByUserReturnFields = `
+  pinboardId
+  userEmail
+  itemID
+  seenAt    
+`;
+
+export const gqlGetLastItemSeenByUsers = (pinboardId: string) => gql`
+  query MyQuery {
+    listLastItemSeenByUsers(filter: { pinboardId: { eq: "${pinboardId}" } }) {
+      items { ${lastItemSeenByUserReturnFields} }
+    }
+  }
+`;
+
+export const gqlOnSeenItem = (pinboardId: string) => gql`
+  subscription OnSeenItem {
+    onSeenItem(pinboardId: "${pinboardId}") { ${lastItemSeenByUserReturnFields} }
+  }
+`;
+
+export const gqlSeenItem = gql`
+  mutation SeeItem($input: LastItemSeenByUserInput!) {
+    seenItem(input: $input) {
+      # including fields here makes them accessible in our subscription data
+      ${lastItemSeenByUserReturnFields}
+    }
+  }
+`;

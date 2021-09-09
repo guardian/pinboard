@@ -1,21 +1,34 @@
 /** @jsx jsx */
 import React, { useEffect, useState } from "react";
 import { ApolloError, useQuery, useSubscription } from "@apollo/client";
-import { Item, WorkflowStub } from "../../shared/graphql/graphql";
+import {
+  Item,
+  LastItemSeenByUser,
+  WorkflowStub,
+} from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css, jsx } from "@emotion/react";
 import { WidgetProps } from "./widget";
 import { PendingItem } from "./types/PendingItem";
-import { gqlGetInitialItems, gqlOnCreateItem } from "../gql";
+import {
+  gqlGetInitialItems,
+  gqlGetLastItemSeenByUsers,
+  gqlOnCreateItem,
+  gqlOnSeenItem,
+} from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
 
 export type PinboardData = WorkflowStub;
 
+export interface LastItemSeenByUserLookup {
+  [userEmail: string]: LastItemSeenByUser;
+}
+
 interface PinboardProps extends WidgetProps {
   pinboardData: PinboardData;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
-  setUnreadFlag: (pinboardId: string, hasUnread: boolean | undefined) => void;
+  setUnreadFlag: (hasUnread: boolean | undefined) => void;
   hasUnreadOnOtherPinboard: boolean;
   hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
@@ -39,12 +52,10 @@ export const Pinboard = ({
   clearPayloadToBeSent,
   widgetElement,
 }: PinboardProps) => {
-  const [hasUnread, setHasUnread] = useState<boolean>();
-
   const pinboardId = pinboardData.id;
 
   // TODO: extract to widget level?
-  const subscription = useSubscription(gqlOnCreateItem(pinboardId), {
+  const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const updateForSubscription = subscriptionData.data.onCreateItem;
       setSubscriptionItems((prevState) => [
@@ -52,7 +63,7 @@ export const Pinboard = ({
         updateForSubscription,
       ]);
       if (!isExpanded) {
-        setHasUnread(true);
+        setUnreadFlag(true);
       }
     },
   });
@@ -63,11 +74,64 @@ export const Pinboard = ({
 
   const initialItems = useQuery(gqlGetInitialItems(pinboardId));
 
-  useEffect(() => setUnreadFlag(pinboardId, hasUnread), [hasUnread]);
+  const initialLastItemSeenByUsers = useQuery(
+    gqlGetLastItemSeenByUsers(pinboardId)
+  );
+
+  const [
+    lastItemSeenByUserLookup,
+    setLastItemSeenByUserLookup,
+  ] = useState<LastItemSeenByUserLookup>({});
+
+  useSubscription(gqlOnSeenItem(pinboardId), {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const newLastItemSeenByUser: LastItemSeenByUser =
+        subscriptionData.data.onSeenItem;
+      const previousLastItemSeenByUser =
+        lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
+      if (
+        !previousLastItemSeenByUser ||
+        previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
+      ) {
+        setLastItemSeenByUserLookup((prevState) => ({
+          ...prevState,
+          [newLastItemSeenByUser.userEmail]: newLastItemSeenByUser,
+        }));
+      }
+    },
+  });
 
   useEffect(
-    () => setError(pinboardId, initialItems.error || subscription.error),
-    [initialItems.error, subscription.error]
+    () =>
+      initialLastItemSeenByUsers.data &&
+      setLastItemSeenByUserLookup((prevState) =>
+        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.items.reduce(
+          (
+            acc: LastItemSeenByUserLookup,
+            newLastItemSeenByUser: LastItemSeenByUser
+          ) => {
+            const previousLastItemSeenByUser =
+              acc[newLastItemSeenByUser.userEmail];
+            if (
+              !previousLastItemSeenByUser ||
+              previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
+            ) {
+              return {
+                ...acc,
+                [newLastItemSeenByUser.userEmail]: newLastItemSeenByUser,
+              };
+            }
+            return acc;
+          },
+          prevState
+        )
+      ),
+    [initialLastItemSeenByUsers.data]
+  );
+
+  useEffect(
+    () => setError(pinboardId, initialItems.error || itemSubscription.error),
+    [initialItems.error, itemSubscription.error]
   );
 
   return !isSelected ? null : (
@@ -86,7 +150,7 @@ export const Pinboard = ({
         >
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
-          {subscription.error && `Error: ${subscription.error}`}
+          {itemSubscription.error && `Error: ${itemSubscription.error}`}
         </HeadingPanel>
       </div>
       {initialItems.data && (
@@ -94,11 +158,12 @@ export const Pinboard = ({
           initialItems={initialItems.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
-          setHasUnread={setHasUnread}
+          setUnreadFlag={setUnreadFlag}
           isExpanded={isExpanded}
-          hasUnread={hasUnread}
           userLookup={userLookup}
           userEmail={userEmail}
+          pinboardId={pinboardId}
+          lastItemSeenByUserLookup={lastItemSeenByUserLookup}
         />
       )}
       <SendMessageArea

@@ -7,6 +7,7 @@ import { space } from "@guardian/src-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { User } from "../../shared/graphql/graphql";
 import { userToMentionHandle } from "./util";
+import { AvatarRoundel } from "./avatarRoundel";
 interface WithEntity<E> {
   entity: E;
 }
@@ -28,15 +29,7 @@ const UserSuggestion = ({ entity }: WithEntity<User>) => (
       display: flex;
     `}
   >
-    <img
-      src={entity.avatarUrl || ""} // TODO: use generic silhouette rather than empty string
-      css={css`
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        visibility: ${entity.avatarUrl ? "visible" : "hidden"};
-      `}
-    />
+    <AvatarRoundel maybeUser={entity} size={20} userEmail={entity.email} />
     <div>
       <div>
         {entity.firstName} {entity.lastName}

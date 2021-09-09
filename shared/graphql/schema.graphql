@@ -15,6 +15,13 @@ type Item {
   mentions: [String!]
 }
 
+type LastItemSeenByUser {
+  pinboardId: String!
+  userEmail: String!
+  itemID: String!
+  seenAt: AWSTimestamp!
+}
+
 type User {
   email: String!
   firstName: String!
@@ -39,26 +46,39 @@ type UserConnection {
   nextToken: String
 }
 
+type LastItemSeenByUserConnection {
+  items: [LastItemSeenByUser]
+  nextToken: String
+}
+
 type Mutation {
   createItem(input: CreateItemInput!): Item
-  deleteItem(input: DeleteItemInput!): Item
-  updateItem(input: UpdateItemInput!): Item
+  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
 }
 
 type Query {
-  getItem(id: ID!): Item
   listItems(
     filter: TableItemFilterInput
     limit: Int
     nextToken: String
   ): ItemConnection
+
+  listLastItemSeenByUsers(
+    filter: TableLastItemSeenByUserFilterInput
+    limit: Int
+    nextToken: String
+  ): LastItemSeenByUserConnection
+
   getUser(email: String!): User
+
   searchUsers(
     filter: TableUserFilterInput
     limit: Int
     nextToken: String
   ): UserConnection
+
   listPinboards: [WorkflowStub]
+
   getPinboardByComposerId(composerId: String): WorkflowStub
 }
 
@@ -66,12 +86,9 @@ type Subscription {
   onCreateItem(
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
-  onDeleteItem(
-    pinboardId: String
-  ): Item @aws_subscribe(mutations: ["deleteItem"])
-  onUpdateItem(
-    pinboardId: String
-  ): Item @aws_subscribe(mutations: ["updateItem"])
+  onSeenItem(
+    pinboardId: String!
+  ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
 }
 
 input CreateItemInput {
@@ -83,8 +100,10 @@ input CreateItemInput {
   mentions: [String!]
 }
 
-input DeleteItemInput {
-  id: ID!
+input LastItemSeenByUserInput {
+  pinboardId: String!
+  userEmail: String!
+  itemID: String!
 }
 
 input TableBooleanFilterInput {
@@ -137,6 +156,10 @@ input TableItemFilterInput {
   pinboardId: TableStringFilterInput
 }
 
+input TableLastItemSeenByUserFilterInput {
+  pinboardId: TableStringFilterInput
+}
+
 input TableUserFilterInput {
   firstName: TableStringFilterInput
   lastName: TableStringFilterInput
@@ -153,13 +176,4 @@ input TableStringFilterInput {
   lt: String
   ne: String
   notContains: String
-}
-
-input UpdateItemInput {
-  id: ID!
-  message: String
-  payload: AWSJSON
-  timestamp: AWSTimestamp
-  type: String
-  userEmail: String
 }

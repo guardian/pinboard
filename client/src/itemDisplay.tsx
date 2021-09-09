@@ -1,11 +1,13 @@
 /** @jsx jsx */
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, { Fragment } from "react";
 import { css, jsx } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
-import { space } from "@guardian/src-foundations";
+import { palette, space } from "@guardian/src-foundations";
 import { formattedDateTime, userToMentionHandle } from "./util";
+import { SeenBy } from "./seenBy";
+import { AvatarRoundel } from "./avatarRoundel";
 
 const formatMentionHandlesInText = (
   userEmail: string,
@@ -52,6 +54,9 @@ interface ItemDisplayProps {
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
   timestampLastRefreshed: number;
+  seenBy: LastItemSeenByUser[] | undefined;
+  maybePreviousItem: Item | PendingItem | undefined;
+  maybeNextItem: Item | PendingItem | undefined;
 }
 
 export const ItemDisplay = ({
@@ -59,6 +64,9 @@ export const ItemDisplay = ({
   refForLastItem,
   userLookup,
   userEmail,
+  seenBy,
+  maybePreviousItem,
+  maybeNextItem,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payload = item.payload && JSON.parse(item.payload);
@@ -74,11 +82,17 @@ export const ItemDisplay = ({
 
   const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
 
+  const isSameUserAsNextItem = maybeNextItem?.userEmail === item.userEmail;
+  const isDifferentUserFromPreviousItem =
+    maybePreviousItem?.userEmail !== item.userEmail;
+
   return (
     <div
       ref={refForLastItem}
       css={css`
-        border-bottom: 1px solid gray;
+        ${!maybeNextItem || isSameUserAsNextItem
+          ? ""
+          : "border-bottom: 1px solid gray;"}
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;
         font-style: ${isPendingSend ? "italic" : "normal"};
@@ -87,18 +101,36 @@ export const ItemDisplay = ({
       <div
         css={css`
           display: flex;
-          justify-content: space-between;
-          color: lightgray;
+          align-items: center;
+          color: ${palette.neutral["46"]};
+          font-size: 12px;
+          line-height: 12px;
+          margin-bottom: 5px;
+          ${isDifferentUserFromPreviousItem ? "" : "float: right"}
         `}
       >
-        {/* TODO: add avatar as well */}
-        <span>
-          {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
-        </span>
+        {isDifferentUserFromPreviousItem && (
+          <React.Fragment>
+            <AvatarRoundel
+              maybeUser={user}
+              size={15}
+              userEmail={item.userEmail}
+            />
+            <span
+              css={css`
+                flex-grow: 1;
+                margin-left: 3px;
+              `}
+            >
+              {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
+            </span>
+          </React.Fragment>
+        )}
         <span>{formattedDateTime(dateInMillisecs)}</span>
       </div>
       <div>{formattedMessage}</div>
       {payload && <PayloadDisplay type={item.type} payload={payload} />}
+      {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );
 };

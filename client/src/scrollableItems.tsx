@@ -166,7 +166,10 @@ export const ScrollableItems = ({
       scrollToLastItem();
       isExpanded && seenLastItem();
     }
-    showNotification(items[lastItemIndex]);
+    if (successfulSends?.length > 0 && subscriptionItems?.length > 0) {
+      // guard against first mount where these arrays are empty
+      showNotification(items[lastItemIndex]);
+    }
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {

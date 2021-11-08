@@ -43,3 +43,13 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-users-refresher-lambda.zip
       functionNames: [pinboard-users-refresher-lambda-]
+
+  pinboard-notifications-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-notifications-lambda.zip
+      functionNames: [pinboard-notifications-lambda-]

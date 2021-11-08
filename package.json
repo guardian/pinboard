@@ -8,7 +8,8 @@
     "cdk",
     "client",
     "workflow-bridge-lambda",
-    "users-refresher-lambda"
+    "users-refresher-lambda",
+    "notifications-lambda"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",
@@ -16,8 +17,9 @@
     "prettier-check": "prettier --check .",
     "lint": "eslint . --ext .ts --ext .tsx",
     "watch-client": "yarn --cwd 'client' watch 2>&1",
+    "watch-service-worker": "yarn --cwd 'client' watch-service-worker 2>&1",
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
-    "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
+    "watch": "run-p --print-label watch-client watch-service-worker watch-bootstrapping-lambda",
     "test": "yarn --cwd 'client' jest 2>&1"
   },
   "devDependencies": {

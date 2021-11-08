@@ -1,7 +1,10 @@
 import fetch from "node-fetch";
 import { WorkflowStub } from "../../shared/graphql/graphql";
+import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 
-const WORKFLOW_DATASTORE_API_URL = `http://${process.env.WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME}/api`;
+const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
+  "workflowDnsName"
+)}/api`;
 
 exports.handler = async (event: { arguments?: { composerId?: string } }) => {
   return await (event.arguments?.composerId

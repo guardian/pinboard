@@ -28,11 +28,18 @@ type User {
   lastName: String!
   avatarUrl: String
 }
+type UserWithHasWebPushSubscription {
+  email: String!
+  firstName: String!
+  lastName: String!
+  avatarUrl: String
+  hasWebPushSubscription: Boolean
+}
 
 type WorkflowStub {
-	id: String!
-	title: String
-	composerId: String
+  id: String!
+  title: String
+  composerId: String
   status: String
 }
 
@@ -54,6 +61,7 @@ type LastItemSeenByUserConnection {
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(userEmail: String!, webPushSubscription: AWSJSON): UserWithHasWebPushSubscription
 }
 
 type Query {
@@ -69,7 +77,7 @@ type Query {
     nextToken: String
   ): LastItemSeenByUserConnection
 
-  getUser(email: String!): User
+  getUser(email: String!): UserWithHasWebPushSubscription
 
   searchUsers(
     filter: TableUserFilterInput

@@ -67,12 +67,32 @@ const userReturnFields = `
   avatarUrl
 `;
 
+const userReturnFieldsWithHasWebPushSubscription = `${userReturnFields}
+  hasWebPushSubscription
+`;
+
 export const gqlGetAllUsers = gql`
 query MyQuery {
   searchUsers {
     items { ${userReturnFields} }
   }
 }
+`;
+
+export const gqlGetUser = (email: string) => gql`
+query MyQuery {
+  getUser(email: "${email}") {
+    ${userReturnFieldsWithHasWebPushSubscription}
+  }
+}
+`;
+
+export const gqlSetWebPushSubscriptionForUser = gql`
+  mutation SetWebPushSubscriptionForUser($userEmail: String!, $webPushSubscription: AWSJSON) {
+    setWebPushSubscriptionForUser(userEmail: $userEmail, webPushSubscription: $webPushSubscription) {
+      ${userReturnFieldsWithHasWebPushSubscription}
+    }
+  }
 `;
 
 const lastItemSeenByUserReturnFields = `

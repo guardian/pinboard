@@ -4,7 +4,9 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
     "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep --line-buffered -v 'Could not load source file'",
-    "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard"
+    "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard",
+    "watch-service-worker": "tsc --noEmit --watch & parcel watch src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'",
+    "build-service-worker": "tsc --noEmit & parcel build src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'"
   },
   "alias": {
     "react": "preact/compat",

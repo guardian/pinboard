@@ -23,6 +23,8 @@ import { join } from "path";
 import { AWS_REGION } from "../shared/awsRegion";
 import { userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
+import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -30,6 +32,10 @@ export class PinBoardStack extends Stack {
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const thisStack = this;
+
+    const context = Stack.of(this);
+    const account = context.account;
+    const region = context.region;
 
     const APP = "pinboard";
 
@@ -55,6 +61,12 @@ export class PinBoardStack extends Stack {
       "workflow-dist",
       "workflow-dist"
     );
+
+    const readPinboardParamStorePolicyStatement = new iam.PolicyStatement({
+      actions: ["ssm:GetParameter"],
+      effect: iam.Effect.ALLOW,
+      resources: [`arn:aws:ssm:${region}:${account}:parameter/${APP}/*`],
+    });
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
@@ -87,7 +99,7 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME: Fn.importValue(
+          [ENVIRONMENT_VARIABLE_KEYS.workflowDnsName]: Fn.importValue(
             `WorkflowDatastoreLoadBalancerDNSName-${STAGE}`
           ),
         },
@@ -119,6 +131,49 @@ export class PinBoardStack extends Stack {
         ],
       }
     );
+
+    const pinboardUserTableBaseName = "pinboard-user-table";
+
+    const pinboardAppsyncUserTable = new db.Table(
+      thisStack,
+      pinboardUserTableBaseName,
+      {
+        billingMode: db.BillingMode.PAY_PER_REQUEST,
+        partitionKey: {
+          name: "email",
+          type: db.AttributeType.STRING,
+        },
+        timeToLiveAttribute: userTableTTLAttribute,
+        encryption: db.TableEncryption.DEFAULT,
+      }
+    );
+
+    const pinboardNotificationsLambdaBasename = "pinboard-notifications-lambda";
+
+    const pinboardNotificationsLambda = new lambda.Function(
+      thisStack,
+      pinboardNotificationsLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(30),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
+            pinboardAppsyncUserTable.tableName,
+        },
+        functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${pinboardNotificationsLambdaBasename}/${pinboardNotificationsLambdaBasename}.zip`
+        ),
+        initialPolicy: [readPinboardParamStorePolicyStatement],
+      }
+    );
+    pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
 
     const gqlSchema = appsync.Schema.fromAsset(
       join(__dirname, "../shared/graphql/schema.graphql")
@@ -156,7 +211,15 @@ export class PinBoardStack extends Stack {
           type: db.AttributeType.NUMBER,
         },
         encryption: db.TableEncryption.DEFAULT,
+        stream: db.StreamViewType.NEW_IMAGE,
       }
+    );
+
+    pinboardNotificationsLambda.addEventSource(
+      new DynamoEventSource(pinboardAppsyncItemTable, {
+        maxBatchingWindow: Duration.seconds(10),
+        startingPosition: lambda.StartingPosition.LATEST,
+      })
     );
 
     const pinboardLastItemSeenByUserTableBaseName =
@@ -175,22 +238,6 @@ export class PinBoardStack extends Stack {
           name: "userEmail",
           type: db.AttributeType.STRING,
         },
-        encryption: db.TableEncryption.DEFAULT,
-      }
-    );
-
-    const pinboardUserTableBaseName = "pinboard-user-table";
-
-    const pinboardAppsyncUserTable = new db.Table(
-      thisStack,
-      pinboardUserTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "email",
-          type: db.AttributeType.STRING,
-        },
-        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );
@@ -248,7 +295,7 @@ export class PinBoardStack extends Stack {
         }
       `)
     );
-    const dynamoFilterRepsonseMappingTemplate = appsync.MappingTemplate.fromString(
+    const dynamoFilterResponseMappingTemplate = appsync.MappingTemplate.fromString(
       "$util.toJson($context.result)"
     );
 
@@ -256,7 +303,7 @@ export class PinBoardStack extends Stack {
       typeName: "Query",
       fieldName: "listItems",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 
     pinboardItemDataSource.createResolver({
@@ -277,7 +324,7 @@ export class PinBoardStack extends Stack {
       typeName: "Query",
       fieldName: "listLastItemSeenByUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate, // TODO consider custom resolver for performance
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 
     pinboardLastItemSeenByUserDataSource.createResolver({
@@ -321,11 +368,41 @@ export class PinBoardStack extends Stack {
       ),
     });
 
+    const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
+      .MappingTemplate.fromString(`
+        #set($output = $ctx.result)
+        $util.qr($output.put("hasWebPushSubscription", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    `);
+
     pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "searchUsers",
       requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterRepsonseMappingTemplate,
+      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
+    });
+
+    pinboardUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "setWebPushSubscriptionForUser",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.args.userEmail)
+          },
+          "update" : {
+            "expression" : "SET webPushSubscription = :webPushSubscription",
+            "expressionValues": {
+              ":webPushSubscription" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
 
     pinboardUserDataSource.createResolver({
@@ -334,7 +411,7 @@ export class PinBoardStack extends Stack {
       requestMappingTemplate: resolverBugWorkaround(
         appsync.MappingTemplate.dynamoDbGetItem("email", "email")
       ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
 
     const permissionsFilePolicyStatement = new iam.PolicyStatement({
@@ -363,7 +440,8 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          USERS_TABLE_NAME: pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
+            pinboardAppsyncUserTable.tableName,
         },
         functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(

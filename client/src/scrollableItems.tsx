@@ -26,6 +26,7 @@ interface ScrollableItemsProps {
   userEmail: string;
   pinboardId: string;
   lastItemSeenByUserLookup: LastItemSeenByUserLookup;
+  showNotification: (item: Item) => void;
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
@@ -58,6 +59,7 @@ export const ScrollableItems = ({
   userEmail,
   pinboardId,
   lastItemSeenByUserLookup,
+  showNotification,
 }: ScrollableItemsProps): ReactElement => {
   const itemsMap = [
     ...initialItems,
@@ -125,7 +127,7 @@ export const ScrollableItems = ({
       !isScrollbarVisible(scrollableArea) ||
       elementIsVisible(scrollableArea, lastItemRef.current));
 
-  const lastItemID = items[items.length - 1]?.id;
+  const lastItemID = items[lastItemIndex]?.id;
 
   const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
     gqlSeenItem,
@@ -163,6 +165,10 @@ export const ScrollableItems = ({
     if (shouldBeScrolledToLastItem()) {
       scrollToLastItem();
       isExpanded && seenLastItem();
+    }
+    if (successfulSends?.length > 0 && subscriptionItems?.length > 0) {
+      // guard against first mount where these arrays are empty
+      showNotification(items[lastItemIndex]);
     }
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 

@@ -11,7 +11,7 @@ import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { textSans } from "../fontNormaliser";
-import { User } from "../../shared/graphql/graphql";
+import { Item, User } from "../../shared/graphql/graphql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./pinboard.main";
 import root from "react-shadow/emotion";
 
@@ -38,6 +38,9 @@ export interface WidgetProps {
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
   userLookup: { [email: string]: User } | undefined;
+  hasWebPushSubscription: boolean | null | undefined;
+  showNotification: (item: Item) => void;
+  clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
 }
 
 export const Widget = (props: WidgetProps) => {
@@ -115,11 +118,13 @@ export const Widget = (props: WidgetProps) => {
 
   const setUnreadFlag = (pinboardId: string) => (
     unreadFlag: boolean | undefined
-  ) =>
+  ) => {
     setUnreadFlags((prevUnreadFlags) => ({
       ...prevUnreadFlags,
       [pinboardId]: unreadFlag,
     }));
+    !unreadFlag && props.clearDesktopNotificationsForPinboardId(pinboardId);
+  };
 
   const hasUnread = Object.values(unreadFlags).find((unreadFlag) => unreadFlag);
 
@@ -154,6 +159,21 @@ export const Widget = (props: WidgetProps) => {
     props.preselectedComposerId &&
     !preselectedPinboard &&
     !preselectedPinboardQuery.loading;
+
+  useEffect(() => {
+    window.addEventListener("message", (event) => {
+      if (
+        event.source !== window &&
+        Object.prototype.hasOwnProperty.call(event.data, "item")
+      ) {
+        const item = event.data.item;
+        window.focus();
+        setIsExpanded(true);
+        setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
+        // TODO ideally highlight the item
+      }
+    });
+  }, []);
 
   const widgetRef = useRef<HTMLDivElement>(null);
   return (
@@ -252,6 +272,7 @@ export const Widget = (props: WidgetProps) => {
               payloadToBeSent={props.payloadToBeSent}
               clearPayloadToBeSent={props.clearPayloadToBeSent}
               preselectedPinboard={preselectedPinboard}
+              hasWebPushSubscription={props.hasWebPushSubscription}
             />
           )
         )}

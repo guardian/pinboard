@@ -1,28 +1,42 @@
 import "preact/debug";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 import { render } from "react-dom";
-import { AppSyncConfig } from "../../shared/AppSyncConfig";
+import { ClientConfig } from "../../shared/clientConfig";
 import {
   ApolloClient,
   ApolloProvider,
   InMemoryCache,
   useQuery,
   ApolloLink,
+  useMutation,
 } from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { User } from "../../shared/graphql/graphql";
-import { gqlGetAllUsers } from "../gql";
+import {
+  Item,
+  User,
+  UserWithHasWebPushSubscription,
+} from "../../shared/graphql/graphql";
+import {
+  gqlGetAllUsers,
+  gqlGetUser,
+  gqlSetWebPushSubscriptionForUser,
+} from "../gql";
+import {
+  desktopNotificationsPreferencesUrl,
+  HiddenIFrameForServiceWorker,
+} from "./pushNotificationPreferences";
+import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
-export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
+export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
   const apolloLink = ApolloLink.from([
     (createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
@@ -44,13 +58,16 @@ export function mount({ userEmail, ...appSyncConfig }: AppSyncConfig): void {
   document.body.appendChild(element);
 
   render(
-    React.createElement(PinBoardApp, { apolloClient, userEmail }),
+    React.createElement(PinBoardApp, {
+      apolloClient,
+      userEmail,
+    }),
     element
   );
 }
 
 interface PinBoardAppProps {
-  apolloClient: ApolloClient<unknown>;
+  apolloClient: ApolloClient<Record<string, unknown>>;
   userEmail: string;
 }
 
@@ -111,10 +128,22 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
+  const rawHasWebPushSubscription = useQuery(gqlGetUser(userEmail), {
+    client: apolloClient,
+  }).data?.getUser.hasWebPushSubscription;
+
+  const [hasWebPushSubscription, setHasWebPushSubscription] = useState<
+    boolean | null | undefined
+  >(rawHasWebPushSubscription);
+
+  useEffect(() => {
+    setHasWebPushSubscription(rawHasWebPushSubscription);
+  }, [rawHasWebPushSubscription]);
+
   const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
+  //TODO: make use of usersQuery.error and usersQuery.loading
 
   const allUsers: User[] | undefined = usersQuery.data?.searchUsers.items;
-  //TODO: make use of usersQuery.error and usersQuery.loading
 
   const userLookup = allUsers?.reduce(
     (lookup, user) => ({
@@ -124,8 +153,64 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     {} as { [email: string]: User }
   );
 
+  const [setWebPushSubscriptionForUser] = useMutation<{
+    setWebPushSubscriptionForUser: UserWithHasWebPushSubscription;
+  }>(gqlSetWebPushSubscriptionForUser, {
+    client: apolloClient,
+    onCompleted: ({
+      setWebPushSubscriptionForUser: { hasWebPushSubscription },
+    }) => setHasWebPushSubscription(hasWebPushSubscription),
+    onError: (error) => {
+      const message = "Could not subscribe to desktop notifications";
+      alert(message);
+      console.error(message, error);
+    },
+  });
+
+  useEffect(() => {
+    window.addEventListener("message", (event) => {
+      if (
+        event.source !== window &&
+        Object.prototype.hasOwnProperty.call(event.data, "webPushSubscription")
+      ) {
+        setWebPushSubscriptionForUser({
+          variables: {
+            userEmail,
+            webPushSubscription: event.data.webPushSubscription,
+          },
+        });
+      }
+    });
+  }, []);
+
+  const serviceWorkerIFrameRef = useRef<HTMLIFrameElement>(null);
+
+  const showDesktopNotification = (item?: Item) => {
+    if (item && item.userEmail !== userEmail) {
+      serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+        {
+          item: {
+            ...item,
+            payload: item.payload && JSON.parse(item.payload),
+          } as ItemWithParsedPayload,
+        },
+        desktopNotificationsPreferencesUrl
+      );
+    }
+  };
+
+  const clearDesktopNotificationsForPinboardId = (pinboardId: string) => {
+    serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+      {
+        clearNotificationsForPinboardId: pinboardId,
+      },
+      desktopNotificationsPreferencesUrl
+    );
+  };
+
   return (
     <ApolloProvider client={apolloClient}>
+      <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
       <Widget
         userEmail={userEmail}
         preselectedComposerId={preSelectedComposerId}
@@ -134,6 +219,11 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
         isExpanded={isWidgetExpanded}
         setIsExpanded={setIsWidgetExpanded}
         userLookup={userLookup}
+        hasWebPushSubscription={hasWebPushSubscription}
+        showNotification={showDesktopNotification}
+        clearDesktopNotificationsForPinboardId={
+          clearDesktopNotificationsForPinboardId
+        }
       />
       {buttonNodes.map((node, index) => (
         <ButtonPortal

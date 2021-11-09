@@ -16,14 +16,10 @@ import { createAuthLink } from "aws-appsync-auth-link";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
-import {
-  Item,
-  User,
-  UserWithHasWebPushSubscription,
-} from "../../shared/graphql/graphql";
+import { Item, User, DetailedUser } from "../../shared/graphql/graphql";
 import {
   gqlGetAllUsers,
-  gqlGetMyUser,
+  gqlGetMyDetailedUser,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import {
@@ -130,9 +126,11 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
-  const rawHasWebPushSubscription = useQuery(gqlGetMyUser, {
+  const detailedUser = useQuery(gqlGetMyDetailedUser, {
     client: apolloClient,
-  }).data?.getMyUser.hasWebPushSubscription;
+  }).data?.getMyDetailedUser;
+
+  const rawHasWebPushSubscription = detailedUser?.hasWebPushSubscription;
 
   const [hasWebPushSubscription, setHasWebPushSubscription] = useState<
     boolean | null | undefined
@@ -156,7 +154,7 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   );
 
   const [setWebPushSubscriptionForUser] = useMutation<{
-    setWebPushSubscriptionForUser: UserWithHasWebPushSubscription;
+    setWebPushSubscriptionForUser: DetailedUser;
   }>(gqlSetWebPushSubscriptionForUser, {
     client: apolloClient,
     onCompleted: ({

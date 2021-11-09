@@ -67,8 +67,9 @@ const userReturnFields = `
   avatarUrl
 `;
 
-const userReturnFieldsWithHasWebPushSubscription = `${userReturnFields}
+const detailedUserReturnFields = `${userReturnFields}
   hasWebPushSubscription
+  perPinboardPreferences
 `;
 
 export const gqlGetAllUsers = gql`
@@ -79,10 +80,10 @@ query MyQuery {
 }
 `;
 
-export const gqlGetMyUser = gql`
+export const gqlGetMyDetailedUser = gql`
 query MyQuery {
-  getMyUser {
-    ${userReturnFieldsWithHasWebPushSubscription}
+  getMyDetailedUser {
+    ${detailedUserReturnFields}
   }
 }
 `;
@@ -90,7 +91,7 @@ query MyQuery {
 export const gqlSetWebPushSubscriptionForUser = gql`
   mutation SetWebPushSubscriptionForUser($webPushSubscription: AWSJSON) {
     setWebPushSubscriptionForUser(webPushSubscription: $webPushSubscription) {
-      ${userReturnFieldsWithHasWebPushSubscription}
+      ${detailedUserReturnFields}
     }
   }
 `;

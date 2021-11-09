@@ -456,7 +456,7 @@ export class PinBoardStack extends Stack {
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
-      fieldName: "getMyUser",
+      fieldName: "getMyDetailedUser",
       requestMappingTemplate: resolverBugWorkaround(
         appsync.MappingTemplate.fromString(`
         {

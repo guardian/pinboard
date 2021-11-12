@@ -30,6 +30,16 @@ const panda = new PanDomainAuthentication(
   guardianValidation
 );
 
+const maybePandaFallback =
+  STAGE === "CODE" &&
+  new PanDomainAuthentication(
+    pandaCookieName,
+    AWS_REGION, // AWS region
+    pandaSettingsBucketName, // Settings bucket
+    `${pandaConfigFilenameLookup["LOCAL"]}.public`, // Settings file
+    guardianValidation
+  );
+
 export const getVerifiedUserEmailFromCookieHeader = async (
   cookieHeader: string | undefined
 ): Promise<void | string> => {
@@ -38,6 +48,15 @@ export const getVerifiedUserEmailFromCookieHeader = async (
 
     if (status === AuthenticationStatus.AUTHORISED && user) {
       return user.email;
+    }
+
+    // TODO can this be DRYed?
+    if (maybePandaFallback) {
+      const { status, user } = await maybePandaFallback.verify(cookieHeader);
+
+      if (status === AuthenticationStatus.AUTHORISED && user) {
+        return user.email;
+      }
     }
   }
 };

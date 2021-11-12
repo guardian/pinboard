@@ -41,7 +41,7 @@ export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
     (createAuthLink({
       url: appSyncConfig.graphqlEndpoint,
       region: AWS_REGION,
-      auth: { type: "API_KEY", apiKey: appSyncConfig.apiKey },
+      auth: { type: "AWS_LAMBDA", token: appSyncConfig.authToken },
     }) as unknown) as ApolloLink, //TODO attempt to avoid all this casting
     (createSubscriptionHandshakeLink(
       appSyncConfig.graphqlEndpoint

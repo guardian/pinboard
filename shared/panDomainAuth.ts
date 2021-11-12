@@ -3,6 +3,8 @@ import {
   AuthenticationStatus,
   guardianValidation,
 } from "@guardian/pan-domain-node";
+import iniparser from "iniparser";
+import * as AWS from "aws-sdk";
 import { AWS_REGION } from "./awsRegion";
 
 const STAGE = process.env.STAGE || "LOCAL";
@@ -15,7 +17,7 @@ const pandaConfigFilenameLookup: { [stage: string]: string } = {
 
 export const pandaSettingsBucketName = "pan-domain-auth-settings";
 
-export const pandaConfigFilename =
+const pandaConfigFilename =
   pandaConfigFilenameLookup[STAGE] || pandaConfigFilenameLookup["LOCAL"];
 
 export const pandaPublicConfigFilename = `${pandaConfigFilename}.public`;
@@ -30,16 +32,6 @@ const panda = new PanDomainAuthentication(
   guardianValidation
 );
 
-const maybePandaFallback =
-  STAGE === "CODE" &&
-  new PanDomainAuthentication(
-    pandaCookieName,
-    AWS_REGION, // AWS region
-    pandaSettingsBucketName, // Settings bucket
-    `${pandaConfigFilenameLookup["LOCAL"]}.public`, // Settings file
-    guardianValidation
-  );
-
 export const getVerifiedUserEmailFromCookieHeader = async (
   cookieHeader: string | undefined
 ): Promise<void | string> => {
@@ -49,21 +41,24 @@ export const getVerifiedUserEmailFromCookieHeader = async (
     if (status === AuthenticationStatus.AUTHORISED && user) {
       return user.email;
     }
-
-    // TODO can this be DRYed?
-    if (maybePandaFallback) {
-      const { status, user } = await maybePandaFallback.verify(cookieHeader);
-
-      if (status === AuthenticationStatus.AUTHORISED && user) {
-        return user.email;
-      }
-    }
   }
 };
 
-export const getVerifiedUserEmailFromPandaCookieValue = async (
-  pandaCookieValue: string | undefined
-): Promise<void | string> =>
-  getVerifiedUserEmailFromCookieHeader(
-    `${pandaCookieName}=${pandaCookieValue}`
-  );
+const pandaConfigLocation = {
+  Bucket: pandaSettingsBucketName,
+  Key: pandaConfigFilename,
+};
+
+export const getPandaConfig = async <T>(s3: AWS.S3) => {
+  const pandaConfigIni = (
+    await s3.getObject(pandaConfigLocation).promise()
+  ).Body?.toString();
+
+  if (!pandaConfigIni) {
+    throw Error(
+      `could not read panda config ${JSON.stringify(pandaConfigLocation)}`
+    );
+  }
+
+  return iniparser.parseString(pandaConfigIni) as T;
+};

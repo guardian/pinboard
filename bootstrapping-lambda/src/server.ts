@@ -3,7 +3,7 @@ import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./appSyncLookup";
-import { getVerifiedUserEmail } from "./panDomainAuth";
+import { getVerifiedUserEmailFromCookieHeader } from "../../shared/panDomainAuth";
 import { userHasPermission } from "./permissionCheck";
 import fs from "fs";
 import {
@@ -76,7 +76,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
     return response.send(`console.error('${message}')`);
   }
 
-  const maybeAuthedUserEmail = await getVerifiedUserEmail(
+  const maybeAuthedUserEmail = await getVerifiedUserEmailFromCookieHeader(
     request.header("Cookie")
   );
 

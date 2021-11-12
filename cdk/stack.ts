@@ -175,6 +175,29 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
 
+    const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
+
+    const pinboardAuthLambda = new lambda.Function(
+      thisStack,
+      pinboardAuthLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(11),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${pinboardAuthLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${pinboardAuthLambdaBasename}/${pinboardAuthLambdaBasename}.zip`
+        ),
+      }
+    );
+
     const gqlSchema = appsync.Schema.fromAsset(
       join(__dirname, "../shared/graphql/schema.graphql")
     );

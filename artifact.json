@@ -26,6 +26,11 @@
       "action": "pinboard-notifications-lambda",
       "path": "notifications-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-auth-lambda",
+      "path": "auth-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

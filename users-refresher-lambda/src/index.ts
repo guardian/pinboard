@@ -10,7 +10,7 @@ import { standardAwsConfig } from "../../shared/awsIntegration";
 import {
   pandaConfigFilename,
   pandaSettingsBucketName,
-} from "../../shared/panda";
+} from "../../shared/panDomainAuth";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { userTableTTLAttribute } from "../../shared/constants";

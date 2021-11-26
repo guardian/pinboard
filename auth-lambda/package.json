@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.25.1"
+  },
+  "dependencies": {
+    "jose": "^4.3.4"
   }
 }

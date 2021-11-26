@@ -1,11 +1,5 @@
-import {
-  PanDomainAuthentication,
-  AuthenticationStatus,
-  guardianValidation,
-} from "@guardian/pan-domain-node";
 import iniparser from "iniparser";
 import * as AWS from "aws-sdk";
-import { AWS_REGION } from "./awsRegion";
 
 const STAGE = process.env.STAGE || "LOCAL";
 
@@ -23,26 +17,6 @@ const pandaConfigFilename =
 export const pandaPublicConfigFilename = `${pandaConfigFilename}.public`;
 
 export const pandaCookieName = "gutoolsAuth-assym";
-
-const panda = new PanDomainAuthentication(
-  pandaCookieName,
-  AWS_REGION, // AWS region
-  pandaSettingsBucketName, // Settings bucket
-  pandaPublicConfigFilename, // Settings file
-  guardianValidation
-);
-
-export const getVerifiedUserEmailFromCookieHeader = async (
-  cookieHeader: string | undefined
-): Promise<void | string> => {
-  if (cookieHeader) {
-    const { status, user } = await panda.verify(cookieHeader);
-
-    if (status === AuthenticationStatus.AUTHORISED && user) {
-      return user.email;
-    }
-  }
-};
 
 const pandaConfigLocation = {
   Bucket: pandaSettingsBucketName,

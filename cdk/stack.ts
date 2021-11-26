@@ -68,6 +68,18 @@ export class PinBoardStack extends Stack {
       resources: [`arn:aws:ssm:${region}:${account}:parameter/${APP}/*`],
     });
 
+    const permissionsFilePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
+    });
+
+    const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
+    });
+
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const vpcId = Fn.importValue(
@@ -195,6 +207,7 @@ export class PinBoardStack extends Stack {
           deployBucket,
           `${STACK}/${STAGE}/${pinboardAuthLambdaBasename}/${pinboardAuthLambdaBasename}.zip`
         ),
+        initialPolicy: [pandaConfigAndKeyPolicyStatement],
       }
     );
 
@@ -441,18 +454,6 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
 
-    const permissionsFilePolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
-    });
-
-    const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
-    });
-
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
 
     const usersRefresherLambdaFunction = new lambda.Function(
@@ -526,6 +527,7 @@ export class PinBoardStack extends Stack {
         ),
         initialPolicy: [
           bootstrappingLambdaAppSyncPolicyStatement,
+          pandaConfigAndKeyPolicyStatement,
           permissionsFilePolicyStatement,
         ],
       }

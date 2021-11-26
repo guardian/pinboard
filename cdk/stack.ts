@@ -211,7 +211,11 @@ export class PinBoardStack extends Stack {
         schema: gqlSchema,
         authorizationConfig: {
           defaultAuthorization: {
-            authorizationType: appsync.AuthorizationType.API_KEY,
+            authorizationType: appsync.AuthorizationType.LAMBDA,
+            lambdaAuthorizerConfig: {
+              handler: pinboardAuthLambda,
+              resultsCacheTtl: Duration.seconds(30),
+            },
           },
         },
         xrayEnabled: true,

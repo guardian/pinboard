@@ -1,3 +1,5 @@
+export const APP = "pinboard";
+
 export const userTableTTLAttribute = "ttlEpochSeconds";
 
 export const publicVapidKey =

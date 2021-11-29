@@ -20,7 +20,7 @@ import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
-import { userTableTTLAttribute } from "../shared/constants";
+import { APP, userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
@@ -35,8 +35,6 @@ export class PinBoardStack extends Stack {
     const context = Stack.of(this);
     const account = context.account;
     const region = context.region;
-
-    const APP = "pinboard";
 
     // if changing should also change .nvmrc (at the root of repo)
     const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_14_X;

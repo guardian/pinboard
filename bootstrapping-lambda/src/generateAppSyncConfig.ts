@@ -4,8 +4,7 @@ import { SignJWT } from "jose";
 import { AppSyncConfig } from "../../shared/appSyncConfig";
 import { getPandaConfig } from "../../shared/panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-
-const APP = "pinboard"; // TODO consider creating a shared directory at the top level for constants like this
+import { APP } from "../../shared/constants";
 
 export async function generateAppSyncConfig(
   userEmail: string,

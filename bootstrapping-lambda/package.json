@@ -6,7 +6,7 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
-    "watch": "ts-node-dev --respawn src/server.ts",
+    "watch": "ts-node-dev --respawn local/index.ts",
     "build": "ncc build src/server.ts -o dist -m -e aws-sdk"
   },
   "devDependencies": {

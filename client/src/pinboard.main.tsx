@@ -47,12 +47,10 @@ export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
     },
   };
 
-  const apolloAuthLink = createAuthLink(apolloUrlInfo);
-
   const apolloClient = new ApolloClient({
     link: ApolloLink.from([
-      apolloAuthLink,
-      createSubscriptionHandshakeLink(apolloUrlInfo, apolloAuthLink),
+      createAuthLink(apolloUrlInfo),
+      createSubscriptionHandshakeLink(apolloUrlInfo),
     ]),
     cache: new InMemoryCache(),
   });
@@ -134,7 +132,7 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const rawHasWebPushSubscription = useQuery(gqlGetMyUser, {
     client: apolloClient,
-  }).data?.getUser.hasWebPushSubscription;
+  }).data?.getMyUser.hasWebPushSubscription;
 
   const [hasWebPushSubscription, setHasWebPushSubscription] = useState<
     boolean | null | undefined

@@ -1,13 +1,13 @@
 import * as webPush from "web-push";
 import * as AWS from "aws-sdk";
-import { standardAwsConfig } from "../../shared/awsIntegration";
+import {
+  pinboardSecretPromiseGetter,
+  standardAwsConfig,
+} from "../../shared/awsIntegration";
 import { AttributeMap, Key } from "aws-sdk/clients/dynamodb";
 import { Item } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-import {
-  getPrivateVapidKeyPromise,
-  publicVapidKey,
-} from "../../shared/constants";
+import { publicVapidKey } from "../../shared/constants";
 
 interface DynamoStreamRecord {
   dynamodb: {
@@ -22,7 +22,9 @@ interface DynamoStreamEvent {
 export const handler = async (event: DynamoStreamEvent) => {
   const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
-  const privateVapidKey = await getPrivateVapidKeyPromise();
+  const privateVapidKey = await pinboardSecretPromiseGetter(
+    "notifications/privateVapidKey"
+  );
 
   const processPageOfUsers = async (startKey?: Key) => {
     const userResults = await dynamo

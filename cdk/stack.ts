@@ -20,7 +20,6 @@ import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
-import { AWS_REGION } from "../shared/awsRegion";
 import { userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
@@ -91,7 +90,7 @@ export class PinBoardStack extends Stack {
       "workflow-datastore-vpc",
       {
         vpcId: vpcId,
-        availabilityZones: Fn.getAzs(AWS_REGION),
+        availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
           Fn.importValue(`WorkflowPrivateSubnetIds-${STAGE}`)
@@ -233,6 +232,16 @@ export class PinBoardStack extends Stack {
         },
         xrayEnabled: true,
       }
+    );
+    pinboardAuthLambda.grantInvoke(
+      new iam.ServicePrincipal("appsync.amazonaws.com").withConditions({
+        ArnLike: {
+          "aws:SourceArn": pinboardAppsyncApi.arn,
+        },
+        StringEquals: {
+          "aws:SourceAccount": account,
+        },
+      })
     );
 
     const pinboardItemTableBaseName = "pinboard-item-table";
@@ -497,11 +506,11 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    // this allows the lambda to query/create AppSync config/secrets
+    // this allows the lambda to query AppSync config
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ["appsync:*"],
-      resources: ["arn:aws:appsync:eu-west-1:*"], //TODO tighten up if possible
+      actions: ["appsync:GetGraphqlApi"],
+      resources: [pinboardAppsyncApi.arn],
     });
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
@@ -545,7 +554,7 @@ export class PinBoardStack extends Stack {
             new iam.PolicyStatement({
               effect: iam.Effect.ALLOW,
               actions: ["execute-api:Invoke"],
-              resources: [`arn:aws:execute-api:${AWS_REGION}:*`],
+              resources: [`arn:aws:execute-api:${region}:*`],
               principals: [new iam.AnyPrincipal()],
             }),
           ],

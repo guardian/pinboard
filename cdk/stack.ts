@@ -516,13 +516,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    // this allows the lambda to query AppSync config
-    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["appsync:ListGraphqlApis"],
-      resources: [pinboardAppsyncApi.arn],
-    });
-
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;
 
@@ -538,6 +531,8 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
+          [ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint]:
+            pinboardAppsyncApi.graphqlUrl,
         },
         functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -545,7 +540,6 @@ export class PinBoardStack extends Stack {
           `${STACK}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
         ),
         initialPolicy: [
-          bootstrappingLambdaAppSyncPolicyStatement,
           pandaConfigAndKeyPolicyStatement,
           permissionsFilePolicyStatement,
         ],

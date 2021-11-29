@@ -1,33 +1,17 @@
 import * as AWS from "aws-sdk";
 import crypto from "crypto";
 import { SignJWT } from "jose";
-import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
 import { AppSyncConfig } from "../../shared/appSyncConfig";
 import { getPandaConfig } from "../../shared/panDomainAuth";
+import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 
 const APP = "pinboard"; // TODO consider creating a shared directory at the top level for constants like this
-
-const client = new AWS.AppSync(standardAwsConfig);
-
-const appSyncApiPromise = client
-  .listGraphqlApis({
-    maxResults: 25, // TODO consider implementing paging (for absolute future proofing)
-  })
-  .promise()
-  .then((_) =>
-    _.graphqlApis?.find(
-      (api) => api.tags?.["Stage"] === STAGE && api.tags?.["App"] === APP
-    )
-  );
 
 export async function generateAppSyncConfig(
   userEmail: string,
   s3: AWS.S3
 ): Promise<AppSyncConfig> {
-  const appSyncAPI = await appSyncApiPromise;
-  if (!appSyncAPI?.apiId) {
-    throw Error(`Could not find a ${APP} AppSync instance for ${STAGE}`);
-  }
+  const graphqlEndpoint = getEnvironmentVariableOrThrow("graphqlEndpoint");
 
   const pandaConfig = await getPandaConfig<{ privateKey: string }>(s3);
 
@@ -42,11 +26,6 @@ export async function generateAppSyncConfig(
     .setProtectedHeader({ alg: "RS256" })
     .sign(privateKey);
 
-  const graphqlEndpoint = appSyncAPI.uris?.["GRAPHQL"];
-
-  if (!graphqlEndpoint) {
-    throw Error("Could not resolve AppSync endpoints.");
-  }
   if (!authToken) {
     throw Error("Could not retrieve/create an authentication token.");
   }

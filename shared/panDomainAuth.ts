@@ -1,9 +1,11 @@
 import iniparser from "iniparser";
 import * as AWS from "aws-sdk";
 
-const STAGE = process.env.STAGE || "LOCAL";
+type Stage = "PROD" | "CODE" | "LOCAL";
 
-const pandaConfigFilenameLookup: { [stage: string]: string } = {
+const STAGE = (process.env.STAGE as Stage) || "LOCAL";
+
+const pandaConfigFilenameLookup: { [stage in Stage]: string } = {
   PROD: "gutools.co.uk.settings",
   CODE: "code.dev-gutools.co.uk.settings",
   LOCAL: "local.dev-gutools.co.uk.settings",
@@ -11,16 +13,18 @@ const pandaConfigFilenameLookup: { [stage: string]: string } = {
 
 export const pandaSettingsBucketName = "pan-domain-auth-settings";
 
-const pandaConfigFilename =
-  pandaConfigFilenameLookup[STAGE] || pandaConfigFilenameLookup["LOCAL"];
-
-export const pandaPublicConfigFilename = `${pandaConfigFilename}.public`;
+export const pandaPublicConfigFilename = `${
+  pandaConfigFilenameLookup[STAGE] || pandaConfigFilenameLookup["LOCAL"]
+}.public`;
 
 export const pandaCookieName = "gutoolsAuth-assym";
 
 const pandaConfigLocation = {
   Bucket: pandaSettingsBucketName,
-  Key: pandaConfigFilename,
+  Key:
+    STAGE === "PROD"
+      ? pandaConfigFilenameLookup["PROD"]
+      : pandaConfigFilenameLookup["CODE"],
 };
 
 export const getPandaConfig = async <T>(s3: AWS.S3) => {

@@ -39,18 +39,17 @@ export async function generateAppSyncConfig(
     .setIssuedAt()
     .setExpirationTime("24h")
     .setIssuer(APP)
-    .setProtectedHeader(({ alg: "RS256" } as unknown) as any)
+    .setProtectedHeader({ alg: "RS256" })
     .sign(privateKey);
 
   const graphqlEndpoint = appSyncAPI.uris?.["GRAPHQL"];
-  const realtimeEndpoint = appSyncAPI.uris?.["REALTIME"];
 
-  if (!graphqlEndpoint || !realtimeEndpoint) {
+  if (!graphqlEndpoint) {
     throw Error("Could not resolve AppSync endpoints.");
   }
   if (!authToken) {
     throw Error("Could not retrieve/create an authentication token.");
   }
 
-  return { graphqlEndpoint, realtimeEndpoint, authToken };
+  return { graphqlEndpoint, authToken };
 }

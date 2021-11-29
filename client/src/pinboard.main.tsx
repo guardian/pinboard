@@ -12,7 +12,7 @@ import {
   useMutation,
 } from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";
-import { createAuthLink } from "aws-appsync-auth-link"; //TODO attempt to factor out
+import { createAuthLink } from "aws-appsync-auth-link";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { Widget } from "./widget";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -31,25 +31,29 @@ import {
   HiddenIFrameForServiceWorker,
 } from "./pushNotificationPreferences";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
+import { UrlInfo } from "aws-appsync-subscription-link/lib/types";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
 export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
-  const apolloLink = ApolloLink.from([
-    (createAuthLink({
-      url: appSyncConfig.graphqlEndpoint,
-      region: AWS_REGION,
-      auth: { type: "AWS_LAMBDA", token: appSyncConfig.authToken },
-    }) as unknown) as ApolloLink, //TODO attempt to avoid all this casting
-    (createSubscriptionHandshakeLink(
-      appSyncConfig.graphqlEndpoint
-    ) as unknown) as ApolloLink, // TODO build from appSyncConfig.realtimeEndpoint
-  ]);
+  const apolloUrlInfo: UrlInfo = {
+    url: appSyncConfig.graphqlEndpoint,
+    region: AWS_REGION,
+    auth: {
+      type: "AWS_LAMBDA",
+      token: appSyncConfig.authToken,
+    },
+  };
+
+  const apolloAuthLink = createAuthLink(apolloUrlInfo);
 
   const apolloClient = new ApolloClient({
-    link: apolloLink,
+    link: ApolloLink.from([
+      apolloAuthLink,
+      createSubscriptionHandshakeLink(apolloUrlInfo, apolloAuthLink),
+    ]),
     cache: new InMemoryCache(),
   });
 

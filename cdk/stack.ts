@@ -364,6 +364,8 @@ export class PinBoardStack extends Stack {
           appsync.Values.projecting("input")
             .attribute("timestamp")
             .is("$util.time.nowEpochSeconds()")
+            .attribute("userEmail")
+            .is("$ctx.identity.resolverContext.userEmail")
         )
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
@@ -386,7 +388,7 @@ export class PinBoardStack extends Stack {
           "operation": "UpdateItem",
           "key" : {
             "pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.args.input.userEmail)
+            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
           },
           "update" : {
             "expression" : "SET seenAt = :seenAt, itemID = :itemID",
@@ -440,7 +442,7 @@ export class PinBoardStack extends Stack {
           "version": "2017-02-28",
           "operation": "UpdateItem",
           "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.args.userEmail)
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
           },
           "update" : {
             "expression" : "SET webPushSubscription = :webPushSubscription",
@@ -456,9 +458,17 @@ export class PinBoardStack extends Stack {
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
-      fieldName: "getUser",
+      fieldName: "getMyUser",
       requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbGetItem("email", "email")
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          }
+        }
+      `)
       ),
       responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
     });
@@ -509,7 +519,7 @@ export class PinBoardStack extends Stack {
     // this allows the lambda to query AppSync config
     const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ["appsync:GetGraphqlApi"],
+      actions: ["appsync:ListGraphqlApis"],
       resources: [pinboardAppsyncApi.arn],
     });
 

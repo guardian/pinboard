@@ -145,7 +145,6 @@ export const ScrollableItems = ({
         variables: {
           input: {
             pinboardId,
-            userEmail,
             itemID: lastItemID,
           },
         },

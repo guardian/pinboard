@@ -23,7 +23,7 @@ import {
 } from "../../shared/graphql/graphql";
 import {
   gqlGetAllUsers,
-  gqlGetUser,
+  gqlGetMyUser,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import {
@@ -132,7 +132,7 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
-  const rawHasWebPushSubscription = useQuery(gqlGetUser(userEmail), {
+  const rawHasWebPushSubscription = useQuery(gqlGetMyUser, {
     client: apolloClient,
   }).data?.getUser.hasWebPushSubscription;
 
@@ -179,7 +179,6 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
       ) {
         setWebPushSubscriptionForUser({
           variables: {
-            userEmail,
             webPushSubscription: event.data.webPushSubscription,
           },
         });

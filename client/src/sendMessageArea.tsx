@@ -56,7 +56,6 @@ export const SendMessageArea = ({
         type: payloadToBeSent?.type || "message-only",
         message,
         payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
-        userEmail,
         pinboardId,
         mentions: verifiedMentionEmails,
       },

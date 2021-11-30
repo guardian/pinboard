@@ -20,8 +20,7 @@ import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
-import { AWS_REGION } from "../shared/awsRegion";
-import { userTableTTLAttribute } from "../shared/constants";
+import { APP, userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
@@ -36,8 +35,6 @@ export class PinBoardStack extends Stack {
     const context = Stack.of(this);
     const account = context.account;
     const region = context.region;
-
-    const APP = "pinboard";
 
     // if changing should also change .nvmrc (at the root of repo)
     const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_14_X;
@@ -68,6 +65,18 @@ export class PinBoardStack extends Stack {
       resources: [`arn:aws:ssm:${region}:${account}:parameter/${APP}/*`],
     });
 
+    const permissionsFilePolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
+    });
+
+    const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["s3:GetObject"],
+      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
+    });
+
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const vpcId = Fn.importValue(
@@ -79,7 +88,7 @@ export class PinBoardStack extends Stack {
       "workflow-datastore-vpc",
       {
         vpcId: vpcId,
-        availabilityZones: Fn.getAzs(AWS_REGION),
+        availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
           Fn.importValue(`WorkflowPrivateSubnetIds-${STAGE}`)
@@ -175,6 +184,30 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
 
+    const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
+
+    const pinboardAuthLambda = new lambda.Function(
+      thisStack,
+      pinboardAuthLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(11),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${pinboardAuthLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${pinboardAuthLambdaBasename}/${pinboardAuthLambdaBasename}.zip`
+        ),
+        initialPolicy: [pandaConfigAndKeyPolicyStatement],
+      }
+    );
+
     const gqlSchema = appsync.Schema.fromAsset(
       join(__dirname, "../shared/graphql/schema.graphql")
     );
@@ -188,11 +221,25 @@ export class PinBoardStack extends Stack {
         schema: gqlSchema,
         authorizationConfig: {
           defaultAuthorization: {
-            authorizationType: appsync.AuthorizationType.API_KEY,
+            authorizationType: appsync.AuthorizationType.LAMBDA,
+            lambdaAuthorizerConfig: {
+              handler: pinboardAuthLambda,
+              resultsCacheTtl: Duration.seconds(30),
+            },
           },
         },
         xrayEnabled: true,
       }
+    );
+    pinboardAuthLambda.grantInvoke(
+      new iam.ServicePrincipal("appsync.amazonaws.com").withConditions({
+        ArnLike: {
+          "aws:SourceArn": pinboardAppsyncApi.arn,
+        },
+        StringEquals: {
+          "aws:SourceAccount": account,
+        },
+      })
     );
 
     const pinboardItemTableBaseName = "pinboard-item-table";
@@ -315,6 +362,8 @@ export class PinBoardStack extends Stack {
           appsync.Values.projecting("input")
             .attribute("timestamp")
             .is("$util.time.nowEpochSeconds()")
+            .attribute("userEmail")
+            .is("$ctx.identity.resolverContext.userEmail")
         )
       ),
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
@@ -337,7 +386,7 @@ export class PinBoardStack extends Stack {
           "operation": "UpdateItem",
           "key" : {
             "pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.args.input.userEmail)
+            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
           },
           "update" : {
             "expression" : "SET seenAt = :seenAt, itemID = :itemID",
@@ -391,7 +440,7 @@ export class PinBoardStack extends Stack {
           "version": "2017-02-28",
           "operation": "UpdateItem",
           "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.args.userEmail)
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
           },
           "update" : {
             "expression" : "SET webPushSubscription = :webPushSubscription",
@@ -407,23 +456,19 @@ export class PinBoardStack extends Stack {
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
-      fieldName: "getUser",
+      fieldName: "getMyUser",
       requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbGetItem("email", "email")
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          }
+        }
+      `)
       ),
       responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    const permissionsFilePolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
-    });
-
-    const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
     });
 
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
@@ -469,13 +514,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    // this allows the lambda to query/create AppSync config/secrets
-    const bootstrappingLambdaAppSyncPolicyStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ["appsync:*"],
-      resources: ["arn:aws:appsync:eu-west-1:*"], //TODO tighten up if possible
-    });
-
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;
 
@@ -491,6 +529,8 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
+          [ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint]:
+            pinboardAppsyncApi.graphqlUrl,
         },
         functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -498,7 +538,7 @@ export class PinBoardStack extends Stack {
           `${STACK}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
         ),
         initialPolicy: [
-          bootstrappingLambdaAppSyncPolicyStatement,
+          pandaConfigAndKeyPolicyStatement,
           permissionsFilePolicyStatement,
         ],
       }
@@ -516,7 +556,7 @@ export class PinBoardStack extends Stack {
             new iam.PolicyStatement({
               effect: iam.Effect.ALLOW,
               actions: ["execute-api:Invoke"],
-              resources: [`arn:aws:execute-api:${AWS_REGION}:*`],
+              resources: [`arn:aws:execute-api:${region}:*`],
               principals: [new iam.AnyPrincipal()],
             }),
           ],

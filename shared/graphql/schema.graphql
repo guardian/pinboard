@@ -61,7 +61,7 @@ type LastItemSeenByUserConnection {
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
-  setWebPushSubscriptionForUser(userEmail: String!, webPushSubscription: AWSJSON): UserWithHasWebPushSubscription
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): UserWithHasWebPushSubscription
 }
 
 type Query {
@@ -77,7 +77,7 @@ type Query {
     nextToken: String
   ): LastItemSeenByUserConnection
 
-  getUser(email: String!): UserWithHasWebPushSubscription
+  getMyUser: UserWithHasWebPushSubscription
 
   searchUsers(
     filter: TableUserFilterInput
@@ -103,14 +103,12 @@ input CreateItemInput {
   message: String
   payload: AWSJSON
   type: String!
-  userEmail: String!
   pinboardId: String!
   mentions: [String!]
 }
 
 input LastItemSeenByUserInput {
   pinboardId: String!
-  userEmail: String!
   itemID: String!
 }
 

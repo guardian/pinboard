@@ -7,13 +7,13 @@ import { AWS_REGION } from "../../shared/awsRegion";
 import {
   pandaPublicConfigFilename,
   pandaSettingsBucketName,
-} from "../../shared/panda";
+} from "../../shared/panDomainAuth";
 
 const panda = new PanDomainAuthentication(
   "gutoolsAuth-assym", // cookie name
   AWS_REGION, // AWS region
   pandaSettingsBucketName, // Settings bucket
-  pandaPublicConfigFilename, // Settings file
+  pandaPublicConfigFilename, // Settings files
   guardianValidation
 );
 

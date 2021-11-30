@@ -9,7 +9,8 @@
     "client",
     "workflow-bridge-lambda",
     "users-refresher-lambda",
-    "notifications-lambda"
+    "notifications-lambda",
+    "auth-lambda"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",

@@ -17,7 +17,7 @@ export const standardAwsConfig = {
 
 const ssm = new AWS.SSM();
 
-export const pinboardSecretPromiseGetter = (nameSuffix: string) => () => {
+export const pinboardSecretPromiseGetter = (nameSuffix: string) => {
   const Name = `/${process.env.APP}/${nameSuffix}`;
   return ssm
     .getParameter({

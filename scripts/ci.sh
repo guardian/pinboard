@@ -41,6 +41,9 @@ yarn --cwd 'users-refresher-lambda' build
 # build notifications-lambda into a single file
 yarn --cwd 'notifications-lambda' build
 
+# build auth-lambda into a single file
+yarn --cwd 'auth-lambda' build
+
 # build push-notifications service-worker
 yarn --cwd 'client' build-service-worker
 

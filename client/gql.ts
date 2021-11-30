@@ -79,17 +79,17 @@ query MyQuery {
 }
 `;
 
-export const gqlGetUser = (email: string) => gql`
+export const gqlGetMyUser = gql`
 query MyQuery {
-  getUser(email: "${email}") {
+  getMyUser {
     ${userReturnFieldsWithHasWebPushSubscription}
   }
 }
 `;
 
 export const gqlSetWebPushSubscriptionForUser = gql`
-  mutation SetWebPushSubscriptionForUser($userEmail: String!, $webPushSubscription: AWSJSON) {
-    setWebPushSubscriptionForUser(userEmail: $userEmail, webPushSubscription: $webPushSubscription) {
+  mutation SetWebPushSubscriptionForUser($webPushSubscription: AWSJSON) {
+    setWebPushSubscriptionForUser(webPushSubscription: $webPushSubscription) {
       ${userReturnFieldsWithHasWebPushSubscription}
     }
   }

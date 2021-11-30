@@ -5,12 +5,11 @@ import {
 } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
 import * as AWS from "aws-sdk";
-import * as iniparser from "iniparser";
 import { standardAwsConfig } from "../../shared/awsIntegration";
 import {
-  pandaConfigFilename,
   pandaSettingsBucketName,
-} from "../../shared/panda";
+  getPandaConfig,
+} from "../../shared/panDomainAuth";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { userTableTTLAttribute } from "../../shared/constants";
@@ -19,11 +18,6 @@ import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
 
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
-
-const pandaConfigLocation = {
-  Bucket: pandaSettingsBucketName,
-  Key: pandaConfigFilename,
-};
 
 const S3 = new AWS.S3(standardAwsConfig);
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
@@ -42,21 +36,11 @@ export const handler = async () => {
     throw Error("Could not get list of users with 'pinboard' permission.");
   }
 
-  const pandaConfigIni = (
-    await S3.getObject(pandaConfigLocation).promise()
-  ).Body?.toString();
-
-  if (!pandaConfigIni) {
-    throw Error(
-      `could not read panda config ${JSON.stringify(pandaConfigLocation)}`
-    );
-  }
-
-  const pandaConfig = iniparser.parseString(pandaConfigIni) as {
+  const pandaConfig = await getPandaConfig<{
     googleServiceAccountId: string;
     googleServiceAccountCert: string;
     google2faUser: string;
-  };
+  }>(S3);
 
   const serviceAccountPrivateKey = p12ToPem(
     (

@@ -2,9 +2,10 @@ import { createServer, proxy } from "aws-serverless-express";
 import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
-import { generateAppSyncConfig } from "./appSyncLookup";
-import { getVerifiedUserEmail } from "./panDomainAuth";
+import { generateAppSyncConfig } from "./generateAppSyncConfig";
+import { standardAwsConfig } from "../../shared/awsIntegration";
 import { userHasPermission } from "./permissionCheck";
+import * as AWS from "aws-sdk";
 import fs from "fs";
 import {
   applyAggressiveCaching,
@@ -12,8 +13,11 @@ import {
   applyJavascriptContentType,
 } from "./util";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
+import { getVerifiedUserEmail } from "./panDomainAuth";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
+
+const S3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
@@ -76,16 +80,16 @@ server.get("/pinboard.loader.js", async (request, response) => {
     return response.send(`console.error('${message}')`);
   }
 
-  const maybeAuthedUserEmail = await getVerifiedUserEmail(
-    request.header("Cookie")
-  );
+  const maybeCookieHeader = request.header("Cookie");
+
+  const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
 
   if (!maybeAuthedUserEmail) {
     const message = "pan-domain auth cookie missing, invalid or expired";
     console.warn(message);
     response.send(`console.error('${message}')`);
   } else if (await userHasPermission(maybeAuthedUserEmail)) {
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail);
+    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
 
     response.send(
       loaderTemplate(

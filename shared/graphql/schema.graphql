@@ -63,6 +63,7 @@ type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
   setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): DetailedUser
+  setPinboardPreferences(pinboardId: String!, specificPinboardPreferences: AWSJSON): DetailedUser
 }
 
 type Query {
@@ -78,7 +79,7 @@ type Query {
     nextToken: String
   ): LastItemSeenByUserConnection
 
-  getMyDetailedUser: UserWithHasWebPushSubscription
+  getMyDetailedUser: DetailedUser
 
   searchUsers(
     filter: TableUserFilterInput

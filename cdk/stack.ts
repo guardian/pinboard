@@ -455,6 +455,32 @@ export class PinBoardStack extends Stack {
     });
 
     pinboardUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "setPinboardPreferences",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          "update" : {
+            "expression" : "SET perPinboardPreferences.#pinboardId = :specificPinboardPreferences",
+            "expressionValues": {
+              ":specificPinboardPreferences" : $util.dynamodb.toDynamoDBJson($ctx.args.specificPinboardPreferences)
+            },
+            "expressionNames": {
+              "#pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.pinboardId)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
+    });
+
+    pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "getMyDetailedUser",
       requestMappingTemplate: resolverBugWorkaround(

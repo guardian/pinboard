@@ -417,6 +417,14 @@ export class PinBoardStack extends Stack {
       ),
     });
 
+    pinboardWorkflowBridgeLambdaDataSource.createResolver({
+      typeName: "Query",
+      fieldName: "getMyRelevantPinboards",
+      responseMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.lambdaResult()
+      ),
+    });
+
     const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
       .MappingTemplate.fromString(`
         #set($output = $ctx.result)

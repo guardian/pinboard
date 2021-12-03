@@ -419,7 +419,7 @@ export class PinBoardStack extends Stack {
 
     pinboardWorkflowBridgeLambdaDataSource.createResolver({
       typeName: "Query",
-      fieldName: "getMyRelevantPinboards",
+      fieldName: "listMyRelevantPinboards",
       responseMappingTemplate: resolverBugWorkaround(
         appsync.MappingTemplate.lambdaResult()
       ),

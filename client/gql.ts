@@ -16,6 +16,13 @@ export const gqlGetPinboardByComposerId = gql`
     getPinboardByComposerId(composerId: $composerId) { ${pinboardReturnFields} }
   }
 `;
+export const gqlListMyRelevantPinboards = (
+  relevanceThresholdInDays: number
+) => gql`
+  query MyQuery {
+    listMyRelevantPinboards(relevanceThresholdInDays: ${relevanceThresholdInDays}) { ${pinboardReturnFields} }
+  }
+`;
 
 const itemReturnFields = `
   id

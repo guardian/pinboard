@@ -87,9 +87,10 @@ type Query {
 
   listPinboards: [WorkflowStub]
 
+  listMyRelevantPinboards(relevanceThresholdInDays: Int): [WorkflowStub]
+
   getPinboardByComposerId(composerId: String): WorkflowStub
 
-  getMyRelevantPinboards(relevanceThresholdInDays: Int): [WorkflowStub]
 }
 
 type Subscription {

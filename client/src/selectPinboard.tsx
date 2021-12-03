@@ -9,7 +9,7 @@ import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/src-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlListPinboards } from "../gql";
+import { gqlListMyRelevantPinboards, gqlListPinboards } from "../gql";
 import { WorkflowStub } from "../../shared/graphql/graphql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 
@@ -38,11 +38,15 @@ export const SelectPinboard = ({
 }: SelectPinboardProps) => {
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery<{ listPinboards: PinboardData[] }>(
+  const allPinboardsQuery = useQuery<{ listPinboards: PinboardData[] }>(
     gqlListPinboards
   );
 
-  const allPinboards = [...(data?.listPinboards || [])].sort(
+  const myRelevantPinboardsQuery = useQuery<{
+    listMyRelevantPinboards: PinboardData[];
+  }>(gqlListMyRelevantPinboards(7));
+
+  const allPinboards = [...(allPinboardsQuery.data?.listPinboards || [])].sort(
     (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
   );
 
@@ -111,20 +115,27 @@ export const SelectPinboard = ({
           hasWebPushSubscription={hasWebPushSubscription}
         />
       )}
-      {loading && <p>Loading pinboards...</p>}
+      {allPinboardsQuery.loading && <p>Loading pinboards...</p>}
       <h4>
         {preselectedPinboard
           ? `Pinboard associated with this piece`
           : `Active pinboards`}
       </h4>
-      {data &&
+      {allPinboardsQuery.data &&
         allPinboards
           .filter((pinboardData: PinboardData) =>
             activePinboardIds.includes(pinboardData.id)
           )
           .map(OpenPinboardButton)}
+      <h4>Relevant pinboards</h4>
+      {myRelevantPinboardsQuery.data?.listMyRelevantPinboards
+        ?.filter(
+          (pinboardData: PinboardData) =>
+            !activePinboardIds.includes(pinboardData.id)
+        )
+        .map(OpenPinboardButton)}
       <h4>Open a pinboard</h4>
-      {data && (
+      {allPinboardsQuery.data && (
         <input
           type="text"
           value={searchText}
@@ -137,7 +148,7 @@ export const SelectPinboard = ({
           }}
         />
       )}
-      {data &&
+      {allPinboardsQuery.data &&
         allPinboards
           .filter(
             (pinboardData: PinboardData) =>

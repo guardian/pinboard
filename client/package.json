@@ -16,7 +16,7 @@
     "@apollo/client": "^3.5.5",
     "@emotion/react": "^11.1.4",
     "@guardian/src-foundations": "^3.3.0",
-    "@webscopeio/react-textarea-autocomplete": "4.8.1",
+    "@webscopeio/react-textarea-autocomplete": "4.9.1",
     "aws-appsync-auth-link": "^3.0.7",
     "aws-appsync-subscription-link": "^3.0.9",
     "date-fns": "^2.19.0",

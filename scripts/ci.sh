@@ -5,7 +5,7 @@ set -e
 # This could be removed if all TC agents guaranteed global yarn installed
 shopt -s expand_aliases
 PROJECT_ROOT=$(pwd)
-alias yarn='node ${PROJECT_ROOT}/.yarn/releases/yarn-*.cjs'
+alias yarn='node ${PROJECT_ROOT}/.yarn/releases/yarn-*.*js'
 
 # install ALL dependencies
 yarn install

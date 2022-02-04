@@ -4,13 +4,14 @@
   "description": "Lambda to keep the users Dynamo table(s) up to date (run on a schedule)",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
     "watch": "ts-node-dev --respawn run.ts",
-    "build": "ncc build src/index.ts -o dist -m -e aws-sdk"
+    "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
     "@types/iniparser": "^0.0.29",
     "@types/node-forge": "^0.9.7",
-    "@vercel/ncc": "^0.25.1",
     "aws-sdk": "^2.840.0",
     "ts-node-dev": "^1.0.0"
   },

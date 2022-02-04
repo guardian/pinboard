@@ -28,7 +28,6 @@ export const SendMessageArea = ({
   allUsers,
   onSuccessfulSend,
   onError,
-  userEmail,
   pinboardId,
   widgetElement,
 }: SendMessageAreaProps) => {

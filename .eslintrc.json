@@ -18,6 +18,7 @@
   },
   "plugins": ["react", "@typescript-eslint", "node"],
   "rules": {
+    "@typescript-eslint/ban-ts-comment": "warn",
     "react/prop-types": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "node/no-restricted-import": [

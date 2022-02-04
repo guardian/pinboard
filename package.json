@@ -4,13 +4,13 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "private": true,
   "workspaces": [
+    "auth-lambda",
     "bootstrapping-lambda",
     "cdk",
     "client",
-    "workflow-bridge-lambda",
-    "users-refresher-lambda",
     "notifications-lambda",
-    "auth-lambda"
+    "users-refresher-lambda",
+    "workflow-bridge-lambda"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",

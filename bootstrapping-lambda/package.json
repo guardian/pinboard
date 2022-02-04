@@ -1,5 +1,5 @@
 {
-  "name": "@guardian/pinboard-bootstrapping-lambda",
+  "name": "bootstrapping-lambda",
   "version": "1.0.0",
   "description": "Lambda to serve JS containing config/secrets to pass on to main client-side PinBoard lib.",
   "main": "index.js",

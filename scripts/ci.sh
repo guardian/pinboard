@@ -9,6 +9,7 @@ alias yarn='node ${PROJECT_ROOT}/.yarn/releases/yarn-*.*js'
 
 # install ALL dependencies
 yarn install
+yarn yarn-deduplicate --fail # if it fails here, then run `yarn yarn-deduplicate` then a `yarn install` then commit
 
 # generate TS definitions for GraphQL schema
 yarn graphql-refresh

@@ -1,4 +1,4 @@
-import {
+import type {
   FontScaleArgs,
   FontScaleFunctionStr,
 } from "@guardian/src-foundations/dist/types/typography/types";

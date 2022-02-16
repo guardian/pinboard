@@ -28,7 +28,7 @@
     "@graphql-codegen/introspection": "1.18.0",
     "@graphql-codegen/typescript": "1.17.11",
     "@graphql-codegen/typescript-resolvers": "1.17.11",
-    "@guardian/node-riffraff-artifact": "^0.1.9",
+    "@guardian/node-riffraff-artifact": "0.3.2",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
     "eslint": "^7.16.0",

@@ -1,6 +1,5 @@
-/** @jsx jsx */
 import { ApolloError, useMutation } from "@apollo/client";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { space } from "@guardian/src-foundations";
 import React, { useState } from "react";
 import { Item, User } from "../../shared/graphql/graphql";

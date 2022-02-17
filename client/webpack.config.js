@@ -10,11 +10,8 @@ module.exports = {
           loader: "babel-loader",
           options: {
             presets: [
-              [
-                "@babel/preset-typescript",
-                { isTSX: true, allExtensions: true },
-              ],
-              "@babel/preset-react",
+              "@babel/preset-typescript",
+              "@emotion/babel-preset-css-prop", // replaces @babel/preset-react
               "@babel/preset-env",
             ],
           },

@@ -1,7 +1,4 @@
-/** @jsx jsx */
-
 import React from "react";
-import { jsx } from "@emotion/react";
 import { standardWidgetContainerCss } from "./widget";
 
 export const NotTrackedInWorkflow = () => (

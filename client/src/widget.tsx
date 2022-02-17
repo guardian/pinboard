@@ -1,6 +1,5 @@
-/** @jsx jsx */
 import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import React, { useEffect, useRef, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboardPrimary, unread } from "../colours";

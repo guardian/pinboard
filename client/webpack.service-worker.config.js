@@ -13,7 +13,13 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-typescript", "@babel/preset-env"],
+            presets: [
+              "@babel/preset-typescript",
+              [
+                "@babel/preset-env",
+                { exclude: ["@babel/plugin-transform-regenerator"] },
+              ],
+            ],
           },
         },
         exclude: /node_modules/,

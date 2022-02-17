@@ -23,7 +23,7 @@ module.exports = {
     },
   },
   output: {
-    library: "Pinboard",
+    library: "PinBoard",
     filename: "pinboard.main.[contenthash].js",
     path: path.resolve(__dirname, "dist"),
   },

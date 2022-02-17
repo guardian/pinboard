@@ -6,7 +6,7 @@
     "type-check": "tsc --noEmit",
     "build-main-client": "webpack",
     "build-service-worker": "webpack --config webpack.service-worker.config.js",
-    "watch": "run-p --print-label 'type-check --watch' 'build-main-client --watch' 'build-service-worker --watch'",
+    "watch": "run-p --print-label 'type-check --watch' 'build-main-client -- --watch --mode=development' 'build-service-worker -- --watch --mode=development'",
     "build": "run-p --print-label type-check build-main-client build-service-worker"
   },
   "dependencies": {

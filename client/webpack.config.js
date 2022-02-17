@@ -6,7 +6,19 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: [
+              [
+                "@babel/preset-typescript",
+                { isTSX: true, allExtensions: true },
+              ],
+              "@babel/preset-react",
+              "@babel/preset-env",
+            ],
+          },
+        },
         exclude: /node_modules/,
       },
       {
@@ -23,6 +35,9 @@ module.exports = {
     },
   },
   output: {
+    clean: {
+      keep: /push-notifications/, // allow service-worker webpack to clean its own dist dir
+    },
     library: "PinBoard",
     filename: "pinboard.main.[contenthash].js",
     path: path.resolve(__dirname, "dist"),

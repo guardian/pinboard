@@ -10,8 +10,13 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        use: "ts-loader",
-        exclude: [/node_modules/, /dist/],
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-typescript", "@babel/preset-env"],
+          },
+        },
+        exclude: /node_modules/,
       },
     ],
   },
@@ -28,7 +33,10 @@ module.exports = {
   output: {
     clean: true,
     publicPath: ".",
-    filename: "[name].js",
+    filename: (pathData) =>
+      pathData.chunk.name === "serviceWorker"
+        ? "[name].js"
+        : "[name].[contenthash].js",
     path: path.resolve(__dirname, "dist/push-notifications"),
   },
 };

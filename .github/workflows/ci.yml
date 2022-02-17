@@ -61,7 +61,6 @@ jobs:
           cp -v bootstrapping-lambda/dist/index.js dist/
           cp -v client/dist/pinboard.main* dist/client
           cp -rv client/dist/push-notifications dist/client
-          rm dist/client/push-notifications/report.html
 
       - name: upload riff-raff artifacts
         run: |

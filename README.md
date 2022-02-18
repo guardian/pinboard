@@ -16,7 +16,7 @@ This exists to...
 
 ## `client`
 
-This module contains the all the real client side code, and is served by the [`bootstrapping-lambda`](#bootstrapping-lambda) (aggressively cached). We use [Parcel](https://parceljs.org/) for bundling, which has been lovely so far (no WebPack headaches).
+This module contains the all the real client side code, and is served by the [`bootstrapping-lambda`](#bootstrapping-lambda) (aggressively cached). We use [webpack](https://webpack.js.org/) for bundling the client.
 
 #### `pinboard.main.tsx`
 

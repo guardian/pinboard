@@ -45,7 +45,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && ((git diff --name-only --cached | grep 'yarn.lock') && yarn yarn-deduplicate) || true"
     }
   },
   "lint-staged": {

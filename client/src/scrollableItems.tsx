@@ -174,7 +174,7 @@ export const ScrollableItems = ({
     if (isExpanded && shouldBeScrolledToLastItem() && lastItemID) {
       seenLastItem();
     }
-  }, [isExpanded]); // runs when the widget is expanded/closed
+  }, [isExpanded]); // runs when expanded/closed
 
   const [timestampLastRefreshed, setTimestampLastRefreshed] = useState<number>(
     Date.now()

@@ -2,7 +2,7 @@ import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { css } from "@emotion/react";
 import { PinboardData } from "./pinboard";
-import { PerPinboard, standardWidgetContainerCss } from "./widget";
+import { PerPinboard, standardFloatyContainerCss } from "./floaty";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/src-foundations";
@@ -74,7 +74,7 @@ export const SelectPinboard = ({
   );
 
   return (
-    <div css={standardWidgetContainerCss}>
+    <div css={standardFloatyContainerCss}>
       {payloadToBeSent && (
         <div
           css={css`
@@ -104,7 +104,7 @@ export const SelectPinboard = ({
         </div>
       )}
       {!hasWebPushSubscription && (
-        /* TODO move this and the one at the bottom of the file to widget */
+        /* TODO move this and the one at the bottom of the file to floaty */
         <PushNotificationPreferencesOpener
           hasWebPushSubscription={hasWebPushSubscription}
         />

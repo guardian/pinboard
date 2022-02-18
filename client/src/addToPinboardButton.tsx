@@ -13,7 +13,7 @@ export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
-  expandWidget: () => void;
+  expand: () => void;
 }
 
 const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
@@ -31,7 +31,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             type: `${source}-${sourceType}`,
             payload,
           });
-          props.expandWidget();
+          props.expand();
         }}
         css={css`
           display: flex;
@@ -65,7 +65,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
 interface ButtonPortalProps {
   node: HTMLElement;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
-  expandWidget: () => void;
+  expand: () => void;
 }
 
 export const ButtonPortal = ({

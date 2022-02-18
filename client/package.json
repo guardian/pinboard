@@ -1,5 +1,5 @@
 {
-  "name": "@guardian/pinboard-client",
+  "name": "client",
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {

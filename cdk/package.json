@@ -1,5 +1,5 @@
 {
-  "name": "@guardian/pinboard-cdk",
+  "name": "cdk",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",

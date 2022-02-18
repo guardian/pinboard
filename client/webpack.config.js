@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./src/pinboard.main.tsx",
+  entry: "./src/app.tsx",
   module: {
     rules: [
       {

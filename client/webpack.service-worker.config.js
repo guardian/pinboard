@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: {
-    register: "./src/push-notifications/registerServiceWorker.ts",
+    registerServiceWorker: "./src/push-notifications/registerServiceWorker.ts",
     serviceWorker: "./src/push-notifications/serviceWorker.ts",
   },
   module: {

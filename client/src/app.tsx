@@ -1,79 +1,39 @@
-import "preact/debug";
 import React, { useEffect, useRef, useState } from "react";
-import { ButtonPortal, ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
-import { render } from "react-dom";
-import { ClientConfig } from "../../shared/clientConfig";
+import { PayloadAndType } from "./types/PayloadAndType";
+import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
 import {
   ApolloClient,
   ApolloProvider,
-  InMemoryCache,
-  useQuery,
-  ApolloLink,
   useMutation,
+  useQuery,
 } from "@apollo/client";
-import { AWS_REGION } from "../../shared/awsRegion";
-import { createAuthLink } from "aws-appsync-auth-link";
-import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
-import { Floaty } from "./floaty";
-import { PayloadAndType } from "./types/PayloadAndType";
-import {
-  Item,
-  User,
-  UserWithHasWebPushSubscription,
-} from "../../shared/graphql/graphql";
 import {
   gqlGetAllUsers,
   gqlGetMyUser,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import {
+  Item,
+  User,
+  UserWithHasWebPushSubscription,
+} from "../../shared/graphql/graphql";
+import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
+import {
   desktopNotificationsPreferencesUrl,
   HiddenIFrameForServiceWorker,
 } from "./pushNotificationPreferences";
-import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
-import { UrlInfo } from "aws-appsync-subscription-link/lib/types";
+import { Floaty } from "./floaty";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
-
-export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
-  const apolloUrlInfo: UrlInfo = {
-    url: appSyncConfig.graphqlEndpoint,
-    region: AWS_REGION,
-    auth: {
-      type: "AWS_LAMBDA",
-      token: appSyncConfig.authToken,
-    },
-  };
-
-  const apolloClient = new ApolloClient({
-    link: ApolloLink.from([
-      createAuthLink(apolloUrlInfo),
-      createSubscriptionHandshakeLink(apolloUrlInfo),
-    ]),
-    cache: new InMemoryCache(),
-  });
-
-  const element = document.createElement("pinboard");
-
-  document.body.appendChild(element);
-
-  render(
-    React.createElement(PinBoardApp, {
-      apolloClient,
-      userEmail,
-    }),
-    element
-  );
-}
 
 interface PinBoardAppProps {
   apolloClient: ApolloClient<Record<string, unknown>>;
   userEmail: string;
 }
 
-const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
+export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );

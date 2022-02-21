@@ -11,8 +11,8 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { textSans } from "../fontNormaliser";
 import { Item, User } from "../../shared/graphql/graphql";
-import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import root from "react-shadow/emotion";
+import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 
 const bottomRight = 10;
 const floatySize = 50;

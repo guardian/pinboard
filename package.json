@@ -21,7 +21,7 @@
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
     "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
     "test": "yarn --cwd 'client' jest 2>&1",
-    "build": "wsrun --parallel --fast-exit --collect-logs --prefix build "
+    "build": "wsrun --parallel --fast-exit --prefix --report build "
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",

@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
-    "watch": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep --line-buffered -v 'Could not load source file'",
-    "build": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard",
+    "watch-main-client": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep --line-buffered -v 'Could not load source file'",
+    "build-main-client": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard",
     "watch-service-worker": "tsc --noEmit --watch & parcel watch src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'",
-    "build-service-worker": "tsc --noEmit & parcel build src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'"
+    "build-service-worker": "tsc --noEmit & parcel build src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'",
+    "watch": "run-p --print-label watch-main-client watch-service-worker",
+    "build": "run-p --print-label build-main-client build-service-worker"
   },
   "alias": {
     "react": "preact/compat",

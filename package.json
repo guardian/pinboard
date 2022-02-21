@@ -18,10 +18,10 @@
     "prettier-check": "prettier --check .",
     "lint": "eslint . --ext .ts --ext .tsx",
     "watch-client": "yarn --cwd 'client' watch 2>&1",
-    "watch-service-worker": "yarn --cwd 'client' watch-service-worker 2>&1",
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
-    "watch": "run-p --print-label watch-client watch-service-worker watch-bootstrapping-lambda",
-    "test": "yarn --cwd 'client' jest 2>&1"
+    "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
+    "test": "yarn --cwd 'client' jest 2>&1",
+    "build": "wsrun --parallel --fast-exit --collect-logs --prefix build "
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",
@@ -38,6 +38,7 @@
     "lint-staged": ">=10",
     "prettier": "2.2.1",
     "typescript": "^4.0.5",
+    "wsrun": "^5.2.4",
     "yarn-run-all": "^3.1.1"
   },
   "husky": {

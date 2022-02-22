@@ -21,14 +21,13 @@
     "@typescript-eslint/ban-ts-comment": "warn",
     "react/prop-types": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "node/no-restricted-import": [
+    "no-restricted-imports": [
       "error",
-      [
-        {
-          "name": "@guardian/src-foundations/typography",
-          "message": "Please use the modified fonts from fontNormaliser.ts"
-        }
-      ]
+      {
+        "name": "@guardian/source-foundations",
+        "importNames": ["textSans", "headline", "titlepiece", "body"],
+        "message": "Please use the modified fonts from fontNormaliser.ts"
+      }
     ]
   },
   "settings": {

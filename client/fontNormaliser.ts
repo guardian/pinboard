@@ -1,9 +1,10 @@
 import type {
   FontScaleArgs,
   FontScaleFunctionStr,
-} from "@guardian/src-foundations/dist/types/typography/types";
-// eslint-disable-next-line node/no-restricted-import
-import * as typography from "@guardian/src-foundations/typography";
+} from "@guardian/source-foundations/dist/types/typography/types";
+
+// eslint-disable-next-line no-restricted-imports -- suppress our own lint rule as this is the one legit place to import the fonts
+import * as sourceFoundations from "@guardian/source-foundations";
 
 const defaultToPx = (originalFunc: FontScaleFunctionStr) => (
   options?: FontScaleArgs
@@ -20,7 +21,7 @@ const pixelSizedFont = <T extends FontDefinition>(originalFont: T) =>
     {} as T
   );
 
-export const textSans = pixelSizedFont(typography.textSans);
-export const headline = pixelSizedFont(typography.headline);
-export const titlepiece = pixelSizedFont(typography.titlepiece);
-export const body = pixelSizedFont(typography.body);
+export const textSans = pixelSizedFont(sourceFoundations.textSans);
+export const headline = pixelSizedFont(sourceFoundations.headline);
+export const titlepiece = pixelSizedFont(sourceFoundations.titlepiece);
+export const body = pixelSizedFont(sourceFoundations.body);

@@ -5,7 +5,7 @@ import { PinboardData } from "./pinboard";
 import { PerPinboard, standardFloatyContainerCss } from "./floaty";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
 import { WorkflowStub } from "../../shared/graphql/graphql";

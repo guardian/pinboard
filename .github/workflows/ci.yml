@@ -13,17 +13,18 @@ jobs:
 
     # See https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:
-      # required by guardian/actions-assume-aws-role
+      # required by aws-actions/configure-aws-credentials
       id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v2
 
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
-      # See https://github.com/guardian/actions-assume-aws-role
-      - uses: guardian/actions-assume-aws-role@v1
+      # See https://github.com/aws-actions/configure-aws-credentials
+      - uses: aws-actions/configure-aws-credentials@v1
         with:
-          awsRoleToAssume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          aws-region: eu-west-1
 
       # Setup Node, checking common Node config files to determine the version of Node to use.
       # See https://github.com/guardian/actions-setup-node

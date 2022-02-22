@@ -1,6 +1,5 @@
-/** @jsx jsx */
 import React, { PropsWithChildren } from "react";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { pinboardPrimary } from "../colours";
 import { space } from "@guardian/src-foundations";
 interface HeadingPanelProps {

@@ -1,5 +1,5 @@
-/** @jsx jsx */
-import { css, jsx } from "@emotion/react";
+import React from "react";
+import { css } from "@emotion/react";
 import { pinMetal } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";

@@ -1,8 +1,7 @@
-/** @jsx jsx */
 import ReactDOM from "react-dom";
 import React, { ReactPortal } from "react";
 import PinIcon from "../icons/pin-icon.svg";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";

@@ -23,7 +23,7 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
     // running in popout (rather than iFrame)
     if (window.opener) {
       const swRegistration = await navigator.serviceWorker.register(
-        "serviceWorker.ts",
+        "serviceWorker.js",
         {
           updateViaCache: "none",
         }

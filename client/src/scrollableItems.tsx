@@ -1,4 +1,3 @@
-/** @jsx jsx */
 import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, {
   ReactElement,
@@ -7,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { unread } from "../colours";
 import { space } from "@guardian/src-foundations";
 import { ItemDisplay } from "./itemDisplay";

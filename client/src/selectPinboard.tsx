@@ -1,8 +1,6 @@
-/** @jsx jsx */
-
 import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { PinboardData } from "./pinboard";
 import { PerPinboard, standardWidgetContainerCss } from "./widget";
 import { PayloadDisplay } from "./payloadDisplay";

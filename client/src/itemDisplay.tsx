@@ -1,7 +1,6 @@
-/** @jsx jsx */
 import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, { Fragment } from "react";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { palette, space } from "@guardian/src-foundations";

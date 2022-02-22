@@ -1,6 +1,5 @@
-/** @jsx jsx */
 import React from "react";
-import { css, jsx } from "@emotion/react";
+import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/src-foundations";

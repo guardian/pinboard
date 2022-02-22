@@ -3,16 +3,18 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
-    "watch-main-client": "tsc --noEmit --watch & parcel watch parcel-entry.html --global PinBoard 2>&1 | grep --line-buffered -v 'Could not load source file'",
-    "build-main-client": "tsc --noEmit && parcel build parcel-entry.html --global PinBoard",
-    "watch-service-worker": "tsc --noEmit --watch & parcel watch src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'",
-    "build-service-worker": "tsc --noEmit && parcel build src/push-notifications/index.html --out-dir dist/push-notifications --public-url '.'",
-    "watch": "run-p --print-label watch-main-client watch-service-worker",
-    "build": "run-p --print-label build-main-client build-service-worker"
+    "type-check": "tsc --noEmit",
+    "build-main-client": "webpack",
+    "build-service-worker": "webpack --config webpack.service-worker.config.js",
+    "analyze-main-client-bundle": "webpack --config webpack-bundle-analyzer.config.js",
+    "analyze-main-client-bundle-if-changed": "((git diff --name-only --cached | grep 'yarn.lock') && yarn analyze-main-client-bundle) || true",
+    "watch": "run-p --print-label 'type-check --watch' 'build-main-client -- --watch --mode=development' 'build-service-worker -- --watch --mode=development'",
+    "build": "run-p --print-label type-check build-main-client build-service-worker"
   },
-  "alias": {
-    "react": "preact/compat",
-    "react-dom": "preact/compat"
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn analyze-main-client-bundle-if-changed"
+    }
   },
   "dependencies": {
     "@apollo/client": "^3.5.5",
@@ -27,15 +29,23 @@
     "react-shadow": "^19.0.2"
   },
   "devDependencies": {
-    "@svgr/parcel-plugin-svgr": "^5.5.0",
+    "@babel/core": "^7.17.4",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-typescript": "^7.16.7",
+    "@emotion/babel-preset-css-prop": "^11.2.0",
+    "@svgr/webpack": "^6.2.1",
     "@types/jest": "^26.0.22",
     "@types/react": "^16.9.56",
     "@types/react-dom": "^16.9.9",
     "@types/webscopeio__react-textarea-autocomplete": "^4.7.0",
+    "babel-loader": "^8.2.3",
+    "html-webpack-plugin": "^5.5.0",
     "jest": "^26.6.3",
     "jest-environment-node": "^26.6.2",
-    "parcel-bundler": "^1.12.4",
-    "parcel-plugin-bundle-visualiser": "^1.2.0",
-    "ts-jest": "^26.5.4"
+    "ts-jest": "^26.5.4",
+    "webpack": "^5.69.0",
+    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-merge": "^5.8.0"
   }
 }

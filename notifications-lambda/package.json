@@ -4,14 +4,15 @@
   "description": "Lambda to receive DynamoDB Stream events from Item table and send desktop notifications to users",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist -m -e aws-sdk",
-    "watch": "ts-node-dev --respawn run.ts"
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
+    "watch": "ts-node-dev --respawn run.ts",
+    "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
     "@types/web-push": "^3.3.2",
-    "@vercel/ncc": "^0.25.1",
-    "ts-node-dev": "^1.1.8",
-    "aws-sdk": "^2.840.0"
+    "aws-sdk": "^2.840.0",
+    "ts-node-dev": "^1.1.8"
   },
   "dependencies": {
     "web-push": "^3.4.5"

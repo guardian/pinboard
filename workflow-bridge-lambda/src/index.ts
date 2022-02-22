@@ -16,7 +16,14 @@ async function getPinboardByComposerId(composerId: string) {
   const contentResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/content/${composerId}`
   );
-  const data = (await contentResponse.json()).data;
+  const data = ((await contentResponse.json()) as {
+    data: {
+      externalData: {
+        status: string;
+      };
+      // there are other fields, but they're just being forwarded on
+    };
+  }).data;
   return { ...data, status: data?.externalData?.status };
 }
 
@@ -26,9 +33,12 @@ async function getAllPinboards() {
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
   );
-  const stubsResponseBody = await stubsResponse.json();
-  const groupedStubs: { [status: string]: WorkflowStub[] } =
-    stubsResponseBody.data.content;
+  const stubsResponseBody = (await stubsResponse.json()) as {
+    data: {
+      content: { [status: string]: WorkflowStub[] };
+    };
+  };
+  const groupedStubs = stubsResponseBody.data.content;
 
   return Object.entries(groupedStubs).reduce(
     (accumulator, [status, stubs]) => [

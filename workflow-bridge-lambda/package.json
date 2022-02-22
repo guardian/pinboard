@@ -4,11 +4,14 @@
   "description": "Lambda to transform Workflow datastore API endpoints, for ingesting into AppSync",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist -m -e aws-sdk"
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --platform=node",
+    "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.5.7",
-    "@vercel/ncc": "^0.25.1",
-    "node-fetch": "^2.6.1"
+    "@types/node-fetch": "^3.0.3"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.0"
   }
 }

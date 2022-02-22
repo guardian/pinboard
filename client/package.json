@@ -7,13 +7,12 @@
     "build-main-client": "webpack",
     "build-service-worker": "webpack --config webpack.service-worker.config.js",
     "analyze-main-client-bundle": "webpack --config webpack-bundle-analyzer.config.js",
-    "analyze-main-client-bundle-if-changed": "((git diff --name-only --cached | grep 'yarn.lock') && yarn analyze-main-client-bundle) || true",
     "watch": "run-p --print-label 'type-check --watch' 'build-main-client -- --watch --mode=development' 'build-service-worker -- --watch --mode=development'",
     "build": "run-p --print-label type-check build-main-client build-service-worker"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn analyze-main-client-bundle-if-changed"
+      "pre-commit": "((git diff --name-only --cached | grep 'yarn.lock') && yarn analyze-main-client-bundle) || true "
     }
   },
   "dependencies": {

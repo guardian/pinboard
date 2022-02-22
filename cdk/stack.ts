@@ -567,6 +567,7 @@ export class PinBoardStack extends Stack {
         deployOptions: {
           stageName: "api",
         },
+        minimumCompressionSize: 0, // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
       }
     );
 

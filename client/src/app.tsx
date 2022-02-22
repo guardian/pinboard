@@ -14,7 +14,7 @@ import {
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
-import { Widget } from "./widget";
+import { Floaty } from "./floaty";
 import { PayloadAndType } from "./types/PayloadAndType";
 import {
   Item,
@@ -92,11 +92,11 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     string | null | undefined
   >(preSelectedComposerIdFromQueryParam);
 
-  const [isWidgetExpanded, setIsWidgetExpanded] = useState<boolean>(
+  const [isExpanded, setIsExpanded] = useState<boolean>(
     !!preSelectedComposerIdFromQueryParam || // expand by default when preselected via url query param
       queryParams.get(EXPAND_PINBOARD_QUERY_PARAM)?.toLowerCase() === "true"
   );
-  const expandWidget = () => setIsWidgetExpanded(true);
+  const expandFloaty = () => setIsExpanded(true);
 
   const refreshButtonNodes = () =>
     setButtonNodes(
@@ -212,13 +212,13 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-      <Widget
+      <Floaty
         userEmail={userEmail}
         preselectedComposerId={preSelectedComposerId}
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
-        isExpanded={isWidgetExpanded}
-        setIsExpanded={setIsWidgetExpanded}
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
         userLookup={userLookup}
         hasWebPushSubscription={hasWebPushSubscription}
         showNotification={showDesktopNotification}
@@ -231,7 +231,7 @@ const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           key={index}
           node={node}
           setPayloadToBeSent={setPayloadToBeSent}
-          expandWidget={expandWidget}
+          expand={expandFloaty}
         />
       ))}
     </ApolloProvider>

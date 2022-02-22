@@ -8,7 +8,7 @@ import {
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css } from "@emotion/react";
-import { WidgetProps } from "./widget";
+import { FloatyProps } from "./floaty";
 import { PendingItem } from "./types/PendingItem";
 import {
   gqlGetInitialItems,
@@ -24,7 +24,7 @@ export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
 }
 
-interface PinboardProps extends WidgetProps {
+interface PinboardProps extends FloatyProps {
   pinboardData: PinboardData;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
   setUnreadFlag: (hasUnread: boolean | undefined) => void;
@@ -33,7 +33,7 @@ interface PinboardProps extends WidgetProps {
   isExpanded: boolean;
   isSelected: boolean;
   clearSelectedPinboard: () => void;
-  widgetElement: HTMLDivElement | null;
+  floatyElement: HTMLDivElement | null;
 }
 
 export const Pinboard = ({
@@ -49,12 +49,12 @@ export const Pinboard = ({
   clearSelectedPinboard,
   payloadToBeSent,
   clearPayloadToBeSent,
-  widgetElement,
+  floatyElement,
   showNotification,
 }: PinboardProps) => {
   const pinboardId = pinboardData.id;
 
-  // TODO: extract to widget level?
+  // TODO: extract to floaty level?
   const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const updateForSubscription = subscriptionData.data.onCreateItem;
@@ -178,7 +178,7 @@ export const Pinboard = ({
         onError={(error) => setError(pinboardId, error)}
         userEmail={userEmail}
         pinboardId={pinboardId}
-        widgetElement={widgetElement}
+        floatyElement={floatyElement}
       />
     </React.Fragment>
   );

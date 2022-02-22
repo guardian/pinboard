@@ -15,10 +15,10 @@ import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import root from "react-shadow/emotion";
 
 const bottomRight = 10;
-const widgetSize = 50;
+const floatySize = 50;
 const boxShadow =
   "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
-export const standardWidgetContainerCss = css`
+export const standardFloatyContainerCss = css`
   overflow-y: auto;
   margin: ${space[1]}px;
   h4 {
@@ -29,7 +29,7 @@ export const standardWidgetContainerCss = css`
 export type PerPinboard<T> = {
   [pinboardId: string]: T | undefined;
 };
-export interface WidgetProps {
+export interface FloatyProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
@@ -42,7 +42,7 @@ export interface WidgetProps {
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
 }
 
-export const Widget = (props: WidgetProps) => {
+export const Floaty = (props: FloatyProps) => {
   const { isExpanded, setIsExpanded } = props;
 
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
@@ -174,7 +174,7 @@ export const Widget = (props: WidgetProps) => {
     });
   }, []);
 
-  const widgetRef = useRef<HTMLDivElement>(null);
+  const floatyRef = useRef<HTMLDivElement>(null);
   return (
     <root.div
       css={css`
@@ -188,9 +188,9 @@ export const Widget = (props: WidgetProps) => {
           z-index: 99999;
           bottom: ${bottomRight}px;
           right: ${bottomRight}px;
-          width: ${widgetSize}px;
-          height: ${widgetSize}px;
-          border-radius: ${widgetSize / 2}px;
+          width: ${floatySize}px;
+          height: ${floatySize}px;
+          border-radius: ${floatySize / 2}px;
           cursor: pointer;
           box-shadow: ${boxShadow};
           background-color: ${pinboardPrimary};
@@ -203,8 +203,8 @@ export const Widget = (props: WidgetProps) => {
             top: 50%;
             left: 54%;
             transform: translate(-50%, -50%);
-            height: ${widgetSize}px;
-            width: ${widgetSize / 2}px;
+            height: ${floatySize}px;
+            width: ${floatySize / 2}px;
             path {
               stroke: ${pinMetal};
               stroke-width: 0.5px;
@@ -215,8 +215,8 @@ export const Widget = (props: WidgetProps) => {
           <div
             css={css`
               position: absolute;
-              font-size: ${widgetSize / 4}px;
-              bottom: -${widgetSize / 16}px;
+              font-size: ${floatySize / 4}px;
+              bottom: -${floatySize / 16}px;
               right: 0px;
               user-select: none;
               text-shadow: 0 0 5px black;
@@ -249,14 +249,14 @@ export const Widget = (props: WidgetProps) => {
           border: 2px ${pinboardPrimary} solid;
           width: 250px;
           height: calc(100vh - 100px);
-          bottom: ${bottomRight + widgetSize / 2 - 5}px;
-          right: ${bottomRight + widgetSize / 2 - 5}px;
+          bottom: ${bottomRight + floatySize / 2 - 5}px;
+          right: ${bottomRight + floatySize / 2 - 5}px;
           display: ${isExpanded ? "flex" : "none"};
           flex-direction: column;
           justify-content: space-between;
           font-family: sans-serif;
         `}
-        ref={widgetRef}
+        ref={floatyRef}
       >
         {isNotTrackedInWorkflow ? (
           <NotTrackedInWorkflow />
@@ -303,7 +303,7 @@ export const Widget = (props: WidgetProps) => {
               isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
               isSelected={pinboardData.id === selectedPinboardId}
               clearSelectedPinboard={clearSelectedPinboard}
-              widgetElement={widgetRef.current}
+              floatyElement={floatyRef.current}
             />
           ))
         }

@@ -49,7 +49,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         Add to
         <PinIcon
           css={css`
-            height: 30px;
+            height: 18px;
             margin-left: ${space[1]}px;
             path {
               stroke: ${pinMetal};

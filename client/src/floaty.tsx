@@ -9,7 +9,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { space } from "@guardian/source-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
-import { textSans } from "../fontNormaliser";
+import { agateSans } from "../fontNormaliser";
 import { Item, User } from "../../shared/graphql/graphql";
 import root from "react-shadow/emotion";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
@@ -179,7 +179,7 @@ export const Floaty = (props: FloatyProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${agateSans.small()}
         color: ${pinMetal};
       `}
     >

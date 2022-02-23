@@ -32,6 +32,7 @@ export type PerPinboard<T> = {
 export interface FloatyProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
+  presetUnreadNotifications: number | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
@@ -225,7 +226,7 @@ export const Floaty = (props: FloatyProps) => {
             ⚠️
           </div>
         )}
-        {hasUnread && (
+        {(props.presetUnreadNotifications !== undefined || hasUnread) && (
           <div
             css={css`
               position: absolute;
@@ -237,7 +238,9 @@ export const Floaty = (props: FloatyProps) => {
               height: ${space[3]}px;
               border-radius: 100%;
             `}
-          />
+          >
+            {props.presetUnreadNotifications || ""}
+          </div>
         )}
       </div>
       <div

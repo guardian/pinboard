@@ -44,6 +44,17 @@
       </button>
     </ul>
 
+    <h3>Override unread notifications bubble</h3>
+
+    <label for="unread-nots"
+      >Set with a blank input or 0 to see a plain red 🔴</label
+    >
+    <div>
+      <input type="number" name="unread-nots" id="unread-nots" />
+      <button id="btn-set-unread-notifications-bubble">Set</button>
+      <button id="btn-unset-unread-notifications-bubble">Unset</button>
+    </div>
+
     <h3><code>Add to 📌</code> button</h3>
     <ul id="button_section">
       <h4>present initially</h4>
@@ -107,6 +118,23 @@
       .getElementById("btn-remove-invalid-preselection")
       .addEventListener("click", () => {
         preSelectInvalidPinboardElement.remove();
+      });
+
+    const presetUnreadBubblePinboardElement = document.createElement(
+      "pinboard-bubble-preset"
+    );
+    document
+      .getElementById("btn-set-unread-notifications-bubble")
+      .addEventListener("click", () => {
+        presetUnreadBubblePinboardElement.dataset.count =
+          document.getElementById("unread-nots").value || "0";
+        document.body.appendChild(presetUnreadBubblePinboardElement);
+      });
+
+    document
+      .getElementById("btn-unset-unread-notifications-bubble")
+      .addEventListener("click", () => {
+        presetUnreadBubblePinboardElement.remove();
       });
   </script>
 </html>

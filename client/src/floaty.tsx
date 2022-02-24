@@ -20,25 +20,18 @@ const FloatyNotificationsBubble = ({
       left: 26px;
       user-select: none;
       background-color: ${composer.warning[300]};
-      min-width: ${space[4]}px;
+      min-width: ${space[2]}px;
+      padding: 0 ${space[1]}px;
       height: ${space[4]}px;
-      border-radius: 12px;
-      ${agateSans.xxsmall()};
+      border-radius: ${space[2]}px;
+      ${agateSans.xxsmall({ lineHeight: "regular" })};
       color: ${palette.neutral[100]};
       text-align: center;
     `}
   >
-    <span
-      css={css`
-        margin: 0 4px;
-        height: 100%;
-        display: inline-block;
-        vertical-align: middle;
-        line-height: 12px;
-      `}
-    >
-      {presetUnreadNotificationCount || ""}
-    </span>
+    {presetUnreadNotificationCount && presetUnreadNotificationCount > 0
+      ? presetUnreadNotificationCount
+      : ""}
   </div>
 );
 

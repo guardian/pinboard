@@ -120,7 +120,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   const activePinboardIds = activePinboards.map((_) => _.id);
 
-  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>();
+  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
+    null
+  );
 
   useEffect(
     () =>
@@ -253,6 +255,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     openPinboard,
     closePinboard,
     preselectedPinboard,
+    selectedPinboardId,
     clearSelectedPinboard,
 
     showNotification,
@@ -263,14 +266,13 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     setError,
     hasErrorOnOtherPinboard,
 
+    isExpanded,
+    setIsExpanded,
+
     unreadFlags,
     hasUnread,
     setUnreadFlag,
     hasUnreadOnOtherPinboard,
-
-    selectedPinboardId,
-    isExpanded,
-    setIsExpanded,
 
     presetUnreadNotificationCount,
   };

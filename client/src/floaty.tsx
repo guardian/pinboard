@@ -1,6 +1,5 @@
-import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css } from "@emotion/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboard, composer } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
@@ -8,11 +7,11 @@ import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { agateSans } from "../fontNormaliser";
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
 import root from "react-shadow/emotion";
-import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
+import { PerPinboard } from "./types/PerPinboard";
+import { ApolloError } from "@apollo/client";
 
 const bottom = 108;
 const right = 15;
@@ -28,10 +27,10 @@ export const standardFloatyContainerCss = css`
 `;
 
 interface FloatyNotificationsBubbleProps {
-  presetUnreadNotifications: number | undefined;
+  presetUnreadNotificationCount: number | undefined;
 }
 const FloatyNotificationsBubble = ({
-  presetUnreadNotifications,
+  presetUnreadNotificationCount,
 }: FloatyNotificationsBubbleProps) => (
   <div
     css={css`
@@ -57,18 +56,14 @@ const FloatyNotificationsBubble = ({
         line-height: 12px;
       `}
     >
-      {presetUnreadNotifications || ""}
+      {presetUnreadNotificationCount || ""}
     </span>
   </div>
 );
 
-export type PerPinboard<T> = {
-  [pinboardId: string]: T | undefined;
-};
 export interface FloatyProps {
   userEmail: string;
-  preselectedComposerId: string | null | undefined;
-  presetUnreadNotifications: number | undefined;
+  presetUnreadNotificationCount: number | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
@@ -77,140 +72,47 @@ export interface FloatyProps {
   hasWebPushSubscription: boolean | null | undefined;
   showNotification: (item: Item) => void;
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
+  hasError: boolean;
+  isNotTrackedInWorkflow: boolean;
+  selectedPinboardId: string | null | undefined;
+  openPinboard: (pinboardData: PinboardData) => void;
+  activePinboardIds: string[];
+  closePinboard: (pinboardIdToClose: string) => void;
+  unreadFlags: PerPinboard<boolean>;
+  errors: PerPinboard<ApolloError>;
+  preselectedPinboard: WorkflowStub | undefined;
+  hasUnread: boolean;
+  activePinboards: PinboardData[];
+  setError: (pinboardId: string, error: ApolloError | undefined) => void;
+  setUnreadFlagOnPinboard: (
+    pinboardId: string
+  ) => (unreadFlag: boolean | undefined) => void;
+  clearSelectedPinboard: () => void;
 }
 
 export const Floaty = (props: FloatyProps) => {
-  const { isExpanded, setIsExpanded } = props;
-
-  const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
-    PinboardData[]
-  >([]);
-
-  const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
-    gqlGetPinboardByComposerId
-  );
-  useEffect(() => {
-    props.preselectedComposerId &&
-      getPreselectedPinboard({
-        variables: {
-          composerId: props.preselectedComposerId,
-        },
-      });
-  }, [props.preselectedComposerId]);
-
-  const preselectedPinboard: PinboardData | undefined =
-    props.preselectedComposerId &&
-    preselectedPinboardQuery.data?.getPinboardByComposerId;
-
-  const activePinboards: PinboardData[] = preselectedPinboard
-    ? [preselectedPinboard]
-    : manuallyOpenedPinboards;
-
-  const activePinboardIds = activePinboards.map((_) => _.id);
-
-  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>();
-
-  useEffect(() => setSelectedPinboardId(preselectedPinboard?.id), [
+  const {
+    isExpanded,
+    setIsExpanded,
+    hasError,
+    isNotTrackedInWorkflow,
+    selectedPinboardId,
+    openPinboard,
+    activePinboardIds,
+    closePinboard,
+    unreadFlags,
+    errors,
+    payloadToBeSent,
+    clearPayloadToBeSent,
     preselectedPinboard,
-  ]);
-
-  const clearSelectedPinboard = () => setSelectedPinboardId(null);
-
-  const openPinboard = (pinboardData: PinboardData) => {
-    const hostname = window.location.hostname;
-    const composerDomain =
-      hostname.includes(".local.") ||
-      hostname.includes(".code.") ||
-      hostname.includes(".test.")
-        ? "code.dev-gutools.co.uk"
-        : "gutools.co.uk";
-    const composerUrl = `https://composer.${composerDomain}/content/${
-      pinboardData.composerId || ".."
-    }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-    if (!activePinboardIds.includes(pinboardData.id)) {
-      preselectedPinboard
-        ? window?.open(composerUrl, "_blank")?.focus()
-        : setManuallyOpenedPinboards([
-            ...manuallyOpenedPinboards,
-            pinboardData,
-          ]);
-    }
-
-    if (!preselectedPinboard || preselectedPinboard.id === pinboardData.id) {
-      setSelectedPinboardId(pinboardData.id);
-    }
-  };
-
-  const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
-
-  const setError = (pinboardId: string, error: ApolloError | undefined) =>
-    setErrors((prevErrors) => ({ ...prevErrors, [pinboardId]: error }));
-
-  const hasError = Object.entries(errors).find(
-    ([pinboardId, error]) => activePinboardIds.includes(pinboardId) && error
-  );
-
-  const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
-
-  const setUnreadFlag = (pinboardId: string) => (
-    unreadFlag: boolean | undefined
-  ) => {
-    setUnreadFlags((prevUnreadFlags) => ({
-      ...prevUnreadFlags,
-      [pinboardId]: unreadFlag,
-    }));
-    !unreadFlag && props.clearDesktopNotificationsForPinboardId(pinboardId);
-  };
-
-  const hasUnread = Object.values(unreadFlags).find((unreadFlag) => unreadFlag);
-
-  const closePinboard = (pinboardIdToClose: string) => {
-    if (activePinboardIds.includes(pinboardIdToClose)) {
-      setManuallyOpenedPinboards([
-        ...manuallyOpenedPinboards.filter(
-          (pinboard) => pinboard.id !== pinboardIdToClose
-        ),
-      ]);
-    }
-    setSelectedPinboardId(null);
-    setUnreadFlag(pinboardIdToClose)(undefined);
-    setError(pinboardIdToClose, undefined);
-  };
-
-  useSubscription(gqlOnCreateItem(), {
-    onSubscriptionData: ({ subscriptionData }) => {
-      const { pinboardId, mentions } = subscriptionData.data.onCreateItem;
-
-      const isMentioned = mentions.includes(props.userEmail); // TODO also check group membership here (once added)
-
-      const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
-
-      if (isMentioned && !pinboardIsOpen) {
-        setUnreadFlag(pinboardId)(true);
-      }
-    },
-  });
-
-  const isNotTrackedInWorkflow =
-    props.preselectedComposerId &&
-    !preselectedPinboard &&
-    !preselectedPinboardQuery.loading;
-
-  useEffect(() => {
-    window.addEventListener("message", (event) => {
-      if (
-        event.source !== window &&
-        Object.prototype.hasOwnProperty.call(event.data, "item")
-      ) {
-        const item = event.data.item;
-        window.focus();
-        setIsExpanded(true);
-        setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
-        // TODO ideally highlight the item
-      }
-    });
-  }, []);
-
+    hasWebPushSubscription,
+    presetUnreadNotificationCount,
+    hasUnread,
+    activePinboards,
+    setError,
+    setUnreadFlagOnPinboard,
+    clearSelectedPinboard,
+  } = props;
   const floatyRef = useRef<HTMLDivElement>(null);
   return (
     <root.div
@@ -266,9 +168,9 @@ export const Floaty = (props: FloatyProps) => {
             ⚠️
           </div>
         )}
-        {(props.presetUnreadNotifications !== undefined || hasUnread) && (
+        {(presetUnreadNotificationCount !== undefined || hasUnread) && (
           <FloatyNotificationsBubble
-            presetUnreadNotifications={props.presetUnreadNotifications}
+            presetUnreadNotificationCount={presetUnreadNotificationCount}
           />
         )}
       </div>
@@ -300,10 +202,10 @@ export const Floaty = (props: FloatyProps) => {
               closePinboard={closePinboard}
               unreadFlags={unreadFlags}
               errors={errors}
-              payloadToBeSent={props.payloadToBeSent}
-              clearPayloadToBeSent={props.clearPayloadToBeSent}
+              payloadToBeSent={payloadToBeSent}
+              clearPayloadToBeSent={clearPayloadToBeSent}
               preselectedPinboard={preselectedPinboard}
-              hasWebPushSubscription={props.hasWebPushSubscription}
+              hasWebPushSubscription={hasWebPushSubscription}
             />
           )
         )}
@@ -317,7 +219,7 @@ export const Floaty = (props: FloatyProps) => {
               pinboardData={pinboardData}
               key={pinboardData.id}
               setError={setError}
-              setUnreadFlag={setUnreadFlag(pinboardData.id)}
+              setUnreadFlag={setUnreadFlagOnPinboard(pinboardData.id)}
               hasUnreadOnOtherPinboard={
                 !!hasUnread &&
                 !!Object.entries(unreadFlags).find(

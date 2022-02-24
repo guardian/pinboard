@@ -28,7 +28,7 @@ export const SendMessageArea = ({
   onSuccessfulSend,
   onError,
   pinboardId,
-  panelElement: floatyElement,
+  panelElement,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
   const [unverifiedMentions, setUnverifiedMentions] = useState<User[]>([]);
@@ -75,7 +75,7 @@ export const SendMessageArea = ({
         sendItem={sendItem}
         allUsers={allUsers}
         addUnverifiedMention={addUnverifiedMention}
-        floatyElement={floatyElement}
+        panelElement={panelElement}
       />
       <button
         css={css`

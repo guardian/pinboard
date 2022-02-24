@@ -1,15 +1,16 @@
-import { useLazyQuery, ApolloError, useSubscription } from "@apollo/client";
+import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { Item, User } from "../../shared/graphql/graphql";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
+import { PinboardContextProvider } from "./context";
 import { Floaty } from "./floaty";
 import { Panel } from "./panel";
 import type { PinboardData } from "./pinboard";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 
-export interface PinboardLogicProps {
+interface PinboardLogicProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
@@ -22,8 +23,19 @@ export interface PinboardLogicProps {
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
 }
-
-export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
+export const PinboardLogic: React.FC<PinboardLogicProps> = ({
+  userEmail,
+  preselectedComposerId,
+  presetUnreadNotificationCount,
+  payloadToBeSent,
+  clearPayloadToBeSent,
+  isExpanded,
+  setIsExpanded,
+  userLookup,
+  hasWebPushSubscription,
+  showNotification,
+  clearDesktopNotificationsForPinboardId,
+}) => {
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
   >([]);
@@ -32,16 +44,16 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
     gqlGetPinboardByComposerId
   );
   useEffect(() => {
-    props.preselectedComposerId &&
+    preselectedComposerId &&
       getPreselectedPinboard({
         variables: {
-          composerId: props.preselectedComposerId,
+          composerId: preselectedComposerId,
         },
       });
-  }, [props.preselectedComposerId]);
+  }, [preselectedComposerId]);
 
   const preselectedPinboard: PinboardData | undefined =
-    props.preselectedComposerId &&
+    preselectedComposerId &&
     preselectedPinboardQuery.data?.getPinboardByComposerId;
 
   const activePinboards: PinboardData[] = preselectedPinboard
@@ -93,6 +105,12 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
       ([pinboardId, error]) => activePinboardIds.includes(pinboardId) && error
     ) !== undefined;
 
+  const hasErrorOnOtherPinboard = (pinboardId: string): boolean =>
+    !!hasError &&
+    !!Object.entries(errors).find(
+      ([otherPinboardId, isError]) => isError && pinboardId !== otherPinboardId
+    );
+
   const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
 
   const setUnreadFlag = (pinboardId: string) => (
@@ -102,10 +120,18 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
       ...prevUnreadFlags,
       [pinboardId]: unreadFlag,
     }));
-    !unreadFlag && props.clearDesktopNotificationsForPinboardId(pinboardId);
+    !unreadFlag && clearDesktopNotificationsForPinboardId(pinboardId);
   };
 
-  const hasUnread = Object.values(unreadFlags).find((unreadFlag) => unreadFlag);
+  const hasUnread =
+    Object.values(unreadFlags).find((unreadFlag) => unreadFlag) || false;
+
+  const hasUnreadOnOtherPinboard = (pinboardId: string): boolean =>
+    !!hasUnread &&
+    !!Object.entries(unreadFlags).find(
+      ([otherPinboardId, isUnread]) =>
+        isUnread && pinboardId !== otherPinboardId
+    );
 
   const closePinboard = (pinboardIdToClose: string) => {
     if (activePinboardIds.includes(pinboardIdToClose)) {
@@ -124,22 +150,15 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
     onSubscriptionData: ({ subscriptionData }) => {
       const { pinboardId, mentions } = subscriptionData.data.onCreateItem;
 
-      const isMentioned = mentions.includes(props.userEmail); // TODO also check group membership here (once added)
+      const isMentioned = mentions.includes(userEmail); // TODO also check group membership here (once added)
 
-      const pinboardIsOpen =
-        props.isExpanded && selectedPinboardId === pinboardId;
+      const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
 
       if (isMentioned && !pinboardIsOpen) {
         setUnreadFlag(pinboardId)(true);
       }
     },
   });
-
-  const isNotTrackedInWorkflow = Boolean(
-    props.preselectedComposerId &&
-      !preselectedPinboard &&
-      !preselectedPinboardQuery.loading
-  );
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
@@ -149,45 +168,59 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
       ) {
         const item = event.data.item;
         window.focus();
-        props.setIsExpanded(true);
+        setIsExpanded(true);
         setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
         // TODO ideally highlight the item
       }
     });
   }, []);
 
+  const isNotTrackedInWorkflow = Boolean(
+    preselectedComposerId &&
+      !preselectedPinboard &&
+      !preselectedPinboardQuery.loading
+  );
+
+  const contextValue = {
+    userEmail,
+    userLookup,
+
+    activePinboardIds,
+    payloadToBeSent,
+    clearPayloadToBeSent,
+
+    openPinboard,
+    closePinboard,
+    preselectedPinboard,
+    clearSelectedPinboard,
+
+    showNotification,
+    hasWebPushSubscription,
+
+    errors,
+    setError,
+    hasErrorOnOtherPinboard,
+
+    unreadFlags,
+    setUnreadFlag,
+    hasUnreadOnOtherPinboard,
+  };
+
   return (
-    <>
+    <PinboardContextProvider value={contextValue}>
       <Floaty
-        presetUnreadNotificationCount={props.presetUnreadNotificationCount}
-        isExpanded={props.isExpanded}
-        setIsExpanded={props.setIsExpanded}
+        presetUnreadNotificationCount={presetUnreadNotificationCount}
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
         hasError={hasError}
-        hasUnread={!!hasUnread}
+        hasUnread={hasUnread}
       />
       <Panel
-        userEmail={props.userEmail}
-        payloadToBeSent={props.payloadToBeSent}
-        clearPayloadToBeSent={props.clearPayloadToBeSent}
-        userLookup={props.userLookup}
-        hasWebPushSubscription={props.hasWebPushSubscription}
-        showNotification={props.showNotification}
+        isExpanded={isExpanded}
         isNotTrackedInWorkflow={isNotTrackedInWorkflow}
-        selectedPinboardId={selectedPinboardId}
-        openPinboard={openPinboard}
-        activePinboardIds={activePinboardIds}
-        closePinboard={closePinboard}
-        unreadFlags={unreadFlags}
-        errors={errors}
-        preselectedPinboard={preselectedPinboard}
         activePinboards={activePinboards}
-        setError={setError}
-        setUnreadFlagOnPinboard={setUnreadFlag}
-        clearSelectedPinboard={clearSelectedPinboard}
-        isExpanded={props.isExpanded}
-        hasError={hasError}
-        hasUnread={!!hasUnread}
+        selectedPinboardId={selectedPinboardId}
       />
-    </>
+    </PinboardContextProvider>
   );
 };

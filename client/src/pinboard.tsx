@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ApolloError, useQuery, useSubscription } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import {
   Item,
   LastItemSeenByUser,
-  User,
   WorkflowStub,
 } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
@@ -17,7 +16,7 @@ import {
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
-import { PayloadAndType } from "./types/PayloadAndType";
+import { usePinboardContext } from "./context";
 
 export type PinboardData = WorkflowStub;
 
@@ -26,38 +25,36 @@ export interface LastItemSeenByUserLookup {
 }
 
 interface PinboardProps {
-  userEmail: string;
-  userLookup: { [email: string]: User } | undefined;
-  payloadToBeSent: PayloadAndType | null;
-  clearPayloadToBeSent: () => void;
-  showNotification: (item: Item) => void;
   pinboardData: PinboardData;
-  setError: (pinboardId: string, error: ApolloError | undefined) => void;
-  setUnreadFlag: (hasUnread: boolean | undefined) => void;
-  hasUnreadOnOtherPinboard: boolean;
-  hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
   isSelected: boolean;
-  clearSelectedPinboard: () => void;
   panelElement: HTMLDivElement | null;
 }
 
-export const Pinboard = ({
-  userEmail,
-  userLookup,
+export const Pinboard: React.FC<PinboardProps> = ({
   pinboardData,
-  setError,
-  setUnreadFlag,
-  hasUnreadOnOtherPinboard,
-  hasErrorOnOtherPinboard,
   isExpanded,
   isSelected,
-  clearSelectedPinboard,
-  payloadToBeSent,
-  clearPayloadToBeSent,
   panelElement,
-  showNotification,
-}: PinboardProps) => {
+}) => {
+  const {
+    userEmail,
+    userLookup,
+
+    payloadToBeSent,
+    clearPayloadToBeSent,
+
+    clearSelectedPinboard,
+
+    showNotification,
+
+    setError,
+    hasErrorOnOtherPinboard,
+
+    setUnreadFlag,
+    hasUnreadOnOtherPinboard,
+  } = usePinboardContext();
+
   const pinboardId = pinboardData.id;
 
   // TODO: extract to floaty level?
@@ -70,7 +67,7 @@ export const Pinboard = ({
       ]);
       if (!isExpanded) {
         showNotification(updateForSubscription);
-        setUnreadFlag(true);
+        setUnreadFlag(pinboardId)(true);
       }
     },
   });
@@ -152,8 +149,8 @@ export const Pinboard = ({
         <HeadingPanel
           heading={pinboardData.title || ""}
           clearSelectedPinboard={clearSelectedPinboard}
-          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard}
-          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard}
+          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard(pinboardId)}
+          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard(pinboardId)}
         >
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
@@ -166,7 +163,7 @@ export const Pinboard = ({
           initialItems={initialItems.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
-          setUnreadFlag={setUnreadFlag}
+          setUnreadFlag={setUnreadFlag(pinboardId)}
           isExpanded={isExpanded}
           userLookup={userLookup}
           userEmail={userEmail}

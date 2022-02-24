@@ -1,40 +1,32 @@
-import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
+import { useQuery } from "@apollo/client";
 import { css } from "@emotion/react";
-import { PinboardData } from "./pinboard";
-import { PerPinboard } from "./types/PerPinboard";
+import type { PinboardData } from "./pinboard";
+import { standardFloatyContainerCss } from "./styling";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/source-foundations";
-import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
-import { WorkflowStub } from "../../shared/graphql/graphql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
-import { standardFloatyContainerCss } from "./styling";
+import { usePinboardContext } from "./context";
 
-interface SelectPinboardProps {
-  openPinboard: (pinboardData: PinboardData) => void;
-  closePinboard: (pinboardId: string) => void;
-  activePinboardIds: string[];
-  unreadFlags: PerPinboard<boolean>;
-  errors: PerPinboard<ApolloError>;
-  payloadToBeSent: PayloadAndType | null;
-  clearPayloadToBeSent: () => void;
-  preselectedPinboard: WorkflowStub | undefined;
-  hasWebPushSubscription: boolean | null | undefined;
-}
+export const SelectPinboard: React.FC = () => {
+  const {
+    activePinboardIds,
+    payloadToBeSent,
+    clearPayloadToBeSent,
 
-export const SelectPinboard = ({
-  openPinboard,
-  closePinboard,
-  activePinboardIds,
-  unreadFlags,
-  errors,
-  payloadToBeSent,
-  clearPayloadToBeSent,
-  preselectedPinboard,
-  hasWebPushSubscription,
-}: SelectPinboardProps) => {
+    openPinboard,
+    closePinboard,
+    preselectedPinboard,
+
+    hasWebPushSubscription,
+
+    errors,
+
+    unreadFlags,
+  } = usePinboardContext();
+
   const [searchText, setSearchText] = useState<string>("");
 
   const { data, loading } = useQuery<{ listPinboards: PinboardData[] }>(

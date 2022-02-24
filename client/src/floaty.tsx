@@ -1,30 +1,11 @@
+import React from "react";
 import { css } from "@emotion/react";
-import React, { useRef } from "react";
-import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { pinMetal, pinboard, composer } from "../colours";
-import { Pinboard, PinboardData } from "./pinboard";
-import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
 import { palette, space } from "@guardian/source-foundations";
-import { PayloadAndType } from "./types/PayloadAndType";
 import { agateSans } from "../fontNormaliser";
-import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
 import root from "react-shadow/emotion";
-import { PerPinboard } from "./types/PerPinboard";
-import { ApolloError } from "@apollo/client";
-
-const bottom = 108;
-const right = 15;
-const floatySize = 40;
-const boxShadow =
-  "rgba(0, 0, 0, 0.14) 0px 0px 4px, rgba(0, 0, 0, 0.28) 0px 4px 8px";
-export const standardFloatyContainerCss = css`
-  overflow-y: auto;
-  margin: ${space[1]}px;
-  h4 {
-    color: black;
-  }
-`;
+import { bottom, right, floatySize, boxShadow } from "./styling";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -62,32 +43,11 @@ const FloatyNotificationsBubble = ({
 );
 
 export interface FloatyProps {
-  userEmail: string;
-  presetUnreadNotificationCount: number | undefined;
-  payloadToBeSent: PayloadAndType | null;
-  clearPayloadToBeSent: () => void;
+presetUnreadNotificationCount: number | undefined;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
-  userLookup: { [email: string]: User } | undefined;
-  hasWebPushSubscription: boolean | null | undefined;
-  showNotification: (item: Item) => void;
-  clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   hasError: boolean;
-  isNotTrackedInWorkflow: boolean;
-  selectedPinboardId: string | null | undefined;
-  openPinboard: (pinboardData: PinboardData) => void;
-  activePinboardIds: string[];
-  closePinboard: (pinboardIdToClose: string) => void;
-  unreadFlags: PerPinboard<boolean>;
-  errors: PerPinboard<ApolloError>;
-  preselectedPinboard: WorkflowStub | undefined;
   hasUnread: boolean;
-  activePinboards: PinboardData[];
-  setError: (pinboardId: string, error: ApolloError | undefined) => void;
-  setUnreadFlagOnPinboard: (
-    pinboardId: string
-  ) => (unreadFlag: boolean | undefined) => void;
-  clearSelectedPinboard: () => void;
 }
 
 export const Floaty = (props: FloatyProps) => {
@@ -95,25 +55,9 @@ export const Floaty = (props: FloatyProps) => {
     isExpanded,
     setIsExpanded,
     hasError,
-    isNotTrackedInWorkflow,
-    selectedPinboardId,
-    openPinboard,
-    activePinboardIds,
-    closePinboard,
-    unreadFlags,
-    errors,
-    payloadToBeSent,
-    clearPayloadToBeSent,
-    preselectedPinboard,
-    hasWebPushSubscription,
-    presetUnreadNotificationCount,
+presetUnreadNotificationCount,
     hasUnread,
-    activePinboards,
-    setError,
-    setUnreadFlagOnPinboard,
-    clearSelectedPinboard,
   } = props;
-  const floatyRef = useRef<HTMLDivElement>(null);
   return (
     <root.div
       css={css`
@@ -173,74 +117,6 @@ export const Floaty = (props: FloatyProps) => {
             presetUnreadNotificationCount={presetUnreadNotificationCount}
           />
         )}
-      </div>
-      <div
-        css={css`
-          position: fixed;
-          z-index: 99998;
-          background: white;
-          box-shadow: ${boxShadow};
-          border: 2px ${pinboard[500]} solid;
-          width: 250px;
-          height: calc(100vh - 100px);
-          bottom: ${bottom + floatySize / 2 - 5}px;
-          right: ${right + floatySize / 2 - 5}px;
-          display: ${isExpanded ? "flex" : "none"};
-          flex-direction: column;
-          justify-content: space-between;
-          font-family: sans-serif;
-        `}
-        ref={floatyRef}
-      >
-        {isNotTrackedInWorkflow ? (
-          <NotTrackedInWorkflow />
-        ) : (
-          !selectedPinboardId && (
-            <SelectPinboard
-              openPinboard={openPinboard}
-              activePinboardIds={activePinboardIds}
-              closePinboard={closePinboard}
-              unreadFlags={unreadFlags}
-              errors={errors}
-              payloadToBeSent={payloadToBeSent}
-              clearPayloadToBeSent={clearPayloadToBeSent}
-              preselectedPinboard={preselectedPinboard}
-              hasWebPushSubscription={hasWebPushSubscription}
-            />
-          )
-        )}
-
-        {
-          // The active pinboards are always mounted, so that we receive new item notifications
-          // Note that the pinboard hides itself based on 'isSelected' prop
-          activePinboards.map((pinboardData) => (
-            <Pinboard
-              {...props}
-              pinboardData={pinboardData}
-              key={pinboardData.id}
-              setError={setError}
-              setUnreadFlag={setUnreadFlagOnPinboard(pinboardData.id)}
-              hasUnreadOnOtherPinboard={
-                !!hasUnread &&
-                !!Object.entries(unreadFlags).find(
-                  ([pinboardId, isUnread]) =>
-                    isUnread && pinboardId !== pinboardData.id
-                )
-              }
-              hasErrorOnOtherPinboard={
-                !!hasError &&
-                !!Object.entries(errors).find(
-                  ([pinboardId, isError]) =>
-                    isError && pinboardId !== pinboardData.id
-                )
-              }
-              isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
-              isSelected={pinboardData.id === selectedPinboardId}
-              clearSelectedPinboard={clearSelectedPinboard}
-              floatyElement={floatyRef.current}
-            />
-          ))
-        }
       </div>
     </root.div>
   );

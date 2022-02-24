@@ -3,12 +3,12 @@ import { ApolloError, useQuery, useSubscription } from "@apollo/client";
 import {
   Item,
   LastItemSeenByUser,
+  User,
   WorkflowStub,
 } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css } from "@emotion/react";
-import { FloatyProps } from "./floaty";
 import { PendingItem } from "./types/PendingItem";
 import {
   gqlGetInitialItems,
@@ -17,6 +17,7 @@ import {
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
+import { PayloadAndType } from "./types/PayloadAndType";
 
 export type PinboardData = WorkflowStub;
 
@@ -24,7 +25,12 @@ export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
 }
 
-interface PinboardProps extends FloatyProps {
+interface PinboardProps {
+  userEmail: string;
+  userLookup: { [email: string]: User } | undefined;
+  payloadToBeSent: PayloadAndType | null;
+  clearPayloadToBeSent: () => void;
+  showNotification: (item: Item) => void;
   pinboardData: PinboardData;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
   setUnreadFlag: (hasUnread: boolean | undefined) => void;
@@ -33,7 +39,7 @@ interface PinboardProps extends FloatyProps {
   isExpanded: boolean;
   isSelected: boolean;
   clearSelectedPinboard: () => void;
-  floatyElement: HTMLDivElement | null;
+  panelElement: HTMLDivElement | null;
 }
 
 export const Pinboard = ({
@@ -49,7 +55,7 @@ export const Pinboard = ({
   clearSelectedPinboard,
   payloadToBeSent,
   clearPayloadToBeSent,
-  floatyElement,
+  panelElement,
   showNotification,
 }: PinboardProps) => {
   const pinboardId = pinboardData.id;
@@ -178,7 +184,7 @@ export const Pinboard = ({
         onError={(error) => setError(pinboardId, error)}
         userEmail={userEmail}
         pinboardId={pinboardId}
-        floatyElement={floatyElement}
+        panelElement={panelElement}
       />
     </React.Fragment>
   );

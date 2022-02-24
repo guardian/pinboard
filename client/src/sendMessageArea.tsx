@@ -18,7 +18,7 @@ interface SendMessageAreaProps {
   onError: (error: ApolloError) => void;
   userEmail: string;
   pinboardId: string;
-  floatyElement: HTMLDivElement | null;
+  panelElement: HTMLDivElement | null;
 }
 
 export const SendMessageArea = ({
@@ -28,7 +28,7 @@ export const SendMessageArea = ({
   onSuccessfulSend,
   onError,
   pinboardId,
-  floatyElement,
+  panelElement: floatyElement,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
   const [unverifiedMentions, setUnverifiedMentions] = useState<User[]>([]);

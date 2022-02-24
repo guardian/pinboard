@@ -4,6 +4,7 @@ import { Item, User } from "../../shared/graphql/graphql";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import { Floaty } from "./floaty";
+import { Panel } from "./panel";
 import type { PinboardData } from "./pinboard";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
@@ -156,33 +157,37 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = (props) => {
   }, []);
 
   return (
-    <Floaty
-      userEmail={props.userEmail}
-      presetUnreadNotificationCount={props.presetUnreadNotificationCount}
-      payloadToBeSent={props.payloadToBeSent}
-      clearPayloadToBeSent={props.clearPayloadToBeSent}
-      isExpanded={props.isExpanded}
-      setIsExpanded={props.setIsExpanded}
-      userLookup={props.userLookup}
-      hasWebPushSubscription={props.hasWebPushSubscription}
-      showNotification={props.showNotification}
-      clearDesktopNotificationsForPinboardId={
-        props.clearDesktopNotificationsForPinboardId
-      }
-      hasError={hasError}
-      isNotTrackedInWorkflow={isNotTrackedInWorkflow}
-      selectedPinboardId={selectedPinboardId}
-      openPinboard={openPinboard}
-      activePinboardIds={activePinboardIds}
-      closePinboard={closePinboard}
-      unreadFlags={unreadFlags}
-      errors={errors}
-      preselectedPinboard={preselectedPinboard}
-      hasUnread={!!hasUnread}
-      activePinboards={activePinboards}
-      setError={setError}
-      setUnreadFlagOnPinboard={setUnreadFlag}
-      clearSelectedPinboard={clearSelectedPinboard}
-    />
+    <>
+      <Floaty
+        presetUnreadNotificationCount={props.presetUnreadNotificationCount}
+        isExpanded={props.isExpanded}
+        setIsExpanded={props.setIsExpanded}
+        hasError={hasError}
+        hasUnread={!!hasUnread}
+      />
+      <Panel
+        userEmail={props.userEmail}
+        payloadToBeSent={props.payloadToBeSent}
+        clearPayloadToBeSent={props.clearPayloadToBeSent}
+        userLookup={props.userLookup}
+        hasWebPushSubscription={props.hasWebPushSubscription}
+        showNotification={props.showNotification}
+        isNotTrackedInWorkflow={isNotTrackedInWorkflow}
+        selectedPinboardId={selectedPinboardId}
+        openPinboard={openPinboard}
+        activePinboardIds={activePinboardIds}
+        closePinboard={closePinboard}
+        unreadFlags={unreadFlags}
+        errors={errors}
+        preselectedPinboard={preselectedPinboard}
+        activePinboards={activePinboards}
+        setError={setError}
+        setUnreadFlagOnPinboard={setUnreadFlag}
+        clearSelectedPinboard={clearSelectedPinboard}
+        isExpanded={props.isExpanded}
+        hasError={hasError}
+        hasUnread={!!hasUnread}
+      />
+    </>
   );
 };

@@ -2,7 +2,6 @@ import { ApolloError, useQuery } from "@apollo/client";
 import React, { useState } from "react";
 import { css } from "@emotion/react";
 import { PinboardData } from "./pinboard";
-import { standardFloatyContainerCss } from "./floaty";
 import { PerPinboard } from "./types/PerPinboard";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
@@ -11,6 +10,7 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlListPinboards } from "../gql";
 import { WorkflowStub } from "../../shared/graphql/graphql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
+import { standardFloatyContainerCss } from "./styling";
 
 interface SelectPinboardProps {
   openPinboard: (pinboardData: PinboardData) => void;

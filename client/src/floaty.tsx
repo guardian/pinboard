@@ -2,7 +2,7 @@ import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css } from "@emotion/react";
 import React, { useEffect, useRef, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
-import { pinMetal, pinboardPrimary, unread } from "../colours";
+import { pinMetal, pinboard, composer } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
@@ -39,7 +39,7 @@ const FloatyNotificationsBubble = ({
       top: -3px;
       left: 26px;
       user-select: none;
-      background-color: ${unread};
+      background-color: ${composer.warning[300]};
       min-width: ${space[4]}px;
       height: ${space[4]}px;
       border-radius: 12px;
@@ -230,7 +230,11 @@ export const Floaty = (props: FloatyProps) => {
           border-radius: ${floatySize / 2}px;
           cursor: pointer;
           box-shadow: ${boxShadow};
-          background-color: ${pinboardPrimary};
+          background-color: ${pinboard[500]};
+
+          &:hover {
+            background-color: ${pinboard[800]};
+          }
         `}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -274,7 +278,7 @@ export const Floaty = (props: FloatyProps) => {
           z-index: 99998;
           background: white;
           box-shadow: ${boxShadow};
-          border: 2px ${pinboardPrimary} solid;
+          border: 2px ${pinboard[500]} solid;
           width: 250px;
           height: calc(100vh - 100px);
           bottom: ${bottom + floatySize / 2 - 5}px;

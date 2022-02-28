@@ -3,7 +3,11 @@
   "compilerOptions": {
     "jsx": "react",
     "outDir": "tsc-dist",
-    "types": ["@emotion/react/types/css-prop", "@types/jest"],
+    "types": [
+      "@emotion/react/types/css-prop",
+      "@types/jest",
+      "@types/webpack-env"
+    ],
     "lib": ["esnext", "dom"]
   }
 }

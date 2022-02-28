@@ -6,7 +6,7 @@ import { pinMetal, pinboardPrimary, unread } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { textSans } from "../fontNormaliser";

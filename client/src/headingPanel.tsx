@@ -1,7 +1,7 @@
 import React, { PropsWithChildren } from "react";
 import { css } from "@emotion/react";
 import { pinboardPrimary } from "../colours";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 interface HeadingPanelProps {
   heading: string;
   clearSelectedPinboard: () => void;

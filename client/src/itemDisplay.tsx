@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
-import { palette, space } from "@guardian/src-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import { formattedDateTime, userToMentionHandle } from "./util";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";

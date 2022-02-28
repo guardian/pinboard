@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { css } from "@emotion/react";
 import { unread } from "../colours";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 import { ItemDisplay } from "./itemDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { useMutation } from "@apollo/client";

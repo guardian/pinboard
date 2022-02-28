@@ -4,7 +4,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
 import { pinMetal, pinboardPrimary } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 

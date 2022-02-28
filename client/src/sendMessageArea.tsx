@@ -1,6 +1,6 @@
 import { ApolloError, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
-import { space } from "@guardian/src-foundations";
+import { space } from "@guardian/source-foundations";
 import React, { useState } from "react";
 import { Item, User } from "../../shared/graphql/graphql";
 import { gqlCreateItem } from "../gql";

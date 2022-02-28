@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
 import {
@@ -193,21 +194,23 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-      <PinboardLogic
-        presetUnreadNotificationCount={presetUnreadNotificationCount}
-        userEmail={userEmail}
-        preselectedComposerId={preSelectedComposerId}
-        payloadToBeSent={payloadToBeSent}
-        clearPayloadToBeSent={clearPayloadToBeSent}
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
-        userLookup={userLookup}
-        hasWebPushSubscription={hasWebPushSubscription}
-        showNotification={showDesktopNotification}
-        clearDesktopNotificationsForPinboardId={
-          clearDesktopNotificationsForPinboardId
-        }
-      />
+      <root.div>
+        <PinboardLogic
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+          userEmail={userEmail}
+          preselectedComposerId={preSelectedComposerId}
+          payloadToBeSent={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+          userLookup={userLookup}
+          hasWebPushSubscription={hasWebPushSubscription}
+          showNotification={showDesktopNotification}
+          clearDesktopNotificationsForPinboardId={
+            clearDesktopNotificationsForPinboardId
+          }
+        />
+      </root.div>
       {buttonNodes.map((node, index) => (
         <ButtonPortal
           key={index}

@@ -23,7 +23,9 @@ import {
   desktopNotificationsPreferencesUrl,
   HiddenIFrameForServiceWorker,
 } from "./pushNotificationPreferences";
-import { GlobalState } from "./globalState";
+import { GlobalStateProvider } from "./globalState";
+import { Floaty } from "./floaty";
+import { Panel } from "./panel";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -195,7 +197,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
       <root.div>
-        <GlobalState
+        <GlobalStateProvider
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
           preselectedComposerId={preSelectedComposerId}
@@ -209,7 +211,10 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           clearDesktopNotificationsForPinboardId={
             clearDesktopNotificationsForPinboardId
           }
-        />
+        >
+          <Floaty />
+          <Panel />
+        </GlobalStateProvider>
       </root.div>
       {buttonNodes.map((node, index) => (
         <ButtonPortal

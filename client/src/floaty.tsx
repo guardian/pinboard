@@ -5,6 +5,7 @@ import PinIcon from "../icons/pin-icon.svg";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { bottom, boxShadow, floatySize, right } from "./styling";
+import { useGlobalStateContext } from "./globalState";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -41,71 +42,66 @@ const FloatyNotificationsBubble = ({
   </div>
 );
 
-export interface FloatyProps {
-  presetUnreadNotificationCount: number | undefined;
-  isExpanded: boolean;
-  setIsExpanded: (_: boolean) => void;
-  hasError: boolean;
-  hasUnread: boolean;
-}
-
-export const Floaty: React.FC<FloatyProps> = ({
-  presetUnreadNotificationCount,
-  isExpanded,
-  setIsExpanded,
-  hasError,
-  hasUnread,
-}) => (
-  <div
-    css={css`
-      position: fixed;
-      z-index: 99999;
-      bottom: ${bottom}px;
-      right: ${right}px;
-      width: ${floatySize}px;
-      height: ${floatySize}px;
-      border-radius: ${floatySize / 2}px;
-      cursor: pointer;
-      box-shadow: ${boxShadow};
-      background-color: ${pinboard[500]};
-      &:hover {
-        background-color: ${pinboard[800]};
-      }
-    `}
-    onClick={() => setIsExpanded(!isExpanded)}
-  >
-    <PinIcon
+export const Floaty: React.FC = () => {
+  const {
+    presetUnreadNotificationCount,
+    isExpanded,
+    setIsExpanded,
+    hasError,
+    hasUnread,
+  } = useGlobalStateContext();
+  return (
+    <div
       css={css`
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        height: 22px;
-        width: 12px;
-        path {
-          stroke: ${pinMetal};
-          stroke-width: 0.5px;
+        position: fixed;
+        z-index: 99999;
+        bottom: ${bottom}px;
+        right: ${right}px;
+        width: ${floatySize}px;
+        height: ${floatySize}px;
+        border-radius: ${floatySize / 2}px;
+        cursor: pointer;
+        box-shadow: ${boxShadow};
+        background-color: ${pinboard[500]};
+        &:hover {
+          background-color: ${pinboard[800]};
         }
       `}
-    />
-    {hasError && (
-      <div
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      <PinIcon
         css={css`
           position: absolute;
-          font-size: ${floatySize / 4}px;
-          bottom: -${floatySize / 16}px;
-          right: 0px;
-          user-select: none;
-          text-shadow: 0 0 5px black;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          height: 22px;
+          width: 12px;
+          path {
+            stroke: ${pinMetal};
+            stroke-width: 0.5px;
+          }
         `}
-      >
-        ⚠️
-      </div>
-    )}
-    {(presetUnreadNotificationCount !== undefined || hasUnread) && (
-      <FloatyNotificationsBubble
-        presetUnreadNotificationCount={presetUnreadNotificationCount}
       />
-    )}
-  </div>
-);
+      {hasError && (
+        <div
+          css={css`
+            position: absolute;
+            font-size: ${floatySize / 4}px;
+            bottom: -${floatySize / 16}px;
+            right: 0px;
+            user-select: none;
+            text-shadow: 0 0 5px black;
+          `}
+        >
+          ⚠️
+        </div>
+      )}
+      {(presetUnreadNotificationCount !== undefined || hasUnread) && (
+        <FloatyNotificationsBubble
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+        />
+      )}
+    </div>
+  );
+};

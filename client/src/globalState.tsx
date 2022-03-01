@@ -1,25 +1,27 @@
 import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import React, { useContext, useEffect, useState } from "react";
-import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
+import { Item, User } from "../../shared/graphql/graphql";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
-import { Floaty } from "./floaty";
-import { Panel } from "./panel";
 import type { PinboardData } from "./pinboard";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
+import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
+import { isWorkflowStub } from "../../shared/graphql/extraTypes";
 
 interface GlobalStateContextShape {
   userEmail: string;
   userLookup: { [email: string]: User } | undefined;
 
   activePinboardIds: string[];
+  activePinboards: PinboardData[];
+
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
 
   openPinboard: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
-  preselectedPinboard: WorkflowStub | undefined;
+  preselectedPinboard: PreselectedPinboard;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 
@@ -27,6 +29,7 @@ interface GlobalStateContextShape {
   hasWebPushSubscription: boolean | null | undefined;
 
   errors: PerPinboard<ApolloError>;
+  hasError: boolean;
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
   hasErrorOnOtherPinboard: (pinboardId: string) => boolean;
 
@@ -37,13 +40,14 @@ interface GlobalStateContextShape {
   setUnreadFlag: (
     pinboardId: string
   ) => (unreadFlag: boolean | undefined) => void;
+  hasUnread: boolean;
   hasUnreadOnOtherPinboard: (pinboardId: string) => boolean;
+
+  presetUnreadNotificationCount: number | undefined;
 }
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
   null
 );
-
-const GlobalStateContextProvider = GlobalStateContext.Provider;
 
 // Ugly but allows us to assume that the context has been set, which it always will be
 export const useGlobalStateContext = (): GlobalStateContextShape => {
@@ -54,7 +58,7 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
   return ctx;
 };
 
-interface GlobalStateProps {
+interface GlobalStateProviderProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
@@ -67,7 +71,7 @@ interface GlobalStateProps {
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
 }
-export const GlobalState: React.FC<GlobalStateProps> = ({
+export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   userEmail,
   preselectedComposerId,
   presetUnreadNotificationCount,
@@ -79,6 +83,7 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
   hasWebPushSubscription,
   showNotification,
   clearDesktopNotificationsForPinboardId,
+  children,
 }) => {
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
@@ -96,11 +101,20 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
       });
   }, [preselectedComposerId]);
 
-  const preselectedPinboard: PinboardData | undefined =
-    preselectedComposerId &&
-    preselectedPinboardQuery.data?.getPinboardByComposerId;
+  const preselectedPinboard = ((): PreselectedPinboard => {
+    if (!preselectedComposerId) {
+      return;
+    }
+    if (preselectedPinboardQuery.data?.getPinboardByComposerId) {
+      return preselectedPinboardQuery.data.getPinboardByComposerId;
+    }
+    if (preselectedPinboardQuery.loading) {
+      return "loading";
+    }
+    return "notTrackedInWorkflow";
+  })();
 
-  const activePinboards: PinboardData[] = preselectedPinboard
+  const activePinboards: PinboardData[] = isWorkflowStub(preselectedPinboard)
     ? [preselectedPinboard]
     : manuallyOpenedPinboards;
 
@@ -108,9 +122,13 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>();
 
-  useEffect(() => setSelectedPinboardId(preselectedPinboard?.id), [
-    preselectedPinboard,
-  ]);
+  useEffect(
+    () =>
+      setSelectedPinboardId(
+        isWorkflowStub(preselectedPinboard) ? preselectedPinboard.id : null
+      ),
+    [preselectedPinboard]
+  );
 
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
@@ -134,7 +152,10 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
           ]);
     }
 
-    if (!preselectedPinboard || preselectedPinboard.id === pinboardData.id) {
+    if (
+      !isWorkflowStub(preselectedPinboard) ||
+      preselectedPinboard.id === pinboardData.id
+    ) {
       setSelectedPinboardId(pinboardData.id);
     }
   };
@@ -219,17 +240,13 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
     });
   }, []);
 
-  const isNotTrackedInWorkflow = Boolean(
-    preselectedComposerId &&
-      !preselectedPinboard &&
-      !preselectedPinboardQuery.loading
-  );
-
   const contextValue = {
     userEmail,
     userLookup,
 
     activePinboardIds,
+    activePinboards,
+
     payloadToBeSent,
     clearPayloadToBeSent,
 
@@ -242,33 +259,25 @@ export const GlobalState: React.FC<GlobalStateProps> = ({
     hasWebPushSubscription,
 
     errors,
+    hasError,
     setError,
     hasErrorOnOtherPinboard,
 
     unreadFlags,
+    hasUnread,
     setUnreadFlag,
     hasUnreadOnOtherPinboard,
 
     selectedPinboardId,
     isExpanded,
     setIsExpanded,
+
+    presetUnreadNotificationCount,
   };
 
   return (
-    <GlobalStateContextProvider value={contextValue}>
-      <Floaty
-        presetUnreadNotificationCount={presetUnreadNotificationCount}
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
-        hasError={hasError}
-        hasUnread={hasUnread}
-      />
-      <Panel
-        isExpanded={isExpanded}
-        isNotTrackedInWorkflow={isNotTrackedInWorkflow}
-        activePinboards={activePinboards}
-        selectedPinboardId={selectedPinboardId}
-      />
-    </GlobalStateContextProvider>
+    <GlobalStateContext.Provider value={contextValue}>
+      {children}
+    </GlobalStateContext.Provider>
   );
 };

@@ -3,22 +3,19 @@ import React, { useRef } from "react";
 import { pinboard } from "../colours";
 import { bottom, boxShadow, floatySize, right } from "./styling";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
-import { Pinboard, PinboardData } from "./pinboard";
+import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
+import { useGlobalStateContext } from "./globalState";
 
-interface PanelProps {
-  isExpanded: boolean;
-  isNotTrackedInWorkflow: boolean;
-  activePinboards: PinboardData[];
-  selectedPinboardId: string | null | undefined;
-}
-export const Panel: React.FC<PanelProps> = ({
-  isExpanded,
-  isNotTrackedInWorkflow,
-  activePinboards,
-  selectedPinboardId,
-}) => {
+export const Panel: React.FC = () => {
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const {
+    isExpanded,
+    activePinboards,
+    selectedPinboardId,
+    preselectedPinboard,
+  } = useGlobalStateContext();
 
   return (
     <div
@@ -39,7 +36,7 @@ export const Panel: React.FC<PanelProps> = ({
       `}
       ref={panelRef}
     >
-      {isNotTrackedInWorkflow ? (
+      {preselectedPinboard === "notTrackedInWorkflow" ? (
         <NotTrackedInWorkflow />
       ) : (
         !selectedPinboardId && <SelectPinboard />

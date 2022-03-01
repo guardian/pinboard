@@ -1,15 +1,11 @@
 import React from "react";
 import { css } from "@emotion/react";
-import { pinboard } from "../colours";
+import { pinboard } from "../../colours";
 import { neutral, palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
-import { Tab } from "./types/Tab";
-import { HeadingButton } from "./headingPanel";
-import { SvgSpeechBubble } from "@guardian/source-react-components";
-import Paperclip from "../icons/paperclip.svg";
-
-const SpeechBubbleIcon: React.FC = () => <SvgSpeechBubble size="xsmall" />;
-const ClipIcon: React.FC = () => <Paperclip />;
+import { agateSans } from "../../fontNormaliser";
+import { Tab } from "../types/Tab";
+import { NavButton } from "./button";
+import { ClipIcon, SpeechBubbleIcon } from "./icon";
 
 interface TabsProps {
   activeTab: Tab;
@@ -38,7 +34,7 @@ export const Tabs: React.FC<TabsProps> = ({
       `}
       onClick={() => setActiveTab("chat")}
     >
-      <HeadingButton icon={SpeechBubbleIcon} hoverParent={true} />
+      <NavButton icon={SpeechBubbleIcon} hoverParent={true} />
       {unreadMessages !== null && (
         <div
           css={css`
@@ -76,7 +72,7 @@ export const Tabs: React.FC<TabsProps> = ({
       `}
       onClick={() => setActiveTab("asset")}
     >
-      <HeadingButton icon={ClipIcon} hoverParent={true} />
+      <NavButton icon={ClipIcon} hoverParent={true} />
     </div>
   </div>
 );

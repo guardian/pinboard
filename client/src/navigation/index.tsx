@@ -1,55 +1,21 @@
 import React, { PropsWithChildren } from "react";
 import { css } from "@emotion/react";
-import { pinboard } from "../colours";
+import { pinboard } from "../../colours";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
-import {
-  SvgChevronLeftSingle,
-  SvgCross,
-} from "@guardian/source-react-components";
-import { useGlobalStateContext } from "./globalState";
-import { PinboardData } from "./pinboard";
-import type { Tab } from "./types/Tab";
+import { agateSans } from "../../fontNormaliser";
+import { useGlobalStateContext } from "../globalState";
+import { PinboardData } from "../pinboard";
+import type { Tab } from "../types/Tab";
+import { BackArrowIcon, CrossIcon } from "./icon";
+import { NavButton } from "./button";
 
-const BackArrowIcon: React.FC = () => <SvgChevronLeftSingle size="xsmall" />;
-const CrossIcon: React.FC = () => <SvgCross size="xsmall" />;
-
-interface HeadingButtonProps {
-  onClick?: () => void;
-  icon: React.FC;
-  hoverParent?: boolean;
-}
-export const HeadingButton: React.FC<HeadingButtonProps> = ({
-  onClick,
-  icon: Icon,
-  hoverParent,
-}) => (
-  <span
-    onClick={onClick}
-    css={css`
-      height: 24px;
-      width: 24px;
-      border-radius: 24px;
-      ${hoverParent ? "*:hover > &" : "&:hover"} {
-        background-color: ${pinboard[800]};
-        cursor: pointer;
-      }
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    `}
-  >
-    <Icon />
-  </span>
-);
-
-interface HeadingPanelProps {
+interface NavigationProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
   selectedPinboard: PinboardData | undefined;
   clearSelectedPinboard: () => void;
 }
-export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => {
+export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
   const { setIsExpanded } = useGlobalStateContext();
   return (
     <div
@@ -72,7 +38,7 @@ export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => {
         `}
       >
         {props.selectedPinboard && (
-          <HeadingButton
+          <NavButton
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}
           />
@@ -85,7 +51,7 @@ export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => {
         >
           {props.children}
         </span>
-        <HeadingButton onClick={() => setIsExpanded(false)} icon={CrossIcon} />
+        <NavButton onClick={() => setIsExpanded(false)} icon={CrossIcon} />
       </div>
 
       {/* TODO re-enable tabs when we implement & enable asset view */}

@@ -5,7 +5,7 @@ import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
-import { HeadingPanel } from "./headingPanel";
+import { Navigation } from "./navigation";
 import { ChatTab, Tab as Tab } from "./types/Tab";
 import { useGlobalStateContext } from "./globalState";
 
@@ -71,14 +71,14 @@ export const Panel: React.FC = () => {
       `}
       ref={panelRef}
     >
-      <HeadingPanel
+      <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         selectedPinboard={selectedPinboard}
         clearSelectedPinboard={clearSelectedPinboard}
       >
         {title}
-      </HeadingPanel>
+      </Navigation>
 
       {preselectedPinboard === "notTrackedInWorkflow" ? (
         <NotTrackedInWorkflow />

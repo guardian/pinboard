@@ -23,7 +23,7 @@ import {
   desktopNotificationsPreferencesUrl,
   HiddenIFrameForServiceWorker,
 } from "./pushNotificationPreferences";
-import { PinboardLogic } from "./pinboardLogic";
+import { GlobalState } from "./globalState";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -195,7 +195,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
       <root.div>
-        <PinboardLogic
+        <GlobalState
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
           preselectedComposerId={preSelectedComposerId}

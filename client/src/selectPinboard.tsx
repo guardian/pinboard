@@ -8,7 +8,7 @@ import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/source-foundations";
 import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
-import { usePinboardContext } from "./context";
+import { useGlobalStateContext } from "./globalState";
 
 export const SelectPinboard: React.FC = () => {
   const {
@@ -25,7 +25,7 @@ export const SelectPinboard: React.FC = () => {
     errors,
 
     unreadFlags,
-  } = usePinboardContext();
+  } = useGlobalStateContext();
 
   const [searchText, setSearchText] = useState<string>("");
 

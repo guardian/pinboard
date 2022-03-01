@@ -1,16 +1,60 @@
 import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
-import React, { useEffect, useState } from "react";
-import { Item, User } from "../../shared/graphql/graphql";
+import React, { useContext, useEffect, useState } from "react";
+import { Item, User, WorkflowStub } from "../../shared/graphql/graphql";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
-import { PinboardContextProvider } from "./context";
 import { Floaty } from "./floaty";
 import { Panel } from "./panel";
 import type { PinboardData } from "./pinboard";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 
-interface PinboardLogicProps {
+interface GlobalStateContextShape {
+  userEmail: string;
+  userLookup: { [email: string]: User } | undefined;
+
+  activePinboardIds: string[];
+  payloadToBeSent: PayloadAndType | null;
+  clearPayloadToBeSent: () => void;
+
+  openPinboard: (pinboardData: PinboardData) => void;
+  closePinboard: (pinboardId: string) => void;
+  preselectedPinboard: WorkflowStub | undefined;
+  selectedPinboardId: string | null | undefined;
+  clearSelectedPinboard: () => void;
+
+  showNotification: (item: Item) => void;
+  hasWebPushSubscription: boolean | null | undefined;
+
+  errors: PerPinboard<ApolloError>;
+  setError: (pinboardId: string, error: ApolloError | undefined) => void;
+  hasErrorOnOtherPinboard: (pinboardId: string) => boolean;
+
+  isExpanded: boolean;
+  setIsExpanded: (_: boolean) => void;
+
+  unreadFlags: PerPinboard<boolean>;
+  setUnreadFlag: (
+    pinboardId: string
+  ) => (unreadFlag: boolean | undefined) => void;
+  hasUnreadOnOtherPinboard: (pinboardId: string) => boolean;
+}
+const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
+  null
+);
+
+const GlobalStateContextProvider = GlobalStateContext.Provider;
+
+// Ugly but allows us to assume that the context has been set, which it always will be
+export const useGlobalStateContext = (): GlobalStateContextShape => {
+  const ctx = useContext(GlobalStateContext);
+  if (ctx === null) {
+    throw new Error("GlobalStateContext is uninitialised");
+  }
+  return ctx;
+};
+
+interface GlobalStateProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
@@ -23,7 +67,7 @@ interface PinboardLogicProps {
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
 }
-export const PinboardLogic: React.FC<PinboardLogicProps> = ({
+export const GlobalState: React.FC<GlobalStateProps> = ({
   userEmail,
   preselectedComposerId,
   presetUnreadNotificationCount,
@@ -204,10 +248,14 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = ({
     unreadFlags,
     setUnreadFlag,
     hasUnreadOnOtherPinboard,
+
+    selectedPinboardId,
+    isExpanded,
+    setIsExpanded,
   };
 
   return (
-    <PinboardContextProvider value={contextValue}>
+    <GlobalStateContextProvider value={contextValue}>
       <Floaty
         presetUnreadNotificationCount={presetUnreadNotificationCount}
         isExpanded={isExpanded}
@@ -221,6 +269,6 @@ export const PinboardLogic: React.FC<PinboardLogicProps> = ({
         activePinboards={activePinboards}
         selectedPinboardId={selectedPinboardId}
       />
-    </PinboardContextProvider>
+    </GlobalStateContextProvider>
   );
 };

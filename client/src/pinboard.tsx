@@ -16,7 +16,7 @@ import {
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
-import { usePinboardContext } from "./context";
+import { useGlobalStateContext } from "./globalState";
 
 export type PinboardData = WorkflowStub;
 
@@ -53,7 +53,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
     setUnreadFlag,
     hasUnreadOnOtherPinboard,
-  } = usePinboardContext();
+  } = useGlobalStateContext();
 
   const pinboardId = pinboardData.id;
 

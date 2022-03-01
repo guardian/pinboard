@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <title>PinBoard</title>
     <script src="https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js"></script>
+    <style>
+      @font-face {
+        font-family: "Guardian Agate Sans";
+        src: url("https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-Regular.woff2")
+          format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
   </head>
 
   <body>
@@ -43,6 +53,17 @@
         Remove pinboard INVALID pre-selection
       </button>
     </ul>
+
+    <h3>Override unread notifications bubble</h3>
+
+    <label for="unread-nots"
+      >Set with a blank input or 0 to see a plain red 🔴</label
+    >
+    <div>
+      <input type="number" name="unread-nots" id="unread-nots" />
+      <button id="btn-set-unread-notifications-bubble">Set</button>
+      <button id="btn-unset-unread-notifications-bubble">Unset</button>
+    </div>
 
     <h3><code>Add to 📌</code> button</h3>
     <ul id="button_section">
@@ -107,6 +128,23 @@
       .getElementById("btn-remove-invalid-preselection")
       .addEventListener("click", () => {
         preSelectInvalidPinboardElement.remove();
+      });
+
+    const presetUnreadBubblePinboardElement = document.createElement(
+      "pinboard-bubble-preset"
+    );
+    document
+      .getElementById("btn-set-unread-notifications-bubble")
+      .addEventListener("click", () => {
+        presetUnreadBubblePinboardElement.dataset.count =
+          document.getElementById("unread-nots").value || "0";
+        document.body.appendChild(presetUnreadBubblePinboardElement);
+      });
+
+    document
+      .getElementById("btn-unset-unread-notifications-bubble")
+      .addEventListener("click", () => {
+        presetUnreadBubblePinboardElement.remove();
       });
   </script>
 </html>

@@ -26,6 +26,7 @@ import { Floaty } from "./floaty";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
+const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
 interface PinBoardAppProps {
@@ -70,16 +71,36 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           ?.dataset?.composerId
     );
 
+  const [
+    presetUnreadNotificationCount,
+    setPresetUnreadNotificationCount,
+  ] = useState<number | undefined>();
+  const refreshPresetUnreadNotifications = () => {
+    const rawCount = (document.querySelector(
+      PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG
+    ) as HTMLElement)?.dataset?.count;
+
+    if (rawCount !== undefined) {
+      const count = parseInt(rawCount);
+      setPresetUnreadNotificationCount(isNaN(count) ? 0 : count);
+    } else {
+      setPresetUnreadNotificationCount(undefined);
+    }
+  };
+
   useEffect(() => {
     // Add nodes that already exist at time React app is instantiated
     refreshButtonNodes();
 
     refreshPreselectedPinboard();
 
+    refreshPresetUnreadNotifications();
+
     // begin watching for any DOM changes
     new MutationObserver(() => {
       refreshButtonNodes();
       refreshPreselectedPinboard();
+      refreshPresetUnreadNotifications();
     }).observe(document.body, {
       attributes: false,
       characterData: false,
@@ -173,6 +194,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
       <Floaty
+        presetUnreadNotifications={presetUnreadNotificationCount}
         userEmail={userEmail}
         preselectedComposerId={preSelectedComposerId}
         payloadToBeSent={payloadToBeSent}

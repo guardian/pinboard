@@ -1,7 +1,7 @@
 import React, { PropsWithChildren } from "react";
 import { css } from "@emotion/react";
-import { pinboardPrimary } from "../colours";
 import { space } from "@guardian/source-foundations";
+import { pinboard } from "../colours";
 interface HeadingPanelProps {
   heading: string;
   clearSelectedPinboard: () => void;
@@ -12,7 +12,7 @@ interface HeadingPanelProps {
 export const HeadingPanel = (props: PropsWithChildren<HeadingPanelProps>) => (
   <div
     css={css`
-      background-color: ${pinboardPrimary};
+      background-color: ${pinboard[500]};
       padding: ${space[1]}px;
     `}
   >

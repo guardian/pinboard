@@ -2,22 +2,23 @@ import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
 import { css } from "@emotion/react";
 import React, { useEffect, useRef, useState } from "react";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
-import { pinMetal, pinboardPrimary, unread } from "../colours";
+import { pinMetal, pinboard, composer } from "../colours";
 import { Pinboard, PinboardData } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import PinIcon from "../icons/pin-icon.svg";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
-import { textSans } from "../fontNormaliser";
+import { agateSans } from "../fontNormaliser";
 import { Item, User } from "../../shared/graphql/graphql";
 import root from "react-shadow/emotion";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 
-const bottomRight = 10;
-const floatySize = 50;
+const bottom = 108;
+const right = 15;
+const floatySize = 40;
 const boxShadow =
-  "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)";
+  "rgba(0, 0, 0, 0.14) 0px 0px 4px, rgba(0, 0, 0, 0.28) 0px 4px 8px";
 export const standardFloatyContainerCss = css`
   overflow-y: auto;
   margin: ${space[1]}px;
@@ -26,12 +27,48 @@ export const standardFloatyContainerCss = css`
   }
 `;
 
+interface FloatyNotificationsBubbleProps {
+  presetUnreadNotifications: number | undefined;
+}
+const FloatyNotificationsBubble = ({
+  presetUnreadNotifications,
+}: FloatyNotificationsBubbleProps) => (
+  <div
+    css={css`
+      position: absolute;
+      top: -3px;
+      left: 26px;
+      user-select: none;
+      background-color: ${composer.warning[300]};
+      min-width: ${space[4]}px;
+      height: ${space[4]}px;
+      border-radius: 12px;
+      ${agateSans.xxsmall()};
+      color: ${palette.neutral[100]};
+      text-align: center;
+    `}
+  >
+    <span
+      css={css`
+        margin: 0 4px;
+        height: 100%;
+        display: inline-block;
+        vertical-align: middle;
+        line-height: 12px;
+      `}
+    >
+      {presetUnreadNotifications || ""}
+    </span>
+  </div>
+);
+
 export type PerPinboard<T> = {
   [pinboardId: string]: T | undefined;
 };
 export interface FloatyProps {
   userEmail: string;
   preselectedComposerId: string | null | undefined;
+  presetUnreadNotifications: number | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
@@ -178,7 +215,7 @@ export const Floaty = (props: FloatyProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${agateSans.small()}
         color: ${pinMetal};
       `}
     >
@@ -186,14 +223,18 @@ export const Floaty = (props: FloatyProps) => {
         css={css`
           position: fixed;
           z-index: 99999;
-          bottom: ${bottomRight}px;
-          right: ${bottomRight}px;
+          bottom: ${bottom}px;
+          right: ${right}px;
           width: ${floatySize}px;
           height: ${floatySize}px;
           border-radius: ${floatySize / 2}px;
           cursor: pointer;
           box-shadow: ${boxShadow};
-          background-color: ${pinboardPrimary};
+          background-color: ${pinboard[500]};
+
+          &:hover {
+            background-color: ${pinboard[800]};
+          }
         `}
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -201,10 +242,10 @@ export const Floaty = (props: FloatyProps) => {
           css={css`
             position: absolute;
             top: 50%;
-            left: 54%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            height: ${floatySize}px;
-            width: ${floatySize / 2}px;
+            height: 22px;
+            width: 12px;
             path {
               stroke: ${pinMetal};
               stroke-width: 0.5px;
@@ -225,18 +266,9 @@ export const Floaty = (props: FloatyProps) => {
             ⚠️
           </div>
         )}
-        {hasUnread && (
-          <div
-            css={css`
-              position: absolute;
-              top: 0;
-              right: 0;
-              user-select: none;
-              background-color: ${unread};
-              width: ${space[3]}px;
-              height: ${space[3]}px;
-              border-radius: 100%;
-            `}
+        {(props.presetUnreadNotifications !== undefined || hasUnread) && (
+          <FloatyNotificationsBubble
+            presetUnreadNotifications={props.presetUnreadNotifications}
           />
         )}
       </div>
@@ -246,11 +278,11 @@ export const Floaty = (props: FloatyProps) => {
           z-index: 99998;
           background: white;
           box-shadow: ${boxShadow};
-          border: 2px ${pinboardPrimary} solid;
+          border: 2px ${pinboard[500]} solid;
           width: 250px;
           height: calc(100vh - 100px);
-          bottom: ${bottomRight + floatySize / 2 - 5}px;
-          right: ${bottomRight + floatySize / 2 - 5}px;
+          bottom: ${bottom + floatySize / 2 - 5}px;
+          right: ${right + floatySize / 2 - 5}px;
           display: ${isExpanded ? "flex" : "none"};
           flex-direction: column;
           justify-content: space-between;

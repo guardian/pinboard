@@ -2,7 +2,7 @@ import ReactDOM from "react-dom";
 import React, { ReactPortal } from "react";
 import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
-import { pinMetal, pinboardPrimary } from "../colours";
+import { pinboard, pinMetal } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
@@ -36,7 +36,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         css={css`
           display: flex;
           align-items: center;
-          background-color: ${pinboardPrimary};
+          background-color: ${pinboard[500]};
           ${textSans.xsmall()};
           border: none;
           border-radius: 100px;
@@ -49,7 +49,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         Add to
         <PinIcon
           css={css`
-            height: 30px;
+            height: 18px;
             margin-left: ${space[1]}px;
             path {
               stroke: ${pinMetal};

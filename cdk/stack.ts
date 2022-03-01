@@ -589,7 +589,7 @@ export class PinBoardStack extends Stack {
       `${bootstrappingLambdaApiBaseName}-certificate`,
       {
         domainName,
-        validationMethod: acm.ValidationMethod.DNS,
+        validation: acm.CertificateValidation.fromDns(),
       }
     );
 

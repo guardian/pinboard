@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { css } from "@emotion/react";
 import type { PinboardData } from "./pinboard";
-import { standardFloatyContainerCss } from "./styling";
+import { standardPanelContainerCss } from "./styling";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
 import { space } from "@guardian/source-foundations";
@@ -68,7 +68,7 @@ export const SelectPinboard: React.FC = () => {
 
   return (
     <>
-      <div css={standardFloatyContainerCss}>
+      <div css={standardPanelContainerCss}>
         {payloadToBeSent && (
           <div
             css={css`

@@ -1,8 +1,8 @@
 import React from "react";
-import { standardFloatyContainerCss } from "./styling";
+import { standardPanelContainerCss } from "./styling";
 
 export const NotTrackedInWorkflow = () => (
-  <div css={standardFloatyContainerCss}>
+  <div css={standardPanelContainerCss}>
     In order to use Pinboard, please:
     <ol>
       <li>Track this piece in Workflow using the left side panel</li>

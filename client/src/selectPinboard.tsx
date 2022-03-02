@@ -98,7 +98,7 @@ export const SelectPinboard: React.FC = () => {
           </div>
         )}
         {!hasWebPushSubscription && (
-          /* TODO move this and the one at the bottom of the file to floaty */
+          /* TODO move this and the one at the bottom to some sort of settings menu */
           <PushNotificationPreferencesOpener
             hasWebPushSubscription={hasWebPushSubscription}
           />

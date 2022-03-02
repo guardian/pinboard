@@ -7,7 +7,7 @@
     "watch-type-check": "yarn type-check --watch",
     "build-main-client": "webpack --mode=production",
     "watch-main-client": "webpack serve --mode=development",
-    "analyze-main-client-bundle": "webpack --config webpack-bundle-analyzer.config.js",
+    "analyze-main-client-bundle": "webpack --config webpack-bundle-analyzer.config.js --mode=production",
     "build-service-worker": "webpack --config webpack.service-worker.config.js --mode=production",
     "watch-service-worker": "webpack --config webpack.service-worker.config.js --mode=development --watch",
     "watch": "run-p --print-label watch-type-check watch-main-client watch-service-worker",

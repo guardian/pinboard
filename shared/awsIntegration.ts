@@ -1,5 +1,6 @@
 import * as AWS from "aws-sdk";
 import { AWS_REGION } from "./awsRegion";
+import { APP } from "./constants";
 
 const PROFILE = "workflow";
 
@@ -15,14 +16,16 @@ export const standardAwsConfig = {
   credentialProvider: CREDENTIAL_PROVIDER,
 };
 
-const ssm = new AWS.SSM();
+const ssm = new AWS.SSM(standardAwsConfig);
 
-export const pinboardSecretPromiseGetter = (nameSuffix: string) => {
-  const Name = `/${process.env.APP}/${nameSuffix}`;
+const paramStorePromiseGetter = (WithDecryption: boolean) => (
+  nameSuffix: string
+) => {
+  const Name = `/${APP}/${nameSuffix}`;
   return ssm
     .getParameter({
       Name,
-      WithDecryption: true,
+      WithDecryption,
     })
     .promise()
     .then((result) => {
@@ -33,3 +36,6 @@ export const pinboardSecretPromiseGetter = (nameSuffix: string) => {
       return value;
     });
 };
+
+export const pinboardSecretPromiseGetter = paramStorePromiseGetter(true);
+export const pinboardConfigPromiseGetter = paramStorePromiseGetter(false);

@@ -19,6 +19,7 @@
     "@guardian/source-foundations": "^4.1.0",
     "@guardian/source-react-components": "^4.0.3",
     "@guardian/source-react-components-development-kitchen": "^0.0.33",
+    "@sentry/react": "^6.18.1",
     "@webscopeio/react-textarea-autocomplete": "4.9.1",
     "aws-appsync-auth-link": "^3.0.7",
     "aws-appsync-subscription-link": "^3.0.9",

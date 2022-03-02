@@ -1,7 +1,15 @@
 import * as AWS from "aws-sdk";
-import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
+import {
+  pinboardConfigPromiseGetter,
+  STAGE,
+  standardAwsConfig,
+} from "../../shared/awsIntegration";
 import { APP } from "../../shared/constants";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../shared/environmentVariables";
+
+pinboardConfigPromiseGetter("sentryDSN").then(
+  (sentryDSN) => (process.env[ENVIRONMENT_VARIABLE_KEYS.sentryDSN] = sentryDSN)
+);
 
 new AWS.AppSync(standardAwsConfig)
   .listGraphqlApis({

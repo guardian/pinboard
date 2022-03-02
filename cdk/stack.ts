@@ -12,6 +12,7 @@ import {
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as S3 from "@aws-cdk/aws-s3";
 import * as iam from "@aws-cdk/aws-iam";
+import * as ssm from "@aws-cdk/aws-ssm";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
@@ -531,6 +532,10 @@ export class PinBoardStack extends Stack {
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint]:
             pinboardAppsyncApi.graphqlUrl,
+          [ENVIRONMENT_VARIABLE_KEYS.sentryDSN]: ssm.StringParameter.valueForStringParameter(
+            this,
+            "/pinboard/sentryDSN"
+          ),
         },
         functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(

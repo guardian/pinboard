@@ -16,6 +16,12 @@ async function getPinboardByComposerId(composerId: string) {
   const contentResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/content/${composerId}`
   );
+  if (contentResponse.status === 404) {
+    return null;
+  }
+  if (!contentResponse.ok) {
+    throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
+  }
   const data = ((await contentResponse.json()) as {
     data: {
       externalData: {
@@ -24,7 +30,10 @@ async function getPinboardByComposerId(composerId: string) {
       // there are other fields, but they're just being forwarded on
     };
   }).data;
-  return { ...data, status: data?.externalData?.status };
+  if (!data) {
+    return null;
+  }
+  return { ...data, status: data.externalData?.status };
 }
 
 async function getAllPinboards() {
@@ -33,6 +42,11 @@ async function getAllPinboards() {
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
   );
+
+  if (!stubsResponse.ok) {
+    throw Error(`${stubsResponse.status} ${await stubsResponse.text()}`);
+  }
+
   const stubsResponseBody = (await stubsResponse.json()) as {
     data: {
       content: { [status: string]: WorkflowStub[] };

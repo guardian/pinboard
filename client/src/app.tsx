@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
 import {
@@ -22,7 +23,9 @@ import {
   desktopNotificationsPreferencesUrl,
   HiddenIFrameForServiceWorker,
 } from "./pushNotificationPreferences";
+import { GlobalStateProvider } from "./globalState";
 import { Floaty } from "./floaty";
+import { Panel } from "./panel";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -193,21 +196,26 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-      <Floaty
-        presetUnreadNotifications={presetUnreadNotificationCount}
-        userEmail={userEmail}
-        preselectedComposerId={preSelectedComposerId}
-        payloadToBeSent={payloadToBeSent}
-        clearPayloadToBeSent={clearPayloadToBeSent}
-        isExpanded={isExpanded}
-        setIsExpanded={setIsExpanded}
-        userLookup={userLookup}
-        hasWebPushSubscription={hasWebPushSubscription}
-        showNotification={showDesktopNotification}
-        clearDesktopNotificationsForPinboardId={
-          clearDesktopNotificationsForPinboardId
-        }
-      />
+      <root.div>
+        <GlobalStateProvider
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+          userEmail={userEmail}
+          preselectedComposerId={preSelectedComposerId}
+          payloadToBeSent={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+          userLookup={userLookup}
+          hasWebPushSubscription={hasWebPushSubscription}
+          showNotification={showDesktopNotification}
+          clearDesktopNotificationsForPinboardId={
+            clearDesktopNotificationsForPinboardId
+          }
+        >
+          <Floaty />
+          <Panel />
+        </GlobalStateProvider>
+      </root.div>
       {buttonNodes.map((node, index) => (
         <ButtonPortal
           key={index}

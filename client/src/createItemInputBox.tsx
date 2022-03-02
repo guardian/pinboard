@@ -57,7 +57,7 @@ interface CreateItemInputBoxProps {
   sendItem: () => void;
   allUsers: User[] | undefined;
   addUnverifiedMention: (user: User) => void;
-  floatyElement: HTMLDivElement | null;
+  panelElement: HTMLDivElement | null;
 }
 
 export const CreateItemInputBox = ({
@@ -68,7 +68,7 @@ export const CreateItemInputBox = ({
   setMessage,
   sendItem,
   addUnverifiedMention,
-  floatyElement,
+  panelElement,
 }: CreateItemInputBoxProps) => (
   <div
     css={css`
@@ -104,7 +104,7 @@ export const CreateItemInputBox = ({
           : 0}px;
       `}
       autoFocus
-      boundariesElement={floatyElement || undefined}
+      boundariesElement={panelElement || undefined}
     />
     {payloadToBeSent && (
       <div

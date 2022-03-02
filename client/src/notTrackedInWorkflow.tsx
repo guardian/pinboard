@@ -1,5 +1,5 @@
 import React from "react";
-import { standardFloatyContainerCss } from "./floaty";
+import { standardFloatyContainerCss } from "./styling";
 
 export const NotTrackedInWorkflow = () => (
   <div css={standardFloatyContainerCss}>

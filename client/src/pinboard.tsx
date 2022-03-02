@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ApolloError, useQuery, useSubscription } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import {
   Item,
   LastItemSeenByUser,
@@ -8,7 +8,6 @@ import {
 import { ScrollableItems } from "./scrollableItems";
 import { HeadingPanel } from "./headingPanel";
 import { css } from "@emotion/react";
-import { FloatyProps } from "./floaty";
 import { PendingItem } from "./types/PendingItem";
 import {
   gqlGetInitialItems,
@@ -17,6 +16,7 @@ import {
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
+import { useGlobalStateContext } from "./globalState";
 
 export type PinboardData = WorkflowStub;
 
@@ -24,34 +24,37 @@ export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
 }
 
-interface PinboardProps extends FloatyProps {
+interface PinboardProps {
   pinboardData: PinboardData;
-  setError: (pinboardId: string, error: ApolloError | undefined) => void;
-  setUnreadFlag: (hasUnread: boolean | undefined) => void;
-  hasUnreadOnOtherPinboard: boolean;
-  hasErrorOnOtherPinboard: boolean;
   isExpanded: boolean;
   isSelected: boolean;
-  clearSelectedPinboard: () => void;
-  floatyElement: HTMLDivElement | null;
+  panelElement: HTMLDivElement | null;
 }
 
-export const Pinboard = ({
-  userEmail,
-  userLookup,
+export const Pinboard: React.FC<PinboardProps> = ({
   pinboardData,
-  setError,
-  setUnreadFlag,
-  hasUnreadOnOtherPinboard,
-  hasErrorOnOtherPinboard,
   isExpanded,
   isSelected,
-  clearSelectedPinboard,
-  payloadToBeSent,
-  clearPayloadToBeSent,
-  floatyElement,
-  showNotification,
-}: PinboardProps) => {
+  panelElement,
+}) => {
+  const {
+    userEmail,
+    userLookup,
+
+    payloadToBeSent,
+    clearPayloadToBeSent,
+
+    clearSelectedPinboard,
+
+    showNotification,
+
+    setError,
+    hasErrorOnOtherPinboard,
+
+    setUnreadFlag,
+    hasUnreadOnOtherPinboard,
+  } = useGlobalStateContext();
+
   const pinboardId = pinboardData.id;
 
   // TODO: extract to floaty level?
@@ -64,7 +67,7 @@ export const Pinboard = ({
       ]);
       if (!isExpanded) {
         showNotification(updateForSubscription);
-        setUnreadFlag(true);
+        setUnreadFlag(pinboardId)(true);
       }
     },
   });
@@ -146,8 +149,8 @@ export const Pinboard = ({
         <HeadingPanel
           heading={pinboardData.title || ""}
           clearSelectedPinboard={clearSelectedPinboard}
-          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard}
-          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard}
+          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard(pinboardId)}
+          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard(pinboardId)}
         >
           {initialItems.loading && "Loading..."}
           {initialItems.error && `Error: ${initialItems.error}`}
@@ -160,7 +163,7 @@ export const Pinboard = ({
           initialItems={initialItems.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
-          setUnreadFlag={setUnreadFlag}
+          setUnreadFlag={setUnreadFlag(pinboardId)}
           isExpanded={isExpanded}
           userLookup={userLookup}
           userEmail={userEmail}
@@ -178,7 +181,7 @@ export const Pinboard = ({
         onError={(error) => setError(pinboardId, error)}
         userEmail={userEmail}
         pinboardId={pinboardId}
-        floatyElement={floatyElement}
+        panelElement={panelElement}
       />
     </React.Fragment>
   );

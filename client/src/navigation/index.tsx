@@ -16,7 +16,13 @@ interface NavigationProps {
   clearSelectedPinboard: () => void;
 }
 export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
-  const { setIsExpanded } = useGlobalStateContext();
+  const { setIsExpanded, hasUnreadOnOtherPinboard } = useGlobalStateContext();
+  // TODO replace with notification count when we have it
+  const unreadNotificationCountOnOtherPinboard =
+    props.selectedPinboard &&
+    hasUnreadOnOtherPinboard(props.selectedPinboard.id)
+      ? 0
+      : undefined;
   return (
     <div
       css={css`
@@ -41,11 +47,13 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
           <NavButton
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}
+            unreadCount={unreadNotificationCountOnOtherPinboard}
           />
         )}
         <span
           css={css`
             flex-grow: 1;
+            margin: 0 ${space[1]}px;
             color: ${palette.neutral[20]};
           `}
         >

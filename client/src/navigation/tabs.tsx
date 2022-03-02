@@ -1,8 +1,6 @@
 import React from "react";
 import { css } from "@emotion/react";
-import { pinboard } from "../../colours";
-import { neutral, palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../../fontNormaliser";
+import { neutral } from "@guardian/source-foundations";
 import { Tab } from "../types/Tab";
 import { NavButton } from "./button";
 import { ClipIcon, SpeechBubbleIcon } from "./icon";
@@ -24,7 +22,7 @@ export const Tabs: React.FC<TabsProps> = ({
   >
     <div
       css={css`
-        flex-grow: 1;
+        flex: 1 1 0;
         display: flex;
         justify-content: center;
         border-bottom: ${activeTab === "chat"
@@ -34,35 +32,15 @@ export const Tabs: React.FC<TabsProps> = ({
       `}
       onClick={() => setActiveTab("chat")}
     >
-      <NavButton icon={SpeechBubbleIcon} hoverParent={true} />
-      {unreadMessages !== null && (
-        <div
-          css={css`
-            position: relative;
-            top: -4px;
-            left: -10px;
-            border: 2px solid ${pinboard[500]};
-            user-select: none;
-            background-color: ${palette.neutral[20]};
-            min-width: ${space[2]}px;
-            padding: 0 ${space[1]}px;
-            height: ${space[4]}px;
-            border-radius: ${space[3]}px;
-            ${agateSans.xxsmall({ lineHeight: "regular" })}
-            color: ${palette.neutral[100]};
-            text-align: center;
-            *:hover > & {
-              border-color: ${pinboard[800]};
-            }
-          `}
-        >
-          {unreadMessages > 0 && unreadMessages}
-        </div>
-      )}
+      <NavButton
+        icon={SpeechBubbleIcon}
+        hoverParent={true}
+        unreadCount={unreadMessages}
+      />
     </div>
     <div
       css={css`
-        flex-grow: 1;
+        flex: 1 1 0;
         display: flex;
         justify-content: center;
         border-bottom: ${activeTab === "asset"

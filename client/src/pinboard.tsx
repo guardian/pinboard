@@ -6,8 +6,6 @@ import {
   WorkflowStub,
 } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
-import { HeadingPanel } from "./headingPanel";
-import { css } from "@emotion/react";
 import { PendingItem } from "./types/PendingItem";
 import {
   gqlGetInitialItems,
@@ -17,6 +15,8 @@ import {
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
 import { useGlobalStateContext } from "./globalState";
+import { css } from "@emotion/react";
+import { palette } from "@guardian/source-foundations";
 
 export type PinboardData = WorkflowStub;
 
@@ -44,15 +44,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
     payloadToBeSent,
     clearPayloadToBeSent,
 
-    clearSelectedPinboard,
-
     showNotification,
 
     setError,
-    hasErrorOnOtherPinboard,
 
     setUnreadFlag,
-    hasUnreadOnOtherPinboard,
   } = useGlobalStateContext();
 
   const pinboardId = pinboardData.id;
@@ -140,23 +136,21 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   return !isSelected ? null : (
     <React.Fragment>
+      {initialItems.loading && "Loading..."}
       <div
         css={css`
-          flex-grow: 1;
-          color: black;
+          background-color: ${palette.opinion[500]};
+          color: ${palette.neutral[100]};
         `}
       >
-        <HeadingPanel
-          heading={pinboardData.title || ""}
-          clearSelectedPinboard={clearSelectedPinboard}
-          hasUnreadOnOtherPinboard={hasUnreadOnOtherPinboard(pinboardId)}
-          hasErrorOnOtherPinboard={hasErrorOnOtherPinboard(pinboardId)}
-        >
-          {initialItems.loading && "Loading..."}
-          {initialItems.error && `Error: ${initialItems.error}`}
-          {itemSubscription.error && `Error: ${itemSubscription.error}`}
-        </HeadingPanel>
+        {initialItems.error && `Error: ${initialItems.error}`}
+        {itemSubscription.error && `Error: ${itemSubscription.error}`}
       </div>
+      <div // push chat messages to bottom of panel if they do not fill
+        css={css`
+          flex-grow: 1;
+        `}
+      />
       {initialItems.data && (
         <ScrollableItems
           showNotification={showNotification}

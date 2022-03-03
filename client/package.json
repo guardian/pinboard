@@ -13,11 +13,6 @@
     "watch": "run-p --print-label watch-type-check watch-main-client watch-service-worker",
     "build": "run-p --print-label type-check build-main-client build-service-worker"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "((git diff --name-only --cached | grep 'yarn.lock') && yarn analyze-main-client-bundle) || true "
-    }
-  },
   "dependencies": {
     "@apollo/client": "^3.5.5",
     "@emotion/react": "^11.1.4",

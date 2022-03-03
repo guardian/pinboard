@@ -11,6 +11,7 @@ import { PinBoardApp } from "./app";
 import * as Sentry from "@sentry/react";
 import { onError } from "@apollo/client/link/error";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
+import { BUILD_NUMBER } from "../../BUILD_NUMBER";
 
 export function mount({
   userEmail,
@@ -25,7 +26,7 @@ export function mount({
   const pinboardSpecificSentryClient = new Sentry.Hub(
     new Sentry.BrowserClient({
       dsn: sentryDSN,
-      release: GIT_COMMIT_HASH, //TODO better to use build number, via environment variable on bootstrapping lambda, then via ClientConfig,
+      release: `${BUILD_NUMBER} (${GIT_COMMIT_HASH})`,
       environment: window.location.hostname,
       tracesSampleRate: 1.0, // We recommend adjusting this value in production, or using tracesSampler for finer control
     })

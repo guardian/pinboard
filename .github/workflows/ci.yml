@@ -17,6 +17,11 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: calculate build number
+        run: |
+          LAST_TEAMCITY_BUILD=650
+          echo "BUILD_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))" >> $GITHUB_ENV
+
       - uses: actions/checkout@v2
 
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
@@ -53,6 +58,9 @@ jobs:
           GIT_COMMIT_HASH=$(git rev-parse HEAD)
           echo 'export const GIT_COMMIT_HASH = "'$GIT_COMMIT_HASH'";' > GIT_COMMIT_HASH.ts
 
+      - name: write the current BUILD_NUMBER to BUILD_NUMBER.ts (so it's available at build time - so it gets baked into the artifact)
+        run: echo 'export const BUILD_NUMBER = "'$BUILD_NUMBER'";' > BUILD_NUMBER.ts
+
       - name: build all workspaces (i.e. modules)
         run: yarn build
 
@@ -65,6 +73,5 @@ jobs:
 
       - name: upload riff-raff artifacts
         run: |
-          LAST_TEAMCITY_BUILD=650
-          export GITHUB_RUN_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))
+          export GITHUB_RUN_NUMBER=$BUILD_NUMBER
           yarn node-riffraff-artifact

@@ -9,33 +9,64 @@ import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { UrlInfo } from "aws-appsync-subscription-link/lib/types";
 import { PinBoardApp } from "./app";
 import * as Sentry from "@sentry/react";
+import * as SentryHub from "@sentry/hub";
 import { onError } from "@apollo/client/link/error";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { BUILD_NUMBER } from "../../BUILD_NUMBER";
+
+const SENTRY_REROUTED_FLAG = "rerouted";
 
 export function mount({
   userEmail,
   appSyncConfig,
   sentryDSN,
 }: ClientConfig): void {
-  Sentry.addGlobalEventProcessor((event) => {
-    // TODO if event originates from pinboard then return null, to prevent host application from reporting pinboard errors
-    return event;
-  });
-
+  const sentryUser = {
+    email: userEmail,
+  };
+  const sentryConfig = {
+    dsn: sentryDSN,
+    release: `${BUILD_NUMBER} (${GIT_COMMIT_HASH})`,
+    environment: window.location.hostname,
+    tracesSampleRate: 1.0, // We recommend adjusting this value in production, or using tracesSampler for finer control
+  };
   const pinboardSpecificSentryClient = new Sentry.Hub(
-    new Sentry.BrowserClient({
-      dsn: sentryDSN,
-      release: `${BUILD_NUMBER} (${GIT_COMMIT_HASH})`,
-      environment: window.location.hostname,
-      tracesSampleRate: 1.0, // We recommend adjusting this value in production, or using tracesSampler for finer control
-    })
+    new Sentry.BrowserClient(sentryConfig)
   );
   pinboardSpecificSentryClient.configureScope((scope) =>
-    scope.setUser({
-      email: userEmail,
-    })
+    scope.setUser(sentryUser)
   );
+
+  const currentHub = Sentry.getHubFromCarrier(SentryHub.getMainCarrier());
+  const existingSentryClient = currentHub.getClient();
+
+  // if host application doesn't have Sentry initialised, then init here to ensure the GlobalEventProcessor will do its thing
+  if (!existingSentryClient) {
+    Sentry.init(sentryConfig);
+    Sentry.setUser(sentryUser);
+  }
+
+  Sentry.addGlobalEventProcessor((event, eventHint) => {
+    if (
+      existingSentryClient &&
+      event.fingerprint?.includes(SENTRY_REROUTED_FLAG) &&
+      event.exception?.values?.find((exception) =>
+        exception.stacktrace?.frames?.find((frame) =>
+          frame.filename?.includes("pinboard.main")
+        )
+      )
+    ) {
+      pinboardSpecificSentryClient.captureEvent(
+        {
+          ...event,
+          fingerprint: [...(event.fingerprint || []), SENTRY_REROUTED_FLAG],
+        },
+        eventHint
+      );
+      return null; // stop event from being sent to host application's Sentry project
+    }
+    return event;
+  });
 
   const apolloUrlInfo: UrlInfo = {
     url: appSyncConfig.graphqlEndpoint,
@@ -48,7 +79,7 @@ export function mount({
 
   const apolloErrorLink = onError(({ graphQLErrors, networkError }) => {
     graphQLErrors?.forEach(({ message, ...gqlError }) => {
-      console.log(
+      console.error(
         `[Apollo - GraphQL error]: Message: ${message}, Location: ${gqlError.locations}, Path: ${gqlError.path}`
       );
       pinboardSpecificSentryClient.captureException(
@@ -62,7 +93,7 @@ export function mount({
     });
 
     if (networkError) {
-      console.log(`[Apollo - Network error]: ${networkError}`);
+      console.error(`[Apollo - Network error]: ${networkError}`);
       pinboardSpecificSentryClient.captureException(networkError);
     }
   });
@@ -80,28 +111,8 @@ export function mount({
 
   document.body.appendChild(element);
 
-  const PinBoardAppWithSentry = Sentry.withErrorBoundary(PinBoardApp, {
-    fallback: <p>an error has occurred</p>,
-    beforeCapture(
-      scope: Sentry.Scope,
-      error: Error | null,
-      componentStack: string | null
-    ) {
-      pinboardSpecificSentryClient.captureException(error, {
-        captureContext: {
-          ...scope,
-          contexts: {
-            react: {
-              componentStack,
-            },
-          },
-        },
-      });
-    },
-  });
-
   render(
-    <PinBoardAppWithSentry apolloClient={apolloClient} userEmail={userEmail} />,
+    <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />,
     element
   );
 

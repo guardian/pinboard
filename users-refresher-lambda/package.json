@@ -16,7 +16,7 @@
     "ts-node-dev": "^1.0.0"
   },
   "dependencies": {
-    "@googleapis/admin": "^0.2.0",
+    "@googleapis/admin": "^0.3.0",
     "@googleapis/people": "^0.2.1",
     "iniparser": "^1.0.5",
     "node-forge": "^0.10.0"

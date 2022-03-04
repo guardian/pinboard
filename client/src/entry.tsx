@@ -13,8 +13,11 @@ import * as SentryHub from "@sentry/hub";
 import { onError } from "@apollo/client/link/error";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { BUILD_NUMBER } from "../../BUILD_NUMBER";
+import DebounceLink from "apollo-link-debounce";
 
 const SENTRY_REROUTED_FLAG = "rerouted";
+
+const DEFAULT_APOLLO_DEBOUNCE_DELAY = 0; // zero in-case used by mistake
 
 export function mount({
   userEmail,
@@ -100,6 +103,7 @@ export function mount({
 
   const apolloClient = new ApolloClient({
     link: ApolloLink.from([
+      new DebounceLink(DEFAULT_APOLLO_DEBOUNCE_DELAY), // order is important
       apolloErrorLink,
       createAuthLink(apolloUrlInfo),
       createSubscriptionHandshakeLink(apolloUrlInfo),

@@ -51,7 +51,6 @@ export const Panel: React.FC = () => {
         right: ${right + floatySize / 2}px;
         display: ${isExpanded ? "flex" : "none"};
         flex-direction: column;
-        justify-content: space-between;
         font-family: sans-serif;
         border-top-left-radius: 4px;
         border-top-right-radius: 4px;

@@ -16,6 +16,11 @@ export const gqlGetPinboardByComposerId = gql`
     getPinboardByComposerId(composerId: $composerId) { ${pinboardReturnFields} }
   }
 `;
+export const gqlGetPinboardsByIds = gql`
+  query MyQuery($ids: [String!]!) {
+    getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
+  }
+`;
 
 const itemReturnFields = `
   id

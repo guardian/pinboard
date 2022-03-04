@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { css } from "@emotion/react";
-import type { PinboardData } from "./pinboard";
 import { standardPanelContainerCss } from "./styling";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
@@ -10,12 +9,16 @@ import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 import { useGlobalStateContext } from "./globalState";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
+import { PinboardData } from "../../shared/graphql/extraTypes";
 
 export const SelectPinboard: React.FC = () => {
   const {
+    activePinboards,
     activePinboardIds,
     payloadToBeSent,
     clearPayloadToBeSent,
+
+    isExpanded,
 
     openPinboard,
     closePinboard,
@@ -30,7 +33,7 @@ export const SelectPinboard: React.FC = () => {
 
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery<{
+  const { data, loading, stopPolling, startPolling, refetch } = useQuery<{
     listPinboards: PinboardData[];
   }>(gqlListPinboards, {
     variables: {
@@ -39,12 +42,17 @@ export const SelectPinboard: React.FC = () => {
     context: { debounceKey: gqlListPinboards, debounceTimeout: 500 },
   });
 
+  useEffect(() => {
+    if (isExpanded) {
+      refetch();
+      startPolling(5000);
+    } else {
+      stopPolling();
+    }
+  }, [isExpanded]);
+
   const allPinboards = [...(data?.listPinboards || [])].sort(
     (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
-  );
-
-  const activePinboards = allPinboards.filter((pinboardData: PinboardData) =>
-    activePinboardIds.includes(pinboardData.id)
   );
 
   const unopenedPinboards = allPinboards.filter(
@@ -54,6 +62,7 @@ export const SelectPinboard: React.FC = () => {
   const markWithSearchText = (input: string) => {
     if (!searchText) return input;
     const startIndex = input.toLowerCase().indexOf(searchText.toLowerCase());
+    if (startIndex === -1) return input;
     const endIndex = startIndex + searchText.length;
     return (
       <React.Fragment>
@@ -66,11 +75,11 @@ export const SelectPinboard: React.FC = () => {
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
     <div
+      key={pinboardData.id}
       css={css`
         display: flex;
         margin-bottom: 2px;
       `}
-      key={pinboardData.id}
     >
       <button
         css={css`
@@ -136,8 +145,8 @@ export const SelectPinboard: React.FC = () => {
             ? `Pinboard associated with this piece`
             : `Active pinboards`}
         </h4>
-        {data && activePinboards.map(OpenPinboardButton)}
-        <h4>Open a pinboard</h4>
+        {activePinboards && activePinboards.map(OpenPinboardButton)}
+        <h4>Open a pinboard </h4>
         <input
           type="text"
           value={searchText}
@@ -157,9 +166,10 @@ export const SelectPinboard: React.FC = () => {
         {unopenedPinboards.length > MAX_PINBOARDS_TO_DISPLAY && (
           <div css={{ textAlign: "center", fontStyle: "italic" }}>
             Too many results, <br />
-            please use the search...
+            please {searchText ? "refine your" : "use the"} search...
           </div>
         )}
+        {/* TODO thing for no results */}
         {hasWebPushSubscription && (
           /* TODO move this to some settings menu (rather than bottom of selection list) */
           <React.Fragment>

@@ -1,23 +1,30 @@
 import fetch from "node-fetch";
-import { WorkflowStub } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
+import type { PinboardData } from "../../shared/graphql/extraTypes";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
 )}/api`;
 
 exports.handler = async (event: {
-  arguments?: { composerId?: string; searchText?: string };
+  arguments?: { composerId?: string; ids?: string[]; searchText?: string };
 }) => {
-  return await (event.arguments?.composerId
-    ? getPinboardByComposerId(event.arguments?.composerId)
-    : getAllPinboards(event.arguments?.searchText));
+  if (event.arguments?.composerId) {
+    return await getPinboardById("content")(event.arguments.composerId);
+  }
+  if (event.arguments?.ids) {
+    return await Promise.all(event.arguments.ids.map(getPinboardById("stubs")));
+  } else {
+    return await getAllPinboards(event.arguments?.searchText);
+  }
 };
 
-async function getPinboardByComposerId(composerId: string) {
+const getPinboardById = (apiBase: "content" | "stubs") => async (
+  id: string
+) => {
   const contentResponse = await fetch(
-    `${WORKFLOW_DATASTORE_API_URL}/content/${composerId}`
+    `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
   );
   if (contentResponse.status === 404) {
     return null;
@@ -37,9 +44,9 @@ async function getPinboardByComposerId(composerId: string) {
     return null;
   }
   return { ...data, status: data.externalData?.status };
-}
+};
 
-async function getAllPinboards(searchText?: string) {
+const getAllPinboards = async (searchText?: string) => {
   const fields = ["id", "title", "composerId"].join(",");
 
   const searchQueryParamClause = searchText
@@ -58,7 +65,7 @@ async function getAllPinboards(searchText?: string) {
 
   const stubsResponseBody = (await stubsResponse.json()) as {
     data: {
-      content: { [status: string]: WorkflowStub[] };
+      content: { [status: string]: PinboardData[] };
     };
   };
   const groupedStubs = stubsResponseBody.data.content;
@@ -68,6 +75,6 @@ async function getAllPinboards(searchText?: string) {
       ...accumulator,
       ...stubs.map((stub) => ({ ...stub, status })),
     ],
-    [] as WorkflowStub[]
+    [] as PinboardData[]
   );
-}
+};

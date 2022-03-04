@@ -86,7 +86,7 @@ type Query {
   ): UserConnection
 
   listPinboards(searchText: String): [WorkflowStub]
-
+  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
   getPinboardByComposerId(composerId: String!): WorkflowStub
 }
 

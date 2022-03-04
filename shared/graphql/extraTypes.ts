@@ -1,12 +1,16 @@
 import type { WorkflowStub } from "./graphql";
 
+export type PinboardData = WorkflowStub;
+
 export type PreselectedPinboard =
-  | WorkflowStub
+  | PinboardData
   | "loading"
   | "notTrackedInWorkflow"
   | undefined;
 
-export const isWorkflowStub = (
-  stub: PreselectedPinboard
-): stub is WorkflowStub =>
-  !!stub && stub !== "loading" && stub !== "notTrackedInWorkflow";
+export const isPinboardData = (
+  maybePinboardData: PreselectedPinboard
+): maybePinboardData is PinboardData =>
+  !!maybePinboardData &&
+  maybePinboardData !== "loading" &&
+  maybePinboardData !== "notTrackedInWorkflow";

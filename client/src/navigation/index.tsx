@@ -4,7 +4,6 @@ import { pinboard } from "../../colours";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 import { useGlobalStateContext } from "../globalState";
-import { PinboardData } from "../pinboard";
 import type { Tab } from "../types/Tab";
 import { BackArrowIcon, CrossIcon } from "./icon";
 import { NavButton } from "./button";
@@ -12,15 +11,15 @@ import { NavButton } from "./button";
 interface NavigationProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
-  selectedPinboard: PinboardData | undefined;
+  selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 }
 export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
   const { setIsExpanded, hasUnreadOnOtherPinboard } = useGlobalStateContext();
   // TODO replace with notification count when we have it
   const unreadNotificationCountOnOtherPinboard =
-    props.selectedPinboard &&
-    hasUnreadOnOtherPinboard(props.selectedPinboard.id)
+    props.selectedPinboardId &&
+    hasUnreadOnOtherPinboard(props.selectedPinboardId)
       ? 0
       : undefined;
   return (
@@ -43,7 +42,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
           align-items: center;
         `}
       >
-        {props.selectedPinboard && (
+        {props.selectedPinboardId && (
           <NavButton
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}

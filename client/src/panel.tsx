@@ -8,6 +8,7 @@ import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { ChatTab, Tab as Tab } from "./types/Tab";
 import { useGlobalStateContext } from "./globalState";
+import { getTooltipText } from "./util";
 
 const cornerSize = 24;
 
@@ -80,6 +81,9 @@ export const Panel: React.FC = () => {
         setActiveTab={setActiveTab}
         selectedPinboardId={selectedPinboardId}
         clearSelectedPinboard={clearSelectedPinboard}
+        headingTooltipText={
+          selectedPinboard && getTooltipText(selectedPinboard)
+        }
       >
         {title}
       </Navigation>

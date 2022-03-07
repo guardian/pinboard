@@ -13,6 +13,7 @@ interface NavigationProps {
   setActiveTab: (tab: Tab) => void;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
+  headingTooltipText: string | undefined;
 }
 export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
   const { setIsExpanded, hasUnreadOnOtherPinboard } = useGlobalStateContext();
@@ -41,6 +42,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
           height: 24px;
           align-items: center;
         `}
+        title={props.headingTooltipText}
       >
         {props.selectedPinboardId && (
           <NavButton

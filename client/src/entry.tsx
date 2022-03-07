@@ -8,8 +8,66 @@ import { createAuthLink } from "aws-appsync-auth-link";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import { UrlInfo } from "aws-appsync-subscription-link/lib/types";
 import { PinBoardApp } from "./app";
+import * as Sentry from "@sentry/react";
+import * as SentryHub from "@sentry/hub";
+import { onError } from "@apollo/client/link/error";
+import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
+import { BUILD_NUMBER } from "../../BUILD_NUMBER";
 
-export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
+const SENTRY_REROUTED_FLAG = "rerouted";
+
+export function mount({
+  userEmail,
+  appSyncConfig,
+  sentryDSN,
+}: ClientConfig): void {
+  const sentryUser = {
+    email: userEmail,
+  };
+  const sentryConfig = {
+    dsn: sentryDSN,
+    release: `${BUILD_NUMBER} (${GIT_COMMIT_HASH})`,
+    environment: window.location.hostname,
+    tracesSampleRate: 1.0, // We recommend adjusting this value in production, or using tracesSampler for finer control
+  };
+  const pinboardSpecificSentryClient = new Sentry.Hub(
+    new Sentry.BrowserClient(sentryConfig)
+  );
+  pinboardSpecificSentryClient.configureScope((scope) =>
+    scope.setUser(sentryUser)
+  );
+
+  const currentHub = Sentry.getHubFromCarrier(SentryHub.getMainCarrier());
+  const existingSentryClient = currentHub.getClient();
+
+  // if host application doesn't have Sentry initialised, then init here to ensure the GlobalEventProcessor will do its thing
+  if (!existingSentryClient) {
+    Sentry.init(sentryConfig);
+    Sentry.setUser(sentryUser);
+  }
+
+  Sentry.addGlobalEventProcessor((event, eventHint) => {
+    if (
+      existingSentryClient &&
+      event.fingerprint?.includes(SENTRY_REROUTED_FLAG) &&
+      event.exception?.values?.find((exception) =>
+        exception.stacktrace?.frames?.find((frame) =>
+          frame.filename?.includes("pinboard.main")
+        )
+      )
+    ) {
+      pinboardSpecificSentryClient.captureEvent(
+        {
+          ...event,
+          fingerprint: [...(event.fingerprint || []), SENTRY_REROUTED_FLAG],
+        },
+        eventHint
+      );
+      return null; // stop event from being sent to host application's Sentry project
+    }
+    return event;
+  });
+
   const apolloUrlInfo: UrlInfo = {
     url: appSyncConfig.graphqlEndpoint,
     region: AWS_REGION,
@@ -19,8 +77,30 @@ export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
     },
   };
 
+  const apolloErrorLink = onError(({ graphQLErrors, networkError }) => {
+    graphQLErrors?.forEach(({ message, ...gqlError }) => {
+      console.error(
+        `[Apollo - GraphQL error]: Message: ${message}, Location: ${gqlError.locations}, Path: ${gqlError.path}`
+      );
+      pinboardSpecificSentryClient.captureException(
+        Error(`Apollo GraphQL Error : ${message}`),
+        {
+          captureContext: {
+            extra: gqlError as Record<string, any>,
+          },
+        }
+      );
+    });
+
+    if (networkError) {
+      console.error(`[Apollo - Network error]: ${networkError}`);
+      pinboardSpecificSentryClient.captureException(networkError);
+    }
+  });
+
   const apolloClient = new ApolloClient({
     link: ApolloLink.from([
+      apolloErrorLink,
       createAuthLink(apolloUrlInfo),
       createSubscriptionHandshakeLink(apolloUrlInfo),
     ]),
@@ -32,10 +112,7 @@ export function mount({ userEmail, appSyncConfig }: ClientConfig): void {
   document.body.appendChild(element);
 
   render(
-    React.createElement(PinBoardApp, {
-      apolloClient,
-      userEmail,
-    }),
+    <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />,
     element
   );
 

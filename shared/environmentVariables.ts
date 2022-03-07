@@ -2,6 +2,7 @@ export const ENVIRONMENT_VARIABLE_KEYS = {
   usersTableName: "USERS_TABLE_NAME",
   workflowDnsName: "WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME",
   graphqlEndpoint: "GRAPHQL_ENDPOINT",
+  sentryDSN: "SENTRY_DSN",
 };
 
 export const getEnvironmentVariableOrThrow = (

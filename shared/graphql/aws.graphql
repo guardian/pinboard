@@ -1,2 +1,4 @@
 scalar AWSJSON
 scalar AWSTimestamp
+
+directive @aws_subscribe(mutations: [String!]!) on FIELD_DEFINITION

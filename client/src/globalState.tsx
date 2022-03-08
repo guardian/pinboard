@@ -1,15 +1,18 @@
 import {
   ApolloError,
   useLazyQuery,
+  useMutation,
   useQuery,
   useSubscription,
 } from "@apollo/client";
 import React, { useContext, useEffect, useState } from "react";
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, MyUser, User } from "../../shared/graphql/graphql";
 import {
+  gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
   gqlGetPinboardsByIds,
   gqlOnCreateItem,
+  gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import type { PayloadAndType } from "./types/PayloadAndType";
@@ -78,6 +81,8 @@ interface GlobalStateProviderProps {
   setIsExpanded: (_: boolean) => void;
   userLookup: { [email: string]: User } | undefined;
   hasWebPushSubscription: boolean | null | undefined;
+  manuallyOpenedPinboardIds: string[];
+  setManuallyOpenedPinboardIds: (newMyUser: MyUser) => void;
   showNotification: (item: Item) => void;
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
@@ -92,14 +97,12 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   setIsExpanded,
   userLookup,
   hasWebPushSubscription,
+  manuallyOpenedPinboardIds,
+  setManuallyOpenedPinboardIds,
   showNotification,
   clearDesktopNotificationsForPinboardId,
   children,
 }) => {
-  const [manuallyOpenedPinboardIds, setManuallyOpenedPinboardIds] = useState<
-    string[]
-  >([]);
-
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
     gqlGetPinboardByComposerId
   );
@@ -167,6 +170,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     }
   }, [isExpanded, preselectedComposerId]);
 
+  const [addManuallyOpenedPinboardIds] = useMutation<{
+    addManuallyOpenedPinboardIds: MyUser;
+  }>(gqlAddManuallyOpenedPinboardIds);
+
   const openPinboard = (pinboardData: PinboardData) => {
     const hostname = window.location.hostname;
     const composerDomain =
@@ -181,10 +188,20 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     if (!activePinboardIds.includes(pinboardData.id)) {
       preselectedPinboard
         ? window?.open(composerUrl, "_blank")?.focus()
-        : setManuallyOpenedPinboardIds([
-            ...manuallyOpenedPinboardIds,
-            pinboardData.id,
-          ]);
+        : addManuallyOpenedPinboardIds({
+            variables: {
+              ids: [pinboardData.id],
+            },
+          }).then(
+            (result) =>
+              result.data
+                ? setManuallyOpenedPinboardIds(
+                    result.data.addManuallyOpenedPinboardIds
+                  )
+                : console.error(
+                    "addManuallyOpenedPinboardIds did not return any data"
+                  ) // TODO probably report to Sentry
+          );
     }
 
     if (
@@ -233,13 +250,24 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
         isUnread && pinboardId !== otherPinboardId
     );
 
+  const [removeManuallyOpenedPinboardIds] = useMutation<{
+    removeManuallyOpenedPinboardIds: MyUser;
+  }>(gqlRemoveManuallyOpenedPinboardIds);
+
   const closePinboard = (pinboardIdToClose: string) => {
     if (activePinboardIds.includes(pinboardIdToClose)) {
-      setManuallyOpenedPinboardIds([
-        ...manuallyOpenedPinboardIds.filter(
-          (pinboardId) => pinboardId !== pinboardIdToClose
-        ),
-      ]);
+      removeManuallyOpenedPinboardIds({
+        variables: { ids: [pinboardIdToClose] },
+      }).then(
+        (result) =>
+          result.data
+            ? setManuallyOpenedPinboardIds(
+                result.data.removeManuallyOpenedPinboardIds
+              )
+            : console.error(
+                "removeManuallyOpenedPinboardIds did not return any data"
+              ) // TODO probably report to Sentry
+      );
     }
     setSelectedPinboardId(null);
     setUnreadFlag(pinboardIdToClose)(undefined);

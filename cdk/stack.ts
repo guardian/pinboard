@@ -464,6 +464,52 @@ export class PinBoardStack extends Stack {
     });
 
     pinboardUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "addManuallyOpenedPinboardIds",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          "update" : {
+            "expression" : "ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
+            "expressionValues": {
+              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
+    });
+
+    pinboardUserDataSource.createResolver({
+      typeName: "Mutation",
+      fieldName: "removeManuallyOpenedPinboardIds",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key" : {
+            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          "update" : {
+            "expression" : "DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
+            "expressionValues": {
+              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
+            }
+          }
+        }
+      `)
+      ),
+      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
+    });
+
+    pinboardUserDataSource.createResolver({
       typeName: "Query",
       fieldName: "getMyUser",
       requestMappingTemplate: resolverBugWorkaround(

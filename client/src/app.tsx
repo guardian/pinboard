@@ -7,17 +7,15 @@ import {
   ApolloProvider,
   useMutation,
   useQuery,
+  useSubscription,
 } from "@apollo/client";
 import {
   gqlGetAllUsers,
   gqlGetMyUser,
+  gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
-import {
-  Item,
-  User,
-  UserWithHasWebPushSubscription,
-} from "../../shared/graphql/graphql";
+import { Item, User, MyUser } from "../../shared/graphql/graphql";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
 import {
   desktopNotificationsPreferencesUrl,
@@ -114,9 +112,31 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
-  const rawHasWebPushSubscription = useQuery(gqlGetMyUser, {
+  const meQuery = useQuery<{ getMyUser: MyUser }>(gqlGetMyUser, {
     client: apolloClient,
-  }).data?.getMyUser.hasWebPushSubscription;
+  });
+
+  const me = meQuery.data?.getMyUser;
+
+  const manuallyOpenedPinboardIds = me?.manuallyOpenedPinboardIds;
+  const setManuallyOpenedPinboardIds = (newMyUser: MyUser) => {
+    meQuery.updateQuery(() => ({ getMyUser: newMyUser }));
+  };
+
+  useSubscription<{ onManuallyOpenedPinboardIdsChanged: MyUser }>(
+    gqlOnManuallyOpenedPinboardIdsChanged(userEmail),
+    {
+      client: apolloClient,
+      onSubscriptionData: ({ subscriptionData }) => {
+        subscriptionData.data &&
+          setManuallyOpenedPinboardIds(
+            subscriptionData.data?.onManuallyOpenedPinboardIdsChanged
+          );
+      },
+    }
+  );
+
+  const rawHasWebPushSubscription = me?.hasWebPushSubscription;
 
   const [hasWebPushSubscription, setHasWebPushSubscription] = useState<
     boolean | null | undefined
@@ -140,7 +160,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   );
 
   const [setWebPushSubscriptionForUser] = useMutation<{
-    setWebPushSubscriptionForUser: UserWithHasWebPushSubscription;
+    setWebPushSubscriptionForUser: MyUser;
   }>(gqlSetWebPushSubscriptionForUser, {
     client: apolloClient,
     onCompleted: ({
@@ -207,6 +227,8 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           setIsExpanded={setIsExpanded}
           userLookup={userLookup}
           hasWebPushSubscription={hasWebPushSubscription}
+          manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
+          setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
           showNotification={showDesktopNotification}
           clearDesktopNotificationsForPinboardId={
             clearDesktopNotificationsForPinboardId

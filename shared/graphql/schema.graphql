@@ -28,12 +28,13 @@ type User {
   lastName: String!
   avatarUrl: String
 }
-type UserWithHasWebPushSubscription {
+type MyUser {
   email: String!
   firstName: String!
   lastName: String!
   avatarUrl: String
   hasWebPushSubscription: Boolean
+  manuallyOpenedPinboardIds: [String!]
 }
 
 type WorkflowStub {
@@ -62,7 +63,9 @@ type LastItemSeenByUserConnection {
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
-  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): UserWithHasWebPushSubscription
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
+  addManuallyOpenedPinboardIds(ids: [String!]!): MyUser
+  removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
 }
 
 type Query {
@@ -78,7 +81,7 @@ type Query {
     nextToken: String
   ): LastItemSeenByUserConnection
 
-  getMyUser: UserWithHasWebPushSubscription
+  getMyUser: MyUser
 
   searchUsers(
     filter: TableUserFilterInput
@@ -95,9 +98,14 @@ type Subscription {
   onCreateItem(
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
+
   onSeenItem(
     pinboardId: String!
   ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
+
+  onManuallyOpenedPinboardIdsChanged(
+    email: String! # unfortunately this can't be done via 'identity' in the resolver
+  ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
 }
 
 input CreateItemInput {

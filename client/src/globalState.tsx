@@ -103,14 +103,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
     gqlGetPinboardByComposerId
   );
-  useEffect(() => {
-    preselectedComposerId &&
-      getPreselectedPinboard({
-        variables: {
-          composerId: preselectedComposerId,
-        },
-      });
-  }, [preselectedComposerId]);
 
   const preselectedPinboard = ((): PreselectedPinboard => {
     if (!preselectedComposerId) {
@@ -164,13 +156,16 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   useEffect(() => {
-    if (isExpanded && !selectedPinboardId) {
-      preselectedPinboardQuery.refetch();
+    if (isExpanded && preselectedComposerId) {
+      preselectedPinboardQuery.stopPolling();
+      getPreselectedPinboard({
+        variables: { composerId: preselectedComposerId },
+      });
       preselectedPinboardQuery.startPolling(5000);
     } else {
       preselectedPinboardQuery.stopPolling();
     }
-  }, [isExpanded, selectedPinboardId]);
+  }, [isExpanded, preselectedComposerId]);
 
   const openPinboard = (pinboardData: PinboardData) => {
     const hostname = window.location.hostname;

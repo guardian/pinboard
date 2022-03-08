@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { css } from "@emotion/react";
 import { standardPanelContainerCss } from "./styling";
 import { PayloadDisplay } from "./payloadDisplay";
@@ -33,27 +33,34 @@ export const SelectPinboard: React.FC = () => {
 
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading, stopPolling, startPolling, refetch } = useQuery<{
+  const [
+    searchPinboards,
+    { data, loading, stopPolling, startPolling },
+  ] = useLazyQuery<{
     listPinboards: PinboardData[];
   }>(gqlListPinboards, {
-    variables: {
-      searchText,
-    },
     context: { debounceKey: gqlListPinboards, debounceTimeout: 500 },
   });
 
   useEffect(() => {
-    if (isExpanded) {
-      refetch();
+    if (isExpanded && searchText) {
+      stopPolling();
+      searchPinboards({
+        variables: {
+          searchText,
+        },
+      });
       startPolling(5000);
     } else {
       stopPolling();
     }
-  }, [isExpanded]);
+  }, [isExpanded, searchText]);
 
-  const allPinboards = [...(data?.listPinboards || [])].sort(
-    (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
-  );
+  const allPinboards = searchText
+    ? [...(data?.listPinboards || [])].sort(
+        (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
+      )
+    : [];
 
   const unopenedPinboards = allPinboards.filter(
     (pinboardData: PinboardData) => !activePinboardIds.includes(pinboardData.id)
@@ -68,7 +75,7 @@ export const SelectPinboard: React.FC = () => {
       <React.Fragment>
         {input.substring(0, startIndex)}
         <mark>{input.substring(startIndex, endIndex)}</mark>
-        {input.substring(endIndex)}
+        {markWithSearchText(input.substring(endIndex))}
       </React.Fragment>
     );
   };
@@ -139,14 +146,18 @@ export const SelectPinboard: React.FC = () => {
             hasWebPushSubscription={hasWebPushSubscription}
           />
         )}
-        {loading && !searchText && <p>Loading pinboards...</p>}
-        <h4>
-          {preselectedPinboard
-            ? `Pinboard associated with this piece`
-            : `Active pinboards`}
-        </h4>
-        {activePinboards && activePinboards.map(OpenPinboardButton)}
-        <h4>Open a pinboard </h4>
+        {activePinboards?.length > 0 && (
+          <React.Fragment>
+            <h4 css={{ margin: 0 }}>
+              {preselectedPinboard
+                ? `Pinboard associated with this piece`
+                : `Active pinboards`}
+            </h4>
+            {activePinboards.map(OpenPinboardButton)}
+            <div css={{ height: space[2] }} />
+          </React.Fragment>
+        )}
+        <h4 css={{ margin: 0 }}>Open a pinboard</h4>
         <input
           type="text"
           value={searchText}
@@ -169,7 +180,12 @@ export const SelectPinboard: React.FC = () => {
             please {searchText ? "refine your" : "use the"} search...
           </div>
         )}
-        {/* TODO thing for no results */}
+        {data && searchText && unopenedPinboards.length === 0 && (
+          <div css={{ textAlign: "center", fontStyle: "italic" }}>
+            No results, <br />
+            please adjust your search...
+          </div>
+        )}
         {hasWebPushSubscription && (
           /* TODO move this to some settings menu (rather than bottom of selection list) */
           <React.Fragment>

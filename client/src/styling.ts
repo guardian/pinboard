@@ -13,3 +13,35 @@ export const standardPanelContainerCss = css`
     color: black;
   }
 `;
+
+export const buttonBackground = (hoverColour: string) => css`
+  height: ${space[6]}px;
+  width: ${space[6]}px;
+  border-radius: ${space[6]}px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  &:hover {
+    background-color: ${hoverColour};
+  }
+`;
+
+export const scrollbarsCss = (fg: string) => css`
+  scrollbar-color: ${fg} transparent;
+  scrollbar-width: thin;
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: ${fg};
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 999px;
+  }
+`;

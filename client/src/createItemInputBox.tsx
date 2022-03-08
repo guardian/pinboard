@@ -2,11 +2,13 @@ import React from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { User } from "../../shared/graphql/graphql";
 import { userToMentionHandle } from "./util";
 import { AvatarRoundel } from "./avatarRoundel";
+import { agateSans } from "../fontNormaliser";
+import { scrollbarsCss } from "./styling";
 interface WithEntity<E> {
   entity: E;
 }
@@ -44,8 +46,6 @@ const UserSuggestion = ({ entity }: WithEntity<User>) => (
   </div>
 );
 
-const payloadToBeSentThumbnailHeightPx = 50;
-
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
@@ -73,6 +73,8 @@ export const CreateItemInputBox = ({
   <div
     css={css`
       flex-grow: 1;
+      background-color: white;
+      border-radius: ${space[1]}px;
       ${rtaStyles}
     `}
   >
@@ -92,34 +94,46 @@ export const CreateItemInputBox = ({
       loadingComponent={() => <span>Loading</span>}
       placeholder="enter message here..."
       value={message}
-      onChange={(event) => setMessage(event.target.value)}
-      onKeyPress={(event) =>
-        isEnterKey(event) && message && sendItem() && event.preventDefault()
-      }
+      onChange={(event) => {
+        event.target.style.height = "0";
+        // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
+        event.target.style.height = `${event.target.scrollHeight + 0.1}px`;
+        setMessage(event.target.value);
+      }}
+      onKeyPress={(event) => {
+        if (isEnterKey(event)) {
+          if (message) {
+            sendItem();
+          }
+          event.preventDefault();
+        }
+      }}
       onItemSelected={({ item }) => addUnverifiedMention(item)}
-      rows={2}
+      rows={1}
       css={css`
-        padding-bottom: ${payloadToBeSent
-          ? payloadToBeSentThumbnailHeightPx + 5
-          : 0}px;
+        box-sizing: border-box;
+        background-color: transparent;
+        border: none;
+        vertical-align: middle;
+        &:focus-visible {
+          outline: none;
+        }
+        /* Firefox needs this hint to get the correct initial height.
+           Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
+        height: 21.1px;
+        max-height: 74px;
+        ${agateSans.small({ lineHeight: "tight" })};
+        resize: none;
+        ${scrollbarsCss(palette.neutral[86])}
       `}
       autoFocus
       boundariesElement={panelElement || undefined}
     />
     {payloadToBeSent && (
-      <div
-        css={css`
-          position: absolute;
-          bottom: ${space[1]}px;
-          left: ${space[2]}px;
-        `}
-      >
-        <PayloadDisplay
-          {...payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-          heightPx={payloadToBeSentThumbnailHeightPx}
-        />
-      </div>
+      <PayloadDisplay
+        {...payloadToBeSent}
+        clearPayloadToBeSent={clearPayloadToBeSent}
+      />
     )}
   </div>
 );

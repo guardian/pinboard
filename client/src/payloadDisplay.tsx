@@ -1,9 +1,11 @@
 import React from "react";
 import { css } from "@emotion/react";
-import { pinMetal } from "../colours";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { space } from "@guardian/source-foundations";
-import CrossIcon from "../icons/cross-icon.svg";
+import { palette, space } from "@guardian/source-foundations";
+import { SvgCross } from "@guardian/source-react-components";
+import { buttonBackground } from "./styling";
+
+const defaultPayloadHeightPx = 150;
 
 interface PayloadDisplayProps extends PayloadAndType {
   clearPayloadToBeSent?: () => void;
@@ -19,44 +21,48 @@ export const PayloadDisplay = ({
   thumbnail && embeddableUrl ? (
     <div
       css={css`
+        display: flex;
+        flex-direction: row;
         position: relative;
-        display: inline-block;
+        padding: ${space[1]}px;
+        max-width: fit-content;
       `}
     >
-      {clearPayloadToBeSent && (
-        <div
-          css={css`
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            height: ${space[5]}px;
-            width: ${space[5]}px;
-            background-color: ${pinMetal};
-            box-shadow: 0 0 ${space[1]}px 2px white;
-            opacity: 0.8;
-            border-radius: 50%;
-            text-align: center;
-            cursor: pointer;
-          `}
-          onClick={clearPayloadToBeSent}
-        >
-          <CrossIcon
-            css={css`
-              padding-top: 2px;
-            `}
-          />
-        </div>
-      )}
       <img // TODO: hover for larger thumbnail
         src={thumbnail}
         css={css`
-          max-height: ${heightPx ?? 75}px;
-          box-shadow: 2px 2px 5px 0px ${pinMetal};
+          max-height: ${heightPx ?? defaultPayloadHeightPx}px;
         `}
         onDragStart={(event) =>
           event.dataTransfer.setData("URL", embeddableUrl)
         }
       />
+      {clearPayloadToBeSent && (
+        <div
+          css={css`
+            height: ${space[5]}px;
+            width: ${space[5]}px;
+            border-radius: ${space[5]}px;
+            ${buttonBackground(palette.neutral[60])};
+            background-color: ${palette.neutral[46]};
+            fill: ${palette.neutral[100]};
+
+            &:hover {
+              background-color: ${palette.neutral[20]};
+            }
+
+            &:active {
+              background-color: ${palette.neutral[86]};
+              fill: ${palette.neutral[20]};
+            }
+            position: absolute;
+            right: ${space[2]}px;
+            top: ${space[2]}px;
+          `}
+          onClick={clearPayloadToBeSent}
+        >
+          <SvgCross />
+        </div>
+      )}
     </div>
   ) : null;

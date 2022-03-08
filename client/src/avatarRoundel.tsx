@@ -1,6 +1,9 @@
 import { css } from "@emotion/react";
+import { neutral } from "@guardian/source-foundations";
+import { SvgPerson } from "@guardian/source-react-components";
 import React from "react";
 import { User } from "../../shared/graphql/graphql";
+import { composer } from "../colours";
 
 interface AvatarRoundelProps {
   maybeUser: User | undefined;
@@ -31,24 +34,19 @@ export const AvatarRoundel = ({
       src={maybeUser?.avatarUrl}
     />
   ) : (
-    <div
-      key={userEmail}
-      title={tooltip}
+    <span
       css={css`
-        background-color: #586293;
-        border-radius: 50%;
-        color: white;
         width: ${size}px;
         height: ${size}px;
+        border-radius: 50%;
+        background-color: ${composer.primary[300]};
+        fill: ${neutral[100]};
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
         align-items: center;
-        font-size: ${size / 2}px;
-        line-height: ${size / 2}px;
       `}
     >
-      {(maybeUser?.firstName || userEmail).charAt(0).toUpperCase()}
-      {maybeUser?.lastName?.charAt(0).toUpperCase()}
-    </div>
+      <SvgPerson size="xsmall" />
+    </span>
   );
 };

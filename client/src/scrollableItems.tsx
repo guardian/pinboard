@@ -7,13 +7,14 @@ import React, {
   useState,
 } from "react";
 import { css } from "@emotion/react";
-import { unread } from "../colours";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import { ItemDisplay } from "./itemDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { useMutation } from "@apollo/client";
 import { gqlSeenItem } from "../gql";
 import { LastItemSeenByUserLookup } from "./pinboard";
+import { scrollbarsCss } from "./styling";
+import { SvgArrowDownStraight } from "@guardian/source-react-components";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -192,8 +193,8 @@ export const ScrollableItems = ({
       ref={scrollableAreaRef}
       css={css`
         overflow-y: auto;
-        margin: ${space[1]}px;
-        color: black;
+        ${scrollbarsCss(palette.neutral[60])}
+        padding: ${space[2]}px;
         position: relative;
       `}
       onScroll={() =>
@@ -218,24 +219,27 @@ export const ScrollableItems = ({
           css={css`
             position: sticky;
             bottom: ${space[5]}px;
-            text-align: center;
+            display: flex;
+            justify-content: center;
           `}
         >
           <button
             onClick={scrollToLastItem}
             css={css`
-              color: white;
-              background-color: ${unread};
-              padding: ${space[1]}px ${space[2]}px ${space[1]}px;
+              fill: white;
+              background-color: ${palette.neutral[20]};
               font-weight: bold;
-              height: ${space[6]}px;
-              border-radius: ${space[3]}px;
+              height: 32px;
+              width: 32px;
+              border-radius: 999px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
               border: none;
-              box-shadow: 2px 2px 6px 3px lightgrey;
               cursor: pointer;
             `}
           >
-            ↓ Unread ↓
+            <SvgArrowDownStraight size="xsmall" />
           </button>
         </div>
       )}

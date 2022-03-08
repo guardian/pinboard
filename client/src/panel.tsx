@@ -42,7 +42,7 @@ export const Panel: React.FC = () => {
         box-shadow: ${boxShadow};
         width: 260px;
         height: 68vh;
-        min-height: 200px;
+        min-height: 380px;
         max-height: min(
           800px,
           calc(98vh - ${bottom + floatySize + space[4] + cornerSize}px)

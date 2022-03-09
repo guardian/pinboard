@@ -9,6 +9,7 @@ import { space } from "@guardian/source-foundations";
 import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 import { useGlobalStateContext } from "./globalState";
+import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
 
 export const SelectPinboard: React.FC = () => {
   const {
@@ -35,6 +36,16 @@ export const SelectPinboard: React.FC = () => {
 
   const allPinboards = [...(data?.listPinboards || [])].sort(
     (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
+  );
+
+  const activePinboards = allPinboards.filter((pinboardData: PinboardData) =>
+    activePinboardIds.includes(pinboardData.id)
+  );
+
+  const unopenedFilteredPinboards = allPinboards.filter(
+    (pinboardData: PinboardData) =>
+      !activePinboardIds.includes(pinboardData.id) &&
+      pinboardData.title?.toLowerCase().includes(searchText?.toLowerCase())
   );
 
   const OpenPinboardButton = (pinboardData: PinboardData) => (
@@ -109,12 +120,7 @@ export const SelectPinboard: React.FC = () => {
             ? `Pinboard associated with this piece`
             : `Active pinboards`}
         </h4>
-        {data &&
-          allPinboards
-            .filter((pinboardData: PinboardData) =>
-              activePinboardIds.includes(pinboardData.id)
-            )
-            .map(OpenPinboardButton)}
+        {data && activePinboards.map(OpenPinboardButton)}
         <h4>Open a pinboard</h4>
         {data && (
           <input
@@ -130,20 +136,23 @@ export const SelectPinboard: React.FC = () => {
           />
         )}
         {data &&
-          allPinboards
-            .filter(
-              (pinboardData: PinboardData) =>
-                !activePinboardIds.includes(pinboardData.id) &&
-                pinboardData.title
-                  ?.toLowerCase()
-                  .includes(searchText?.toLowerCase())
-            )
+          unopenedFilteredPinboards
+            .slice(0, MAX_PINBOARDS_TO_DISPLAY)
             .map(OpenPinboardButton)}
+        {unopenedFilteredPinboards.length > MAX_PINBOARDS_TO_DISPLAY && (
+          <div css={{ textAlign: "center", fontStyle: "italic" }}>
+            Too many results, <br />
+            please use the search...
+          </div>
+        )}
         {hasWebPushSubscription && (
           /* TODO move this to some settings menu (rather than bottom of selection list) */
-          <PushNotificationPreferencesOpener
-            hasWebPushSubscription={hasWebPushSubscription}
-          />
+          <React.Fragment>
+            <hr />
+            <PushNotificationPreferencesOpener
+              hasWebPushSubscription={hasWebPushSubscription}
+            />
+          </React.Fragment>
         )}
       </div>
     </>

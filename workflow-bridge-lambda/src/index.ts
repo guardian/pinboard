@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import { WorkflowStub } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
@@ -40,7 +41,9 @@ async function getAllPinboards() {
   const fields = ["id", "title", "composerId"].join(",");
 
   const stubsResponse = await fetch(
-    `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}`
+    `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}&limit=${
+      MAX_PINBOARDS_TO_DISPLAY + 1
+    }`
   );
 
   if (!stubsResponse.ok) {

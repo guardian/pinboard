@@ -5,7 +5,7 @@ import {
   standardAwsConfig,
 } from "../../shared/awsIntegration";
 import { AttributeMap, Key } from "aws-sdk/clients/dynamodb";
-import { Item } from "../../shared/graphql/graphql";
+import { Item, MyUser } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { publicVapidKey } from "../../shared/constants";
 
@@ -19,6 +19,12 @@ interface DynamoStreamEvent {
   Records: DynamoStreamRecord[];
 }
 
+const isUserMentioned = (item: Item, user: MyUser) =>
+  item.mentions?.includes(user.email);
+
+const doesUserManuallyHavePinboardOpen = (item: Item, user: MyUser) =>
+  user.manuallyOpenedPinboardIds?.includes(item.pinboardId);
+
 export const handler = async (event: DynamoStreamEvent) => {
   const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
@@ -31,7 +37,8 @@ export const handler = async (event: DynamoStreamEvent) => {
       .scan({
         TableName: usersTableName,
         ExclusiveStartKey: startKey,
-        ProjectionExpression: "email, webPushSubscription",
+        ProjectionExpression:
+          "email, webPushSubscription, manuallyOpenedPinboardIds",
         FilterExpression: "attribute_exists(webPushSubscription)",
       })
       .promise();
@@ -48,7 +55,9 @@ export const handler = async (event: DynamoStreamEvent) => {
             )
               .filter(
                 // TODO: Include more scenarios that trigger desktop notification
-                (item) => item.mentions?.includes(user.email)
+                (item) =>
+                  isUserMentioned(item, user as MyUser) ||
+                  doesUserManuallyHavePinboardOpen(item, user as MyUser)
               )
               .map((item) =>
                 webPush

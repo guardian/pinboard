@@ -48,6 +48,19 @@ export const SelectPinboard: React.FC = () => {
       pinboardData.title?.toLowerCase().includes(searchText?.toLowerCase())
   );
 
+  const markWithSearchText = (input: string) => {
+    if (!searchText) return input;
+    const startIndex = input.toLowerCase().indexOf(searchText.toLowerCase());
+    const endIndex = startIndex + searchText.length;
+    return (
+      <React.Fragment>
+        {input.substring(0, startIndex)}
+        <mark>{input.substring(startIndex, endIndex)}</mark>
+        {input.substring(endIndex)}
+      </React.Fragment>
+    );
+  };
+
   const OpenPinboardButton = (pinboardData: PinboardData) => (
     <div
       css={css`
@@ -69,7 +82,7 @@ export const SelectPinboard: React.FC = () => {
         {activePinboardIds.includes(pinboardData.id) &&
           errors[pinboardData.id] &&
           "⚠️ "}
-        {pinboardData.title}
+        {pinboardData.title && markWithSearchText(pinboardData.title)}
       </button>
       {activePinboardIds.includes(pinboardData.id) && !preselectedPinboard && (
         <button onClick={() => closePinboard(pinboardData.id)}>❌</button>

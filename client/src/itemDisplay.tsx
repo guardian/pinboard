@@ -12,7 +12,7 @@ import { composer } from "../colours";
 
 const userMentioned = (unread: boolean | undefined) => css`
   color: white;
-  padding: 2px 4px 0 2px;
+  padding: 2px 4px;
   border-radius: 50px;
   background-color: ${unread ? composer.warning[300] : composer.primary[300]};
 `;
@@ -138,6 +138,7 @@ export const ItemDisplay = ({
           css={css`
             color: ${palette.neutral["46"]};
             ${agateSans.xxsmall({ lineHeight: "tight" })};
+            margin-bottom: 2px;
           `}
         >
           {formattedDateTime(dateInMillisecs)}

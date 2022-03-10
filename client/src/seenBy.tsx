@@ -16,58 +16,70 @@ interface SeenByProps {
   userLookup: { [email: string]: User } | undefined;
 }
 
-export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => (
-  <div
-    css={css`
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    `}
-  >
-    <span
+export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
+  const hiddenUsernames = seenBy
+    .slice(maxSeenByIcons)
+    .map(({ seenAt, userEmail }) => {
+      const user = userLookup?.[userEmail];
+      const name = user ? `${user.firstName} ${user.lastName}` : userEmail;
+
+      return `${name} ${formattedDateTime(seenAt * 1000)}`;
+    })
+    .join(", ");
+  return (
+    <div
       css={css`
-        color: ${palette.neutral[46]};
-        margin-right: 5px;
-        ${agateSans.xxsmall({ lineHeight: "tight" })}
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
       `}
     >
-      Seen by
-    </span>
-    {seenBy.slice(0, maxSeenByIcons).map(({ userEmail, seenAt }, i) => (
-      <div
-        key={userEmail}
+      <span
         css={css`
-          transform: translateX(-${i * roundelOverlapPct}%);
-          z-index: ${99999 - i};
-          height: ${roundelHeightPx}px;
+          color: ${palette.neutral[46]};
+          margin-right: 5px;
+          ${agateSans.xxsmall({ lineHeight: "tight" })}
         `}
       >
-        <AvatarRoundel
-          maybeUser={userLookup?.[userEmail]}
-          size={roundelHeightPx}
-          userEmail={userEmail}
-          tooltipSuffix={` ${formattedDateTime(seenAt * 1000)}`}
-        />
-      </div>
-    ))}
-    {seenBy.length > maxSeenByIcons && (
-      <div
-        css={css`
-          transform: translateX(-${maxSeenByIcons * roundelOverlapPct}%);
-        `}
-      >
-        <span
+        Seen by
+      </span>
+      {seenBy.slice(0, maxSeenByIcons).map(({ userEmail, seenAt }, i) => (
+        <div
+          key={userEmail}
           css={css`
-            & > svg {
-              height: ${roundelHeightPx}px;
-              display: flex;
-              align-items: center;
-            }
+            transform: translateX(-${i * roundelOverlapPct}%);
+            z-index: ${99999 - i};
+            height: ${roundelHeightPx}px;
           `}
         >
-          <SvgPlus size="xsmall" />
-        </span>
-      </div>
-    )}
-  </div>
-);
+          <AvatarRoundel
+            maybeUser={userLookup?.[userEmail]}
+            size={roundelHeightPx}
+            userEmail={userEmail}
+            tooltipSuffix={` ${formattedDateTime(seenAt * 1000)}`}
+          />
+        </div>
+      ))}
+      {seenBy.length > maxSeenByIcons && (
+        <div
+          css={css`
+            transform: translateX(-${maxSeenByIcons * roundelOverlapPct}%);
+          `}
+        >
+          <span
+            css={css`
+              & > svg {
+                height: ${roundelHeightPx}px;
+                display: flex;
+                align-items: center;
+              }
+            `}
+            title={hiddenUsernames}
+          >
+            <SvgPlus size="xsmall" />
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};

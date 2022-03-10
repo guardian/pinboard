@@ -56,6 +56,9 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
             flex-grow: 1;
             margin: 0 ${space[1]}px;
             color: ${palette.neutral[20]};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           `}
         >
           {props.children}

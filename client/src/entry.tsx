@@ -89,6 +89,7 @@ export function mount({
         Error(`Apollo GraphQL Error : ${message}`),
         {
           captureContext: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             extra: gqlError as Record<string, any>,
           },
         }

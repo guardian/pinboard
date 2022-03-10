@@ -101,6 +101,7 @@ export const CreateItemInputBox = ({
         setMessage(event.target.value);
       }}
       onKeyPress={(event) => {
+        event.stopPropagation();
         if (isEnterKey(event)) {
           if (message) {
             sendItem();

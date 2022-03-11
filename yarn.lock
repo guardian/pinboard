@@ -2023,17 +2023,17 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@googleapis/admin@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@googleapis/admin/-/admin-0.2.0.tgz#37c8971e35655148a23d43e5260042e8d421ad43"
-  integrity sha512-4bPQzq8EzGv+8FTGyyfdemzG9MKzUX8m5MFafyUm8lOXv1yIqhnD8qh+LnPGtbNIZJ+vR9O1ChsxAVztY13pMQ==
+"@googleapis/admin@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@googleapis/admin/-/admin-5.1.0.tgz#c376c6fa00bae954cddc8dc394cda1f6c7106ce2"
+  integrity sha512-QzFwuRIAiwjP+9o+oNqOUEBelMnCK1CvgXhbPgpzcgFqMGja9o7nOB81TTnS1sgjahIyDhGmGoPvjz7oDN/lOQ==
   dependencies:
     googleapis-common "^5.0.1"
 
-"@googleapis/people@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@googleapis/people/-/people-0.2.1.tgz#031d77fc46d27a5e9890c10ce46600838bedfbf4"
-  integrity sha512-KKvxqM7axI35/AUBooU5nK9ZGIcepUbU3IzCx/OTF5aR2CCasuaAenPuRfGUXkC3R/9pHK+r2CfTfQv21ticPQ==
+"@googleapis/people@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@googleapis/people/-/people-1.0.2.tgz#82ebe2a4bc63b3a2b2c8f4e6229b3dfd94c7812b"
+  integrity sha512-Sde6uSkHqhHs2i64NuWwjVRUTGLPiO4f2SwT2ji2EiHz5HG+VVzkMdFzFsQ6M5I7UVjk48jQK5gYcpW4qE4jYA==
   dependencies:
     googleapis-common "^5.0.1"
 

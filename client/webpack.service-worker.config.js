@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: {
+    // ensure this key matches the "chunks" list in the html webpack plugin config below
     registerServiceWorker: "./src/push-notifications/registerServiceWorker.ts",
     serviceWorker: "./src/push-notifications/serviceWorker.ts",
   },
@@ -31,7 +32,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      chunks: ["register"],
+      chunks: ["registerServiceWorker"],
       template: "./src/push-notifications/index.html",
       scriptLoading: "blocking",
     }),

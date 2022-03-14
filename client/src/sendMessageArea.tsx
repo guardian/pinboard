@@ -1,6 +1,6 @@
 import { ApolloError, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import React, { useState } from "react";
 import { Item, User } from "../../shared/graphql/graphql";
 import { gqlCreateItem } from "../gql";
@@ -8,7 +8,9 @@ import { CreateItemInputBox } from "./createItemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { PendingItem } from "./types/PendingItem";
 import { userToMentionHandle } from "./util";
-import { pinMetal } from "../colours";
+import { composer } from "../colours";
+import SendArrow from "../icons/send.svg";
+import { buttonBackground } from "./styling";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -64,7 +66,11 @@ export const SendMessageArea = ({
     <div
       css={css`
         display: flex;
-        margin: ${space[1]}px;
+        border-top: 1px solid ${palette.neutral[46]};
+        &:focus-within {
+          border-top-color: ${composer.primary[300]};
+        }
+        padding: ${space[2]}px;
       `}
     >
       <CreateItemInputBox
@@ -80,19 +86,33 @@ export const SendMessageArea = ({
       <button
         css={css`
           margin-left: ${space[2]}px;
-          color: ${pinMetal};
-          background-color: #999999;
-          padding: ${space[1]}px;
-          :disabled {
-            color: #999999;
-            background-color: #dcdcdc;
+          align-self: end;
+          fill: ${composer.primary[300]};
+          background: none;
+          border: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 0;
+
+          ${buttonBackground(palette.neutral[86])}
+          &:disabled {
+            fill: ${palette.neutral[46]};
+            background-color: initial;
+
             box-shadow: none;
+            cursor: default;
           }
         `}
         onClick={() => sendItem()}
         disabled={!message && !payloadToBeSent}
       >
-        Send
+        <SendArrow
+          css={css`
+            width: 18px;
+            height: 16px;
+          `}
+        />
       </button>
     </div>
   );

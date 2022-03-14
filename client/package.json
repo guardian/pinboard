@@ -11,7 +11,8 @@
     "build-service-worker": "webpack --config webpack.service-worker.config.js --mode=production",
     "watch-service-worker": "webpack --config webpack.service-worker.config.js --mode=development --watch",
     "watch": "run-p --print-label watch-type-check watch-main-client watch-service-worker",
-    "build": "run-p --print-label type-check build-main-client build-service-worker"
+    "build": "run-p --print-label type-check build-main-client build-service-worker",
+    "test": "jest 2>&1"
   },
   "dependencies": {
     "@apollo/client": "^3.5.5",

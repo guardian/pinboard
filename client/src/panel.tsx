@@ -1,12 +1,11 @@
 import { css } from "@emotion/react";
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { bottom, boxShadow, floatySize, right } from "./styling";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
-import { ChatTab, Tab as Tab } from "./types/Tab";
 import { useGlobalStateContext } from "./globalState";
 
 const cornerSize = 24;
@@ -19,9 +18,9 @@ export const Panel: React.FC = () => {
     selectedPinboardId,
     preselectedPinboard,
     clearSelectedPinboard,
+    activeTab,
+    setActiveTab,
   } = useGlobalStateContext();
-
-  const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
   const selectedPinboard = activePinboards.find(
     (ap) => ap.id === selectedPinboardId

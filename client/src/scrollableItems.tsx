@@ -15,6 +15,7 @@ import { gqlSeenItem } from "../gql";
 import { LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
+import { useGlobalStateContext } from "./globalState";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -76,6 +77,8 @@ export const ScrollableItems = ({
   const items = Object.values(itemsMap).sort(
     (a, b) => a.timestamp - b.timestamp
   );
+
+  const { activeTab } = useGlobalStateContext();
 
   const lastItemSeenByUsersForItemIDLookup = Object.values(
     lastItemSeenByUserLookup
@@ -201,19 +204,21 @@ export const ScrollableItems = ({
         shouldBeScrolledToLastItem() && lastItemID && seenLastItem()
       }
     >
-      {items.map((item, index) => (
-        <ItemDisplay
-          key={item.id}
-          item={item}
-          refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
-          userLookup={userLookup}
-          userEmail={userEmail}
-          timestampLastRefreshed={timestampLastRefreshed}
-          seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-          maybePreviousItem={items[index - 1]}
-          maybeNextItem={items[index + 1]}
-        />
-      ))}
+      {items
+        .filter((_) => activeTab === "chat" || _.payload)
+        .map((item, index) => (
+          <ItemDisplay
+            key={item.id}
+            item={item}
+            refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
+            userLookup={userLookup}
+            userEmail={userEmail}
+            timestampLastRefreshed={timestampLastRefreshed}
+            seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+            maybePreviousItem={items[index - 1]}
+            maybeNextItem={items[index + 1]}
+          />
+        ))}
       {hasUnread && (
         <div
           css={css`

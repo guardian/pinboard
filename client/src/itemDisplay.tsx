@@ -9,6 +9,7 @@ import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { composer } from "../colours";
+import { useGlobalStateContext } from "./globalState";
 
 const userMentioned = (unread: boolean | undefined) => css`
   color: white;
@@ -75,6 +76,8 @@ export const ItemDisplay = ({
   seenBy,
   maybePreviousItem,
 }: ItemDisplayProps) => {
+  const { activeTab } = useGlobalStateContext();
+  const payloadOnly = activeTab === "asset";
   const user = userLookup?.[item.userEmail];
   const payload = item.payload && JSON.parse(item.payload);
   const isPendingSend = "pending" in item && item.pending;
@@ -109,7 +112,7 @@ export const ItemDisplay = ({
           align-items: center;
         `}
       >
-        {isDifferentUserFromPreviousItem && (
+        {!payloadOnly && isDifferentUserFromPreviousItem && (
           <React.Fragment>
             <AvatarRoundel
               maybeUser={user}
@@ -131,19 +134,23 @@ export const ItemDisplay = ({
       </div>
       <div
         css={css`
-          margin-left: ${space[9] - 4}px;
+          margin-left: ${payloadOnly ? 4 : 32}px;
         `}
       >
-        <div
-          css={css`
-            color: ${palette.neutral["46"]};
-            ${agateSans.xxsmall({ lineHeight: "tight" })};
-            margin-bottom: 2px;
-          `}
-        >
-          {formattedDateTime(dateInMillisecs)}
-        </div>
-        <div>{formattedMessage}</div>
+        {!payloadOnly && (
+          <>
+            <div
+              css={css`
+                color: ${palette.neutral["46"]};
+                ${agateSans.xxsmall({ lineHeight: "tight" })};
+                margin-bottom: 2px;
+              `}
+            >
+              {formattedDateTime(dateInMillisecs)}
+            </div>
+            <div>{formattedMessage}</div>
+          </>
+        )}
         {payload && (
           <div
             css={css`
@@ -160,7 +167,9 @@ export const ItemDisplay = ({
           </div>
         )}
       </div>
-      {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
+      {!payloadOnly && seenBy && (
+        <SeenBy seenBy={seenBy} userLookup={userLookup} />
+      )}
     </div>
   );
 };

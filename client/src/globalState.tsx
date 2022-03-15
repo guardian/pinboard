@@ -8,10 +8,14 @@ import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { isWorkflowStub } from "../../shared/graphql/extraTypes";
+import { Tab, ChatTab } from "./types/Tab";
 
 interface GlobalStateContextShape {
   userEmail: string;
   userLookup: { [email: string]: User } | undefined;
+
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
 
   activePinboardIds: string[];
   activePinboards: PinboardData[];
@@ -88,6 +92,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
     PinboardData[]
   >([]);
+
+  const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
     gqlGetPinboardByComposerId
@@ -245,6 +251,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const contextValue = {
     userEmail,
     userLookup,
+
+    activeTab,
+    setActiveTab,
 
     activePinboardIds,
     activePinboards,

@@ -103,8 +103,8 @@ export const gqlSetWebPushSubscriptionForUser = gql`
 `;
 
 export const gqlAddManuallyOpenedPinboardIds = gql`
-  mutation AddManuallyOpenedPinboardIds($ids: [String!]!) {
-    addManuallyOpenedPinboardIds(ids: $ids) {
+  mutation AddManuallyOpenedPinboardIds($ids: [String!]!, $maybeEmailOverride: String) {
+    addManuallyOpenedPinboardIds(ids: $ids, maybeEmailOverride: $maybeEmailOverride) {
       # including fields here makes them accessible in our subscription data
       ${myUserReturnFields}
     }

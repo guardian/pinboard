@@ -472,7 +472,12 @@ export class PinBoardStack extends Stack {
           "version": "2017-02-28",
           "operation": "UpdateItem",
           "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+            "email" : $util.dynamodb.toDynamoDBJson(
+              $util.defaultIfNull(
+                $ctx.args.maybeEmailOverride,
+                $ctx.identity.resolverContext.userEmail
+              )
+            )
           },
           "update" : {
             "expression" : "ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",

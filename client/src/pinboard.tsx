@@ -43,6 +43,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
     setError,
 
     setUnreadFlag,
+
+    addManuallyOpenedPinboardId,
   } = useGlobalStateContext();
 
   // TODO: extract to floaty level?
@@ -126,6 +128,18 @@ export const Pinboard: React.FC<PinboardProps> = ({
     [initialItems.error, itemSubscription.error]
   );
 
+  const onSuccessfulSend = (pendingItem: PendingItem) => {
+    setSuccessfulSends((previousSends) => [...previousSends, pendingItem]);
+
+    // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
+    addManuallyOpenedPinboardId(pendingItem.pinboardId);
+
+    // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
+    pendingItem.mentions?.map((mentionEmail) =>
+      addManuallyOpenedPinboardId(pendingItem.pinboardId, mentionEmail)
+    );
+  };
+
   return !isSelected ? null : (
     <React.Fragment>
       {initialItems.loading && "Loading..."}
@@ -158,9 +172,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         />
       )}
       <SendMessageArea
-        onSuccessfulSend={(pendingItem) =>
-          setSuccessfulSends((previousSends) => [...previousSends, pendingItem])
-        }
+        onSuccessfulSend={onSuccessfulSend}
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
         allUsers={userLookup && Object.values(userLookup)}

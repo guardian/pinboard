@@ -6,6 +6,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { bottom, boxShadow, floatySize, right } from "./styling";
 import { useGlobalStateContext } from "./globalState";
+import { SvgAlertTriangle } from "@guardian/source-react-components";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -43,6 +44,32 @@ export const Floaty: React.FC = () => {
     hasError,
     hasUnread,
   } = useGlobalStateContext();
+
+  const badge = (() => {
+    if (hasError) {
+      return (
+        <div
+          css={css`
+            position: absolute;
+            top: -4px;
+            fill: ${composer.warning[100]};
+            right: -4px;
+            user-select: none;
+          `}
+        >
+          <SvgAlertTriangle size="xsmall" />
+        </div>
+      );
+    }
+    if (presetUnreadNotificationCount !== undefined || hasUnread) {
+      return (
+        <FloatyNotificationsBubble
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+        />
+      );
+    }
+  })();
+
   return (
     <div
       css={css`
@@ -76,25 +103,7 @@ export const Floaty: React.FC = () => {
           }
         `}
       />
-      {hasError && (
-        <div
-          css={css`
-            position: absolute;
-            font-size: ${floatySize / 4}px;
-            bottom: -${floatySize / 16}px;
-            right: 0px;
-            user-select: none;
-            text-shadow: 0 0 5px black;
-          `}
-        >
-          ⚠️
-        </div>
-      )}
-      {(presetUnreadNotificationCount !== undefined || hasUnread) && (
-        <FloatyNotificationsBubble
-          presetUnreadNotificationCount={presetUnreadNotificationCount}
-        />
-      )}
+      {badge}
     </div>
   );
 };

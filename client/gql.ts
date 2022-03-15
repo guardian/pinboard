@@ -5,6 +5,7 @@ const pinboardReturnFields = `
   id
   status
   title
+  headline
 `;
 export const gqlListPinboards = gql`
   query MyQuery($searchText: String!) {

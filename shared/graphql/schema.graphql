@@ -39,6 +39,7 @@ type UserWithHasWebPushSubscription {
 type WorkflowStub {
   id: String!
   title: String
+  headline: String
   composerId: String
   status: String
 }

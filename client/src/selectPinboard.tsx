@@ -4,12 +4,13 @@ import { css } from "@emotion/react";
 import { standardPanelContainerCss } from "./styling";
 import { PayloadDisplay } from "./payloadDisplay";
 import { pinboardSecondaryPastel, pinMetal } from "../colours";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 import { useGlobalStateContext } from "./globalState";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
 import { PinboardData } from "../../shared/graphql/extraTypes";
+import { getTooltipText } from "./util";
 
 export const SelectPinboard: React.FC = () => {
   const {
@@ -66,48 +67,68 @@ export const SelectPinboard: React.FC = () => {
     (pinboardData: PinboardData) => !activePinboardIds.includes(pinboardData.id)
   );
 
-  const markWithSearchText = (input: string) => {
-    if (!searchText) return input;
+  const markWithSearchText = (input: string, isRecursed = false) => {
+    if (!searchText) return;
     const startIndex = input.toLowerCase().indexOf(searchText.toLowerCase());
-    if (startIndex === -1) return input;
+    if (startIndex === -1) return isRecursed ? input : undefined;
     const endIndex = startIndex + searchText.length;
     return (
       <React.Fragment>
         {input.substring(0, startIndex)}
         <mark>{input.substring(startIndex, endIndex)}</mark>
-        {markWithSearchText(input.substring(endIndex))}
+        {markWithSearchText(input.substring(endIndex), true)}
       </React.Fragment>
     );
   };
 
-  const OpenPinboardButton = (pinboardData: PinboardData) => (
-    <div
-      key={pinboardData.id}
-      css={css`
-        display: flex;
-        margin-bottom: 2px;
-      `}
-    >
-      <button
+  const OpenPinboardButton = (pinboardData: PinboardData) => {
+    const highlightedWorkingTitle =
+      pinboardData.title && markWithSearchText(pinboardData.title);
+    const highlightedHeadline =
+      pinboardData.headline && markWithSearchText(pinboardData.headline);
+
+    const isActivePinboard = activePinboardIds.includes(pinboardData.id);
+
+    return (
+      <div
+        key={pinboardData.id}
         css={css`
-          text-align: left;
-          background-color: white;
-          flex-grow: 1;
-          color: #131212;
+          display: flex;
+          margin-bottom: 2px;
         `}
-        onClick={() => openPinboard(pinboardData)}
       >
-        {unreadFlags[pinboardData.id] && "🔴 "}
+        <button
+          css={css`
+            text-align: left;
+            background-color: white;
+            flex-grow: 1;
+            color: #131212;
+          `}
+          onClick={() => openPinboard(pinboardData)}
+          title={getTooltipText(pinboardData)}
+        >
+          {unreadFlags[pinboardData.id] && "🔴 "}
+          {isActivePinboard && errors[pinboardData.id] && "⚠️ "}
+          <React.Fragment>
+            <span
+              css={{ color: palette.neutral["46"], fontFamily: "monospace" }}
+            >
+              {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
+            </span>{" "}
+            {isActivePinboard
+              ? pinboardData.title
+              : highlightedHeadline ||
+                highlightedWorkingTitle ||
+                pinboardData.title}
+          </React.Fragment>
+        </button>
         {activePinboardIds.includes(pinboardData.id) &&
-          errors[pinboardData.id] &&
-          "⚠️ "}
-        {pinboardData.title && markWithSearchText(pinboardData.title)}
-      </button>
-      {activePinboardIds.includes(pinboardData.id) && !preselectedPinboard && (
-        <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
-      )}
-    </div>
-  );
+          !preselectedPinboard && (
+            <button onClick={() => closePinboard(pinboardData.id)}>❌</button>
+          )}
+      </div>
+    );
+  };
 
   return (
     <>

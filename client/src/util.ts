@@ -8,6 +8,7 @@ import isToday from "date-fns/isToday";
 import isYesterday from "date-fns/isYesterday";
 import differenceInHours from "date-fns/differenceInHours";
 import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
+import { PinboardData } from "../../shared/graphql/extraTypes";
 
 export const userToMentionHandle = (user: User) =>
   `@${user.firstName} ${user.lastName}`;
@@ -41,3 +42,7 @@ export const formattedDateTime = (timestamp: number): string => {
     return format(timestamp, "d MMM yyyy HH:mm");
   }
 };
+
+export const getTooltipText = (pinboardData: PinboardData) =>
+  `WT: ${pinboardData.title}` +
+  (pinboardData.headline ? `\nHL: ${pinboardData.headline}` : "");

@@ -43,11 +43,11 @@ const getPinboardById = (apiBase: "content" | "stubs") => async (
   if (!data) {
     return null;
   }
-  return { ...data, status: data.externalData?.status };
+  return { ...data.externalData, ...data };
 };
 
 const getAllPinboards = async (searchText?: string) => {
-  const fields = ["id", "title", "composerId"].join(",");
+  const fields = ["id", "title", "composerId", "headline"].join(",");
 
   const searchQueryParamClause = searchText
     ? `&text=${encodeURI(searchText)}`

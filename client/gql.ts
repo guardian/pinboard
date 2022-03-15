@@ -7,8 +7,8 @@ const pinboardReturnFields = `
   title
 `;
 export const gqlListPinboards = gql`
-  query MyQuery {
-    listPinboards { ${pinboardReturnFields} }
+  query MyQuery($searchText: String) {
+    listPinboards(searchText: $searchText) { ${pinboardReturnFields} }
   }
 `;
 export const gqlGetPinboardByComposerId = gql`

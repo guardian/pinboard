@@ -7,10 +7,12 @@ const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
 )}/api`;
 
-exports.handler = async (event: { arguments?: { composerId?: string } }) => {
+exports.handler = async (event: {
+  arguments?: { composerId?: string; searchText?: string };
+}) => {
   return await (event.arguments?.composerId
     ? getPinboardByComposerId(event.arguments?.composerId)
-    : getAllPinboards());
+    : getAllPinboards(event.arguments?.searchText));
 };
 
 async function getPinboardByComposerId(composerId: string) {
@@ -37,13 +39,17 @@ async function getPinboardByComposerId(composerId: string) {
   return { ...data, status: data.externalData?.status };
 }
 
-async function getAllPinboards() {
+async function getAllPinboards(searchText?: string) {
   const fields = ["id", "title", "composerId"].join(",");
+
+  const searchQueryParamClause = searchText
+    ? `&text=${encodeURI(searchText)}`
+    : "";
 
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=${fields}&limit=${
       MAX_PINBOARDS_TO_DISPLAY + 1
-    }`
+    }${searchQueryParamClause}`
   );
 
   if (!stubsResponse.ok) {

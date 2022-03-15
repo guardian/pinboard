@@ -3746,6 +3746,11 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
+apollo-link-debounce@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/apollo-link-debounce/-/apollo-link-debounce-3.0.0.tgz#39a82a5d0e53ece75a67f56d7c50d9a122631787"
+  integrity sha512-Ytig2Ml41T2bovBIoKkStPKoIh0r/kTK1dSM9Gpvo5W3BAPxt1WguAkeaPLJqeuvrNJIjQ/Pl38/14VVA0hdYg==
+
 archiver-utils@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/archiver-utils/-/archiver-utils-2.1.0.tgz#e8a460e94b693c3e3da182a098ca6285ba9249e2"

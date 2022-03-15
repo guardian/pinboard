@@ -30,9 +30,14 @@ export const SelectPinboard: React.FC = () => {
 
   const [searchText, setSearchText] = useState<string>("");
 
-  const { data, loading } = useQuery<{ listPinboards: PinboardData[] }>(
-    gqlListPinboards
-  );
+  const { data, loading } = useQuery<{
+    listPinboards: PinboardData[];
+  }>(gqlListPinboards, {
+    variables: {
+      searchText,
+    },
+    context: { debounceKey: gqlListPinboards, debounceTimeout: 500 },
+  });
 
   const allPinboards = [...(data?.listPinboards || [])].sort(
     (a, b) => (unreadFlags[a.id] ? -1 : unreadFlags[b.id] ? 1 : 0) // pinboards with unread to the top
@@ -42,10 +47,8 @@ export const SelectPinboard: React.FC = () => {
     activePinboardIds.includes(pinboardData.id)
   );
 
-  const unopenedFilteredPinboards = allPinboards.filter(
-    (pinboardData: PinboardData) =>
-      !activePinboardIds.includes(pinboardData.id) &&
-      pinboardData.title?.toLowerCase().includes(searchText?.toLowerCase())
+  const unopenedPinboards = allPinboards.filter(
+    (pinboardData: PinboardData) => !activePinboardIds.includes(pinboardData.id)
   );
 
   const markWithSearchText = (input: string) => {
@@ -127,7 +130,7 @@ export const SelectPinboard: React.FC = () => {
             hasWebPushSubscription={hasWebPushSubscription}
           />
         )}
-        {loading && <p>Loading pinboards...</p>}
+        {loading && !searchText && <p>Loading pinboards...</p>}
         <h4>
           {preselectedPinboard
             ? `Pinboard associated with this piece`
@@ -135,24 +138,23 @@ export const SelectPinboard: React.FC = () => {
         </h4>
         {data && activePinboards.map(OpenPinboardButton)}
         <h4>Open a pinboard</h4>
-        {data && (
-          <input
-            type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Search for a Pinboard..."
-            css={{
-              marginBottom: "5px",
-              boxSizing: "border-box",
-              width: "100%",
-            }}
-          />
-        )}
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="Search for a Pinboard..."
+          css={{
+            marginBottom: "5px",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        />
+        {loading && searchText && <div>Searching...</div>}
         {data &&
-          unopenedFilteredPinboards
+          unopenedPinboards
             .slice(0, MAX_PINBOARDS_TO_DISPLAY)
             .map(OpenPinboardButton)}
-        {unopenedFilteredPinboards.length > MAX_PINBOARDS_TO_DISPLAY && (
+        {unopenedPinboards.length > MAX_PINBOARDS_TO_DISPLAY && (
           <div css={{ textAlign: "center", fontStyle: "italic" }}>
             Too many results, <br />
             please use the search...

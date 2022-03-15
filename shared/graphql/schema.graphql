@@ -85,9 +85,9 @@ type Query {
     nextToken: String
   ): UserConnection
 
-  listPinboards: [WorkflowStub]
+  listPinboards(searchText: String): [WorkflowStub]
 
-  getPinboardByComposerId(composerId: String): WorkflowStub
+  getPinboardByComposerId(composerId: String!): WorkflowStub
 }
 
 type Subscription {

@@ -16,6 +16,7 @@ export const Panel: React.FC = () => {
   const {
     isExpanded,
     activePinboards,
+    activePinboardIds,
     selectedPinboardId,
     preselectedPinboard,
     clearSelectedPinboard,
@@ -24,14 +25,18 @@ export const Panel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
   const selectedPinboard = activePinboards.find(
-    (ap) => ap.id === selectedPinboardId
+    (activePinboard) => activePinboard.id === selectedPinboardId
   );
 
-  const title =
-    selectedPinboard?.title ||
-    (preselectedPinboard === "notTrackedInWorkflow"
-      ? "No pinboard"
-      : "Select a pinboard");
+  const title = (() => {
+    if (selectedPinboardId) {
+      return selectedPinboard?.title || "Loading pinboard...";
+    }
+    if (preselectedPinboard === "notTrackedInWorkflow") {
+      return "No pinboard";
+    }
+    return "Select a pinboard";
+  })();
 
   return (
     <div
@@ -73,7 +78,7 @@ export const Panel: React.FC = () => {
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        selectedPinboard={selectedPinboard}
+        selectedPinboardId={selectedPinboardId}
         clearSelectedPinboard={clearSelectedPinboard}
       >
         {title}
@@ -88,12 +93,12 @@ export const Panel: React.FC = () => {
       {
         // The active pinboards are always mounted, so that we receive new item notifications
         // Note that the pinboard hides itself based on 'isSelected' prop
-        activePinboards.map((pinboardData) => (
+        activePinboardIds.map((pinboardId) => (
           <Pinboard
-            pinboardData={pinboardData}
-            key={pinboardData.id}
-            isExpanded={pinboardData.id === selectedPinboardId && isExpanded}
-            isSelected={pinboardData.id === selectedPinboardId}
+            key={pinboardId}
+            pinboardId={pinboardId}
+            isExpanded={pinboardId === selectedPinboardId && isExpanded}
+            isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
           />
         ))

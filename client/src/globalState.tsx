@@ -1,13 +1,24 @@
-import { ApolloError, useLazyQuery, useSubscription } from "@apollo/client";
+import {
+  ApolloError,
+  useLazyQuery,
+  useQuery,
+  useSubscription,
+} from "@apollo/client";
 import React, { useContext, useEffect, useState } from "react";
 import { Item, User } from "../../shared/graphql/graphql";
-import { gqlGetPinboardByComposerId, gqlOnCreateItem } from "../gql";
+import {
+  gqlGetPinboardByComposerId,
+  gqlGetPinboardsByIds,
+  gqlOnCreateItem,
+} from "../gql";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
-import type { PinboardData } from "./pinboard";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
-import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
-import { isWorkflowStub } from "../../shared/graphql/extraTypes";
+import type {
+  PinboardData,
+  PreselectedPinboard,
+} from "../../shared/graphql/extraTypes";
+import { isPinboardData } from "../../shared/graphql/extraTypes";
 
 interface GlobalStateContextShape {
   userEmail: string;
@@ -85,8 +96,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   clearDesktopNotificationsForPinboardId,
   children,
 }) => {
-  const [manuallyOpenedPinboards, setManuallyOpenedPinboards] = useState<
-    PinboardData[]
+  const [manuallyOpenedPinboardIds, setManuallyOpenedPinboardIds] = useState<
+    string[]
   >([]);
 
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
@@ -114,11 +125,29 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     return "notTrackedInWorkflow";
   })();
 
-  const activePinboards: PinboardData[] = isWorkflowStub(preselectedPinboard)
-    ? [preselectedPinboard]
-    : manuallyOpenedPinboards;
+  const activePinboardIds = isPinboardData(preselectedPinboard)
+    ? [preselectedPinboard.id]
+    : manuallyOpenedPinboardIds;
 
-  const activePinboardIds = activePinboards.map((_) => _.id);
+  const activePinboardsQuery = useQuery<{
+    getPinboardsByIds: PinboardData[];
+  }>(gqlGetPinboardsByIds, {
+    variables: {
+      ids: activePinboardIds,
+    },
+  });
+
+  useEffect(() => {
+    if (isExpanded) {
+      activePinboardsQuery.refetch();
+      activePinboardsQuery.startPolling(5000);
+    } else {
+      activePinboardsQuery.stopPolling();
+    }
+  }, [isExpanded, activePinboardIds]);
+
+  const activePinboards: PinboardData[] =
+    activePinboardsQuery.data?.getPinboardsByIds || [];
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
     null
@@ -127,12 +156,21 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   useEffect(
     () =>
       setSelectedPinboardId(
-        isWorkflowStub(preselectedPinboard) ? preselectedPinboard.id : null
+        isPinboardData(preselectedPinboard) ? preselectedPinboard.id : null
       ),
     [preselectedPinboard]
   );
 
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
+
+  useEffect(() => {
+    if (isExpanded && !selectedPinboardId) {
+      preselectedPinboardQuery.refetch();
+      preselectedPinboardQuery.startPolling(5000);
+    } else {
+      preselectedPinboardQuery.stopPolling();
+    }
+  }, [isExpanded, selectedPinboardId]);
 
   const openPinboard = (pinboardData: PinboardData) => {
     const hostname = window.location.hostname;
@@ -148,14 +186,14 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     if (!activePinboardIds.includes(pinboardData.id)) {
       preselectedPinboard
         ? window?.open(composerUrl, "_blank")?.focus()
-        : setManuallyOpenedPinboards([
-            ...manuallyOpenedPinboards,
-            pinboardData,
+        : setManuallyOpenedPinboardIds([
+            ...manuallyOpenedPinboardIds,
+            pinboardData.id,
           ]);
     }
 
     if (
-      !isWorkflowStub(preselectedPinboard) ||
+      !isPinboardData(preselectedPinboard) ||
       preselectedPinboard.id === pinboardData.id
     ) {
       setSelectedPinboardId(pinboardData.id);
@@ -173,7 +211,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ) !== undefined;
 
   const hasErrorOnOtherPinboard = (pinboardId: string): boolean =>
-    !!hasError &&
+    hasError &&
     !!Object.entries(errors).find(
       ([otherPinboardId, isError]) => isError && pinboardId !== otherPinboardId
     );
@@ -194,7 +232,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     Object.values(unreadFlags).find((unreadFlag) => unreadFlag) || false;
 
   const hasUnreadOnOtherPinboard = (pinboardId: string): boolean =>
-    !!hasUnread &&
+    hasUnread &&
     !!Object.entries(unreadFlags).find(
       ([otherPinboardId, isUnread]) =>
         isUnread && pinboardId !== otherPinboardId
@@ -202,9 +240,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   const closePinboard = (pinboardIdToClose: string) => {
     if (activePinboardIds.includes(pinboardIdToClose)) {
-      setManuallyOpenedPinboards([
-        ...manuallyOpenedPinboards.filter(
-          (pinboard) => pinboard.id !== pinboardIdToClose
+      setManuallyOpenedPinboardIds([
+        ...manuallyOpenedPinboardIds.filter(
+          (pinboardId) => pinboardId !== pinboardIdToClose
         ),
       ]);
     }
@@ -246,8 +284,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     userEmail,
     userLookup,
 
-    activePinboardIds,
     activePinboards,
+    activePinboardIds,
 
     payloadToBeSent,
     clearPayloadToBeSent,

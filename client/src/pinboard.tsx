@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useSubscription } from "@apollo/client";
-import {
-  Item,
-  LastItemSeenByUser,
-  WorkflowStub,
-} from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { PendingItem } from "./types/PendingItem";
 import {
@@ -18,21 +14,19 @@ import { useGlobalStateContext } from "./globalState";
 import { css } from "@emotion/react";
 import { palette } from "@guardian/source-foundations";
 
-export type PinboardData = WorkflowStub;
-
 export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
 }
 
 interface PinboardProps {
-  pinboardData: PinboardData;
+  pinboardId: string;
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
 }
 
 export const Pinboard: React.FC<PinboardProps> = ({
-  pinboardData,
+  pinboardId,
   isExpanded,
   isSelected,
   panelElement,
@@ -50,8 +44,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
     setUnreadFlag,
   } = useGlobalStateContext();
-
-  const pinboardId = pinboardData.id;
 
   // TODO: extract to floaty level?
   const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {

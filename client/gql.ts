@@ -7,7 +7,7 @@ const pinboardReturnFields = `
   title
 `;
 export const gqlListPinboards = gql`
-  query MyQuery($searchText: String) {
+  query MyQuery($searchText: String!) {
     listPinboards(searchText: $searchText) { ${pinboardReturnFields} }
   }
 `;

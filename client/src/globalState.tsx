@@ -18,15 +18,17 @@ import {
 import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
-import type {
-  PinboardData,
-  PreselectedPinboard,
-} from "../../shared/graphql/extraTypes";
+import type { PinboardData } from "../../shared/graphql/extraTypes";
 import { isPinboardData } from "../../shared/graphql/extraTypes";
+import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
+import { ChatTab, Tab } from "./types/Tab";
 
 interface GlobalStateContextShape {
   userEmail: string;
   userLookup: { [email: string]: User } | undefined;
+
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
 
   activePinboardIds: string[];
   activePinboards: PinboardData[];
@@ -108,6 +110,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   clearDesktopNotificationsForPinboardId,
   children,
 }) => {
+  const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
+
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
     gqlGetPinboardByComposerId
   );
@@ -325,6 +329,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
+
+    activeTab,
+    setActiveTab,
 
     activePinboards,
     activePinboardIds,

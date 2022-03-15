@@ -19,9 +19,13 @@ export const formattedDateTime = (timestamp: number): string => {
       if (differenceInMinutes(now, timestamp) < 1) {
         return "Now";
       } else if (differenceInMinutes(now, timestamp) === 1) {
-        return formatDistanceStrict(timestamp, now).slice(0, -3);
+        return formatDistanceStrict(timestamp, now, {
+          roundingMethod: "floor",
+        }).slice(0, -3);
       } else if (differenceInHours(now, timestamp) < 1) {
-        return formatDistanceStrict(timestamp, now).slice(0, -4);
+        return formatDistanceStrict(timestamp, now, {
+          roundingMethod: "floor",
+        }).slice(0, -4);
       }
       return format(timestamp, "HH:mm");
     } else if (isYesterday(timestamp)) {

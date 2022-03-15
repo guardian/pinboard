@@ -1,6 +1,7 @@
 import subDays from "date-fns/subDays";
 import subHours from "date-fns/subHours";
 import subMinutes from "date-fns/subMinutes";
+import subSeconds from "date-fns/subSeconds";
 import subYears from "date-fns/subYears";
 
 import { formattedDateTime } from "../src/util";
@@ -17,7 +18,14 @@ test("display is correct if timestamp is 1 min ago exactly", () => {
   expect(formattedDateTime(oneMinAgo)).toBe("1 min");
 });
 
-test("display is correct if timestamp is between 1 min and 1 hr ago", () => {
+test("display is correct if timestamp is between 1 min and 2 mins ago", () => {
+  const almostTwoMinsAgo = subSeconds(Date.now(), 95).valueOf();
+  expect(formattedDateTime(almostTwoMinsAgo)).toBe("1 min");
+});
+
+test("display is correct if timestamp is between 2 min and 1 hr ago", () => {
+  const twoMinsAgo = subMinutes(Date.now(), 2).valueOf();
+  expect(formattedDateTime(twoMinsAgo)).toBe("2 min");
   const lessThanHr = subMinutes(Date.now(), 59).valueOf();
   expect(formattedDateTime(lessThanHr)).toBe("59 min");
 });

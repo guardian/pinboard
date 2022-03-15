@@ -20,7 +20,7 @@
     "watch-client": "yarn --cwd 'client' watch 2>&1",
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
     "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
-    "test": "yarn --cwd 'client' jest 2>&1",
+    "test": "yarn workspace client test",
     "build": "wsrun --parallel --fast-exit --prefix --report build ",
     "prepare": "husky install"
   },

@@ -73,8 +73,9 @@ const userReturnFields = `
   avatarUrl
 `;
 
-const userReturnFieldsWithHasWebPushSubscription = `${userReturnFields}
+const myUserReturnFields = `${userReturnFields}
   hasWebPushSubscription
+  manuallyOpenedPinboardIds
 `;
 
 export const gqlGetAllUsers = gql`
@@ -88,7 +89,7 @@ query MyQuery {
 export const gqlGetMyUser = gql`
 query MyQuery {
   getMyUser {
-    ${userReturnFieldsWithHasWebPushSubscription}
+    ${myUserReturnFields}
   }
 }
 `;
@@ -96,9 +97,34 @@ query MyQuery {
 export const gqlSetWebPushSubscriptionForUser = gql`
   mutation SetWebPushSubscriptionForUser($webPushSubscription: AWSJSON) {
     setWebPushSubscriptionForUser(webPushSubscription: $webPushSubscription) {
-      ${userReturnFieldsWithHasWebPushSubscription}
+      ${myUserReturnFields}
     }
   }
+`;
+
+export const gqlAddManuallyOpenedPinboardIds = gql`
+  mutation AddManuallyOpenedPinboardIds($ids: [String!]!) {
+    addManuallyOpenedPinboardIds(ids: $ids) {
+      # including fields here makes them accessible in our subscription data
+      ${myUserReturnFields}
+    }
+  }
+`;
+export const gqlRemoveManuallyOpenedPinboardIds = gql`
+  mutation RemoveManuallyOpenedPinboardIds($ids: [String!]!) {
+    removeManuallyOpenedPinboardIds(ids: $ids) {
+      # including fields here makes them accessible in our subscription data
+      ${myUserReturnFields}
+    }
+  }
+`;
+
+export const gqlOnManuallyOpenedPinboardIdsChanged = (userEmail: string) => gql`
+    subscription OnManuallyOpenedPinboardIdsChanged {
+        onManuallyOpenedPinboardIdsChanged(email: "${userEmail}") { 
+            ${myUserReturnFields} 
+        }
+    }
 `;
 
 const lastItemSeenByUserReturnFields = `

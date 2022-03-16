@@ -100,6 +100,7 @@ export const ItemDisplay = ({
         font-style: ${isPendingSend ? "italic" : "normal"};
         ${agateSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[20]};
+        overflow-wrap: anywhere;
       `}
     >
       <div
@@ -131,7 +132,6 @@ export const ItemDisplay = ({
       <div
         css={css`
           margin-left: ${space[9] - 4}px;
-          overflow-wrap: break-word;
         `}
       >
         <div

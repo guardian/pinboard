@@ -1,6 +1,5 @@
 import { palette } from "@guardian/source-foundations";
 
-export const pinboardSecondaryPastel = palette.sport[600]; // "#90DCFF"
 export const pinMetal = palette.neutral[20]; //"#333333"
 export const composer = {
   warning: {

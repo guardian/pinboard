@@ -33,7 +33,7 @@ interface GlobalStateContextShape {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
 
-  openPinboard: (pinboardData: PinboardData) => void;
+  openPinboard: (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
   selectedPinboardId: string | null | undefined;
@@ -121,7 +121,12 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   })();
 
   const activePinboardIds = isPinboardData(preselectedPinboard)
-    ? [preselectedPinboard.id]
+    ? [
+        preselectedPinboard.id,
+        ...manuallyOpenedPinboardIds?.filter(
+          (_) => _ !== preselectedPinboard.id
+        ),
+      ]
     : manuallyOpenedPinboardIds;
 
   const activePinboardsQuery = useQuery<{
@@ -159,49 +164,51 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const clearSelectedPinboard = () => setSelectedPinboardId(null);
 
   useEffect(() => {
-    if (isExpanded && preselectedComposerId) {
-      preselectedPinboardQuery.stopPolling();
+    if (preselectedComposerId) {
       getPreselectedPinboard({
         variables: { composerId: preselectedComposerId },
       });
-      preselectedPinboardQuery.startPolling(5000);
-    } else {
-      preselectedPinboardQuery.stopPolling();
     }
-  }, [isExpanded, preselectedComposerId]);
+  }, [preselectedComposerId]);
 
   const [addManuallyOpenedPinboardIds] = useMutation<{
     addManuallyOpenedPinboardIds: MyUser;
   }>(gqlAddManuallyOpenedPinboardIds);
 
-  const openPinboard = (pinboardData: PinboardData) => {
-    const hostname = window.location.hostname;
-    const composerDomain =
-      hostname.includes(".local.") ||
-      hostname.includes(".code.") ||
-      hostname.includes(".test.")
-        ? "code.dev-gutools.co.uk"
-        : "gutools.co.uk";
-    const composerUrl = `https://composer.${composerDomain}/content/${
-      pinboardData.composerId || ".."
-    }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+  const openPinboard = (
+    pinboardData: PinboardData,
+    isOpenInNewTab: boolean
+  ) => {
+    if (isOpenInNewTab) {
+      const hostname = window.location.hostname;
+      const composerDomain =
+        hostname.includes(".local.") ||
+        hostname.includes(".code.") ||
+        hostname.includes(".test.")
+          ? "code.dev-gutools.co.uk"
+          : "gutools.co.uk";
+      const composerUrl = `https://composer.${composerDomain}/content/${
+        pinboardData.composerId || ".."
+      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+      window?.open(composerUrl, "_blank")?.focus();
+    }
+
     if (!activePinboardIds.includes(pinboardData.id)) {
-      preselectedPinboard
-        ? window?.open(composerUrl, "_blank")?.focus()
-        : addManuallyOpenedPinboardIds({
-            variables: {
-              ids: [pinboardData.id],
-            },
-          }).then(
-            (result) =>
-              result.data
-                ? setManuallyOpenedPinboardIds(
-                    result.data.addManuallyOpenedPinboardIds
-                  )
-                : console.error(
-                    "addManuallyOpenedPinboardIds did not return any data"
-                  ) // TODO probably report to Sentry
-          );
+      addManuallyOpenedPinboardIds({
+        variables: {
+          ids: [pinboardData.id],
+        },
+      }).then(
+        (result) =>
+          result.data
+            ? setManuallyOpenedPinboardIds(
+                result.data.addManuallyOpenedPinboardIds
+              )
+            : console.error(
+                "addManuallyOpenedPinboardIds did not return any data"
+              ) // TODO probably report to Sentry
+      );
     }
 
     if (
@@ -303,7 +310,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     });
   }, []);
 
-  const contextValue = {
+  const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
 

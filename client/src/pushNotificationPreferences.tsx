@@ -1,4 +1,5 @@
 import React from "react";
+import { agateSans } from "../fontNormaliser";
 interface PushNotificationPreferencesOpenerProps {
   hasWebPushSubscription: boolean | null | undefined;
 }
@@ -24,7 +25,13 @@ export const PushNotificationPreferencesOpener = ({
     : "Subscribe to ";
 
   return (
-    <button onClick={openDesktopNotificationsPreferencesWindow}>
+    <button
+      css={{
+        fontFamily: agateSans.xxsmall(),
+        width: "100%",
+      }}
+      onClick={openDesktopNotificationsPreferencesWindow}
+    >
       {toggleButtonPrefix}Desktop Notifications
     </button>
   );

@@ -30,7 +30,7 @@ interface ScrollableItemsProps {
 }
 
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
-  scrollableArea.scrollHeight >= scrollableArea.clientHeight;
+  scrollableArea.scrollHeight > scrollableArea.clientHeight;
 
 const elementIsVisible = (
   scrollableArea: HTMLDivElement,
@@ -223,7 +223,11 @@ export const ScrollableItems = ({
           `}
         >
           <button
-            onClick={scrollToLastItem}
+            onClick={() =>
+              scrollableArea && isScrollbarVisible(scrollableArea)
+                ? scrollToLastItem()
+                : seenLastItem()
+            }
             css={css`
               fill: white;
               background-color: ${palette.neutral[20]};

@@ -1,6 +1,12 @@
 import { css } from "@emotion/react";
 import React, { useRef } from "react";
-import { bottom, boxShadow, floatySize, right } from "./styling";
+import {
+  bottom,
+  boxShadow,
+  floatySize,
+  panelCornerSize,
+  right,
+} from "./styling";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
@@ -8,8 +14,6 @@ import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
-
-const cornerSize = 24;
 
 export const Panel: React.FC = () => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -50,9 +54,9 @@ export const Panel: React.FC = () => {
         min-height: 380px;
         max-height: min(
           800px,
-          calc(98vh - ${bottom + floatySize + space[4] + cornerSize}px)
+          calc(98vh - ${bottom + floatySize + space[4] + panelCornerSize}px)
         );
-        bottom: ${bottom + floatySize + space[2] + cornerSize}px;
+        bottom: ${bottom + floatySize + space[2] + panelCornerSize}px;
         right: ${right + floatySize / 2}px;
         display: ${isExpanded ? "flex" : "none"};
         flex-direction: column;
@@ -64,11 +68,11 @@ export const Panel: React.FC = () => {
           content: "";
           position: fixed;
           background: ${neutral[93]};
-          width: ${cornerSize}px;
-          height: ${cornerSize}px;
+          width: ${panelCornerSize}px;
+          height: ${panelCornerSize}px;
           bottom: ${bottom + floatySize + space[2]}px;
           right: ${right + floatySize / 2}px;
-          border-bottom-left-radius: ${cornerSize}px;
+          border-bottom-left-radius: ${panelCornerSize}px;
           box-shadow: ${boxShadow};
           clip: rect(0, 50px, 50px, -25px); // clip off the top of the shadow
         }

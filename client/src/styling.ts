@@ -45,3 +45,5 @@ export const scrollbarsCss = (fg: string) => css`
     border-radius: 999px;
   }
 `;
+
+export const panelCornerSize = 24;

@@ -3,6 +3,7 @@ import { palette } from "@guardian/source-foundations";
 export const pinMetal = palette.neutral[20]; //"#333333"
 export const composer = {
   warning: {
+    [100]: "#A51B08",
     [300]: "#C7291C",
   } as const,
   primary: {

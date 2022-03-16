@@ -64,7 +64,7 @@ type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
   setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
-  addManuallyOpenedPinboardIds(ids: [String!]!): MyUser
+  addManuallyOpenedPinboardIds(ids: [String!]!, maybeEmailOverride: String): MyUser
   removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
 }
 

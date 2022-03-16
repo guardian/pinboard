@@ -1,5 +1,6 @@
 import {
   ApolloError,
+  FetchResult,
   useLazyQuery,
   useMutation,
   useQuery,
@@ -33,6 +34,10 @@ interface GlobalStateContextShape {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
 
+  addManuallyOpenedPinboardId: (
+    pinboardId: string,
+    maybeEmailOverride?: string
+  ) => Promise<FetchResult<{ addManuallyOpenedPinboardIds: MyUser }>>;
   openPinboard: (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
@@ -175,6 +180,17 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     addManuallyOpenedPinboardIds: MyUser;
   }>(gqlAddManuallyOpenedPinboardIds);
 
+  const addManuallyOpenedPinboardId = (
+    pinboardId: string,
+    maybeEmailOverride?: string
+  ) =>
+    addManuallyOpenedPinboardIds({
+      variables: {
+        ids: [pinboardId],
+        maybeEmailOverride,
+      },
+    });
+
   const openPinboard = (
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
@@ -195,11 +211,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     }
 
     if (!activePinboardIds.includes(pinboardData.id)) {
-      addManuallyOpenedPinboardIds({
-        variables: {
-          ids: [pinboardData.id],
-        },
-      }).then(
+      addManuallyOpenedPinboardId(pinboardData.id).then(
         (result) =>
           result.data
             ? setManuallyOpenedPinboardIds(
@@ -320,6 +332,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     payloadToBeSent,
     clearPayloadToBeSent,
 
+    addManuallyOpenedPinboardId,
     openPinboard,
     closePinboard,
     preselectedPinboard,

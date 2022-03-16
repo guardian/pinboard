@@ -9,6 +9,7 @@ import { userToMentionHandle } from "./util";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
+import { composer } from "../colours";
 interface WithEntity<E> {
   entity: E;
 }
@@ -28,17 +29,27 @@ const UserSuggestion = ({ entity }: WithEntity<User>) => (
   <div
     css={css`
       display: flex;
+      padding: ${space[1]}px;
     `}
   >
-    <AvatarRoundel maybeUser={entity} size={20} userEmail={entity.email} />
+    <div css={{ paddingRight: `${space[1]}px` }}>
+      <AvatarRoundel maybeUser={entity} size={28} userEmail={entity.email} />
+    </div>
     <div>
-      <div>
+      <div
+        css={{
+          fontFamily: agateSans.xsmall({
+            lineHeight: "tight",
+            fontWeight: "bold",
+          }),
+        }}
+      >
         {entity.firstName} {entity.lastName}
       </div>
       <div
-        css={css`
-          font-size: 80%;
-        `}
+        css={{
+          fontFamily: agateSans.xxsmall({ lineHeight: "tight" }),
+        }}
       >
         {entity.email}
       </div>
@@ -168,7 +179,7 @@ const rtaStyles = css`
     position: absolute;
     display: block;
     margin-top: 16px;
-    z-index: 1;
+    z-index: 999999;
   }
   .rta__autocomplete--top {
     margin-top: 0;
@@ -188,6 +199,7 @@ const rtaStyles = css`
     width: 100%;
     text-align: left;
     outline: none;
+    color: ${palette.neutral[20]};
   }
   .rta__entity:hover {
     cursor: pointer;
@@ -200,8 +212,8 @@ const rtaStyles = css`
     padding-right: 4px;
   }
   .rta__entity--selected {
-    color: #fff;
+    color: ${palette.neutral["100"]};
     text-decoration: none;
-    background: #0366d6;
+    background: ${composer.primary["300"]};
   }
 `;

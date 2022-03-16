@@ -17,15 +17,15 @@ interface SeenByProps {
 }
 
 export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
-  const hiddenUsernames = seenBy
-    .slice(maxSeenByIcons)
+  const tooltip = seenBy
     .map(({ seenAt, userEmail }) => {
       const user = userLookup?.[userEmail];
       const name = user ? `${user.firstName} ${user.lastName}` : userEmail;
 
-      return `${name} ${formattedDateTime(seenAt * 1000)}`;
+      return `${name} (${formattedDateTime(seenAt * 1000)})`;
     })
-    .join(", ");
+    .join("\n");
+
   return (
     <div
       css={css`
@@ -33,6 +33,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
         align-items: center;
         justify-content: flex-end;
       `}
+      title={tooltip}
     >
       <span
         css={css`
@@ -56,7 +57,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
             maybeUser={userLookup?.[userEmail]}
             size={roundelHeightPx}
             userEmail={userEmail}
-            tooltipSuffix={` ${formattedDateTime(seenAt * 1000)}`}
+            shouldHideTooltip
           />
         </div>
       ))}
@@ -74,7 +75,6 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
                 align-items: center;
               }
             `}
-            title={hiddenUsernames}
           >
             <SvgPlus size="xsmall" />
           </span>

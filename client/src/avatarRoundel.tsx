@@ -9,18 +9,20 @@ interface AvatarRoundelProps {
   maybeUser: User | undefined;
   size: number;
   userEmail: string;
-  tooltipSuffix?: string;
+  shouldHideTooltip?: true;
 }
 
 export const AvatarRoundel = ({
   maybeUser,
   size,
   userEmail,
-  tooltipSuffix,
+  shouldHideTooltip,
 }: AvatarRoundelProps) => {
-  const tooltip = `${
-    maybeUser ? `${maybeUser.firstName} ${maybeUser.lastName}` : userEmail
-  }${tooltipSuffix || ""}`;
+  const tooltip = shouldHideTooltip
+    ? undefined
+    : `${
+        maybeUser ? `${maybeUser.firstName} ${maybeUser.lastName}` : userEmail
+      }`;
 
   return maybeUser?.avatarUrl ? (
     <img

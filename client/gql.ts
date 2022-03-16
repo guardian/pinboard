@@ -79,11 +79,11 @@ const myUserReturnFields = `${userReturnFields}
 `;
 
 export const gqlGetAllUsers = gql`
-query MyQuery {
-  searchUsers {
-    items { ${userReturnFields} }
-  }
-}
+    query MyQuery {
+        listUsers {
+            items { ${userReturnFields} }
+        }
+    }
 `;
 
 export const gqlGetMyUser = gql`

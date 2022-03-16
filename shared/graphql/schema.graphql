@@ -83,8 +83,7 @@ type Query {
 
   getMyUser: MyUser
 
-  searchUsers(
-    filter: TableUserFilterInput
+  listUsers(
     limit: Int
     nextToken: String
   ): UserConnection

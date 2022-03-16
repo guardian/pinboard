@@ -131,6 +131,7 @@ export const ItemDisplay = ({
       <div
         css={css`
           margin-left: ${space[9] - 4}px;
+          overflow-wrap: break-word;
         `}
       >
         <div

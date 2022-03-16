@@ -21,6 +21,33 @@ const otherUserMentioned = css`
   color: ${composer.primary[300]};
 `;
 
+const formattedText = (text: string) =>
+  text.split(" ").reduce((acc, word) => {
+    const formattedWord = word.startsWith("https://") ? (
+      <a
+        target="_blank"
+        rel="noreferrer"
+        href={word}
+        css={css`
+          color: ${composer.primary[300]};
+          text-decoration: none;
+          &:hover {
+            text-decoration: underline;
+          }
+        `}
+      >
+        {word}
+      </a>
+    ) : (
+      word
+    );
+    return (
+      <>
+        {acc} {formattedWord}
+      </>
+    );
+  }, <></>);
+
 const formatMentionHandlesInText = (
   userEmail: string,
   mentions: User[],
@@ -54,7 +81,7 @@ const formatMentionHandlesInText = (
       )
     );
   }
-  return <Fragment>{text}</Fragment>;
+  return <Fragment>{formattedText(text)}</Fragment>;
 };
 interface ItemDisplayProps {
   item: Item | PendingItem;

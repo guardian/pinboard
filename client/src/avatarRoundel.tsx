@@ -45,6 +45,7 @@ export const AvatarRoundel = ({
         background-color: ${composer.primary[300]};
         color: ${neutral[100]};
         display: flex;
+        flex-shrink: 0;
         user-select: none;
         justify-content: center;
         align-items: center;

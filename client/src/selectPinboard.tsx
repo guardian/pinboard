@@ -302,7 +302,8 @@ export const SelectPinboard: React.FC = () => {
             label="Search"
             hideLabel
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(event) => setSearchText(event.target.value)}
+            onKeyPress={(event) => event.stopPropagation()}
             placeholder="Search by Working Title / Headline"
             css={{
               marginBottom: "5px",

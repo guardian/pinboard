@@ -1,4 +1,4 @@
-type Payload = {
+export type Payload = {
   thumbnail?: string;
   embeddableUrl?: string;
 }; // & Record<string, string | undefined>

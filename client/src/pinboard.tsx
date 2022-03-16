@@ -13,6 +13,7 @@ import { SendMessageArea } from "./sendMessageArea";
 import { useGlobalStateContext } from "./globalState";
 import { css } from "@emotion/react";
 import { palette } from "@guardian/source-foundations";
+import { AssetView } from "./assetView";
 
 export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
@@ -32,6 +33,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   panelElement,
 }) => {
   const {
+    activeTab,
     userEmail,
     userLookup,
 
@@ -157,7 +159,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           flex-grow: 1;
         `}
       />
-      {initialItems.data && (
+      {activeTab === "chat" && initialItems.data && (
         <ScrollableItems
           showNotification={showNotification}
           initialItems={initialItems.data.listItems.items}
@@ -171,16 +173,25 @@ export const Pinboard: React.FC<PinboardProps> = ({
           lastItemSeenByUserLookup={lastItemSeenByUserLookup}
         />
       )}
-      <SendMessageArea
-        onSuccessfulSend={onSuccessfulSend}
-        payloadToBeSent={payloadToBeSent}
-        clearPayloadToBeSent={clearPayloadToBeSent}
-        allUsers={userLookup && Object.values(userLookup)}
-        onError={(error) => setError(pinboardId, error)}
-        userEmail={userEmail}
-        pinboardId={pinboardId}
-        panelElement={panelElement}
-      />
+      {activeTab === "asset" && initialItems.data && (
+        <AssetView
+          initialItems={initialItems.data.listItems.items}
+          successfulSends={successfulSends}
+          subscriptionItems={subscriptionItems}
+        />
+      )}
+      {activeTab === "chat" && (
+        <SendMessageArea
+          onSuccessfulSend={onSuccessfulSend}
+          payloadToBeSent={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+          allUsers={userLookup && Object.values(userLookup)}
+          onError={(error) => setError(pinboardId, error)}
+          userEmail={userEmail}
+          pinboardId={pinboardId}
+          panelElement={panelElement}
+        />
+      )}
     </React.Fragment>
   );
 };

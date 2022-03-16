@@ -64,7 +64,6 @@ interface ItemDisplayProps {
   timestampLastRefreshed: number;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
-  maybeNextItem: Item | PendingItem | undefined;
 }
 
 export const ItemDisplay = ({

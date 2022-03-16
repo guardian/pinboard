@@ -7,6 +7,7 @@ import { useGlobalStateContext } from "../globalState";
 import type { Tab } from "../types/Tab";
 import { BackArrowIcon, CrossIcon } from "./icon";
 import { NavButton } from "./button";
+import { Tabs } from "./tabs";
 
 interface NavigationProps {
   activeTab: Tab;
@@ -66,14 +67,13 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
         <NavButton onClick={() => setIsExpanded(false)} icon={CrossIcon} />
       </div>
 
-      {/* TODO re-enable tabs when we implement & enable asset view */}
-      {/* {props.selectedPinboard && (
+      {props.selectedPinboardId && (
         <Tabs
           activeTab={props.activeTab}
           setActiveTab={props.setActiveTab}
           unreadMessages={null} // ready for when we have unread messages count to display
         />
-      )} */}
+      )}
     </div>
   );
 };

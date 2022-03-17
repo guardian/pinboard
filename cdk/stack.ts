@@ -435,8 +435,22 @@ export class PinBoardStack extends Stack {
 
     pinboardUserDataSource.createResolver({
       typeName: "Query",
-      fieldName: "searchUsers",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
+      fieldName: "listUsers",
+      requestMappingTemplate: resolverBugWorkaround(
+        appsync.MappingTemplate.fromString(`
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": {
+            "expression": "attribute_exists(#firstName) AND attribute_exists(#lastName)",
+            "expressionNames": {
+              "#firstName": "firstName",
+              "#lastName": "lastName",
+            },
+          },
+        }
+      `)
+      ),
       responseMappingTemplate: dynamoFilterResponseMappingTemplate,
     });
 

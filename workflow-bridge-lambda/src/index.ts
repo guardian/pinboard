@@ -14,7 +14,9 @@ exports.handler = async (event: {
     return await getPinboardById("content")(event.arguments.composerId);
   }
   if (event.arguments?.ids) {
-    return await Promise.all(event.arguments.ids.map(getPinboardById("stubs")));
+    return (
+      await Promise.all(event.arguments.ids.map(getPinboardById("stubs")))
+    ).filter((_) => !!_);
   } else {
     return await getAllPinboards(event.arguments?.searchText);
   }

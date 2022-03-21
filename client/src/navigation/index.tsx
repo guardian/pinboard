@@ -74,7 +74,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
         >
           {props.children}
         </span>
-        {selectedPinboard && !preselectedPinboard && (
+        {selectedPinboard?.composerId && !preselectedPinboard && (
           <NavButton
             icon={ComposerIcon}
             onClick={() => openPinboard(selectedPinboard, true)}

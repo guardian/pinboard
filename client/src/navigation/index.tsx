@@ -59,7 +59,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}
             unreadCount={unreadNotificationCountOnOtherPinboard}
-            title="Open another pinboard"
+            title="View other pinboards"
           />
         )}
         <span
@@ -84,7 +84,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
         <NavButton
           onClick={() => setIsExpanded(false)}
           icon={CrossIcon}
-          title="Close the Pinboard window"
+          title="Collapse the Pinboard window"
         />
       </div>
 

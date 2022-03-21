@@ -1,7 +1,7 @@
 import React from "react";
 import { css } from "@emotion/react";
 import { pinboard } from "../../colours";
-import { palette, space } from "@guardian/source-foundations";
+import { neutral, palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 
 const numberedBubble = css`
@@ -23,14 +23,17 @@ interface NavButtonProps {
   icon: React.FC;
   hoverParent?: boolean;
   unreadCount?: number | null;
+  title?: string;
 }
 export const NavButton: React.FC<NavButtonProps> = ({
   onClick,
   icon: Icon,
   hoverParent,
   unreadCount,
+  title,
 }) => (
   <span
+    title={title}
     onClick={onClick}
     css={css`
       position: relative;
@@ -44,6 +47,7 @@ export const NavButton: React.FC<NavButtonProps> = ({
       display: flex;
       justify-content: center;
       align-items: center;
+      fill: ${neutral[20]};
     `}
   >
     {unreadCount !== null && unreadCount !== undefined && (

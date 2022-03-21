@@ -5,7 +5,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 import { useGlobalStateContext } from "../globalState";
 import type { Tab } from "../types/Tab";
-import { BackArrowIcon, CrossIcon } from "./icon";
+import { BackArrowIcon, ComposerIcon, CrossIcon } from "./icon";
 import { NavButton } from "./button";
 import { Tabs } from "./tabs";
 
@@ -17,13 +17,22 @@ interface NavigationProps {
   headingTooltipText: string | undefined;
 }
 export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
-  const { setIsExpanded, hasUnreadOnOtherPinboard } = useGlobalStateContext();
+  const {
+    setIsExpanded,
+    hasUnreadOnOtherPinboard,
+    preselectedPinboard,
+    activePinboards,
+    openPinboard,
+  } = useGlobalStateContext();
   // TODO replace with notification count when we have it
   const unreadNotificationCountOnOtherPinboard =
     props.selectedPinboardId &&
     hasUnreadOnOtherPinboard(props.selectedPinboardId)
       ? 0
       : undefined;
+  const selectedPinboard = activePinboards.find(
+    (activePinboard) => activePinboard.id === props.selectedPinboardId
+  );
   return (
     <div
       css={css`
@@ -50,6 +59,7 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}
             unreadCount={unreadNotificationCountOnOtherPinboard}
+            title="Open another pinboard"
           />
         )}
         <span
@@ -64,7 +74,18 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
         >
           {props.children}
         </span>
-        <NavButton onClick={() => setIsExpanded(false)} icon={CrossIcon} />
+        {selectedPinboard && !preselectedPinboard && (
+          <NavButton
+            icon={ComposerIcon}
+            onClick={() => openPinboard(selectedPinboard, true)}
+            title="Open in Composer"
+          />
+        )}
+        <NavButton
+          onClick={() => setIsExpanded(false)}
+          icon={CrossIcon}
+          title="Close the Pinboard window"
+        />
       </div>
 
       {props.selectedPinboardId && (

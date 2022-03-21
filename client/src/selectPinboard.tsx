@@ -171,11 +171,21 @@ export const SelectPinboard: React.FC = () => {
             >
               {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
             </span>{" "}
-            {isActivePinboard
-              ? pinboardData.title
-              : highlightedHeadline ||
-                highlightedWorkingTitle ||
-                pinboardData.title}
+            <span
+              css={{
+                textDecoration: pinboardData?.trashed
+                  ? "line-through"
+                  : undefined,
+                fontStyle: pinboardData?.isNotFound ? "italic" : undefined,
+              }}
+            >
+              {isActivePinboard
+                ? pinboardData.title || "NOT FOUND"
+                : highlightedHeadline ||
+                  highlightedWorkingTitle ||
+                  pinboardData.title ||
+                  "NOT FOUND"}
+            </span>
           </div>
           {isActivePinboard && errors[pinboardData.id] && (
             <div

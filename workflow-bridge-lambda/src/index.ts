@@ -14,9 +14,7 @@ exports.handler = async (event: {
     return await getPinboardById("content")(event.arguments.composerId);
   }
   if (event.arguments?.ids) {
-    return (
-      await Promise.all(event.arguments.ids.map(getPinboardById("stubs")))
-    ).filter((_) => !!_);
+    return await Promise.all(event.arguments.ids.map(getPinboardById("stubs")));
   } else {
     return await getAllPinboards(event.arguments?.searchText);
   }
@@ -29,7 +27,10 @@ const getPinboardById = (apiBase: "content" | "stubs") => async (
     `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
   );
   if (contentResponse.status === 404) {
-    return null;
+    return {
+      id,
+      isNotFound: true,
+    };
   }
   if (!contentResponse.ok) {
     throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
@@ -43,13 +44,16 @@ const getPinboardById = (apiBase: "content" | "stubs") => async (
     };
   }).data;
   if (!data) {
-    return null;
+    return {
+      id,
+      isNotFound: true,
+    };
   }
   return { ...data.externalData, ...data };
 };
 
 const getAllPinboards = async (searchText?: string) => {
-  const fields = ["id", "title", "composerId", "headline"].join(",");
+  const fields = ["id", "title", "composerId", "headline", "trashed"].join(",");
 
   const searchQueryParamClause = searchText
     ? `&text=${encodeURI(searchText)}`

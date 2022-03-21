@@ -43,6 +43,8 @@ type WorkflowStub {
   headline: String
   composerId: String
   status: String
+  trashed: Boolean
+  isNotFound: Boolean
 }
 
 type ItemConnection {

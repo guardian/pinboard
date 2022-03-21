@@ -33,6 +33,9 @@ export const Panel: React.FC = () => {
   );
 
   const title = (() => {
+    if (selectedPinboard?.isNotFound) {
+      return "PINBOARD NOT FOUND";
+    }
     if (selectedPinboardId) {
       return selectedPinboard?.title || "Loading pinboard...";
     }
@@ -88,7 +91,16 @@ export const Panel: React.FC = () => {
           selectedPinboard && getTooltipText(selectedPinboard)
         }
       >
-        {title}
+        <span
+          css={{
+            textDecoration: selectedPinboard?.trashed
+              ? "line-through"
+              : undefined,
+            fontStyle: selectedPinboard?.isNotFound ? "italic" : undefined,
+          }}
+        >
+          {title}
+        </span>
       </Navigation>
 
       {preselectedPinboard === "notTrackedInWorkflow" ? (

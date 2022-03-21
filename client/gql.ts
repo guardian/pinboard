@@ -6,6 +6,8 @@ const pinboardReturnFields = `
   status
   title
   headline
+  trashed
+  isNotFound
 `;
 export const gqlListPinboards = gql`
   query MyQuery($searchText: String!) {

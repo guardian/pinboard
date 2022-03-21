@@ -44,7 +44,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
       >
         Seen by
       </span>
-      {seenBy.slice(0, maxSeenByIcons).map(({ userEmail, seenAt }, i) => (
+      {seenBy.slice(0, maxSeenByIcons).map(({ userEmail }, i) => (
         <div
           key={userEmail}
           css={css`

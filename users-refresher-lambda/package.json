@@ -19,6 +19,6 @@
     "@googleapis/admin": "^5.1.0",
     "@googleapis/people": "^1.0.2",
     "iniparser": "^1.0.5",
-    "node-forge": "^0.10.0"
+    "node-forge": "^1.3.0"
   }
 }

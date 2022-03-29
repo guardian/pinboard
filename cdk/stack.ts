@@ -11,6 +11,7 @@ import {
 } from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as S3 from "@aws-cdk/aws-s3";
+import * as S3notifications from "@aws-cdk/aws-s3-notifications";
 import * as iam from "@aws-cdk/aws-iam";
 import * as ssm from "@aws-cdk/aws-ssm";
 import * as apigateway from "@aws-cdk/aws-apigateway";
@@ -25,6 +26,10 @@ import { APP, userTableTTLAttribute } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
+import {
+  PERMISSIONS_BUCKET,
+  PERMISSIONS_FILENAME,
+} from "../shared/permissions";
 
 export class PinBoardStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -69,7 +74,7 @@ export class PinBoardStack extends Stack {
     const permissionsFilePolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
+      resources: [`arn:aws:s3:::${PERMISSIONS_BUCKET}/${STAGE}/*`],
     });
 
     const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
@@ -575,16 +580,26 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
 
+    S3.Bucket.fromBucketName(
+      thisStack,
+      PERMISSIONS_BUCKET,
+      PERMISSIONS_BUCKET
+    ).addObjectCreatedNotification(
+      // includes the file being updated
+      new S3notifications.LambdaDestination(usersRefresherLambdaFunction),
+      { prefix: `${STAGE}/${PERMISSIONS_FILENAME}` }
+    );
+
     /*const usersRefresherLambdaSchedule =*/ new events.Rule(
       thisStack,
       `${usersRefresherLambdaBasename}-schedule`,
       {
-        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 6 hours.`,
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 24 hours.`,
         enabled: true,
         targets: [
           new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
         ],
-        schedule: events.Schedule.rate(Duration.hours(6)),
+        schedule: events.Schedule.rate(Duration.hours(24)),
       }
     );
 

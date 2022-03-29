@@ -14,10 +14,13 @@ interface Permission {
   overrides: Override[];
 }
 
+export const PERMISSIONS_BUCKET = "permissions-cache";
+export const PERMISSIONS_FILENAME = "permissions.json";
+
 export const getPinboardPermissionOverrides = (S3: AWS.S3) =>
   S3.getObject({
-    Bucket: "permissions-cache",
-    Key: `${STAGE}/permissions.json`,
+    Bucket: PERMISSIONS_BUCKET,
+    Key: `${STAGE}/${PERMISSIONS_FILENAME}`,
   })
     .promise()
     .then(({ Body }) => {

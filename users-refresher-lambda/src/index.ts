@@ -14,6 +14,11 @@ import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { userTableTTLAttribute } from "../../shared/constants";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import {
+  S3ObjectCreatedNotificationEventDetail,
+  ScheduledEvent,
+} from "aws-lambda";
+import { Key } from "aws-sdk/clients/dynamodb";
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
 
@@ -22,7 +27,17 @@ const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 const S3 = new AWS.S3(standardAwsConfig);
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
-export const handler = async () => {
+type InputEvent =
+  | S3ObjectCreatedNotificationEventDetail
+  | ScheduledEvent
+  | Record<string, unknown>;
+
+const isPermissionChangeEvent = (
+  event: InputEvent
+): event is S3ObjectCreatedNotificationEventDetail =>
+  !!event && Object.prototype.hasOwnProperty.call(event, "bucket");
+
+export const handler = async (event: InputEvent) => {
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
 
   const emailsOfUsersWithPinboardPermission = (
@@ -34,6 +49,47 @@ export const handler = async () => {
 
   if (!emailsOfUsersWithPinboardPermission) {
     throw Error("Could not get list of users with 'pinboard' permission.");
+  }
+
+  if (isPermissionChangeEvent(event)) {
+    const getNewUserEmails = async (startKey?: Key): Promise<string[]> => {
+      const userResults = await dynamo
+        .scan({
+          TableName: usersTableName,
+          ExclusiveStartKey: startKey,
+          AttributesToGet: ["email"],
+        })
+        .promise();
+
+      const newUserEmails: string[] =
+        userResults.Items?.reduce<string[]>(
+          (acc, { email }) =>
+            emailsOfUsersWithPinboardPermission.includes(email)
+              ? acc
+              : [...acc, email],
+          []
+        ) || [];
+
+      if (userResults.LastEvaluatedKey) {
+        return [
+          ...newUserEmails,
+          ...(await getNewUserEmails(userResults.LastEvaluatedKey)),
+        ];
+      } else {
+        return newUserEmails;
+      }
+    };
+
+    const newUserEmails = await getNewUserEmails();
+
+    if (newUserEmails && newUserEmails.length > 0) {
+      console.log("CHANGE TO PINBOARD PERMISSIONS FOR ", newUserEmails);
+    } else {
+      console.log("NO CHANGE TO PINBOARD PERMISSIONS, exiting early");
+      return;
+    }
+  } else {
+    console.log("SCHEDULED RUN");
   }
 
   const pandaConfig = await getPandaConfig<{

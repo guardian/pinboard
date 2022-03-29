@@ -9,6 +9,11 @@ import { Item, MyUser } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { publicVapidKey } from "../../shared/constants";
 import { DynamoDBStreamEvent } from "aws-lambda";
+import { PushSubscription } from "web-push";
+
+type UserWithWebPushSubscription = MyUser & {
+  webPushSubscription: PushSubscription;
+};
 
 const isUserMentioned = (item: Item, user: MyUser) =>
   item.mentions?.includes(user.email);
@@ -47,45 +52,57 @@ export const handler = async (event: DynamoDBStreamEvent) => {
 
     if (userResults.Items) {
       await Promise.all(
-        userResults.Items.filter((user) => !!user.webPushSubscription)?.flatMap(
-          (user) =>
-            items
-              .filter(
-                // TODO: Include more scenarios that trigger desktop notification
-                (item) =>
-                  isUserMentioned(item, user as MyUser) ||
-                  doesUserManuallyHavePinboardOpen(item, user as MyUser)
-              )
-              .map((item) =>
-                webPush
-                  .sendNotification(
-                    user.webPushSubscription,
-                    JSON.stringify(item),
-                    {
-                      vapidDetails: {
-                        subject: "mailto:digitalcms.bugs@guardian.co.uk",
-                        publicKey: publicVapidKey,
-                        privateKey: privateVapidKey,
-                      },
-                    }
-                  )
-                  .then((result) => {
-                    if (result.statusCode < 300) {
-                      console.log(
-                        `Sent web push to ${user.email} with message ${item.message}`,
-                        result.body
-                      );
-                    } else {
-                      throw Error(result.body);
-                    }
-                  })
-                  .catch((errorPushing) => {
-                    console.error(
-                      `Failed to push to ${user.email} with message ${item.message}`,
-                      errorPushing
+        userResults.Items.reduce<UserWithWebPushSubscription[]>(
+          (acc, user) =>
+            user.webPushSubscription
+              ? [
+                  ...acc,
+                  {
+                    ...user,
+                    manuallyOpenedPinboardIds:
+                      user.manuallyOpenedPinboardIds?.values, // extract items from String Set
+                  } as UserWithWebPushSubscription,
+                ]
+              : acc,
+          []
+        )?.flatMap((user) =>
+          items
+            .filter(
+              // TODO: Include more scenarios that trigger desktop notification
+              (item) =>
+                isUserMentioned(item, user) ||
+                doesUserManuallyHavePinboardOpen(item, user)
+            )
+            .map((item) =>
+              webPush
+                .sendNotification(
+                  user.webPushSubscription,
+                  JSON.stringify(item),
+                  {
+                    vapidDetails: {
+                      subject: "mailto:digitalcms.bugs@guardian.co.uk",
+                      publicKey: publicVapidKey,
+                      privateKey: privateVapidKey,
+                    },
+                  }
+                )
+                .then((result) => {
+                  if (result.statusCode < 300) {
+                    console.log(
+                      `Sent web push to ${user.email} with message ${item.message}`,
+                      result.body
                     );
-                  })
-              )
+                  } else {
+                    throw Error(result.body);
+                  }
+                })
+                .catch((errorPushing) => {
+                  console.error(
+                    `Failed to push to ${user.email} with message ${item.message}`,
+                    errorPushing
+                  );
+                })
+            )
         )
       );
     }

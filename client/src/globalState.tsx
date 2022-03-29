@@ -120,7 +120,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     if (!preselectedComposerId) {
       return;
     }
-    if (preselectedPinboardQuery.data?.getPinboardByComposerId) {
+    if (
+      preselectedPinboardQuery.data?.getPinboardByComposerId &&
+      !preselectedPinboardQuery.data.getPinboardByComposerId.isNotFound
+    ) {
       return preselectedPinboardQuery.data.getPinboardByComposerId;
     }
     if (preselectedPinboardQuery.loading) {

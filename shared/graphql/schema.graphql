@@ -27,6 +27,7 @@ type User {
   firstName: String!
   lastName: String!
   avatarUrl: String
+  isMentionable: Boolean
 }
 type MyUser {
   email: String!

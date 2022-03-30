@@ -83,7 +83,9 @@ const myUserReturnFields = `${userReturnFields}
 export const gqlGetAllUsers = gql`
     query MyQuery {
         listUsers {
-            items { ${userReturnFields} }
+            items { ${userReturnFields}
+                isMentionable
+            }
         }
     }
 `;

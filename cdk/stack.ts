@@ -21,7 +21,7 @@ import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
-import { APP, userTableTTLAttribute } from "../shared/constants";
+import { APP } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
@@ -153,7 +153,6 @@ export class PinBoardStack extends Stack {
           name: "email",
           type: db.AttributeType.STRING,
         },
-        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );

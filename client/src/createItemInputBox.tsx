@@ -19,8 +19,9 @@ const mentionsDataProvider = (allUsers: User[]) => (token: string) => {
   return allUsers
     ?.filter(
       (_) =>
-        _.firstName.toLowerCase().startsWith(tokenLower) ||
-        _.lastName.toLowerCase().startsWith(tokenLower)
+        _.isMentionable === true &&
+        (_.firstName.toLowerCase().startsWith(tokenLower) ||
+          _.lastName.toLowerCase().startsWith(tokenLower))
     )
     .slice(0, 5);
 };

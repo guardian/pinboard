@@ -30,6 +30,7 @@
     "@graphql-codegen/typescript": "1.17.11",
     "@graphql-codegen/typescript-resolvers": "1.17.11",
     "@guardian/node-riffraff-artifact": "0.3.2",
+    "@types/aws-lambda": "^8.10.93",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
     "esbuild": "^0.14.18",

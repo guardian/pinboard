@@ -4,20 +4,11 @@ import {
   pinboardSecretPromiseGetter,
   standardAwsConfig,
 } from "../../shared/awsIntegration";
-import { AttributeMap, Key } from "aws-sdk/clients/dynamodb";
+import { Key } from "aws-sdk/clients/dynamodb";
 import { Item, MyUser } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { publicVapidKey } from "../../shared/constants";
-
-interface DynamoStreamRecord {
-  dynamodb: {
-    NewImage: AttributeMap;
-  };
-}
-
-interface DynamoStreamEvent {
-  Records: DynamoStreamRecord[];
-}
+import { DynamoDBStreamEvent } from "aws-lambda";
 
 const isUserMentioned = (item: Item, user: MyUser) =>
   item.mentions?.includes(user.email);
@@ -25,11 +16,22 @@ const isUserMentioned = (item: Item, user: MyUser) =>
 const doesUserManuallyHavePinboardOpen = (item: Item, user: MyUser) =>
   user.manuallyOpenedPinboardIds?.includes(item.pinboardId);
 
-export const handler = async (event: DynamoStreamEvent) => {
+export const handler = async (event: DynamoDBStreamEvent) => {
   const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
   const privateVapidKey = await pinboardSecretPromiseGetter(
     "notifications/privateVapidKey"
+  );
+
+  const items: Item[] = event.Records.reduce(
+    (acc, record) =>
+      record.dynamodb?.NewImage
+        ? [
+            ...acc,
+            AWS.DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Item,
+          ]
+        : acc,
+    [] as Item[]
   );
 
   const processPageOfUsers = async (startKey?: Key) => {
@@ -47,12 +49,7 @@ export const handler = async (event: DynamoStreamEvent) => {
       await Promise.all(
         userResults.Items.filter((user) => !!user.webPushSubscription)?.flatMap(
           (user) =>
-            event.Records.map(
-              (record) =>
-                AWS.DynamoDB.Converter.unmarshall(
-                  record.dynamodb.NewImage
-                ) as Item
-            )
+            items
               .filter(
                 // TODO: Include more scenarios that trigger desktop notification
                 (item) =>

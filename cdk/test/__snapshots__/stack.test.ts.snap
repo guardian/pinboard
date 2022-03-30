@@ -1,0 +1,2766 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PinBoardStack's generated CloudFormation matches the snapshot 1`] = `
+Object {
+  "Mappings": Object {
+    "mapping": Object {
+      "DomainName": Object {
+        "CODE": "pinboard.code.dev-gutools.co.uk",
+        "PROD": "pinboard.gutools.co.uk",
+      },
+    },
+  },
+  "Outputs": Object {
+    "pinboardbootstrappinglambdaapiEndpoint4DE1E032": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+            },
+            ".execute-api.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            Object {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            Object {
+              "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+    "pinboardbootstrappinglambdaapihostname": Object {
+      "Description": "pinboard-bootstrapping-lambda-api-hostname",
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "pinboardbootstrappinglambdaapidomainname9CF70B03",
+          "RegionalDomainName",
+        ],
+      },
+    },
+  },
+  "Parameters": Object {
+    "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
+      "Default": "/pinboard/sentryDSN",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "Stack": Object {
+      "Description": "Stack",
+      "Type": "String",
+    },
+    "Stage": Object {
+      "Description": "Stage",
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "pinboardappsyncapi9D519400": Object {
+      "Properties": Object {
+        "AuthenticationType": "AWS_LAMBDA",
+        "LambdaAuthorizerConfig": Object {
+          "AuthorizerResultTtlInSeconds": 30,
+          "AuthorizerUri": Object {
+            "Fn::GetAtt": Array [
+              "pinboardauthlambdaC1D899AE",
+              "Arn",
+            ],
+          },
+        },
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-appsync-api-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "XrayEnabled": true,
+      },
+      "Type": "AWS::AppSync::GraphQLApi",
+    },
+    "pinboardappsyncapiSchema868D9F5B": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "Definition": "schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Item {
+  id: ID!
+  message: String
+  payload: AWSJSON
+  timestamp: AWSTimestamp!
+  type: String!
+  userEmail: String!
+  pinboardId: String!
+  mentions: [String!]
+}
+
+type LastItemSeenByUser {
+  pinboardId: String!
+  userEmail: String!
+  itemID: String!
+  seenAt: AWSTimestamp!
+}
+
+type User {
+  email: String!
+  firstName: String!
+  lastName: String!
+  avatarUrl: String
+}
+type MyUser {
+  email: String!
+  firstName: String!
+  lastName: String!
+  avatarUrl: String
+  hasWebPushSubscription: Boolean
+  manuallyOpenedPinboardIds: [String!]
+}
+
+type WorkflowStub {
+  id: String!
+  title: String
+  headline: String
+  composerId: String
+  status: String
+  trashed: Boolean
+  isNotFound: Boolean
+}
+
+type ItemConnection {
+  items: [Item]
+  nextToken: String
+}
+
+type UserConnection {
+  items: [User]
+  nextToken: String
+}
+
+type LastItemSeenByUserConnection {
+  items: [LastItemSeenByUser]
+  nextToken: String
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
+  addManuallyOpenedPinboardIds(ids: [String!]!, maybeEmailOverride: String): MyUser
+  removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
+}
+
+type Query {
+  listItems(
+    filter: TableItemFilterInput
+    limit: Int
+    nextToken: String
+  ): ItemConnection
+
+  listLastItemSeenByUsers(
+    filter: TableLastItemSeenByUserFilterInput
+    limit: Int
+    nextToken: String
+  ): LastItemSeenByUserConnection
+
+  getMyUser: MyUser
+
+  listUsers(
+    limit: Int
+    nextToken: String
+  ): UserConnection
+
+  listPinboards(searchText: String): [WorkflowStub]
+  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
+  getPinboardByComposerId(composerId: String!): WorkflowStub
+}
+
+type Subscription {
+  onCreateItem(
+    pinboardId: String
+  ): Item @aws_subscribe(mutations: [\\"createItem\\"])
+
+  onSeenItem(
+    pinboardId: String!
+  ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
+
+  onManuallyOpenedPinboardIdsChanged(
+    email: String! # unfortunately this can't be done via 'identity' in the resolver
+  ): MyUser @aws_subscribe(mutations: [\\"addManuallyOpenedPinboardIds\\", \\"removeManuallyOpenedPinboardIds\\"])
+}
+
+input CreateItemInput {
+  message: String
+  payload: AWSJSON
+  type: String!
+  pinboardId: String!
+  mentions: [String!]
+}
+
+input LastItemSeenByUserInput {
+  pinboardId: String!
+  itemID: String!
+}
+
+input TableBooleanFilterInput {
+  eq: Boolean
+  ne: Boolean
+}
+
+input TableFloatFilterInput {
+  between: [Float]
+  contains: Float
+  eq: Float
+  ge: Float
+  gt: Float
+  le: Float
+  lt: Float
+  ne: Float
+  notContains: Float
+}
+
+input TableIDFilterInput {
+  beginsWith: ID
+  between: [ID]
+  contains: ID
+  eq: ID
+  ge: ID
+  gt: ID
+  le: ID
+  lt: ID
+  ne: ID
+  notContains: ID
+}
+
+input TableIntFilterInput {
+  between: [Int]
+  contains: Int
+  eq: Int
+  ge: Int
+  gt: Int
+  le: Int
+  lt: Int
+  ne: Int
+  notContains: Int
+}
+
+input TableItemFilterInput {
+  id: TableIDFilterInput
+  message: TableStringFilterInput
+  timestamp: TableIntFilterInput
+  type: TableStringFilterInput
+  pinboardId: TableStringFilterInput
+}
+
+input TableLastItemSeenByUserFilterInput {
+  pinboardId: TableStringFilterInput
+}
+
+input TableUserFilterInput {
+  firstName: TableStringFilterInput
+  lastName: TableStringFilterInput
+}
+
+input TableStringFilterInput {
+  beginsWith: String
+  between: [String]
+  contains: String
+  eq: String
+  ge: String
+  gt: String
+  le: String
+  lt: String
+  ne: String
+  notContains: String
+}
+",
+      },
+      "Type": "AWS::AppSync::GraphQLSchema",
+    },
+    "pinboardappsyncapiitemtabledatasourceFD08E0E9": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DynamoDBConfig": Object {
+          "AwsRegion": Object {
+            "Ref": "AWS::Region",
+          },
+          "TableName": Object {
+            "Ref": "pinboarditemtable83382753",
+          },
+        },
+        "Name": "item_table_datasource",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
+            "Arn",
+          ],
+        },
+        "Type": "AMAZON_DYNAMODB",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapiitemtabledatasourceMutationcreateItemResolver7AEC9201": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "item_table_datasource",
+        "FieldName": "createItem",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+      #set($input = $ctx.args.input)
+      $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
+$util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
+      {
+        \\"version\\": \\"2017-02-28\\",
+        \\"operation\\": \\"PutItem\\",
+        \\"key\\" : {
+      \\"id\\" : $util.dynamodb.toDynamoDBJson($util.autoId())
+    },
+        \\"attributeValues\\": $util.dynamodb.toMapValuesJson($input)
+      }",
+        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiitemtabledatasourceQuerylistItemsResolver15E3DD35": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "item_table_datasource",
+        "FieldName": "listItems",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"Scan\\",
+          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+        }
+      ",
+        "ResponseMappingTemplate": "$util.toJson($context.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboarditemtable83382753",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DynamoDBConfig": Object {
+          "AwsRegion": Object {
+            "Ref": "AWS::Region",
+          },
+          "TableName": Object {
+            "Ref": "pinboardlastitemseenbyusertable132BE99C",
+          },
+        },
+        "Name": "last_item_seen_by_user_table_datasource",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
+            "Arn",
+          ],
+        },
+        "Type": "AMAZON_DYNAMODB",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapilastitemseenbyusertabledatasourceMutationseenItemResolverF0C9BBCC": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "last_item_seen_by_user_table_datasource",
+        "FieldName": "seenItem",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"UpdateItem\\",
+          \\"key\\" : {
+            \\"pinboardId\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
+            \\"userEmail\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          \\"update\\" : {
+            \\"expression\\" : \\"SET seenAt = :seenAt, itemID = :itemID\\",
+            \\"expressionValues\\": {
+              \\":seenAt\\" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
+              \\":itemID\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
+            }
+          }
+        }
+      ",
+        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapilastitemseenbyusertabledatasourceQuerylistLastItemSeenByUsersResolver32A84101": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "last_item_seen_by_user_table_datasource",
+        "FieldName": "listLastItemSeenByUsers",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"Scan\\",
+          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+        }
+      ",
+        "ResponseMappingTemplate": "$util.toJson($context.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardlastitemseenbyusertable132BE99C",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardappsyncapiusertabledatasource482E1AE5": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DynamoDBConfig": Object {
+          "AwsRegion": Object {
+            "Ref": "AWS::Region",
+          },
+          "TableName": Object {
+            "Ref": "pinboardusertable2621B03F",
+          },
+        },
+        "Name": "user_table_datasource",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
+            "Arn",
+          ],
+        },
+        "Type": "AMAZON_DYNAMODB",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapiusertabledatasourceMutationaddManuallyOpenedPinboardIdsResolver0DD39E33": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiusertabledatasource482E1AE5",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "user_table_datasource",
+        "FieldName": "addManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"UpdateItem\\",
+          \\"key\\" : {
+            \\"email\\" : $util.dynamodb.toDynamoDBJson(
+              $util.defaultIfNull(
+                $ctx.args.maybeEmailOverride,
+                $ctx.identity.resolverContext.userEmail
+              )
+            )
+          },
+          \\"update\\" : {
+            \\"expression\\" : \\"ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
+            \\"expressionValues\\": {
+              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
+            }
+          }
+        }
+      ",
+        "ResponseMappingTemplate": "
+        #set($output = $ctx.result)
+        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    ",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiusertabledatasourceMutationremoveManuallyOpenedPinboardIdsResolver3CF1CC1A": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiusertabledatasource482E1AE5",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "user_table_datasource",
+        "FieldName": "removeManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"UpdateItem\\",
+          \\"key\\" : {
+            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          \\"update\\" : {
+            \\"expression\\" : \\"DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
+            \\"expressionValues\\": {
+              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
+            }
+          }
+        }
+      ",
+        "ResponseMappingTemplate": "
+        #set($output = $ctx.result)
+        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    ",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiusertabledatasourceMutationsetWebPushSubscriptionForUserResolver7F09BAD2": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiusertabledatasource482E1AE5",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "user_table_datasource",
+        "FieldName": "setWebPushSubscriptionForUser",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"UpdateItem\\",
+          \\"key\\" : {
+            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          },
+          \\"update\\" : {
+            \\"expression\\" : \\"SET webPushSubscription = :webPushSubscription\\",
+            \\"expressionValues\\": {
+              \\":webPushSubscription\\" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
+            }
+          }
+        }
+      ",
+        "ResponseMappingTemplate": "
+        #set($output = $ctx.result)
+        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    ",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiusertabledatasourceQuerygetMyUserResolver96BA80E5": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiusertabledatasource482E1AE5",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "user_table_datasource",
+        "FieldName": "getMyUser",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"GetItem\\",
+          \\"key\\" : {
+            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
+          }
+        }
+      ",
+        "ResponseMappingTemplate": "
+        #set($output = $ctx.result)
+        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
+        $util.toJson($output)
+    ",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiusertabledatasourceQuerylistUsersResolverCD9616AD": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiusertabledatasource482E1AE5",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "user_table_datasource",
+        "FieldName": "listUsers",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"Scan\\",
+          \\"filter\\": {
+            \\"expression\\": \\"attribute_exists(#firstName) AND attribute_exists(#lastName)\\",
+            \\"expressionNames\\": {
+              \\"#firstName\\": \\"firstName\\",
+              \\"#lastName\\": \\"lastName\\",
+            },
+          },
+        }
+      ",
+        "ResponseMappingTemplate": "$util.toJson($context.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardusertable2621B03F",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsD8193E3E": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "LambdaConfig": Object {
+          "LambdaFunctionArn": Object {
+            "Fn::GetAtt": Array [
+              "pinboardworkflowbridgelambda30D4AA22",
+              "Arn",
+            ],
+          },
+        },
+        "Name": "workflow_bridge_lambda_ds",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapiworkflowbridgelambdadsServiceRoleB609ECB6",
+            "Arn",
+          ],
+        },
+        "Type": "AWS_LAMBDA",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsQuerygetPinboardByComposerIdResolver9149DEAB": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiworkflowbridgelambdadsD8193E3E",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "workflow_bridge_lambda_ds",
+        "FieldName": "getPinboardByComposerId",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsQuerygetPinboardsByIdsResolver89DAB24F": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiworkflowbridgelambdadsD8193E3E",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "workflow_bridge_lambda_ds",
+        "FieldName": "getPinboardsByIds",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsQuerylistPinboardsResolver8054A8C9": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+        "pinboardappsyncapiworkflowbridgelambdadsD8193E3E",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "workflow_bridge_lambda_ds",
+        "FieldName": "listPinboards",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsServiceRoleB609ECB6": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapiworkflowbridgelambdadsServiceRoleDefaultPolicyD52BFE16": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "pinboardworkflowbridgelambda30D4AA22",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapiworkflowbridgelambdadsServiceRoleDefaultPolicyD52BFE16",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapiworkflowbridgelambdadsServiceRoleB609ECB6",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardauthlambdaC1D899AE": Object {
+      "DependsOn": Array [
+        "pinboardauthlambdaServiceRoleDefaultPolicy1088BF31",
+        "pinboardauthlambdaServiceRole8197EA98",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-auth-lambda/pinboard-auth-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-auth-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardauthlambdaServiceRole8197EA98",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 11,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardauthlambdaInvokeServicePrincipalappsyncamazonawscomE688F3A1": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardauthlambdaC1D899AE",
+            "Arn",
+          ],
+        },
+        "Principal": "appsync.amazonaws.com",
+        "SourceAccount": Object {
+          "Ref": "AWS::AccountId",
+        },
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardauthlambdaServiceRole8197EA98": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardauthlambdaServiceRoleDefaultPolicy1088BF31": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardauthlambdaServiceRoleDefaultPolicy1088BF31",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardauthlambdaServiceRole8197EA98",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardbootstrappinglambdaD2C487DA": Object {
+      "DependsOn": Array [
+        "pinboardbootstrappinglambdaServiceRoleDefaultPolicy1B5EE4F9",
+        "pinboardbootstrappinglambdaServiceRoleE9E1278C",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-bootstrapping-lambda-api/pinboard-bootstrapping-lambda-api.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "GRAPHQL_ENDPOINT": Object {
+              "Fn::GetAtt": Array [
+                "pinboardappsyncapi9D519400",
+                "GraphQLUrl",
+              ],
+            },
+            "SENTRY_DSN": Object {
+              "Ref": "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-bootstrapping-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaServiceRoleE9E1278C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardbootstrappinglambdaServiceRoleDefaultPolicy1B5EE4F9": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
+            },
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::permissions-cache/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardbootstrappinglambdaServiceRoleDefaultPolicy1B5EE4F9",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardbootstrappinglambdaServiceRoleE9E1278C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardbootstrappinglambdaServiceRoleE9E1278C": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardbootstrappinglambdaapi577E85F1": Object {
+      "Properties": Object {
+        "EndpointConfiguration": Object {
+          "Types": Array [
+            "REGIONAL",
+          ],
+        },
+        "MinimumCompressionSize": 0,
+        "Name": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-bootstrapping-lambda-api-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Policy": Object {
+          "Statement": Array [
+            Object {
+              "Action": "execute-api:Invoke",
+              "Effect": "Allow",
+              "Principal": Object {
+                "AWS": "*",
+              },
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:execute-api:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "pinboardbootstrappinglambdaapiANY256CDED1": Object {
+      "Properties": Object {
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "HttpMethod": "ANY",
+        "Integration": Object {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":lambda:path/2015-03-31/functions/",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardbootstrappinglambdaD2C487DA",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaapi577E85F1",
+            "RootResourceId",
+          ],
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "pinboardbootstrappinglambdaapiANYApiPermissionPinBoardStackpinboardbootstrappinglambdaapi6D768200ANY5FE71874": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaD2C487DA",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+              },
+              "/",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
+              },
+              "/*/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardbootstrappinglambdaapiANYApiPermissionTestPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYD9187E1E": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaD2C487DA",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+              },
+              "/test-invoke-stage/*/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardbootstrappinglambdaapiAccountF1D904A1": Object {
+      "DependsOn": Array [
+        "pinboardbootstrappinglambdaapi577E85F1",
+      ],
+      "Properties": Object {
+        "CloudWatchRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaapiCloudWatchRole71E5177D",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+    },
+    "pinboardbootstrappinglambdaapiCloudWatchRole71E5177D": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfa18e3d3af308dd131f6627bd80d2597": Object {
+      "DependsOn": Array [
+        "pinboardbootstrappinglambdaapiproxyANYABDEB60B",
+        "pinboardbootstrappinglambdaapiproxyE53D56AC",
+        "pinboardbootstrappinglambdaapiANY256CDED1",
+      ],
+      "Properties": Object {
+        "Description": "Automatically created by the RestApi construct",
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C": Object {
+      "DependsOn": Array [
+        "pinboardbootstrappinglambdaapiAccountF1D904A1",
+      ],
+      "Properties": Object {
+        "DeploymentId": Object {
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfa18e3d3af308dd131f6627bd80d2597",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+        "StageName": "api",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "pinboardbootstrappinglambdaapicertificate387439C8": Object {
+      "Properties": Object {
+        "DomainName": Object {
+          "Fn::FindInMap": Array [
+            "mapping",
+            "DomainName",
+            Object {
+              "Ref": "Stage",
+            },
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "ValidationMethod": "DNS",
+      },
+      "Type": "AWS::CertificateManager::Certificate",
+    },
+    "pinboardbootstrappinglambdaapidomainname9CF70B03": Object {
+      "Properties": Object {
+        "DomainName": Object {
+          "Fn::FindInMap": Array [
+            "mapping",
+            "DomainName",
+            Object {
+              "Ref": "Stage",
+            },
+          ],
+        },
+        "EndpointConfiguration": Object {
+          "Types": Array [
+            "REGIONAL",
+          ],
+        },
+        "RegionalCertificateArn": Object {
+          "Ref": "pinboardbootstrappinglambdaapicertificate387439C8",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::DomainName",
+    },
+    "pinboardbootstrappinglambdaapidomainnameMapPinBoardStackpinboardbootstrappinglambdaapi6D768200775ECCF0": Object {
+      "Properties": Object {
+        "BasePath": "",
+        "DomainName": Object {
+          "Ref": "pinboardbootstrappinglambdaapidomainname9CF70B03",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+        "Stage": Object {
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
+        },
+      },
+      "Type": "AWS::ApiGateway::BasePathMapping",
+    },
+    "pinboardbootstrappinglambdaapiproxyANYABDEB60B": Object {
+      "Properties": Object {
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "HttpMethod": "ANY",
+        "Integration": Object {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":lambda:path/2015-03-31/functions/",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardbootstrappinglambdaD2C487DA",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": Object {
+          "Ref": "pinboardbootstrappinglambdaapiproxyE53D56AC",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "pinboardbootstrappinglambdaapiproxyANYApiPermissionPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYproxy34590CEC": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaD2C487DA",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+              },
+              "/",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
+              },
+              "/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardbootstrappinglambdaapiproxyANYApiPermissionTestPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYproxyB80C06B0": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaD2C487DA",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+              },
+              "/test-invoke-stage/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardbootstrappinglambdaapiproxyE53D56AC": Object {
+      "Properties": Object {
+        "ParentId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaapi577E85F1",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "{proxy+}",
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "pinboarditemtable83382753": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "id",
+            "AttributeType": "S",
+          },
+          Object {
+            "AttributeName": "timestamp",
+            "AttributeType": "N",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "id",
+            "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "timestamp",
+            "KeyType": "RANGE",
+          },
+        ],
+        "SSESpecification": Object {
+          "SSEEnabled": false,
+        },
+        "StreamSpecification": Object {
+          "StreamViewType": "NEW_IMAGE",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardlastitemseenbyusertable132BE99C": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "pinboardId",
+            "AttributeType": "S",
+          },
+          Object {
+            "AttributeName": "userEmail",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "pinboardId",
+            "KeyType": "HASH",
+          },
+          Object {
+            "AttributeName": "userEmail",
+            "KeyType": "RANGE",
+          },
+        ],
+        "SSESpecification": Object {
+          "SSEEnabled": false,
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardnotificationslambdaC35CECF7": Object {
+      "DependsOn": Array [
+        "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A",
+        "pinboardnotificationslambdaServiceRole2F6EBFE9",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-notifications-lambda/pinboard-notifications-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+            "USERS_TABLE_NAME": Object {
+              "Ref": "pinboardusertable2621B03F",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-notifications-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaServiceRole2F6EBFE9",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardnotificationslambdaDynamoDBEventSourcePinBoardStackpinboarditemtableB307C42935A18399": Object {
+      "Properties": Object {
+        "BatchSize": 100,
+        "EventSourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboarditemtable83382753",
+            "StreamArn",
+          ],
+        },
+        "FunctionName": Object {
+          "Ref": "pinboardnotificationslambdaC35CECF7",
+        },
+        "MaximumBatchingWindowInSeconds": 10,
+        "StartingPosition": "LATEST",
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
+    "pinboardnotificationslambdaServiceRole2F6EBFE9": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/pinboard/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardusertable2621B03F",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            Object {
+              "Action": "dynamodb:ListStreams",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:DescribeStream",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "pinboarditemtable83382753",
+                  "StreamArn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardnotificationslambdaServiceRole2F6EBFE9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardusersrefresherlambda2D488032": Object {
+      "DependsOn": Array [
+        "pinboardusersrefresherlambdaServiceRoleDefaultPolicy0F8B88A3",
+        "pinboardusersrefresherlambdaServiceRoleBF872882",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-users-refresher-lambda/pinboard-users-refresher-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+            "USERS_TABLE_NAME": Object {
+              "Ref": "pinboardusertable2621B03F",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-users-refresher-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambdaServiceRoleBF872882",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardusersrefresherlambdaServiceRoleBF872882": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardusersrefresherlambdaServiceRoleDefaultPolicy0F8B88A3": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::permissions-cache/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardusertable2621B03F",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardusersrefresherlambdaServiceRoleDefaultPolicy0F8B88A3",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardusersrefresherlambdaServiceRoleBF872882",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardusersrefresherlambdascheduleAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A37874BE9": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambda2D488032",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambdascheduleD4D4DE02",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardusersrefresherlambdascheduleD4D4DE02": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Runs the ",
+              Object {
+                "Ref": "pinboardusersrefresherlambda2D488032",
+              },
+              " every 6 hours.",
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(6 hours)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "pinboardusersrefresherlambda2D488032",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "pinboardusertable2621B03F": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AttributeDefinitions": Array [
+          Object {
+            "AttributeName": "email",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": Array [
+          Object {
+            "AttributeName": "email",
+            "KeyType": "HASH",
+          },
+        ],
+        "SSESpecification": Object {
+          "SSEEnabled": false,
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "TimeToLiveSpecification": Object {
+          "AttributeName": "ttlEpochSeconds",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardworkflowbridgelambda30D4AA22": Object {
+      "DependsOn": Array [
+        "pinboardworkflowbridgelambdarole04BA8EEA",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+            "WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME": Object {
+              "Fn::ImportValue": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "WorkflowDatastoreLoadBalancerDNSName-",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                  ],
+                ],
+              },
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-workflow-bridge-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardworkflowbridgelambdarole04BA8EEA",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 5,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::ImportValue": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "WorkflowDatastoreLoadBalancerSecurityGroupId-",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "SubnetIds": Object {
+            "Fn::Split": Array [
+              ",",
+              Object {
+                "Fn::ImportValue": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "WorkflowPrivateSubnetIds-",
+                      Object {
+                        "Ref": "Stage",
+                      },
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardworkflowbridgelambdarole04BA8EEA": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+  },
+}
+`;

@@ -61,6 +61,9 @@ jobs:
       - name: write the current BUILD_NUMBER to BUILD_NUMBER.ts (so it's available at build time - so it gets baked into the artifact)
         run: echo 'export const BUILD_NUMBER = "'$BUILD_NUMBER'";' > BUILD_NUMBER.ts
 
+      - name: test all workspaces (i.e. modules)
+        run: yarn test
+
       - name: build all workspaces (i.e. modules)
         run: yarn build
 

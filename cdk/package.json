@@ -5,9 +5,12 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
+    "test": "tsc --noEmit & jest",
+    "watch": "tsc --noEmit --watch & jest --watch",
     "build": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts' > cloudformation.yaml"
   },
   "devDependencies": {
+    "@aws-cdk/assert": "1.147.0",
     "@types/node": "^14.14.7",
     "aws-cdk": "1.147.0",
     "ts-node": "^9.0.0"

@@ -62,6 +62,301 @@ Object {
     },
   },
   "Resources": Object {
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": Object {
+      "DependsOn": Array [
+        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "ZipFile": "import boto3  # type: ignore
+import json
+import logging
+import urllib.request
+
+s3 = boto3.client(\\"s3\\")
+
+CONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]
+
+def handler(event: dict, context):
+    response_status = \\"SUCCESS\\"
+    error_message = \\"\\"
+    try:
+        props = event[\\"ResourceProperties\\"]
+        bucket = props[\\"BucketName\\"]
+        notification_configuration = props[\\"NotificationConfiguration\\"]
+        request_type = event[\\"RequestType\\"]
+        managed = props.get('Managed', 'true').lower() == 'true'
+        stack_id = event['StackId']
+
+        if managed:
+          config = handle_managed(request_type, notification_configuration)
+        else:
+          config = handle_unmanaged(bucket, stack_id, request_type, notification_configuration)
+
+        put_bucket_notification_configuration(bucket, config)
+    except Exception as e:
+        logging.exception(\\"Failed to put bucket notification configuration\\")
+        response_status = \\"FAILED\\"
+        error_message = f\\"Error: {str(e)}. \\"
+    finally:
+        submit_response(event, context, response_status, error_message)
+
+
+def handle_managed(request_type, notification_configuration):
+  if request_type == 'Delete':
+    return {}
+  return notification_configuration
+
+
+def handle_unmanaged(bucket, stack_id, request_type, notification_configuration):
+
+  # find external notifications
+  external_notifications = find_external_notifications(bucket, stack_id)
+
+  # if delete, that's all we need
+  if request_type == 'Delete':
+    return external_notifications
+
+  def with_id(notification):
+    notification['Id'] = f\\"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}\\"
+    return notification
+
+  # otherwise, merge external with incoming config and augment with id
+  notifications = {}
+  for t in CONFIGURATION_TYPES:
+    external = external_notifications.get(t, [])
+    incoming = [with_id(n) for n in notification_configuration.get(t, [])]
+    notifications[t] = external + incoming
+  return notifications
+
+
+def find_external_notifications(bucket, stack_id):
+  existing_notifications = get_bucket_notification_configuration(bucket)
+  external_notifications = {}
+  for t in CONFIGURATION_TYPES:
+    # if the notification was created by us, we know what id to expect
+    # so we can filter by it.
+    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\\"{stack_id}-\\")]
+
+  return external_notifications
+
+
+def get_bucket_notification_configuration(bucket):
+  return s3.get_bucket_notification_configuration(Bucket=bucket)
+
+
+def put_bucket_notification_configuration(bucket, notification_configuration):
+  s3.put_bucket_notification_configuration(Bucket=bucket, NotificationConfiguration=notification_configuration)
+
+
+def submit_response(event: dict, context, response_status: str, error_message: str):
+    response_body = json.dumps(
+        {
+            \\"Status\\": response_status,
+            \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",
+            \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],
+            \\"StackId\\": event[\\"StackId\\"],
+            \\"RequestId\\": event[\\"RequestId\\"],
+            \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],
+            \\"NoEcho\\": False,
+        }
+    ).encode(\\"utf-8\\")
+    headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}
+    try:
+        req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")
+        with urllib.request.urlopen(req) as response:
+            print(response.read().decode(\\"utf-8\\"))
+        print(\\"Status code: \\" + response.reason)
+    except Exception as e:
+        print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))
+",
+        },
+        "Description": "AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)",
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+            "Arn",
+          ],
+        },
+        "Runtime": "python3.7",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:PutBucketNotification",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            Object {
+              "Action": "s3:GetBucketNotification",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+        "Roles": Array [
+          Object {
+            "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "permissionscacheAllowBucketNotificationsToPinBoardStackpinboardusersrefresherlambdaAD576B4A73E56BFD": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambda2D488032",
+            "Arn",
+          ],
+        },
+        "Principal": "s3.amazonaws.com",
+        "SourceAccount": Object {
+          "Ref": "AWS::AccountId",
+        },
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":s3:::permissions-cache",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "permissionscacheNotificationsB396C1A0": Object {
+      "DependsOn": Array [
+        "permissionscacheAllowBucketNotificationsToPinBoardStackpinboardusersrefresherlambdaAD576B4A73E56BFD",
+      ],
+      "Properties": Object {
+        "BucketName": "permissions-cache",
+        "Managed": false,
+        "NotificationConfiguration": Object {
+          "LambdaFunctionConfigurations": Array [
+            Object {
+              "Events": Array [
+                "s3:ObjectCreated:*",
+              ],
+              "Filter": Object {
+                "Key": Object {
+                  "FilterRules": Array [
+                    Object {
+                      "Name": "prefix",
+                      "Value": Object {
+                        "Fn::Join": Array [
+                          "",
+                          Array [
+                            Object {
+                              "Ref": "Stage",
+                            },
+                            "/permissions.json",
+                          ],
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              "LambdaFunctionArn": Object {
+                "Fn::GetAtt": Array [
+                  "pinboardusersrefresherlambda2D488032",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3BucketNotifications",
+    },
     "pinboardappsyncapi9D519400": Object {
       "Properties": Object {
         "AuthenticationType": "AWS_LAMBDA",
@@ -2511,11 +2806,11 @@ $util.toJson($ctx.result)",
               Object {
                 "Ref": "pinboardusersrefresherlambda2D488032",
               },
-              " every 6 hours.",
+              " every 24 hours.",
             ],
           ],
         },
-        "ScheduleExpression": "rate(6 hours)",
+        "ScheduleExpression": "rate(1 day)",
         "State": "ENABLED",
         "Targets": Array [
           Object {

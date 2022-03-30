@@ -2511,11 +2511,11 @@ $util.toJson($ctx.result)",
               Object {
                 "Ref": "pinboardusersrefresherlambda2D488032",
               },
-              " every 6 hours.",
+              " every minute.",
             ],
           ],
         },
-        "ScheduleExpression": "rate(6 hours)",
+        "ScheduleExpression": "rate(1 minute)",
         "State": "ENABLED",
         "Targets": Array [
           Object {

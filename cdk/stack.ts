@@ -579,12 +579,12 @@ export class PinBoardStack extends Stack {
       thisStack,
       `${usersRefresherLambdaBasename}-schedule`,
       {
-        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 6 hours.`,
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every minute.`,
         enabled: true,
         targets: [
           new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
         ],
-        schedule: events.Schedule.rate(Duration.hours(6)),
+        schedule: events.Schedule.rate(Duration.minutes(1)),
       }
     );
 

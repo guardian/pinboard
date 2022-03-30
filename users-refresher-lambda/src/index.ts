@@ -14,8 +14,9 @@ import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { userTableTTLAttribute } from "../../shared/constants";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
 
-const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+const THREE_DAYS_IN_SECONDS = 60 * 60 * 24 * 3;
 
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 
@@ -34,6 +35,48 @@ export const handler = async () => {
 
   if (!emailsOfUsersWithPinboardPermission) {
     throw Error("Could not get list of users with 'pinboard' permission.");
+  }
+
+  const now = new Date();
+  if (now.getHours() === 0 && now.getMinutes() === 0) {
+    console.log("NIGHTLY FULL RUN (primarily to bump TTLs)");
+  } else {
+    const getStoredUserEmails = async (
+      startKey?: DocumentClient.Key
+    ): Promise<string[]> => {
+      const userResults = await dynamo
+        .scan({
+          TableName: usersTableName,
+          ExclusiveStartKey: startKey,
+          AttributesToGet: ["email"],
+        })
+        .promise();
+
+      const storedUserEmails =
+        userResults.Items?.map(({ email }) => email) || [];
+
+      if (userResults.LastEvaluatedKey) {
+        return [
+          ...storedUserEmails,
+          ...(await getStoredUserEmails(userResults.LastEvaluatedKey)),
+        ];
+      } else {
+        return storedUserEmails;
+      }
+    };
+
+    const storedUserEmails = await getStoredUserEmails();
+
+    const newUserEmails = emailsOfUsersWithPinboardPermission.filter(
+      (email) => !storedUserEmails.includes(email)
+    );
+
+    if (newUserEmails && newUserEmails.length > 0) {
+      console.log("PINBOARD PERMISSIONS ADDED FOR ", newUserEmails);
+    } else {
+      console.log("NO CHANGE TO PINBOARD PERMISSIONS, exiting early");
+      return;
+    }
   }
 
   const pandaConfig = await getPandaConfig<{
@@ -107,9 +150,9 @@ export const handler = async () => {
     [userTableTTLAttribute]: number;
   }
 
-  // users will be removed from the table after a day of not being updated
+  // users will be removed from the table after 3 days of not being updated
   // (because they have either had their 'pinboard' permission has been removed or they've left the organisation)
-  const ttlEpochSeconds = Date.now() / 1000 + ONE_DAY_IN_SECONDS;
+  const ttlEpochSeconds = Date.now() / 1000 + THREE_DAYS_IN_SECONDS;
 
   const basicUsersWithPinboardPermission = (await getAllUsers()).reduce(
     (acc, { id, ...user }) => {

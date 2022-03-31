@@ -2483,7 +2483,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardusersrefresherlambdascheduleAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A37874BE9": Object {
+    "pinboardusersrefresherlambdascheduleFULLRUNAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4AC502C51D": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2495,14 +2495,14 @@ $util.toJson($ctx.result)",
         "Principal": "events.amazonaws.com",
         "SourceArn": Object {
           "Fn::GetAtt": Array [
-            "pinboardusersrefresherlambdascheduleD4D4DE02",
+            "pinboardusersrefresherlambdascheduleFULLRUNFB9A4F9E",
             "Arn",
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "pinboardusersrefresherlambdascheduleD4D4DE02": Object {
+    "pinboardusersrefresherlambdascheduleFULLRUNFB9A4F9E": Object {
       "Properties": Object {
         "Description": Object {
           "Fn::Join": Array [
@@ -2512,11 +2512,11 @@ $util.toJson($ctx.result)",
               Object {
                 "Ref": "pinboardusersrefresherlambda2D488032",
               },
-              " every minute.",
+              " every 24 hours, which should be a FULL RUN.",
             ],
           ],
         },
-        "ScheduleExpression": "rate(1 minute)",
+        "ScheduleExpression": "rate(1 day)",
         "State": "ENABLED",
         "Targets": Array [
           Object {
@@ -2531,6 +2531,56 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::Events::Rule",
+    },
+    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnly403FC359": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Runs the ",
+              Object {
+                "Ref": "pinboardusersrefresherlambda2D488032",
+              },
+              " every minute, with 'isProcessPermissionChangesOnly: true'.",
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(1 minute)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "pinboardusersrefresherlambda2D488032",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{\\"isProcessPermissionChangesOnly\\":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnlyAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A41C988EE": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambda2D488032",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnly403FC359",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "pinboardusertable2621B03F": Object {
       "DeletionPolicy": "Retain",

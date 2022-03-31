@@ -574,16 +574,32 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
 
-    /*const usersRefresherLambdaSchedule =*/ new events.Rule(
+    new events.Rule(
       thisStack,
-      `${usersRefresherLambdaBasename}-schedule`,
+      `${usersRefresherLambdaBasename}-schedule-isProcessPermissionChangesOnly`,
       {
-        description: `Runs the ${usersRefresherLambdaFunction.functionName} every minute.`,
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every minute, with 'isProcessPermissionChangesOnly: true'.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(usersRefresherLambdaFunction, {
+            event: events.RuleTargetInput.fromObject({
+              isProcessPermissionChangesOnly: true,
+            }),
+          }),
+        ],
+        schedule: events.Schedule.rate(Duration.minutes(1)),
+      }
+    );
+    new events.Rule(
+      thisStack,
+      `${usersRefresherLambdaBasename}-schedule-FULL-RUN`,
+      {
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 24 hours, which should be a FULL RUN.`,
         enabled: true,
         targets: [
           new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
         ],
-        schedule: events.Schedule.rate(Duration.minutes(1)),
+        schedule: events.Schedule.rate(Duration.days(1)),
       }
     );
 

@@ -24,8 +24,11 @@ interface BasicUser {
 const S3 = new AWS.S3(standardAwsConfig);
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
-export const handler = async () => {
-  const now = new Date();
+export const handler = async ({
+  isProcessPermissionChangesOnly,
+}: {
+  isProcessPermissionChangesOnly?: boolean;
+}) => {
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
 
   const getStoredUsers = async (
@@ -63,8 +66,6 @@ export const handler = async () => {
     throw Error("Could not get list of users with 'pinboard' permission.");
   }
 
-  const isNightlyFullRun = now.getHours() === 0 && now.getMinutes() === 0;
-
   const storedUsers = await getStoredUsers();
   const storedUsersEmails = storedUsers.map(({ email }) => email);
 
@@ -91,11 +92,12 @@ export const handler = async () => {
   }
 
   const emailsToLookup = emailsOfUsersWithPinboardPermission.filter(
-    (email) => isNightlyFullRun || !storedUsersEmails.includes(email)
+    (email) =>
+      !isProcessPermissionChangesOnly || !storedUsersEmails.includes(email)
   );
 
-  if (isNightlyFullRun) {
-    console.log("NIGHTLY FULL RUN");
+  if (!isProcessPermissionChangesOnly) {
+    console.log("FULL RUN");
   } else if (emailsToLookup.length > 0) {
     console.log("DETECTED PINBOARD PERMISSIONS ADDED FOR ", emailsToLookup);
   } else if (basicUsersWherePinboardPermissionRemoved.length === 0) {
@@ -163,7 +165,7 @@ export const handler = async () => {
             _.address.endsWith(GUARDIAN_EMAIL_DOMAIN)
           )?.address;
       return {
-        resourceName: `people/${userResult.data.id}`,
+        resourceName: `people/${id}`,
         email,
         firstName: user.name?.givenName || undefined,
         lastName: user.name?.familyName || undefined,

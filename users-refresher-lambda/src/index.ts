@@ -1,8 +1,4 @@
-import {
-  admin as googleAdminAPI,
-  admin_directory_v1,
-  auth as googleAuth,
-} from "@googleapis/admin";
+import { admin as googleAdminAPI, auth as googleAuth } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
 import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../shared/awsIntegration";
@@ -12,28 +8,101 @@ import {
 } from "../../shared/panDomainAuth";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
-import { userTableTTLAttribute } from "../../shared/constants";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-
-const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
 
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
+
+interface BasicUser {
+  resourceName?: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  isMentionable: boolean;
+}
 
 const S3 = new AWS.S3(standardAwsConfig);
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
-export const handler = async () => {
+export const handler = async ({
+  isProcessPermissionChangesOnly,
+}: {
+  isProcessPermissionChangesOnly?: boolean;
+}) => {
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
+
+  const getStoredUsers = async (
+    startKey?: DocumentClient.Key
+  ): Promise<BasicUser[]> => {
+    const userResults = await dynamo
+      .scan({
+        TableName: usersTableName,
+        ExclusiveStartKey: startKey,
+        AttributesToGet: ["email", "isMentionable"],
+      })
+      .promise();
+
+    const storedUsers =
+      userResults.Items?.map((user) => user as BasicUser) || [];
+
+    if (userResults.LastEvaluatedKey) {
+      return [
+        ...storedUsers,
+        ...(await getStoredUsers(userResults.LastEvaluatedKey)),
+      ];
+    } else {
+      return storedUsers;
+    }
+  };
 
   const emailsOfUsersWithPinboardPermission = (
     await getPinboardPermissionOverrides(S3)
-  )?.reduce(
+  )?.reduce<string[]>(
     (acc, { userId, active }) => (active ? [...acc, userId] : acc),
-    [] as string[]
+    []
   );
 
   if (!emailsOfUsersWithPinboardPermission) {
     throw Error("Could not get list of users with 'pinboard' permission.");
+  }
+
+  const storedUsers = await getStoredUsers();
+  const storedUsersEmails = storedUsers.map(({ email }) => email);
+
+  const basicUsersWherePinboardPermissionRemoved = storedUsers.reduce<
+    BasicUser[]
+  >(
+    (acc, { email, isMentionable }) =>
+      isMentionable && !emailsOfUsersWithPinboardPermission.includes(email)
+        ? [
+            ...acc,
+            {
+              email,
+              isMentionable: false,
+            },
+          ]
+        : acc,
+    []
+  );
+  if (basicUsersWherePinboardPermissionRemoved.length > 0) {
+    console.log(
+      "DETECTED PINBOARD PERMISSIONS REMOVED FOR ",
+      basicUsersWherePinboardPermissionRemoved.map(({ email }) => email)
+    );
+  }
+
+  const emailsToLookup = emailsOfUsersWithPinboardPermission.filter(
+    (email) =>
+      !isProcessPermissionChangesOnly || !storedUsersEmails.includes(email)
+  );
+
+  if (!isProcessPermissionChangesOnly) {
+    console.log("FULL RUN");
+  } else if (emailsToLookup.length > 0) {
+    console.log("DETECTED PINBOARD PERMISSIONS ADDED FOR ", emailsToLookup);
+  } else if (basicUsersWherePinboardPermissionRemoved.length === 0) {
+    console.log("NO CHANGE TO PINBOARD PERMISSIONS, exiting early");
+    return;
   }
 
   const pandaConfig = await getPandaConfig<{
@@ -72,92 +141,57 @@ export const handler = async () => {
     auth,
   });
 
-  const getAllUsers = async (
-    nextPageToken?: string
-  ): Promise<admin_directory_v1.Schema$User[]> => {
-    const googleResponse = (
-      await directoryService.users.list({
-        customer: "my_customer",
-        pageToken: nextPageToken,
-        viewType: "domain_public",
-        maxResults: 500,
-      })
-    ).data;
+  const basicUsersWithPinboardPermission: BasicUser[] = await Promise.all(
+    emailsToLookup.map(async (emailFromPermission) => {
+      const userResult = await directoryService.users
+        .get({
+          userKey: emailFromPermission,
+        })
+        .catch((_) => _.response);
 
-    if (!googleResponse.users) {
-      console.error(googleResponse);
-      throw Error(
-        "Empty list of users in call to 'directoryService.users.list()'"
-      );
-    }
-
-    return googleResponse.nextPageToken
-      ? [
-          ...googleResponse.users,
-          ...(await getAllUsers(googleResponse.nextPageToken)),
-        ]
-      : googleResponse.users;
-  };
-
-  interface BasicUser {
-    resourceName: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    [userTableTTLAttribute]: number;
-  }
-
-  // users will be removed from the table after a day of not being updated
-  // (because they have either had their 'pinboard' permission has been removed or they've left the organisation)
-  const ttlEpochSeconds = Date.now() / 1000 + ONE_DAY_IN_SECONDS;
-
-  const basicUsersWithPinboardPermission = (await getAllUsers()).reduce(
-    (acc, { id, ...user }) => {
+      if (userResult.status === 404) {
+        return {
+          email: emailFromPermission,
+          isMentionable: false,
+        };
+      }
+      if (!userResult.data) {
+        throw Error("Invalid response from Google Directory API");
+      }
+      const { id, ...user } = userResult.data;
       const email = user.primaryEmail?.endsWith(GUARDIAN_EMAIL_DOMAIN)
         ? user.primaryEmail
         : user.emails.find((_: { address: string }) =>
             _.address.endsWith(GUARDIAN_EMAIL_DOMAIN)
-          );
-
-      if (!emailsOfUsersWithPinboardPermission.includes(email)) {
-        console.log(
-          `Skipping ${email} as they do not have 'pinboard' permission.`
-        );
-        return acc;
-      } else if (id && email && user.name?.givenName && user.name?.familyName) {
-        return [
-          ...acc,
-          {
-            resourceName: `people/${id}`,
-            email,
-            firstName: user.name.givenName,
-            lastName: user.name.familyName,
-            [userTableTTLAttribute]: ttlEpochSeconds,
-          },
-        ];
-      } else {
-        console.error(`Key information missing for user ${email}`, user);
-        return acc;
-      }
-    },
-    [] as BasicUser[]
+          )?.address;
+      return {
+        resourceName: `people/${id}`,
+        email,
+        firstName: user.name?.givenName || undefined,
+        lastName: user.name?.familyName || undefined,
+        isMentionable: true,
+      };
+    })
   );
 
   interface PhotoUrlLookup {
     [resourceName: string]: string;
   }
   const buildPhotoUrlLookup = async (
-    users: BasicUser[]
+    resourceNames: string[]
   ): Promise<PhotoUrlLookup> => {
-    const hasMoreThan50Remaining = users.length > 50;
+    if (resourceNames.length === 0) {
+      return {};
+    }
+    const hasMoreThan50Remaining = resourceNames.length > 50;
     const usersToRequestInThisBatch = hasMoreThan50Remaining
-      ? users.slice(0, 50)
-      : users;
+      ? resourceNames.slice(0, 50)
+      : resourceNames;
 
     const thisBatchLookup = (
       await peopleService.people.getBatchGet({
         personFields: "photos",
-        resourceNames: usersToRequestInThisBatch.map((_) => _.resourceName),
+        resourceNames: usersToRequestInThisBatch,
       })
     ).data.responses?.reduce((acc, { person, requestedResourceName }) => {
       const maybePhotoUrl = person?.photos?.find(({ url }) => url)?.url;
@@ -176,37 +210,54 @@ export const handler = async () => {
     return hasMoreThan50Remaining
       ? {
           ...thisBatchLookup,
-          ...(await buildPhotoUrlLookup(users.slice(50, users.length))),
+          ...(await buildPhotoUrlLookup(
+            resourceNames.slice(50, resourceNames.length)
+          )),
         }
       : thisBatchLookup;
   };
   const photoUrlLookup = await buildPhotoUrlLookup(
-    basicUsersWithPinboardPermission
+    basicUsersWithPinboardPermission.reduce<string[]>(
+      (acc, { resourceName }) => (resourceName ? [...acc, resourceName] : acc),
+      []
+    )
   );
 
+  const usersToUpsert: BasicUser[] = [
+    ...basicUsersWithPinboardPermission,
+    ...basicUsersWherePinboardPermissionRemoved,
+  ];
+
   return await Promise.allSettled(
-    basicUsersWithPinboardPermission.map(
-      ({ resourceName, email, firstName, lastName }) => {
-        const maybeAvatarUrl = photoUrlLookup[resourceName];
+    usersToUpsert.map(
+      ({ resourceName, email, firstName, lastName, isMentionable }) => {
+        const maybeAvatarUrl = resourceName && photoUrlLookup[resourceName];
 
         console.log(`Upserting details for user ${email}`);
-        return dynamo
+
+        const upsertResult = dynamo
           .update({
             TableName: usersTableName,
             Key: {
               email,
             },
-            UpdateExpression: `set firstName = :firstName, lastName = :lastName${
+            UpdateExpression: `set isMentionable = :isMentionable${
+              firstName ? ", firstName = :firstName" : ""
+            }${lastName ? ", lastName = :lastName" : ""}${
               maybeAvatarUrl ? ", avatarUrl = :avatarUrl" : ""
-            }, ${userTableTTLAttribute} = :${userTableTTLAttribute}`,
+            }`,
             ExpressionAttributeValues: {
               ":firstName": firstName,
               ":lastName": lastName,
               ":avatarUrl": maybeAvatarUrl,
-              [`:${userTableTTLAttribute}`]: ttlEpochSeconds,
+              ":isMentionable": isMentionable,
             },
           })
           .promise();
+
+        upsertResult.catch(console.error);
+
+        return upsertResult;
       }
     )
   );

@@ -144,6 +144,7 @@ type User {
   firstName: String!
   lastName: String!
   avatarUrl: String
+  isMentionable: Boolean
 }
 type MyUser {
   email: String!
@@ -356,7 +357,7 @@ input TableStringFilterInput {
         "DataSourceName": "item_table_datasource",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
       #set($input = $ctx.args.input)
       $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
@@ -389,7 +390,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "item_table_datasource",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -523,7 +524,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -561,7 +562,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -695,7 +696,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -740,7 +741,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -780,7 +781,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -820,7 +821,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -854,7 +855,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "listUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -994,7 +995,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1015,7 +1016,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1036,7 +1037,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : c5c6b24ecb8b37d702718633ceddb3b9
+        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2482,7 +2483,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardusersrefresherlambdascheduleAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A37874BE9": Object {
+    "pinboardusersrefresherlambdascheduleFULLRUNAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4AC502C51D": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2494,14 +2495,14 @@ $util.toJson($ctx.result)",
         "Principal": "events.amazonaws.com",
         "SourceArn": Object {
           "Fn::GetAtt": Array [
-            "pinboardusersrefresherlambdascheduleD4D4DE02",
+            "pinboardusersrefresherlambdascheduleFULLRUNFB9A4F9E",
             "Arn",
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "pinboardusersrefresherlambdascheduleD4D4DE02": Object {
+    "pinboardusersrefresherlambdascheduleFULLRUNFB9A4F9E": Object {
       "Properties": Object {
         "Description": Object {
           "Fn::Join": Array [
@@ -2511,11 +2512,11 @@ $util.toJson($ctx.result)",
               Object {
                 "Ref": "pinboardusersrefresherlambda2D488032",
               },
-              " every 6 hours.",
+              " every 24 hours, which should be a FULL RUN.",
             ],
           ],
         },
-        "ScheduleExpression": "rate(6 hours)",
+        "ScheduleExpression": "rate(1 day)",
         "State": "ENABLED",
         "Targets": Array [
           Object {
@@ -2530,6 +2531,56 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::Events::Rule",
+    },
+    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnly403FC359": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Runs the ",
+              Object {
+                "Ref": "pinboardusersrefresherlambda2D488032",
+              },
+              " every minute, with 'isProcessPermissionChangesOnly: true'.",
+            ],
+          ],
+        },
+        "ScheduleExpression": "rate(1 minute)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "pinboardusersrefresherlambda2D488032",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{\\"isProcessPermissionChangesOnly\\":true}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnlyAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A41C988EE": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambda2D488032",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnly403FC359",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "pinboardusertable2621B03F": Object {
       "DeletionPolicy": "Retain",
@@ -2568,10 +2619,6 @@ $util.toJson($ctx.result)",
             },
           },
         ],
-        "TimeToLiveSpecification": Object {
-          "AttributeName": "ttlEpochSeconds",
-          "Enabled": true,
-        },
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",

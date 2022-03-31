@@ -21,7 +21,7 @@ import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
-import { APP, userTableTTLAttribute } from "../shared/constants";
+import { APP } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
@@ -153,7 +153,6 @@ export class PinBoardStack extends Stack {
           name: "email",
           type: db.AttributeType.STRING,
         },
-        timeToLiveAttribute: userTableTTLAttribute,
         encryption: db.TableEncryption.DEFAULT,
       }
     );
@@ -575,16 +574,32 @@ export class PinBoardStack extends Stack {
     );
     pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
 
-    /*const usersRefresherLambdaSchedule =*/ new events.Rule(
+    new events.Rule(
       thisStack,
-      `${usersRefresherLambdaBasename}-schedule`,
+      `${usersRefresherLambdaBasename}-schedule-isProcessPermissionChangesOnly`,
       {
-        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 6 hours.`,
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every minute, with 'isProcessPermissionChangesOnly: true'.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(usersRefresherLambdaFunction, {
+            event: events.RuleTargetInput.fromObject({
+              isProcessPermissionChangesOnly: true,
+            }),
+          }),
+        ],
+        schedule: events.Schedule.rate(Duration.minutes(1)),
+      }
+    );
+    new events.Rule(
+      thisStack,
+      `${usersRefresherLambdaBasename}-schedule-FULL-RUN`,
+      {
+        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 24 hours, which should be a FULL RUN.`,
         enabled: true,
         targets: [
           new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
         ],
-        schedule: events.Schedule.rate(Duration.hours(6)),
+        schedule: events.Schedule.rate(Duration.days(1)),
       }
     );
 

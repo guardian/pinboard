@@ -46,7 +46,11 @@ export const handler = async (event: DynamoDBStreamEvent) => {
         ExclusiveStartKey: startKey,
         ProjectionExpression:
           "email, webPushSubscription, manuallyOpenedPinboardIds",
-        FilterExpression: "attribute_exists(webPushSubscription)",
+        FilterExpression:
+          "attribute_exists(webPushSubscription) AND isMentionable = :isMentionable",
+        ExpressionAttributeValues: {
+          ":isMentionable": true,
+        },
       })
       .promise();
 

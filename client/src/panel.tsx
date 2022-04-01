@@ -7,7 +7,6 @@ import {
   panelCornerSize,
   right,
 } from "./styling";
-import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
@@ -22,7 +21,6 @@ export const Panel: React.FC = () => {
     activePinboards,
     activePinboardIds,
     selectedPinboardId,
-    preselectedPinboard,
     clearSelectedPinboard,
     activeTab,
     setActiveTab,
@@ -38,9 +36,6 @@ export const Panel: React.FC = () => {
     }
     if (selectedPinboardId) {
       return selectedPinboard?.title || "Loading pinboard...";
-    }
-    if (preselectedPinboard === "notTrackedInWorkflow") {
-      return "No pinboard";
     }
     return "Select a pinboard";
   })();
@@ -103,11 +98,7 @@ export const Panel: React.FC = () => {
         </span>
       </Navigation>
 
-      {preselectedPinboard === "notTrackedInWorkflow" ? (
-        <NotTrackedInWorkflow />
-      ) : (
-        !selectedPinboardId && <SelectPinboard />
-      )}
+      {!selectedPinboardId && <SelectPinboard />}
 
       {
         // The active pinboards are always mounted, so that we receive new item notifications

@@ -20,6 +20,7 @@ import {
   TextInput,
 } from "@guardian/source-react-components";
 import { SvgMagnifyingGlass } from "../icons/SvgMagnifyingGlass";
+import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -119,8 +120,9 @@ export const SelectPinboard: React.FC = () => {
       pinboardData.id === preselectedPinboard.id;
 
     const isOpenInNewTab =
-      isPinboardData(preselectedPinboard) &&
-      pinboardData.id !== preselectedPinboard.id;
+      preselectedPinboard === "notTrackedInWorkflow" ||
+      (isPinboardData(preselectedPinboard) &&
+        pinboardData.id !== preselectedPinboard.id);
 
     return (
       <div
@@ -273,6 +275,9 @@ export const SelectPinboard: React.FC = () => {
           },
         }}
       >
+        {preselectedPinboard === "notTrackedInWorkflow" && (
+          <NotTrackedInWorkflow />
+        )}
         {payloadToBeSent && (
           <div
             css={css`

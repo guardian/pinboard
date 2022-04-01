@@ -202,21 +202,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
   ) => {
-    if (isOpenInNewTab) {
-      const hostname = window.location.hostname;
-      const composerDomain =
-        hostname.includes(".local.") ||
-        hostname.includes(".code.") ||
-        hostname.includes(".test.")
-          ? "code.dev-gutools.co.uk"
-          : "gutools.co.uk";
-      const composerUrl = `https://composer.${composerDomain}/content/${
-        pinboardData.composerId || ".."
-      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-
-      window?.open(composerUrl, "_blank")?.focus();
-    }
-
     if (!activePinboardIds.includes(pinboardData.id)) {
       addManuallyOpenedPinboardId(pinboardData.id).then(
         (result) =>
@@ -230,10 +215,20 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       );
     }
 
-    if (
-      !isPinboardData(preselectedPinboard) ||
-      preselectedPinboard.id === pinboardData.id
-    ) {
+    if (isOpenInNewTab) {
+      const hostname = window.location.hostname;
+      const composerDomain =
+        hostname.includes(".local.") ||
+        hostname.includes(".code.") ||
+        hostname.includes(".test.")
+          ? "code.dev-gutools.co.uk"
+          : "gutools.co.uk";
+      const composerUrl = `https://composer.${composerDomain}/content/${
+        pinboardData.composerId || ".."
+      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+      window?.open(composerUrl, "_blank")?.focus();
+    } else {
       setSelectedPinboardId(pinboardData.id);
     }
   };

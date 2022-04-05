@@ -3,10 +3,11 @@ import React, { ReactPortal } from "react";
 import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
 import { pinboard, pinMetal } from "../colours";
-import { PayloadAndType } from "./types/PayloadAndType";
+import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
+import * as Sentry from "@sentry/react";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -19,7 +20,23 @@ interface AddToPinboardButtonProps {
 const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   const { source, sourceType, ...payload } = props.dataAttributes;
 
-  return source && sourceType ? (
+  const payloadToBeSent = buildPayloadAndType(
+    `${source}-${sourceType}`,
+    payload
+  );
+
+  if (!payloadToBeSent) {
+    Sentry.captureException(
+      new Error(
+        `Failed to build an add to pinboard button for payload where source=${source} sourceType=${sourceType} payload=${JSON.stringify(
+          payload
+        )}`
+      )
+    );
+    return null;
+  }
+
+  return (
     <root.div
       css={css`
         ${textSans.small()}
@@ -27,10 +44,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
     >
       <button
         onClick={() => {
-          props.setPayloadToBeSent({
-            type: `${source}-${sourceType}`,
-            payload,
-          });
+          props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
         }}
         css={css`
@@ -46,7 +60,9 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           color: ${pinMetal};
         `}
       >
-        Add to
+        {payloadToBeSent.type === "grid-search"
+          ? "Add this search to"
+          : "Add to"}
         <PinIcon
           css={css`
             height: 18px;
@@ -59,7 +75,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         />{" "}
       </button>
     </root.div>
-  ) : null;
+  );
 };
 
 interface ButtonPortalProps {

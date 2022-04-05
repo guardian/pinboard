@@ -2,10 +2,11 @@ export interface CollectionResponse {
   data: Collection;
 }
 export const isCollectionResponse = (
-  possiblyCollectionResponse: any
+  possiblyCollectionResponse: unknown
 ): possiblyCollectionResponse is CollectionResponse =>
-  "data" in possiblyCollectionResponse &&
-  isCollection(possiblyCollectionResponse.data);
+  possiblyCollectionResponse !== null &&
+  typeof possiblyCollectionResponse === "object" &&
+  isCollection((possiblyCollectionResponse as CollectionResponse).data);
 
 export interface Collection {
   // incomplete type definition - represents this json write format https://github.com/guardian/grid/blob/e669dfc4b01aa4fdfa82893d535e4a86558319b3/collections/app/controllers/CollectionsController.scala#L181-L187
@@ -14,15 +15,19 @@ export interface Collection {
   cssColour?: string;
 }
 export const isCollection = (
-  possiblyCollection: any
-): possiblyCollection is Collection =>
-  typeof possiblyCollection.basename === "string" &&
-  Array.isArray(possiblyCollection.fullPath) &&
-  (possiblyCollection.fullPath as any[]).every(
-    (path) => typeof path === "string"
-  ) &&
-  (!("cssColour" in possiblyCollection) ||
-    typeof possiblyCollection.cssColour === "string");
+  possiblyCollection: unknown
+): possiblyCollection is Collection => {
+  if (possiblyCollection !== null && typeof possiblyCollection === "object") {
+    const collection = possiblyCollection as Collection;
+    return (
+      typeof collection.basename === "string" &&
+      Array.isArray(collection.fullPath) &&
+      collection.fullPath.every((path) => typeof path === "string") &&
+      typeof collection.cssColour === "string"
+    );
+  }
+  return false;
+};
 
 export interface SearchResponse {
   offset: number;
@@ -31,31 +36,47 @@ export interface SearchResponse {
   data: ImageResponse[];
 }
 export const isSearchResponse = (
-  possiblyResponse: any
-): possiblyResponse is SearchResponse =>
-  typeof possiblyResponse.offset === "number" &&
-  typeof possiblyResponse.length === "number" &&
-  typeof possiblyResponse.total === "number" &&
-  Array.isArray(possiblyResponse.data) &&
-  (possiblyResponse.data as any[]).every(isImageResponse);
+  possiblyResponse: unknown
+): possiblyResponse is SearchResponse => {
+  if (possiblyResponse !== null && typeof possiblyResponse === "object") {
+    const response = possiblyResponse as SearchResponse;
+    return (
+      typeof response.offset === "number" &&
+      typeof response.length === "number" &&
+      typeof response.total === "number" &&
+      Array.isArray(response.data) &&
+      response.data.every(isImageResponse)
+    );
+  }
+  return false;
+};
 
 export interface ImageResponse {
   uri: string;
   data: Image;
 }
 export const isImageResponse = (
-  possiblyResponse: any
-): possiblyResponse is ImageResponse =>
-  typeof possiblyResponse.uri === "string" && isImage(possiblyResponse.data);
+  possiblyResponse: unknown
+): possiblyResponse is ImageResponse => {
+  if (possiblyResponse !== null && typeof possiblyResponse === "object") {
+    const response = possiblyResponse as ImageResponse;
+    return typeof response.uri === "string" && isImage(response.data);
+  }
+  return false;
+};
 
 export interface Image {
   // incomplete type definition - canonical definition at https://github.com/guardian/grid/blob/main/common-lib/src/main/scala/com/gu/mediaservice/model/Image.scala
   id: GridId;
   thumbnail?: Thumbnail;
 }
-export const isImage = (possiblyImage: any): possiblyImage is Image =>
-  isGridId(possiblyImage.id) &&
-  (!("thumbnail" in possiblyImage) || isThumbnail(possiblyImage.thumbnail));
+export const isImage = (possiblyImage: unknown): possiblyImage is Image => {
+  if (possiblyImage !== null && typeof possiblyImage === "object") {
+    const image = possiblyImage as Image;
+    return isGridId(image.id) && isThumbnail(image.thumbnail);
+  }
+  return false;
+};
 
 export interface Thumbnail {
   // incomplete type definition - canonical definition at https://github.com/guardian/grid/blob/main/common-lib/src/main/scala/com/gu/mediaservice/model/Asset.scala
@@ -63,11 +84,17 @@ export interface Thumbnail {
   secureUrl?: string;
 }
 export const isThumbnail = (
-  possiblyThumbnail: any
-): possiblyThumbnail is Thumbnail =>
-  typeof possiblyThumbnail.file === "string" &&
-  (!("secureUrl" in possiblyThumbnail) ||
-    typeof possiblyThumbnail.secureUrl === "string");
+  possiblyThumbnail: unknown
+): possiblyThumbnail is Thumbnail => {
+  if (possiblyThumbnail !== null && typeof possiblyThumbnail === "object") {
+    const thumbnail = possiblyThumbnail as Thumbnail;
+    return (
+      typeof thumbnail.file === "string" &&
+      typeof thumbnail.secureUrl === "string"
+    );
+  }
+  return false;
+};
 
 export type GridId = string;
 export const isGridId = (possiblyId: string): possiblyId is GridId =>

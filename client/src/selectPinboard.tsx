@@ -292,7 +292,7 @@ export const SelectPinboard: React.FC = () => {
             <div>Choose the pinboard for this asset</div>
 
             <PayloadDisplay
-              {...payloadToBeSent}
+              payloadAndType={payloadToBeSent}
               clearPayloadToBeSent={clearPayloadToBeSent}
             />
           </div>

@@ -4,35 +4,50 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { SvgCross } from "@guardian/source-react-components";
 import { buttonBackground } from "./styling";
+import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
+import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 
-interface PayloadDisplayProps extends PayloadAndType {
+interface PayloadDisplayProps {
+  payloadAndType: PayloadAndType;
   clearPayloadToBeSent?: () => void;
 }
 
 export const PayloadDisplay = ({
-  // type, TODO consider tweaking display based on type
-  payload: { thumbnail, embeddableUrl },
+  payloadAndType,
   clearPayloadToBeSent,
-}: PayloadDisplayProps) =>
-  thumbnail && embeddableUrl ? (
+}: PayloadDisplayProps) => {
+  const { payload } = payloadAndType;
+  return (
     <div
       css={css`
-        display: flex;
-        flex-direction: row;
+        display: inline-flex;
+        flex-direction: column;
         position: relative;
         padding: ${space[1]}px;
+        max-width: 192px;
+        max-height: 350px;
+        color: ${palette.neutral["20"]};
       `}
+      draggable
+      onDragStart={(event) =>
+        event.dataTransfer.setData("URL", payload.embeddableUrl)
+      }
+      onClick={() => {
+        /* TODO open embeddableUrl in new tab (also 'cursor: pointer') */
+      }}
     >
-      <img // TODO: hover for larger thumbnail
-        src={thumbnail}
-        css={css`
-          max-width: 100%;
-          max-height: 350px;
-        `}
-        onDragStart={(event) =>
-          event.dataTransfer.setData("URL", embeddableUrl)
-        }
-      />
+      {(payloadAndType.type === "grid-crop" ||
+        payloadAndType.type === "grid-original") && (
+        <GridStaticImageDisplay
+          type={payloadAndType.type}
+          payload={payloadAndType.payload}
+        />
+      )}
+
+      {payloadAndType.type === "grid-search" && (
+        <GridDynamicSearchDisplay payload={payloadAndType.payload} />
+      )}
+
       {clearPayloadToBeSent && (
         <div
           css={css`
@@ -61,4 +76,5 @@ export const PayloadDisplay = ({
         </div>
       )}
     </div>
-  ) : null;
+  );
+};

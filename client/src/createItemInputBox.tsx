@@ -144,7 +144,7 @@ export const CreateItemInputBox = ({
     />
     {payloadToBeSent && (
       <PayloadDisplay
-        {...payloadToBeSent}
+        payloadAndType={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
       />
     )}

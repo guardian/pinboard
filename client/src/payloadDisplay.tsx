@@ -4,13 +4,14 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { SvgCross } from "@guardian/source-react-components";
 import { buttonBackground } from "./styling";
+import { agateSans } from "../fontNormaliser";
 
 interface PayloadDisplayProps extends PayloadAndType {
   clearPayloadToBeSent?: () => void;
 }
 
 export const PayloadDisplay = ({
-  // type, TODO consider tweaking display based on type
+  type,
   payload: { thumbnail, embeddableUrl },
   clearPayloadToBeSent,
 }: PayloadDisplayProps) =>
@@ -18,9 +19,11 @@ export const PayloadDisplay = ({
     <div
       css={css`
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
+        align-items: flex-end;
         position: relative;
         padding: ${space[1]}px;
+        padding-bottom: 0;
       `}
     >
       <img // TODO: hover for larger thumbnail
@@ -33,6 +36,15 @@ export const PayloadDisplay = ({
           event.dataTransfer.setData("URL", embeddableUrl)
         }
       />
+      <span
+        css={css`
+          color: ${palette.neutral["20"]};
+          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+        `}
+      >
+        {type === "grid-crop" && "CROP"}
+        {type === "grid-original" && "ORIGINAL"}
+      </span>
       {clearPayloadToBeSent && (
         <div
           css={css`

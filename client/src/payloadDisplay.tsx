@@ -30,9 +30,14 @@ export const PayloadDisplay = ({
         cursor: pointer;
       `}
       draggable
-      onDragStart={(event) =>
-        event.dataTransfer.setData("URL", payload.embeddableUrl)
-      }
+      onDragStart={(event) => {
+        event.dataTransfer.setData("URL", payload.embeddableUrl);
+        event.dataTransfer.setData(
+          // prevent grid from accepting these as drops, as per https://github.com/guardian/grid/commit/4b72d93eedcbacb4f90680764d468781a72507f5#diff-771b9da876348ce4b4e057e2d8253324c30a8f3db4e434d49b3ce70dbbdb0775R138-R140
+          "application/vnd.mediaservice.kahuna.image",
+          "true"
+        );
+      }}
       onClick={() => {
         window.open(payload.embeddableUrl, "_blank");
       }}

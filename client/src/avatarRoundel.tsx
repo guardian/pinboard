@@ -34,6 +34,7 @@ export const AvatarRoundel = ({
       `}
       title={tooltip}
       src={maybeUser?.avatarUrl}
+      draggable={false}
     />
   ) : (
     <span

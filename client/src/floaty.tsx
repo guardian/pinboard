@@ -7,6 +7,7 @@ import { agateSans } from "../fontNormaliser";
 import { bottom, boxShadow, floatySize, right } from "./styling";
 import { useGlobalStateContext } from "./globalState";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
+import { dropTargetCss, IsDropTargetProps } from "./drop";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -36,7 +37,7 @@ const FloatyNotificationsBubble = ({
   </div>
 );
 
-export const Floaty: React.FC = () => {
+export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const {
     presetUnreadNotificationCount,
     isExpanded,
@@ -89,6 +90,7 @@ export const Floaty: React.FC = () => {
       `}
       onClick={() => setIsExpanded(!isExpanded)}
     >
+      {isDropTarget && <div css={{ ...dropTargetCss, borderRadius: "50%" }} />}
       <PinIcon
         css={css`
           position: absolute;

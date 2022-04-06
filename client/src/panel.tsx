@@ -13,8 +13,9 @@ import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
+import { dropTargetCss, IsDropTargetProps } from "./drop";
 
-export const Panel: React.FC = () => {
+export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const {
     isExpanded,
@@ -77,6 +78,7 @@ export const Panel: React.FC = () => {
       `}
       ref={panelRef}
     >
+      {isDropTarget && <div css={{ ...dropTargetCss }} />}
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}

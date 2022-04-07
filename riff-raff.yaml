@@ -16,6 +16,7 @@ deployments:
     dependencies:
       - pinboard-cloudformation
       - pinboard-workflow-bridge-lambda
+      - pinboard-grid-bridge-lambda
       - pinboard-users-refresher-lambda
       - pinboard-notifications-lambda
       - pinboard-auth-lambda
@@ -35,6 +36,16 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-workflow-bridge-lambda.zip
       functionNames: [pinboard-workflow-bridge-lambda-]
+
+  pinboard-grid-bridge-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-grid-bridge-lambda.zip
+      functionNames: [pinboard-grid-bridge-lambda-]
 
   pinboard-users-refresher-lambda:
     dependencies:

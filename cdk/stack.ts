@@ -142,6 +142,30 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const gridBridgeLambdaBasename = "pinboard-grid-bridge-lambda";
+
+    const pinboardGridBridgeLambda = new lambda.Function(
+      thisStack,
+      gridBridgeLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(5),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${gridBridgeLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${gridBridgeLambdaBasename}/${gridBridgeLambdaBasename}.zip`
+        ),
+        initialPolicy: [readPinboardParamStorePolicyStatement],
+      }
+    );
+
     const pinboardUserTableBaseName = "pinboard-user-table";
 
     const pinboardAppsyncUserTable = new db.Table(
@@ -297,6 +321,14 @@ export class PinBoardStack extends Stack {
       pinboardWorkflowBridgeLambda
     );
 
+    const pinboardGridBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
+      `${gridBridgeLambdaBasename
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_ds`,
+      pinboardGridBridgeLambda
+    );
+
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
       `${pinboardItemTableBaseName
         .replace("pinboard-", "")
@@ -401,29 +433,26 @@ export class PinBoardStack extends Stack {
       responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
     });
 
-    pinboardWorkflowBridgeLambdaDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listPinboards",
-      responseMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.lambdaResult()
-      ),
-    });
+    ["listPinboards", "getPinboardByComposerId", "getPinboardsByIds"].forEach(
+      (fieldName) =>
+        pinboardWorkflowBridgeLambdaDataSource.createResolver({
+          typeName: "Query",
+          fieldName,
+          responseMappingTemplate: resolverBugWorkaround(
+            appsync.MappingTemplate.lambdaResult()
+          ),
+        })
+    );
 
-    pinboardWorkflowBridgeLambdaDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "getPinboardByComposerId",
-      responseMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.lambdaResult()
-      ),
-    });
-
-    pinboardWorkflowBridgeLambdaDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "getPinboardsByIds",
-      responseMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.lambdaResult()
-      ),
-    });
+    ["getGridSearchSummary"].forEach((fieldName) =>
+      pinboardGridBridgeLambdaDataSource.createResolver({
+        typeName: "Query",
+        fieldName,
+        responseMappingTemplate: resolverBugWorkaround(
+          appsync.MappingTemplate.lambdaResult()
+        ),
+      })
+    );
 
     const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
       .MappingTemplate.fromString(`

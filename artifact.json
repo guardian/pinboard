@@ -18,6 +18,11 @@
       "compress": "zip"
     },
     {
+      "action": "pinboard-grid-bridge-lambda",
+      "path": "grid-bridge-lambda/dist",
+      "compress": "zip"
+    },
+    {
       "action": "pinboard-users-refresher-lambda",
       "path": "users-refresher-lambda/dist",
       "compress": "zip"

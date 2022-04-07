@@ -48,6 +48,11 @@ type WorkflowStub {
   isNotFound: Boolean
 }
 
+type GridSummary {
+  total: Int!
+  thumbnails: [String!]!
+}
+
 type ItemConnection {
   items: [Item]
   nextToken: String
@@ -94,6 +99,8 @@ type Query {
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]
   getPinboardByComposerId(composerId: String!): WorkflowStub
+
+  getGridSearchSummary(apiUrl: String!): GridSummary
 }
 
 type Subscription {

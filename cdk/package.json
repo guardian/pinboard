@@ -7,7 +7,8 @@
   "scripts": {
     "test": "tsc --noEmit & jest",
     "watch": "tsc --noEmit --watch & jest --watch",
-    "build": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts' > cloudformation.yaml"
+    "build": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts' > cloudformation.yaml",
+    "update-snapshot": "jest -u"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.147.0",

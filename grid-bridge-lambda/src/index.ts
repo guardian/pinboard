@@ -3,7 +3,7 @@ import {
   pinboardSecretPromiseGetter,
   STAGE,
 } from "../../shared/awsIntegration";
-import type { GridSummary } from "../../shared/graphql/graphql";
+import type { GridSearchSummary } from "../../shared/graphql/graphql";
 
 import { isSearchResponse, SearchResponse } from "./types";
 
@@ -31,7 +31,7 @@ const gridFetch = async (url: string): Promise<SearchResponse> => {
   );
 };
 
-const getSearchSummary = async (url: string): Promise<GridSummary> => {
+const getSearchSummary = async (url: string): Promise<GridSearchSummary> => {
   const parsedUrl = new URL(url);
   const expectedDomain =
     STAGE === "PROD"

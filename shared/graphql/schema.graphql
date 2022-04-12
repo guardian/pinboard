@@ -48,9 +48,21 @@ type WorkflowStub {
   isNotFound: Boolean
 }
 
+type GridBadgeData {
+  text: String!
+  color: String!
+}
+
+type GridSearchQueryBreakdown {
+  collections: [GridBadgeData!]
+  labels: [GridBadgeData!]
+  restOfSearch: String
+}
+
 type GridSearchSummary {
   total: Int!
   thumbnails: [String!]!
+  queryBreakdown: GridSearchQueryBreakdown
 }
 
 type ItemConnection {

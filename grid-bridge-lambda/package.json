@@ -7,7 +7,8 @@
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
     "build": "run-p --print-label type-check bundle",
-    "run-dev": "esbuild run.ts --bundle --minify --outfile=dist/index.js --platform=node && node dist/index.js"
+    "run-dev": "esbuild run.ts --bundle --minify --outfile=dist/index.js --platform=node && node dist/index.js",
+    "test": "jest 2>&1"
   },
   "devDependencies": {
     "@types/node-fetch": "^3.0.3",

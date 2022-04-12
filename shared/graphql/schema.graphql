@@ -51,6 +51,9 @@ type WorkflowStub {
 type GridSummary {
   total: Int!
   thumbnails: [String!]!
+  collections: [String!]
+  labels: [String!]
+  restOfSearch: String
 }
 
 type ItemConnection {

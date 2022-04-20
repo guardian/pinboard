@@ -5,13 +5,15 @@ import {
 } from "../../shared/awsIntegration";
 import type { GridSummary } from "../../shared/graphql/graphql";
 
+import { isSearchResponse, SearchResponse } from "./types";
+
 export const handler = async (event: { arguments?: { apiUrl?: string } }) => {
   if (event.arguments?.apiUrl) {
     return getSearchSummary(event.arguments.apiUrl);
   }
 };
 
-const gridFetch = async (url: string) => {
+const gridFetch = async (url: string): Promise<SearchResponse> => {
   const response = await fetch(url, {
     headers: {
       "X-Gu-Media-Key": await pinboardSecretPromiseGetter(
@@ -20,8 +22,13 @@ const gridFetch = async (url: string) => {
     },
   });
 
-  // TODO stricter type
-  return (await response.json()) as any;
+  const body = await response.json();
+  if (isSearchResponse(body)) {
+    return body;
+  }
+  throw new Error(
+    "Response from grid was valid JSON, but did not match expected shape."
+  );
 };
 
 const getSearchSummary = async (url: string): Promise<GridSummary> => {
@@ -39,11 +46,15 @@ const getSearchSummary = async (url: string): Promise<GridSummary> => {
   parsedUrl.searchParams.set("length", "4");
   const searchResponse = await gridFetch(parsedUrl.href);
 
+  const thumbnails = searchResponse.data
+    .map(
+      (image) =>
+        image?.data?.thumbnail?.secureUrl || image?.data?.thumbnail?.file
+    )
+    .filter((thumbnail): thumbnail is string => !!thumbnail);
+
   return {
     total: searchResponse.total,
-    thumbnails: searchResponse.data?.map(
-      (image: any /*TODO stricter type*/) =>
-        image?.data?.thumbnail?.secureUrl || image?.data?.thumbnail?.file
-    ),
+    thumbnails,
   };
 };

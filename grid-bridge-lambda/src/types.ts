@@ -1,3 +1,29 @@
+export interface CollectionResponse {
+  data: Collection;
+}
+export const isCollectionResponse = (
+  possiblyCollectionResponse: any
+): possiblyCollectionResponse is CollectionResponse =>
+  "data" in possiblyCollectionResponse &&
+  isCollection(possiblyCollectionResponse.data);
+
+export interface Collection {
+  // incomplete type definition - represents this json write format https://github.com/guardian/grid/blob/e669dfc4b01aa4fdfa82893d535e4a86558319b3/collections/app/controllers/CollectionsController.scala#L181-L187
+  basename: string;
+  fullPath: string[];
+  cssColour?: string;
+}
+export const isCollection = (
+  possiblyCollection: any
+): possiblyCollection is Collection =>
+  typeof possiblyCollection.basename === "string" &&
+  Array.isArray(possiblyCollection.fullPath) &&
+  (possiblyCollection.fullPath as any[]).every(
+    (path) => typeof path === "string"
+  ) &&
+  (!("cssColour" in possiblyCollection) ||
+    typeof possiblyCollection.cssColour === "string");
+
 export interface SearchResponse {
   offset: number;
   length: number;
@@ -10,8 +36,8 @@ export const isSearchResponse = (
   typeof possiblyResponse.offset === "number" &&
   typeof possiblyResponse.length === "number" &&
   typeof possiblyResponse.total === "number" &&
-  Array.isArray(possiblyResponse.total) &&
-  (possiblyResponse.total as any[]).every(isImageResponse);
+  Array.isArray(possiblyResponse.data) &&
+  (possiblyResponse.data as any[]).every(isImageResponse);
 
 export interface ImageResponse {
   uri: string;
@@ -40,7 +66,7 @@ export const isThumbnail = (
   possiblyThumbnail: any
 ): possiblyThumbnail is Thumbnail =>
   typeof possiblyThumbnail.file === "string" &&
-  ("secureUrl" in possiblyThumbnail ||
+  (!("secureUrl" in possiblyThumbnail) ||
     typeof possiblyThumbnail.secureUrl === "string");
 
 export type GridId = string;

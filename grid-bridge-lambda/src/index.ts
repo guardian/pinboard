@@ -70,6 +70,7 @@ const getSearchSummary = async (url: string): Promise<GridSearchSummary> => {
 
 const COLLECTIONS = /~(?:([^'"\s]+)|"([^"]+)"|'([^']+)')/g;
 const LABELS = /#(?:([^'"\s]+)|"([^"]+)"|'([^']+)')/g;
+const CHIPS = /([^'"\s]+:(?:[^'"\s]+|"[^"]+"|'[^']+'))/g;
 async function breakdownQuery(
   q: string | null
 ): Promise<GridSearchQueryBreakdown | null> {
@@ -91,15 +92,25 @@ async function breakdownQuery(
       };
     })
   );
-  const labels = [...q.matchAll(LABELS)].map((_) => ({
+  const notCollections = q.replace(COLLECTIONS, "");
+
+  const labels = [...notCollections.matchAll(LABELS)].map((_) => ({
     text: _[1] ?? _[2] ?? _[3],
     color: "#00adee",
   }));
-  const restOfSearch = q.replace(COLLECTIONS, "").replace(LABELS, "");
+  const notLabels = notCollections.replace(LABELS, "");
+
+  const chips = [...notLabels.matchAll(CHIPS)].map((_) => ({
+    text: _[1] ?? _[2] ?? _[3],
+    color: "#333333",
+  }));
+  const notChips = notLabels.replace(CHIPS, "");
+  const restOfSearch = notChips.replace(/ {2,}/g, " ").trim();
 
   return {
     collections,
     labels,
+    chips,
     restOfSearch,
   };
 }

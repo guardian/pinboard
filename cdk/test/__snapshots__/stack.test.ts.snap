@@ -173,6 +173,7 @@ type GridBadgeData {
 type GridSearchQueryBreakdown {
   collections: [GridBadgeData!]
   labels: [GridBadgeData!]
+  chips: [GridBadgeData!]
   restOfSearch: String
 }
 
@@ -376,7 +377,7 @@ input TableStringFilterInput {
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -485,7 +486,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "item_table_datasource",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
       #set($input = $ctx.args.input)
       $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
@@ -518,7 +519,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "item_table_datasource",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -652,7 +653,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -690,7 +691,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -824,7 +825,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -869,7 +870,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -909,7 +910,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -949,7 +950,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -983,7 +984,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "listUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -1123,7 +1124,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1144,7 +1145,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1165,7 +1166,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },

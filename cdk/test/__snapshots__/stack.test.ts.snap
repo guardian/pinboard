@@ -165,6 +165,23 @@ type WorkflowStub {
   isNotFound: Boolean
 }
 
+type GridBadgeData {
+  text: String!
+  color: String!
+}
+
+type GridSearchQueryBreakdown {
+  collections: [GridBadgeData!]
+  labels: [GridBadgeData!]
+  restOfSearch: String
+}
+
+type GridSearchSummary {
+  total: Int!
+  thumbnails: [String!]!
+  queryBreakdown: GridSearchQueryBreakdown
+}
+
 type ItemConnection {
   items: [Item]
   nextToken: String
@@ -211,6 +228,8 @@ type Query {
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]
   getPinboardByComposerId(composerId: String!): WorkflowStub
+
+  getGridSearchSummary(apiUrl: String!): GridSearchSummary
 }
 
 type Subscription {
@@ -315,6 +334,115 @@ input TableStringFilterInput {
       },
       "Type": "AWS::AppSync::GraphQLSchema",
     },
+    "pinboardappsyncapigridbridgelambdads1C89A823": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "LambdaConfig": Object {
+          "LambdaFunctionArn": Object {
+            "Fn::GetAtt": Array [
+              "pinboardgridbridgelambda79AD9656",
+              "Arn",
+            ],
+          },
+        },
+        "Name": "grid_bridge_lambda_ds",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapigridbridgelambdadsServiceRole186C7FDF",
+            "Arn",
+          ],
+        },
+        "Type": "AWS_LAMBDA",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapigridbridgelambdadsQuerygetGridSearchSummaryResolverA1738BE2": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapigridbridgelambdads1C89A823",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "grid_bridge_lambda_ds",
+        "FieldName": "getGridSearchSummary",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapigridbridgelambdadsServiceRole186C7FDF": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapigridbridgelambdadsServiceRoleDefaultPolicy1506B891": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "pinboardgridbridgelambda79AD9656",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapigridbridgelambdadsServiceRoleDefaultPolicy1506B891",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapigridbridgelambdadsServiceRole186C7FDF",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "pinboardappsyncapiitemtabledatasourceFD08E0E9": Object {
       "Properties": Object {
         "ApiId": Object {
@@ -357,7 +485,7 @@ input TableStringFilterInput {
         "DataSourceName": "item_table_datasource",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
       #set($input = $ctx.args.input)
       $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
@@ -390,7 +518,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "item_table_datasource",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -524,7 +652,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -562,7 +690,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "last_item_seen_by_user_table_datasource",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -696,7 +824,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -741,7 +869,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -781,7 +909,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -821,7 +949,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -855,7 +983,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "user_table_datasource",
         "FieldName": "listUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "RequestMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -995,7 +1123,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1016,7 +1144,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1037,7 +1165,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 508353afffde3143882fbe5c89afc645
+        "ResponseMappingTemplate": "## schema checksum : 12419563e530a9332570743298e79259
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1962,6 +2090,168 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::ApiGateway::Resource",
+    },
+    "pinboardgridbridgelambda79AD9656": Object {
+      "DependsOn": Array [
+        "pinboardgridbridgelambdaServiceRoleDefaultPolicyFB133D07",
+        "pinboardgridbridgelambdaServiceRole33502BD3",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-grid-bridge-lambda/pinboard-grid-bridge-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-grid-bridge-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardgridbridgelambdaServiceRole33502BD3",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardgridbridgelambdaServiceRole33502BD3": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardgridbridgelambdaServiceRoleDefaultPolicyFB133D07": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/pinboard/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardgridbridgelambdaServiceRoleDefaultPolicyFB133D07",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardgridbridgelambdaServiceRole33502BD3",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "pinboarditemtable83382753": Object {
       "DeletionPolicy": "Retain",

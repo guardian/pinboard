@@ -8,6 +8,7 @@
     "bootstrapping-lambda",
     "cdk",
     "client",
+    "grid-bridge-lambda",
     "notifications-lambda",
     "users-refresher-lambda",
     "workflow-bridge-lambda"

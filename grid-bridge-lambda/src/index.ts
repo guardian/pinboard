@@ -14,6 +14,7 @@ const gutoolsDomain =
   STAGE === "PROD" ? "gutools.co.uk" : "test.dev-gutools.co.uk";
 const mediaApiDomain = `api.media.${gutoolsDomain}`;
 const collectionsDomain = `media-collections.${gutoolsDomain}`;
+const maxImagesInSummary = "4";
 
 export const handler = async (event: { arguments?: { apiUrl?: string } }) => {
   if (event.arguments?.apiUrl) {
@@ -42,7 +43,7 @@ const getSearchSummary = async (url: string): Promise<GridSearchSummary> => {
   ) {
     throw new Error("Invalid Grid search API URL");
   }
-  parsedUrl.searchParams.set("length", "4");
+  parsedUrl.searchParams.set("length", maxImagesInSummary);
 
   // Run api calls in parallel
   const search = gridFetch(parsedUrl.href);

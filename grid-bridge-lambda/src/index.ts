@@ -68,23 +68,29 @@ const getSearchSummary = async (url: string): Promise<GridSearchSummary> => {
   };
 };
 
-const COLLECTIONS = /~(?:([^'"\s]+)|"([^"]+)"|'([^']+)')/g;
-const LABELS = /#(?:([^'"\s]+)|"([^"]+)"|'([^']+)')/g;
-const CHIPS = /([^'"\s]+:(?:[^'"\s]+|"[^"]+"|'[^']+'))/g;
+// Find a word, or a quoted phrase.
+// Only handles straight quotes (' or ").
+// Capture groups trim the quotes off the phrase
+const extractQueryWordOrPhrase = `(?:([^'"\\s]+)|"([^"]+)"|'([^']+)')`;
+
+const COLLECTIONS = new RegExp(`~${extractQueryWordOrPhrase}`, "g");
+const LABELS = new RegExp(`#${extractQueryWordOrPhrase}`, "g");
+const CHIPS = new RegExp(`([^'"\\s]+):${extractQueryWordOrPhrase}`, "g");
+
 async function breakdownQuery(
   q: string | null
 ): Promise<GridSearchQueryBreakdown | null> {
   if (!q) return null;
 
   const collections = await Promise.all(
-    [...q.matchAll(COLLECTIONS)].map(async (_) => {
-      const text = _[1] ?? _[2] ?? _[3];
+    [...q.matchAll(COLLECTIONS)].map(async (match) => {
+      const text = match[1] ?? match[2] ?? match[3];
       const collectionResponse = await gridFetch(
         `https://${collectionsDomain}/collections/${text}`
       );
 
       if (!isCollectionResponse(collectionResponse)) {
-        throw new Error("Fetching collection response failed as ");
+        throw new Error("Fetching collection response failed to parse");
       }
       return {
         text: collectionResponse.data.fullPath.join("/"),
@@ -94,17 +100,19 @@ async function breakdownQuery(
   );
   const notCollections = q.replace(COLLECTIONS, "");
 
-  const labels = [...notCollections.matchAll(LABELS)].map((_) => ({
-    text: _[1] ?? _[2] ?? _[3],
+  const labels = [...notCollections.matchAll(LABELS)].map((match) => ({
+    text: match[1] ?? match[2] ?? match[3],
     color: "#00adee",
   }));
   const notLabels = notCollections.replace(LABELS, "");
 
-  const chips = [...notLabels.matchAll(CHIPS)].map((_) => ({
-    text: _[1] ?? _[2] ?? _[3],
+  const chips = [...notLabels.matchAll(CHIPS)].map((match) => ({
+    text: match[1] + ":" + (match[2] ?? match[3] ?? match[4]),
     color: "#333333",
   }));
   const notChips = notLabels.replace(CHIPS, "");
+
+  // flatten any remaining sequence of spaces into a single
   const restOfSearch = notChips.replace(/ {2,}/g, " ").trim();
 
   return {

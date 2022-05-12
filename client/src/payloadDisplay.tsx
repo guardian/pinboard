@@ -27,13 +27,14 @@ export const PayloadDisplay = ({
         max-width: 192px;
         max-height: 350px;
         color: ${palette.neutral["20"]};
+        cursor: pointer;
       `}
       draggable
       onDragStart={(event) =>
         event.dataTransfer.setData("URL", payload.embeddableUrl)
       }
       onClick={() => {
-        /* TODO open embeddableUrl in new tab (also 'cursor: pointer') */
+        window.open(payload.embeddableUrl, "_blank");
       }}
     >
       {(payloadAndType.type === "grid-crop" ||
@@ -70,7 +71,10 @@ export const PayloadDisplay = ({
             right: ${space[2]}px;
             top: ${space[2]}px;
           `}
-          onClick={clearPayloadToBeSent}
+          onClick={(event) => {
+            event.stopPropagation();
+            clearPayloadToBeSent();
+          }}
         >
           <SvgCross />
         </div>

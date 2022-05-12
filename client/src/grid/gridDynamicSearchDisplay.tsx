@@ -159,7 +159,10 @@ export const GridDynamicSearchDisplay = ({
                   transition: 0s;
                 }
               `}
-              onClick={() => getGridSearchSummaryQuery.refetch()}
+              onClick={(event) => {
+                event.stopPropagation();
+                getGridSearchSummaryQuery.refetch();
+              }}
             >
               <SvgReload size="xsmall" />
             </button>

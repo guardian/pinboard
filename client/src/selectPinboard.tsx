@@ -17,9 +17,9 @@ import {
   SvgChevronRightSingle,
   SvgCross,
   SvgExternal,
+  SvgMagnifyingGlass,
   TextInput,
 } from "@guardian/source-react-components";
-import { SvgMagnifyingGlass } from "../icons/SvgMagnifyingGlass";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 
 const textMarginCss: CSSObject = {

@@ -1,4 +1,4 @@
-import { DynamicGridPayload, PayloadWithApiUrl } from "../types/PayloadAndType";
+import { DynamicGridPayload } from "../types/PayloadAndType";
 import { useLazyQuery } from "@apollo/client";
 import {
   GridBadgeData,
@@ -12,7 +12,7 @@ import { space } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 import { FormattedDateTime } from "../formattedDateTime";
 import { GridBadge } from "./gridBadges";
-import { SvgReload } from "../../icons/SvgReload";
+import { SvgReload } from "@guardian/source-react-components";
 
 type GridDynamicSearchDisplayProps = Pick<DynamicGridPayload, "payload">;
 

@@ -23,7 +23,8 @@ export const isCollection = (
       typeof collection.basename === "string" &&
       Array.isArray(collection.fullPath) &&
       collection.fullPath.every((path) => typeof path === "string") &&
-      typeof collection.cssColour === "string"
+      (collection.cssColour === undefined ||
+        typeof collection.cssColour === "string")
     );
   }
   return false;

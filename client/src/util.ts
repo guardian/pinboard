@@ -1,32 +1,43 @@
 import { User } from "../../shared/graphql/graphql";
-
-import differenceInMinutes from "date-fns/differenceInMinutes";
-import format from "date-fns/format";
-import formatDistanceStrict from "date-fns/formatDistanceStrict";
+import { PinboardData } from "../../shared/graphql/extraTypes";
 import isThisYear from "date-fns/isThisYear";
 import isToday from "date-fns/isToday";
-import isYesterday from "date-fns/isYesterday";
+import differenceInMinutes from "date-fns/differenceInMinutes";
+import formatDistanceStrict from "date-fns/formatDistanceStrict";
 import differenceInHours from "date-fns/differenceInHours";
+import format from "date-fns/format";
+import isYesterday from "date-fns/isYesterday";
 import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
-import { PinboardData } from "../../shared/graphql/extraTypes";
 
 export const userToMentionHandle = (user: User) =>
   `@${user.firstName} ${user.lastName}`;
 
-export const formattedDateTime = (timestamp: number): string => {
+export const getTooltipText = (pinboardData: PinboardData) =>
+  `WT: ${pinboardData.title}` +
+  (pinboardData.headline ? `\nHL: ${pinboardData.headline}` : "");
+
+export const formatDateTime = (
+  timestamp: number,
+  isPartOfSentence?: true,
+  withAgo?: true
+): string => {
   const now = Date.now();
   if (isThisYear(timestamp)) {
     if (isToday(timestamp)) {
       if (differenceInMinutes(now, timestamp) < 1) {
-        return "Now";
+        return isPartOfSentence ? "just now" : "Now";
       } else if (differenceInMinutes(now, timestamp) === 1) {
-        return formatDistanceStrict(timestamp, now, {
-          roundingMethod: "floor",
-        }).slice(0, -3);
+        return (
+          formatDistanceStrict(timestamp, now, {
+            roundingMethod: "floor",
+          }).slice(0, -3) + (withAgo ? " ago" : "")
+        );
       } else if (differenceInHours(now, timestamp) < 1) {
-        return formatDistanceStrict(timestamp, now, {
-          roundingMethod: "floor",
-        }).slice(0, -4);
+        return (
+          formatDistanceStrict(timestamp, now, {
+            roundingMethod: "floor",
+          }).slice(0, -4) + (withAgo ? " ago" : "")
+        );
       }
       return format(timestamp, "HH:mm");
     } else if (isYesterday(timestamp)) {
@@ -42,7 +53,3 @@ export const formattedDateTime = (timestamp: number): string => {
     return format(timestamp, "d MMM yyyy HH:mm");
   }
 };
-
-export const getTooltipText = (pinboardData: PinboardData) =>
-  `WT: ${pinboardData.title}` +
-  (pinboardData.headline ? `\nHL: ${pinboardData.headline}` : "");

@@ -1,11 +1,12 @@
 import { css } from "@emotion/react";
 import { palette } from "@guardian/source-foundations";
 import { SvgPlus } from "@guardian/source-react-components";
-import React from "react";
+import React, { useContext } from "react";
 import { LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import { agateSans } from "../fontNormaliser";
 import { AvatarRoundel } from "./avatarRoundel";
-import { formattedDateTime } from "./util";
+import { TickContext } from "./formattedDateTime";
+import { formatDateTime } from "./util";
 
 const maxSeenByIcons = 2;
 const roundelHeightPx = 15;
@@ -17,12 +18,14 @@ interface SeenByProps {
 }
 
 export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
+  useContext(TickContext); // this should cause re-render
+
   const tooltip = seenBy
     .map(({ seenAt, userEmail }) => {
       const user = userLookup?.[userEmail];
       const name = user ? `${user.firstName} ${user.lastName}` : userEmail;
 
-      return `${name} (${formattedDateTime(seenAt * 1000)})`;
+      return `${name} (${formatDateTime(seenAt * 1000)})`;
     })
     .join("\n");
 

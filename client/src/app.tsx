@@ -15,7 +15,7 @@ import {
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
-import { Item, User, MyUser } from "../../shared/graphql/graphql";
+import { Item, MyUser, User } from "../../shared/graphql/graphql";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
 import {
   desktopNotificationsPreferencesUrl,
@@ -24,6 +24,7 @@ import {
 import { GlobalStateProvider } from "./globalState";
 import { Floaty } from "./floaty";
 import { Panel } from "./panel";
+import { TickContext } from "./formattedDateTime";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -213,6 +214,17 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     );
   };
 
+  const [lastTickTimestamp, setLastTickTimestamp] = useState<number>(
+    Date.now()
+  );
+  useEffect(() => {
+    const intervalHandle = setInterval(
+      () => setLastTickTimestamp(Date.now()),
+      60 * 1000
+    );
+    return () => clearInterval(intervalHandle);
+  }, []);
+
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
@@ -234,8 +246,10 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             clearDesktopNotificationsForPinboardId
           }
         >
-          <Floaty />
-          <Panel />
+          <TickContext.Provider value={lastTickTimestamp}>
+            <Floaty />
+            <Panel />
+          </TickContext.Provider>
         </GlobalStateProvider>
       </root.div>
       {buttonNodes.map((node, index) => (

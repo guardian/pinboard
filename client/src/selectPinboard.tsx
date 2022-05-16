@@ -17,9 +17,9 @@ import {
   SvgChevronRightSingle,
   SvgCross,
   SvgExternal,
+  SvgMagnifyingGlass,
   TextInput,
 } from "@guardian/source-react-components";
-import { SvgMagnifyingGlass } from "../icons/SvgMagnifyingGlass";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 
 const textMarginCss: CSSObject = {
@@ -292,7 +292,7 @@ export const SelectPinboard: React.FC = () => {
             <div>Choose the pinboard for this asset</div>
 
             <PayloadDisplay
-              {...payloadToBeSent}
+              payloadAndType={payloadToBeSent}
               clearPayloadToBeSent={clearPayloadToBeSent}
             />
           </div>

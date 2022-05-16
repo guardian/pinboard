@@ -30,9 +30,9 @@ server.use((request, response, next) => {
     next();
   } catch (error) {
     console.error(error);
-    response.send(
-      `console.error('PINBOARD SERVER ERROR : ${error.toString()}');`
-    );
+    const message =
+      error && (error as Error)?.toString ? (error as Error).toString() : error;
+    response.send(`console.error('PINBOARD SERVER ERROR : ${message}');`);
   }
 });
 

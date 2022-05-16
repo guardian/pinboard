@@ -5,7 +5,8 @@ import { scrollbarsCss } from "./styling";
 import type { Item } from "../../shared/graphql/graphql";
 import type { PendingItem } from "./types/PendingItem";
 import { PayloadDisplay } from "./payloadDisplay";
-import type { Payload, PayloadAndType } from "./types/PayloadAndType";
+import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
+import * as Sentry from "@sentry/react";
 
 interface AssetView {
   initialItems: (Item | PendingItem)[];
@@ -24,21 +25,30 @@ export const AssetView: React.FC<AssetView> = ({
     ...subscriptionItems,
   ]
     .sort((a, b) => a.timestamp - b.timestamp)
-    .reduce((accumulator, item) => {
+    .reduce<PayloadAndType[]>((accumulator, item) => {
       if (!item.payload) {
         return accumulator;
       }
-      const payload = JSON.parse(item.payload) as Payload;
-      const payloadAndType = { type: item.type, payload };
+
+      const payload = JSON.parse(item.payload);
+      const payloadAndType = buildPayloadAndType(item.type, payload);
+      if (!payloadAndType) {
+        Sentry.captureException(
+          new Error(
+            `Failed to parse payload with type=${item.type}, payload=${item.payload}`
+          )
+        );
+        return accumulator;
+      }
+
       return payload.embeddableUrl &&
-        payload.thumbnail &&
         !accumulator.some(
           (other) =>
             other.payload.embeddableUrl === payloadAndType.payload.embeddableUrl
         )
         ? [...accumulator, payloadAndType]
         : accumulator;
-    }, [] as PayloadAndType[]);
+    }, []);
 
   return (
     <div
@@ -49,9 +59,9 @@ export const AssetView: React.FC<AssetView> = ({
         position: relative;
       `}
     >
-      {payloadsMap.map(({ type, payload }) => (
+      {payloadsMap.map((payloadAndType) => (
         <div
-          key={payload.thumbnail}
+          key={payloadAndType.payload.embeddableUrl}
           css={css`
             margin: ${space[1]}px;
             border: 1px solid ${neutral[86]};
@@ -62,7 +72,7 @@ export const AssetView: React.FC<AssetView> = ({
             }
           `}
         >
-          <PayloadDisplay type={type} payload={payload} />
+          <PayloadDisplay payloadAndType={payloadAndType} />
         </div>
       ))}
     </div>

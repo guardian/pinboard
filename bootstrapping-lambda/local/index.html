@@ -76,11 +76,28 @@
     <h3><code>Add to 📌</code> button</h3>
     <ul id="button_section">
       <h4>present initially</h4>
+      <code>grid-original</code>
+      <asset-handle
+        data-source="grid"
+        data-source-type="original"
+        data-thumbnail="https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg"
+        data-embeddable-url="https://media.test.dev-gutools.co.uk/images/24733ea386c7fcb37496c55cc86e8f1468b9dfcf"
+      ></asset-handle>
+      <br />
+      <code>grid-crop</code>
       <asset-handle
         data-source="grid"
         data-source-type="crop"
         data-thumbnail="https://s3-eu-west-1.amazonaws.com/media-origin.test.dev-guim.co.uk/24733ea386c7fcb37496c55cc86e8f1468b9dfcf/817_0_1866_2333/400.jpg"
         data-embeddable-url="https://media.test.dev-gutools.co.uk/images/24733ea386c7fcb37496c55cc86e8f1468b9dfcf?crop=817_0_1866_2333"
+      ></asset-handle>
+      <br />
+      <code>grid-search</code>
+      <asset-handle
+        data-source="grid"
+        data-source-type="search"
+        data-api-url="https://api.media.test.dev-gutools.co.uk/images?q=flag%20%20~%22australia%22%20%23xyz%20country:%22United%20Kingdom%22&length=1&orderBy=-uploadTime"
+        data-embeddable-url="https://media.test.dev-gutools.co.uk/search?query=flag%20%20~%22australia%22%20%23xyz%20country:%22United%20Kingdom%22"
       ></asset-handle>
       <h4>presented after 1 second</h4>
       <!--

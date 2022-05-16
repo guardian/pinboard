@@ -160,3 +160,23 @@ export const gqlSeenItem = gql`
     }
   }
 `;
+
+const gridBadgeFields = `
+  text
+  color
+`;
+
+export const gqlGetGridSearchSummary = gql`
+  query MyQuery($apiUrl: String!) {
+    getGridSearchSummary(apiUrl: $apiUrl) {
+      total
+      thumbnails
+      queryBreakdown {
+        collections { ${gridBadgeFields} }
+        labels { ${gridBadgeFields} }
+        chips { ${gridBadgeFields} }
+        restOfSearch
+      }
+    }
+  }
+`;

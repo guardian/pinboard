@@ -24,6 +24,7 @@ import {
 import { GlobalStateProvider } from "./globalState";
 import { Floaty } from "./floaty";
 import { Panel } from "./panel";
+import { convertGridDragEventToPayload, isGridDragEvent } from "./drop";
 import { TickContext } from "./formattedDateTime";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
@@ -225,10 +226,31 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     return () => clearInterval(intervalHandle);
   }, []);
 
+  const [isDropTarget, setIsDropTarget] = useState<boolean>(false);
+
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-      <root.div>
+      <root.div
+        onDragOver={(event) => isGridDragEvent(event) && event.preventDefault()}
+        onDragEnter={(event) => {
+          if (isGridDragEvent(event)) {
+            event.preventDefault();
+            setIsDropTarget(true);
+          }
+        }}
+        onDragLeave={() => setIsDropTarget(false)}
+        onDragEnd={() => setIsDropTarget(false)}
+        onDragExit={() => setIsDropTarget(false)}
+        onDrop={(event) => {
+          if (isGridDragEvent(event)) {
+            event.preventDefault();
+            setPayloadToBeSent(convertGridDragEventToPayload(event));
+            setIsExpanded(true);
+          }
+          setIsDropTarget(false);
+        }}
+      >
         <GlobalStateProvider
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
@@ -247,8 +269,8 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           }
         >
           <TickContext.Provider value={lastTickTimestamp}>
-            <Floaty />
-            <Panel />
+            <Floaty isDropTarget={isDropTarget} />
+            <Panel isDropTarget={isDropTarget} />
           </TickContext.Provider>
         </GlobalStateProvider>
       </root.div>

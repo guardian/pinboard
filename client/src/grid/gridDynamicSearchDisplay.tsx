@@ -116,9 +116,18 @@ export const GridDynamicSearchDisplay = ({
       <span
         css={css`
           font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          line-height: 36px;
+          margin-bottom: 6px;
         `}
       >
         {getGridSearchSummaryQuery.loading && "loading..."}
+      </span>
+
+      <span
+        css={css`
+          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+        `}
+      >
         {!getGridSearchSummaryQuery.loading &&
           maybeGridSearchSummary &&
           `${maybeGridSearchSummary.total} images`}

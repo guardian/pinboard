@@ -143,10 +143,16 @@ export const CreateItemInputBox = ({
       boundariesElement={panelElement || undefined}
     />
     {payloadToBeSent && (
-      <PayloadDisplay
-        payloadAndType={payloadToBeSent}
-        clearPayloadToBeSent={clearPayloadToBeSent}
-      />
+      <div
+        css={css`
+          margin-left: ${space[1]}px;
+        `}
+      >
+        <PayloadDisplay
+          payloadAndType={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+        />
+      </div>
     )}
   </div>
 );

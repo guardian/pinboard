@@ -197,21 +197,7 @@ export const ItemDisplay = ({
           <FormattedDateTime timestamp={dateInMillisecs} />
         </div>
         <div>{formattedMessage}</div>
-        {payloadAndType && (
-          <div
-            css={css`
-              margin: ${space[1]}px 0;
-              border: 1px solid ${neutral[86]};
-              border-radius: ${space[1]}px;
-              max-width: fit-content;
-              &:hover {
-                background-color: ${neutral[86]};
-              }
-            `}
-          >
-            <PayloadDisplay payloadAndType={payloadAndType} />
-          </div>
-        )}
+        {payloadAndType && <PayloadDisplay payloadAndType={payloadAndType} />}
       </div>
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>

@@ -282,7 +282,7 @@ export const SelectPinboard: React.FC = () => {
           <div
             css={css`
               background-color: ${composer.primary["300"]};
-              padding: ${space[2]}px;
+              padding: ${space[1]}px ${space[2]}px;
               margin: ${space[1]}px;
               border-radius: ${space[1]}px;
               color: ${palette.neutral["100"]};

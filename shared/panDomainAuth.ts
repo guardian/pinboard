@@ -1,7 +1,6 @@
 import iniparser from "iniparser";
 import * as AWS from "aws-sdk";
-
-type Stage = "PROD" | "CODE" | "LOCAL";
+import { Stage } from "./types/stage";
 
 const STAGE = (process.env.STAGE as Stage) || "LOCAL";
 

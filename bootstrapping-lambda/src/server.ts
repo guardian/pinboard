@@ -15,6 +15,7 @@ import {
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import { Stage } from "../../shared/types/stage";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -98,6 +99,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
           sentryDSN: getEnvironmentVariableOrThrow("sentryDSN"),
           appSyncConfig,
           userEmail: maybeAuthedUserEmail,
+          stage: (process.env.STAGE as Stage) || "LOCAL",
         },
         mainJsFilename,
         request.hostname

@@ -19,6 +19,7 @@
     "@emotion/react": "^11.1.4",
     "@guardian/source-foundations": "^4.1.0",
     "@guardian/source-react-components": "^4.4.0",
+    "@guardian/user-telemetry-client": "^1.1.0",
     "@sentry/react": "^6.18.1",
     "@webscopeio/react-textarea-autocomplete": "4.9.1",
     "apollo-link-debounce": "^3.0.0",

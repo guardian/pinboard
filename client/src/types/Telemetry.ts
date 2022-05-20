@@ -12,6 +12,9 @@ export enum TelemetryType {
   DragDropCrop = "DRAG_AND_DROP_CROP",
   NotificationSubscription = "NOTIFICATION_SUBSCRIBED",
   NotificationUnsubscription = "NOTIFITION_UNSUBSCRIBED",
+  OpenOriginal = "ORIGINAL_LINK_OPENED",
+  OpenCrop = "CROP_LINK_OPENED",
+  OpenSearch = "SEARCH_LINK_OPENED",
 }
 
 export type SendTelemetryEvent =

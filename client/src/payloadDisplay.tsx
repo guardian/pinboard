@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { css } from "@emotion/react";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { neutral, palette, space } from "@guardian/source-foundations";
@@ -6,6 +6,7 @@ import { SvgCross } from "@guardian/source-react-components";
 import { buttonBackground } from "./styling";
 import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
+import { TelemetryContext, TelemetryType } from "./types/Telemetry";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -17,6 +18,7 @@ export const PayloadDisplay = ({
   clearPayloadToBeSent,
 }: PayloadDisplayProps) => {
   const { payload } = payloadAndType;
+  const sendTelemetryEvent = useContext(TelemetryContext);
   return (
     <div
       css={css`
@@ -52,6 +54,13 @@ export const PayloadDisplay = ({
         }}
         onClick={() => {
           window.open(payload.embeddableUrl, "_blank");
+          sendTelemetryEvent?.(
+            payloadAndType.type === "grid-search"
+              ? TelemetryType.OpenSearch
+              : payloadAndType.type === "grid-original"
+              ? TelemetryType.OpenOriginal
+              : TelemetryType.OpenCrop
+          );
         }}
       >
         {(payloadAndType.type === "grid-crop" ||

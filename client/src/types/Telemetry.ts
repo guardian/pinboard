@@ -4,6 +4,8 @@ import React from "react";
 export enum TelemetryType {
   FloatyExpanded = "PINBOARD_FLOATY_EXPANDED",
   FloatyClosed = "PINBOARD_FLOATY_CLOSED",
+  AddOriginalToPinboard = "ADD_ORIGINAL_TO_PINBOARD",
+  AddCropToPinboard = "ADD_CROP_TO_PINBOARD",
 }
 
 export type SendTelemetryEvent =

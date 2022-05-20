@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom";
-import React, { ReactPortal } from "react";
+import React, { ReactPortal, useContext } from "react";
 import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
 import { pinboard, pinMetal } from "../colours";
@@ -8,6 +8,7 @@ import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
+import { TelemetryContext, TelemetryType } from "./types/Telemetry";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -36,6 +37,8 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
     return null;
   }
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   return (
     <root.div
       css={css`
@@ -46,6 +49,11 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         onClick={() => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
+          sendTelemetryEvent?.(
+            payloadToBeSent.type === "grid-original"
+              ? TelemetryType.AddOriginalToPinboard
+              : TelemetryType.AddCropToPinboard
+          );
         }}
         css={css`
           display: flex;

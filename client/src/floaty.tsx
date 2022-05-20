@@ -73,7 +73,7 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   })();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
-  // ;
+
   return (
     <div
       css={css`

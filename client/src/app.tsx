@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
@@ -26,6 +26,7 @@ import { Floaty } from "./floaty";
 import { Panel } from "./panel";
 import { convertGridDragEventToPayload, isGridDragEvent } from "./drop";
 import { TickContext } from "./formattedDateTime";
+import { TelemetryContext, TelemetryType } from "./types/Telemetry";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -228,6 +229,8 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const [isDropTarget, setIsDropTarget] = useState<boolean>(false);
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   return (
     <ApolloProvider client={apolloClient}>
       <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
@@ -245,8 +248,16 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
         onDrop={(event) => {
           if (isGridDragEvent(event)) {
             event.preventDefault();
-            setPayloadToBeSent(convertGridDragEventToPayload(event));
+            const payload = convertGridDragEventToPayload(event);
+            setPayloadToBeSent(payload);
             setIsExpanded(true);
+            sendTelemetryEvent?.(
+              payload?.type === "grid-search"
+                ? TelemetryType.DragDropSearch
+                : payload?.type === "grid-original"
+                ? TelemetryType.DragDropOriginal
+                : TelemetryType.DragDropCrop
+            );
           }
           setIsDropTarget(false);
         }}

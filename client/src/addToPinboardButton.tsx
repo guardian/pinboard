@@ -50,9 +50,11 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
           sendTelemetryEvent?.(
-            payloadToBeSent.type === "grid-original"
-              ? TelemetryType.AddOriginalToPinboard
-              : TelemetryType.AddCropToPinboard
+            payloadToBeSent.type === "grid-search"
+              ? TelemetryType.AddSearchButton
+              : payloadToBeSent.type === "grid-original"
+              ? TelemetryType.AddOriginalButton
+              : TelemetryType.AddCropButton
           );
         }}
         css={css`

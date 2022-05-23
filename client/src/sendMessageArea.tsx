@@ -52,7 +52,7 @@ export const SendMessageArea = ({
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
         pinboardId: sendMessageResult.createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
-        hasMentions: verifiedMentionEmails.length > 0,
+        hasMentions: !!verifiedMentionEmails.length,
       });
       setMessage("");
       clearPayloadToBeSent();

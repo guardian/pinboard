@@ -1,4 +1,4 @@
-import type { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
+import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
 import React from "react";
 
 export enum PINBOARD_TELEMETRY_TYPE {
@@ -26,7 +26,10 @@ type PinboardNotificationSetting = "ON" | "OFF";
 
 export type SendTelemetryEvent =
   | undefined
-  | ((type: PINBOARD_TELEMETRY_TYPE, tags?: IPinboardEventTags) => void);
+  | ((
+      type: PINBOARD_TELEMETRY_TYPE,
+      tags?: IPinboardEventTags & IUserTelemetryEvent["tags"]
+    ) => void);
 
 export const TelemetryContext = React.createContext<
   SendTelemetryEvent | undefined

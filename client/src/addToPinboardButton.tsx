@@ -52,12 +52,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           sendTelemetryEvent?.(
             PINBOARD_TELEMETRY_TYPE.ADD_TO_PINBOARD_BUTTON_CLICKED,
             {
-              assetType:
-                payloadToBeSent.type === "grid-search"
-                  ? "grid-search"
-                  : payloadToBeSent.type === "grid-original"
-                  ? "grid-original"
-                  : "grid-crop",
+              assetType: payloadToBeSent.type,
             }
           );
         }}

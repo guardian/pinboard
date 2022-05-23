@@ -55,12 +55,7 @@ export const PayloadDisplay = ({
         onClick={() => {
           window.open(payload.embeddableUrl, "_blank");
           sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED, {
-            assetType:
-              payloadAndType?.type === "grid-search"
-                ? "grid-search"
-                : payloadAndType?.type === "grid-original"
-                ? "grid-original"
-                : "grid-crop",
+            assetType: payloadAndType?.type,
           });
         }}
       >

@@ -251,9 +251,10 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             const payload = convertGridDragEventToPayload(event);
             setPayloadToBeSent(payload);
             setIsExpanded(true);
-            sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP_GRID, {
-              assetType: payload?.type,
-            });
+            payload &&
+              sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP_GRID, {
+                assetType: payload.type,
+              });
           }
           setIsDropTarget(false);
         }}

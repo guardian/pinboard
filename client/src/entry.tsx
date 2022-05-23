@@ -18,7 +18,7 @@ import {
   IUserTelemetryEvent,
   UserTelemetryEventSender,
 } from "@guardian/user-telemetry-client";
-import { TelemetryContext } from "./types/Telemetry";
+import { TelemetryContext, IPinboardEventTags } from "./types/Telemetry";
 import { APP } from "../../shared/constants";
 
 const SENTRY_REROUTED_FLAG = "rerouted";
@@ -87,7 +87,7 @@ export function mount({
 
   const sendTelemetryEvent = (
     type: string,
-    tags?: IUserTelemetryEvent["tags"],
+    tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags,
     value: boolean | number = true
   ): void =>
     telemetryEventService.addEvent({

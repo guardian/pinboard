@@ -7,15 +7,18 @@ import { buttonBackground } from "./styling";
 import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { Tab } from "./types/Tab";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
   clearPayloadToBeSent?: () => void;
+  tab?: Tab;
 }
 
 export const PayloadDisplay = ({
   payloadAndType,
   clearPayloadToBeSent,
+  tab,
 }: PayloadDisplayProps) => {
   const { payload } = payloadAndType;
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -56,6 +59,7 @@ export const PayloadDisplay = ({
           window.open(payload.embeddableUrl, "_blank");
           sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED, {
             assetType: payloadAndType?.type,
+            tab: tab as Tab,
           });
         }}
       >

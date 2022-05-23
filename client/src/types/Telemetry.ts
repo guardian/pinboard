@@ -1,5 +1,6 @@
 import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
 import React from "react";
+import { Tab } from "./Tab";
 
 export enum PINBOARD_TELEMETRY_TYPE {
   FLOATY_EXPANDED = "FLOATY_EXPANDED",
@@ -11,13 +12,13 @@ export enum PINBOARD_TELEMETRY_TYPE {
   MESSAGE_SENT = "MESSAGE_SENT",
 }
 
-interface IPinboardEventTags {
+export interface IPinboardEventTags {
   pinboardId?: string;
-  documentUrl?: string;
   assetType?: GridAssetType;
   notification?: PinboardNotificationSetting;
   messageType?: GridAssetType | "message-only";
   hasMentions?: boolean;
+  tab?: Tab;
 }
 
 type GridAssetType = "grid-search" | "grid-crop" | "grid-original";
@@ -28,7 +29,7 @@ export type SendTelemetryEvent =
   | undefined
   | ((
       type: PINBOARD_TELEMETRY_TYPE,
-      tags?: IPinboardEventTags & IUserTelemetryEvent["tags"]
+      tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags
     ) => void);
 
 export const TelemetryContext = React.createContext<

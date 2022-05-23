@@ -72,7 +72,7 @@ export const AssetView: React.FC<AssetView> = ({
             }
           `}
         >
-          <PayloadDisplay payloadAndType={payloadAndType} />
+          <PayloadDisplay payloadAndType={payloadAndType} tab="asset" />
         </div>
       ))}
     </div>

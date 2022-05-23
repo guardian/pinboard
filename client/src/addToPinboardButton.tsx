@@ -8,7 +8,7 @@ import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
-import { TelemetryContext, TelemetryType } from "./types/Telemetry";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -50,11 +50,15 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
           sendTelemetryEvent?.(
-            payloadToBeSent.type === "grid-search"
-              ? TelemetryType.AddSearchButton
-              : payloadToBeSent.type === "grid-original"
-              ? TelemetryType.AddOriginalButton
-              : TelemetryType.AddCropButton
+            PINBOARD_TELEMETRY_TYPE.ADD_TO_PINBOARD_BUTTON_CLICKED,
+            {
+              assetType:
+                payloadToBeSent.type === "grid-search"
+                  ? "grid-search"
+                  : payloadToBeSent.type === "grid-original"
+                  ? "grid-original"
+                  : "grid-crop",
+            }
           );
         }}
         css={css`

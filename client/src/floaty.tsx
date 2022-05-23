@@ -8,7 +8,7 @@ import { bottom, boxShadow, floatySize, right } from "./styling";
 import { useGlobalStateContext } from "./globalState";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
-import { TelemetryContext, TelemetryType } from "./types/Telemetry";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -94,7 +94,9 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       onClick={() => {
         setIsExpanded(!isExpanded);
         sendTelemetryEvent?.(
-          isExpanded ? TelemetryType.FloatyClosed : TelemetryType.FloatyExpanded
+          isExpanded
+            ? PINBOARD_TELEMETRY_TYPE.FLOATY_CLOSED
+            : PINBOARD_TELEMETRY_TYPE.FLOATY_EXPANDED
         );
       }}
     >

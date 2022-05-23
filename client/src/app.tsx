@@ -26,7 +26,7 @@ import { Floaty } from "./floaty";
 import { Panel } from "./panel";
 import { convertGridDragEventToPayload, isGridDragEvent } from "./drop";
 import { TickContext } from "./formattedDateTime";
-import { TelemetryContext, TelemetryType } from "./types/Telemetry";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
@@ -251,13 +251,14 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             const payload = convertGridDragEventToPayload(event);
             setPayloadToBeSent(payload);
             setIsExpanded(true);
-            sendTelemetryEvent?.(
-              payload?.type === "grid-search"
-                ? TelemetryType.DragDropSearch
-                : payload?.type === "grid-original"
-                ? TelemetryType.DragDropOriginal
-                : TelemetryType.DragDropCrop
-            );
+            sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP_GRID, {
+              assetType:
+                payload?.type === "grid-search"
+                  ? "grid-search"
+                  : payload?.type === "grid-original"
+                  ? "grid-original"
+                  : "grid-crop",
+            });
           }
           setIsDropTarget(false);
         }}

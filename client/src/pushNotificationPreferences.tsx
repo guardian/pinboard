@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { agateSans } from "../fontNormaliser";
-import { TelemetryContext, TelemetryType } from "./types/Telemetry";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 interface PushNotificationPreferencesOpenerProps {
   hasWebPushSubscription: boolean | null | undefined;
 }
@@ -22,11 +22,9 @@ export const PushNotificationPreferencesOpener = ({
   const openDesktopNotificationsPreferencesWindow = () => {
     window.open(desktopNotificationsPreferencesUrl, "_blank") ||
       alert("Could not open Desktop Notifications preferences window");
-    sendTelemetryEvent?.(
-      hasWebPushSubscription
-        ? TelemetryType.NotificationUnsubscription
-        : TelemetryType.NotificationSubscription
-    );
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.NOTIFICATION_SETTING_CHANGED, {
+      notification: hasWebPushSubscription ? "OFF" : "ON",
+    });
   };
 
   const toggleButtonPrefix = hasWebPushSubscription

@@ -6,7 +6,7 @@ import { SvgCross } from "@guardian/source-react-components";
 import { buttonBackground } from "./styling";
 import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
-import { TelemetryContext, TelemetryType } from "./types/Telemetry";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -54,13 +54,14 @@ export const PayloadDisplay = ({
         }}
         onClick={() => {
           window.open(payload.embeddableUrl, "_blank");
-          sendTelemetryEvent?.(
-            payloadAndType.type === "grid-search"
-              ? TelemetryType.OpenSearch
-              : payloadAndType.type === "grid-original"
-              ? TelemetryType.OpenOriginal
-              : TelemetryType.OpenCrop
-          );
+          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED, {
+            assetType:
+              payloadAndType?.type === "grid-search"
+                ? "grid-search"
+                : payloadAndType?.type === "grid-original"
+                ? "grid-original"
+                : "grid-crop",
+          });
         }}
       >
         {(payloadAndType.type === "grid-crop" ||

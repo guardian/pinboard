@@ -8,6 +8,7 @@ export enum PINBOARD_TELEMETRY_TYPE {
   DRAG_AND_DROP_GRID = "DRAG_AND_DROP_GRID",
   GRID_ASSET_OPENED = "GRID_ASSET_OPENED",
   NOTIFICATION_SETTING_CHANGED = "NOTIFICATION_SETTING_CHANGED",
+  MESSAGE_SENT = "MESSAGE_SENT",
 }
 
 interface IPinboardEventTags {
@@ -15,6 +16,8 @@ interface IPinboardEventTags {
   documentUrl?: string;
   assetType?: GridAssetType;
   notification?: PinboardNotificationSetting;
+  messageType?: GridAssetType | "message-only";
+  hasMentions?: boolean;
 }
 
 type GridAssetType = "grid-search" | "grid-crop" | "grid-original";

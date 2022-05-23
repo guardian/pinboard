@@ -248,6 +248,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
         onDrop={(event) => {
           if (isGridDragEvent(event)) {
             event.preventDefault();
+            setPayloadToBeSent(convertGridDragEventToPayload(event));
             const payload = convertGridDragEventToPayload(event);
             setPayloadToBeSent(payload);
             setIsExpanded(true);

@@ -124,7 +124,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
     }).observe(document.body, {
-      attributes: false, // to come back to - performance implications
+      attributes: false,
       characterData: false,
       childList: true,
       subtree: true,

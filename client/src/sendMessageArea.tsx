@@ -43,6 +43,16 @@ export const SendMessageArea = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
+  const detectGridUrl = (message: string) => {
+    const gridUrlRegex = /https:\/\/media.gutools.co.uk/;
+    return !!message.match(gridUrlRegex);
+  };
+
+  const detectComposerUrl = (message: string) => {
+    const gridUrlRegex = /https:\/\/composer.gutools.co.uk/;
+    return !!message.match(gridUrlRegex);
+  };
+
   const [sendItem] = useMutation<{ createItem: Item }>(gqlCreateItem, {
     onCompleted: (sendMessageResult) => {
       onSuccessfulSend({
@@ -53,6 +63,8 @@ export const SendMessageArea = ({
         pinboardId: sendMessageResult.createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
         hasMentions: !!verifiedMentionEmails.length,
+        isGridLink: detectGridUrl(message),
+        isComposerLink: detectComposerUrl(message),
       });
       setMessage("");
       clearPayloadToBeSent();

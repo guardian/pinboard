@@ -89,15 +89,21 @@ export function mount({
     type: string,
     tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags,
     value: boolean | number = true
-  ): void =>
-    telemetryEventService.addEvent({
+  ): void => {
+    const event = {
       app: APP,
       stage: stage,
       eventTime: new Date().toISOString(),
       type,
       value,
-      tags,
-    });
+      tags: {
+        ...tags,
+        platform: window.location.hostname, // e.g. composer.gutools.co.uk
+      },
+    };
+    console.log("telemetry", event); // to delete later
+    telemetryEventService.addEvent(event);
+  };
 
   const apolloUrlInfo: UrlInfo = {
     url: appSyncConfig.graphqlEndpoint,

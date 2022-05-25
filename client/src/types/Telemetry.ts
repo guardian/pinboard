@@ -10,6 +10,8 @@ export enum PINBOARD_TELEMETRY_TYPE {
   GRID_ASSET_OPENED = "GRID_ASSET_OPENED",
   NOTIFICATION_SETTING_CHANGED = "NOTIFICATION_SETTING_CHANGED",
   MESSAGE_SENT = "MESSAGE_SENT",
+  GRID_URL_PASTED = "GRID_URL_PASTED",
+  PINBOARD_LOADED_IN_ARTICLE = "PINBOARD_LOADED_IN_ARTICLE",
 }
 
 export interface IPinboardEventTags {
@@ -19,6 +21,8 @@ export interface IPinboardEventTags {
   messageType?: GridAssetType | "message-only";
   hasMentions?: boolean;
   tab?: Tab;
+  composerId?: string;
+  composerSection?: string;
 }
 
 type GridAssetType = "grid-search" | "grid-crop" | "grid-original";
@@ -29,7 +33,8 @@ export type SendTelemetryEvent =
   | undefined
   | ((
       type: PINBOARD_TELEMETRY_TYPE,
-      tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags
+      tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags,
+      value?: boolean | number
     ) => void);
 
 export const TelemetryContext = React.createContext<

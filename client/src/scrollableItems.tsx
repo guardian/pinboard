@@ -140,7 +140,7 @@ export const ScrollableItems = ({
     }
   );
 
-  const sendTelemetryEvent = useContext(TelemetryContext);
+  // const sendTelemetryEvent = useContext(TelemetryContext);
 
   const seenLastItem = () => {
     // don't keep sending mutations if everyone already knows we've seen it
@@ -153,9 +153,9 @@ export const ScrollableItems = ({
           },
         },
       });
-      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.SEEN_BY_EVENT, {
-        pinboardId,
-      });
+      // sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.SEEN_BY_EVENT, {
+      //   pinboardId,
+      // }); // currently the seen-by event is triggered multiple times, possibly due to the multiple useEffects below...to be fixed
     }
   };
 

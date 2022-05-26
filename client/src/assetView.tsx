@@ -60,20 +60,10 @@ export const AssetView: React.FC<AssetView> = ({
       `}
     >
       {payloadsMap.map((payloadAndType) => (
-        <div
+        <PayloadDisplay
           key={payloadAndType.payload.embeddableUrl}
-          css={css`
-            margin: ${space[1]}px;
-            border: 1px solid ${neutral[86]};
-            border-radius: ${space[1]}px;
-            max-width: fit-content;
-            &:hover {
-              background-color: ${neutral[86]};
-            }
-          `}
-        >
-          <PayloadDisplay payloadAndType={payloadAndType} />
-        </div>
+          payloadAndType={payloadAndType}
+        />
       ))}
     </div>
   );

@@ -15,7 +15,7 @@
     "test": "jest 2>&1"
   },
   "dependencies": {
-    "@apollo/client": "^3.5.5",
+    "@apollo/client": "^3.6.5",
     "@emotion/react": "^11.1.4",
     "@guardian/source-foundations": "^4.1.0",
     "@guardian/source-react-components": "^4.4.0",

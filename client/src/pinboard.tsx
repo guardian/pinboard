@@ -73,7 +73,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
 
-  const initialItems = useQuery(gqlGetInitialItems(pinboardId));
+  const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId));
 
   const initialLastItemSeenByUsers = useQuery(
     gqlGetLastItemSeenByUsers(pinboardId)
@@ -131,8 +131,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
   );
 
   useEffect(
-    () => setError(pinboardId, initialItems.error || itemSubscription.error),
-    [initialItems.error, itemSubscription.error]
+    () =>
+      setError(pinboardId, initialItemsQuery.error || itemSubscription.error),
+    [initialItemsQuery.error, itemSubscription.error]
   );
   const hasError = !!errors[pinboardId];
 
@@ -150,7 +151,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   return !isSelected ? null : (
     <React.Fragment>
-      {initialItems.loading && "Loading..."}
+      {initialItemsQuery.loading && "Loading..."}
       {hasError && (
         <div
           css={css`
@@ -215,10 +216,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
           flex-grow: 1;
         `}
       />
-      {activeTab === "chat" && initialItems.data && (
+      {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}
-          initialItems={initialItems.data.listItems.items}
+          initialItems={initialItemsQuery.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
           setUnreadFlag={setUnreadFlag(pinboardId)}
@@ -229,9 +230,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
           lastItemSeenByUserLookup={lastItemSeenByUserLookup}
         />
       )}
-      {activeTab === "asset" && initialItems.data && (
+      {activeTab === "asset" && initialItemsQuery.data && (
         <AssetView
-          initialItems={initialItems.data.listItems.items}
+          initialItems={initialItemsQuery.data.listItems.items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
         />

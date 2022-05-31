@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import { neutral, palette, space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 import React from "react";
 import { scrollbarsCss } from "./styling";
 import type { Item } from "../../shared/graphql/graphql";

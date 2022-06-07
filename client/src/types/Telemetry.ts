@@ -10,9 +10,9 @@ export enum PINBOARD_TELEMETRY_TYPE {
   GRID_ASSET_OPENED = "GRID_ASSET_OPENED",
   NOTIFICATION_SETTING_CHANGED = "NOTIFICATION_SETTING_CHANGED",
   MESSAGE_SENT = "MESSAGE_SENT",
-  GRID_URL_PASTED = "GRID_URL_PASTED",
   PINBOARD_LOADED = "PINBOARD_LOADED",
   SEEN_BY_EVENT = "PINBOARD_MESSAGE_SEEN",
+  DRAG_FROM_PINBOARD = "DRAG_FROM_PINBOARD",
 }
 
 export interface IPinboardEventTags {
@@ -25,7 +25,6 @@ export interface IPinboardEventTags {
   composerId?: string;
   composerSection?: string;
   isGridLink?: boolean;
-  isComposerLink?: boolean;
 }
 
 type GridAssetType = "grid-search" | "grid-crop" | "grid-original";

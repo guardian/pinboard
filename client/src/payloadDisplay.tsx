@@ -54,6 +54,10 @@ export const PayloadDisplay = ({
             "application/vnd.mediaservice.kahuna.image",
             "true"
           );
+          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_FROM_PINBOARD, {
+            assetType: payloadAndType?.type,
+            tab: tab as Tab,
+          });
         }}
         onClick={() => {
           window.open(payload.embeddableUrl, "_blank");

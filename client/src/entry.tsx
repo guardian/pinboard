@@ -145,6 +145,19 @@ export function mount({
       createSubscriptionHandshakeLink(apolloUrlInfo),
     ]),
     cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: "cache-and-network",
+        errorPolicy: "ignore",
+      },
+      query: {
+        fetchPolicy: "network-only",
+        errorPolicy: "all",
+      },
+      mutate: {
+        errorPolicy: "all",
+      },
+    },
   });
 
   const element = document.createElement("pinboard");

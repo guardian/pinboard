@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   bottom,
   boxShadow,
@@ -14,6 +14,7 @@ import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
+import { ChatTab } from "./types/Tab";
 
 export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -40,6 +41,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     }
     return "Select a pinboard";
   })();
+
+  useEffect(() => {
+    setActiveTab(ChatTab);
+  }, [selectedPinboardId]);
 
   return (
     <div

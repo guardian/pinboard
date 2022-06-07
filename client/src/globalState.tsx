@@ -112,6 +112,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
+  useEffect(() => {
+    payloadToBeSent && setActiveTab(ChatTab);
+  }, [payloadToBeSent]);
+
   const [getPreselectedPinboard, preselectedPinboardQuery] = useLazyQuery(
     gqlGetPinboardByComposerId
   );

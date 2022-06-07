@@ -266,9 +266,15 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   };
 
   useEffect(() => {
-    if (preSelectedComposerId && composerSection) {
-      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.PINBOARD_LOADED_IN_ARTICLE);
-    }
+    sendTelemetryEvent?.(
+      PINBOARD_TELEMETRY_TYPE.PINBOARD_LOADED,
+      preSelectedComposerId && composerSection
+        ? {
+            composerId: preSelectedComposerId,
+            composerSection: composerSection,
+          }
+        : {}
+    );
   }, [preSelectedComposerId, composerSection]);
 
   return (

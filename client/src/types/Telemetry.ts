@@ -5,8 +5,9 @@ import { Tab } from "./Tab";
 export enum PINBOARD_TELEMETRY_TYPE {
   FLOATY_EXPANDED = "FLOATY_EXPANDED",
   FLOATY_CLOSED = "FLOATY_CLOSED",
-  ADD_TO_PINBOARD_BUTTON_CLICKED = "ADD_TO_PINBOARD_BUTTON_CLICKED",
-  DRAG_AND_DROP_GRID = "DRAG_AND_DROP_GRID",
+  ADD_TO_PINBOARD_BUTTON = "ADD_TO_PINBOARD_BUTTON",
+  GRID_LINK_PASTED = "GRID_LINK_PASTED",
+  DRAG_AND_DROP = "DRAG_AND_DROP",
   GRID_ASSET_OPENED = "GRID_ASSET_OPENED",
   NOTIFICATION_SETTING_CHANGED = "NOTIFICATION_SETTING_CHANGED",
   MESSAGE_SENT = "MESSAGE_SENT",
@@ -24,7 +25,6 @@ export interface IPinboardEventTags {
   tab?: Tab;
   composerId?: string;
   composerSection?: string;
-  isGridLink?: boolean;
 }
 
 type GridAssetType = "grid-search" | "grid-crop" | "grid-original";

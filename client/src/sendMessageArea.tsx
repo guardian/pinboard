@@ -43,7 +43,7 @@ export const SendMessageArea = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
-  const detectGridUrl = (message: string) => {
+  const hasGridUrl = (message: string) => {
     const gridUrlRegex = /https:\/\/media.gutools.co.uk/;
     return !!message.match(gridUrlRegex);
   };
@@ -54,11 +54,13 @@ export const SendMessageArea = ({
         ...sendMessageResult.createItem,
         pending: true,
       });
+      if (hasGridUrl(message)) {
+        sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_LINK_PASTED);
+      }
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
         pinboardId: sendMessageResult.createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
         hasMentions: !!verifiedMentionEmails.length,
-        isGridLink: detectGridUrl(message),
       });
       setMessage("");
       clearPayloadToBeSent();

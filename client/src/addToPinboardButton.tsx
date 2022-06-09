@@ -49,12 +49,9 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         onClick={() => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
-          sendTelemetryEvent?.(
-            PINBOARD_TELEMETRY_TYPE.ADD_TO_PINBOARD_BUTTON_CLICKED,
-            {
-              assetType: payloadToBeSent.type,
-            }
-          );
+          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.ADD_TO_PINBOARD_BUTTON, {
+            assetType: payloadToBeSent.type,
+          });
         }}
         css={css`
           display: flex;

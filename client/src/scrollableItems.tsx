@@ -153,7 +153,7 @@ export const ScrollableItems = ({
           },
         },
       });
-      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.SEEN_BY_EVENT, {
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SEEN, {
         pinboardId,
       });
     }

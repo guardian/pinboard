@@ -99,10 +99,8 @@ export function mount({
       tags: {
         ...tags,
         platform: window.location.hostname, // e.g. composer.gutools.co.uk
-        userEmail,
       },
     };
-    console.log("telemetry", event); // to delete later
     telemetryEventService.addEvent(event);
   };
 

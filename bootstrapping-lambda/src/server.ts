@@ -3,7 +3,7 @@ import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
-import { standardAwsConfig } from "../../shared/awsIntegration";
+import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
 import { userHasPermission } from "./permissionCheck";
 import * as AWS from "aws-sdk";
 import fs from "fs";
@@ -11,10 +11,12 @@ import {
   applyAggressiveCaching,
   applyNoCaching,
   applyJavascriptContentType,
+  hashWithSalt,
 } from "./util";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
+import { pbkdf2 } from "crypto";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -91,6 +93,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
     response.send(`console.error('${message}')`);
   } else if (await userHasPermission(maybeAuthedUserEmail)) {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+    const userHash = await hashWithSalt(maybeAuthedUserEmail);
 
     response.send(
       loaderTemplate(
@@ -98,6 +101,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
           sentryDSN: getEnvironmentVariableOrThrow("sentryDSN"),
           appSyncConfig,
           userEmail: maybeAuthedUserEmail,
+          privateUserId: userHash,
         },
         mainJsFilename,
         request.hostname

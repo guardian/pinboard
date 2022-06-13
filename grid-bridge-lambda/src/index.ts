@@ -22,12 +22,14 @@ export const handler = async (event: { arguments?: { apiUrl?: string } }) => {
   }
 };
 
+const apiKey = pinboardSecretPromiseGetter(
+  `grid/${STAGE === "PROD" ? "PROD" : "CODE"}/apiKey`
+);
+
 const gridFetch = async (url: string): Promise<unknown> => {
   const response = await fetch(url, {
     headers: {
-      "X-Gu-Media-Key": await pinboardSecretPromiseGetter(
-        `grid/${STAGE === "PROD" ? "PROD" : "CODE"}/apiKey`
-      ),
+      "X-Gu-Media-Key": await apiKey,
     },
   });
 

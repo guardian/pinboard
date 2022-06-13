@@ -2580,6 +2580,223 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "pinboardusersaltrotationlambda091981A2": Object {
+      "DependsOn": Array [
+        "pinboardusersaltrotationlambdaServiceRoleDefaultPolicyCF0643B8",
+        "pinboardusersaltrotationlambdaServiceRole021E884B",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-user-salt-rotation-lambda/pinboard-user-salt-rotation-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+            "USERS_TABLE_NAME": Object {
+              "Ref": "pinboardusertable2621B03F",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-user-salt-rotation-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersaltrotationlambdaServiceRole021E884B",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboardusersaltrotationlambdaServiceRole021E884B": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardusersaltrotationlambdaServiceRoleDefaultPolicyCF0643B8": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:PutParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/pinboard/user-salt/",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardusersaltrotationlambdaServiceRoleDefaultPolicyCF0643B8",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardusersaltrotationlambdaServiceRole021E884B",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardusersaltrotationlambdascheduleFULLRUN664F7974": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Runs the ",
+              Object {
+                "Ref": "pinboardusersaltrotationlambda091981A2",
+              },
+              " every 7 days.",
+            ],
+          ],
+        },
+        "ScheduleExpression": "cron(58 23 ? * 1 *)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "pinboardusersaltrotationlambda091981A2",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "pinboardusersaltrotationlambdascheduleFULLRUNAllowEventRulePinBoardStackpinboardusersaltrotationlambdaE4F1E5A50E9FE322": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersaltrotationlambda091981A2",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardusersaltrotationlambdascheduleFULLRUN664F7974",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "pinboardusersrefresherlambda2D488032": Object {
       "DependsOn": Array [
         "pinboardusersrefresherlambdaServiceRoleDefaultPolicy0F8B88A3",

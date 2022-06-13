@@ -42,6 +42,10 @@ This components presents a rudimentary list of available pinboards (with basic c
 
 This has both an initial 'query' to retrieve the existing items and a 'subscription' to keep this live, as well as some state for the sends the user makes, all of which are aggregated/de-duplicated and passed to `ScrollableItems` (which repeats the `ItemDisplay` component for each item). It also brings in the `SendMessageArea` component, which is responsible for the 'mutation' to create items.
 
+## `user-salt-rotation-lambda`
+
+A lambda to regularly rotate the salt used to anonymise user identities in telemetry.
+
 ## `users-refresher-lambda`
 
 This lambda runs on a schedule (currently every 6 hours) and looks up which users have Pinboard permission and looks up their details using the Google People API (with a separate call to get their `avatarUrl` where available) it stores all these into the User table (with a TTL field, which the table is configured to discard expired rows automatically, to handle people who leave the organisation etc.). This User table is fetched in its entirety when the pinboard client loads, to serve various purposes, such as populating the list of people available to 'mention', as well as acting as a lookup for resolving people's names and avatars in the display of each item (meaning we only need to store `userEmail` against each row in the Item table, rather than repeating all that metadata for every single message).

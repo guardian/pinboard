@@ -1,0 +1,12 @@
+{
+  "name": "user-salt-rotation-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to rotate user salt used in anonymising user identities",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
+    "build": "run-p --print-label type-check bundle"
+  },
+  "dependencies": {}
+}

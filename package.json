@@ -10,6 +10,7 @@
     "client",
     "grid-bridge-lambda",
     "notifications-lambda",
+    "user-salt-rotation-lambda",
     "users-refresher-lambda",
     "workflow-bridge-lambda"
   ],

@@ -78,6 +78,14 @@ export class PinBoardStack extends Stack {
       resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
     });
 
+    const userSaltSetPolicyStatement = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ssm:PutParameter"],
+      resources: [
+        `arn:aws:ssm:${region}:${account}:parameter/${APP}/user-salt/${STAGE}`,
+      ],
+    });
+
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const vpcId = Fn.importValue(
@@ -733,5 +741,50 @@ export class PinBoardStack extends Stack {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
     });
+
+    const userSaltRotationLambdaBasename = "pinboard-user-salt-rotation-lambda";
+
+    const userSaltRotationLambdaFunction = new lambda.Function(
+      thisStack,
+      userSaltRotationLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.minutes(2),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
+            pinboardAppsyncUserTable.tableName,
+        },
+        functionName: `${userSaltRotationLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${userSaltRotationLambdaBasename}/${userSaltRotationLambdaBasename}.zip`
+        ),
+        initialPolicy: [userSaltSetPolicyStatement],
+      }
+    );
+
+    new events.Rule(
+      thisStack,
+      `${userSaltRotationLambdaBasename}-schedule-FULL-RUN`,
+      {
+        description: `Runs the ${userSaltRotationLambdaFunction.functionName} every 7 days.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(userSaltRotationLambdaFunction),
+        ],
+        // 23:58 UTC every monday -- slightly before midnight UTC to rotate the salt before the
+        // bootstrapping-lambda invalidates its memo at midnight UTC
+        schedule: events.Schedule.cron({
+          weekDay: "1",
+          hour: "23",
+          minute: "58",
+        }),
+      }
+    );
   }
 }

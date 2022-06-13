@@ -36,6 +36,11 @@
       "action": "pinboard-auth-lambda",
       "path": "auth-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-user-salt-rotation-lambda",
+      "path": "user-salt-rotation-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

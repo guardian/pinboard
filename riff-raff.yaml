@@ -20,6 +20,7 @@ deployments:
       - pinboard-users-refresher-lambda
       - pinboard-notifications-lambda
       - pinboard-auth-lambda
+      - pinboard-user-salt-rotation-lambda
     type: aws-lambda
     parameters:
       prefixStack: false
@@ -76,3 +77,13 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-auth-lambda.zip
       functionNames: [pinboard-auth-lambda-]
+
+  pinboard-user-salt-rotation-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-user-salt-rotation-lambda.zip
+      functionNames: [pinboard-user-salt-rotation-lambda-]

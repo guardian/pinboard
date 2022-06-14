@@ -2447,6 +2447,13 @@
   resolved "https://registry.yarnpkg.com/@guardian/source-react-components/-/source-react-components-4.4.0.tgz#69cf404b56db3ca507702d29dae6a40eeb145cf4"
   integrity sha512-5Q4Vl8ek0UV0Y9ob5y3Smq5xHs1d3lEzLynv5qqlYqVBlhze5Ypg5IzrPcEpKtcUaCIQeI9d5FevHM9fmm18sQ==
 
+"@guardian/user-telemetry-client@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@guardian/user-telemetry-client/-/user-telemetry-client-1.1.0.tgz#5805837fa5d6f53db492b7bca6090f534ead7c1c"
+  integrity sha512-3jb0rN/+i2jcvqmDuSs4aSiaVVBuXg3rqjWyT2PSpW+o19zjSUgLzFAZCtZUt95ORuzIKfT4Xqr3c2PvuW8cmw==
+  dependencies:
+    lodash "^4.17.20"
+
 "@iarna/toml@^2.2.5":
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/@iarna/toml/-/toml-2.2.5.tgz#b32366c89b43c6f8cefbdefac778b9c828e3ba8c"

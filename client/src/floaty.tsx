@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { css } from "@emotion/react";
 import { pinMetal, pinboard, composer } from "../colours";
 import PinIcon from "../icons/pin-icon.svg";
@@ -8,6 +8,7 @@ import { bottom, boxShadow, floatySize, right } from "./styling";
 import { useGlobalStateContext } from "./globalState";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
+import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -71,6 +72,8 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     }
   })();
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   return (
     <div
       css={css`
@@ -88,7 +91,14 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           background-color: ${pinboard[800]};
         }
       `}
-      onClick={() => setIsExpanded(!isExpanded)}
+      onClick={() => {
+        setIsExpanded(!isExpanded);
+        sendTelemetryEvent?.(
+          isExpanded
+            ? PINBOARD_TELEMETRY_TYPE.FLOATY_CLOSED
+            : PINBOARD_TELEMETRY_TYPE.FLOATY_EXPANDED
+        );
+      }}
     >
       {isDropTarget && <div css={{ ...dropTargetCss, borderRadius: "50%" }} />}
       <PinIcon

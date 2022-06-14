@@ -63,6 +63,7 @@ export const AssetView: React.FC<AssetView> = ({
         <PayloadDisplay
           key={payloadAndType.payload.embeddableUrl}
           payloadAndType={payloadAndType}
+          tab="asset"
         />
       ))}
     </div>

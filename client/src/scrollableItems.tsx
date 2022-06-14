@@ -1,6 +1,7 @@
 import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, {
   ReactElement,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -15,6 +16,7 @@ import { gqlSeenItem } from "../gql";
 import { LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -138,6 +140,8 @@ export const ScrollableItems = ({
     }
   );
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   const seenLastItem = () => {
     // don't keep sending mutations if everyone already knows we've seen it
     if (lastItemID !== lastItemSeenByUserLookup[userEmail]?.itemID) {
@@ -148,6 +152,9 @@ export const ScrollableItems = ({
             itemID: lastItemID,
           },
         },
+      });
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SEEN, {
+        pinboardId,
       });
     }
   };

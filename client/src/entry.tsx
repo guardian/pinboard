@@ -14,6 +14,12 @@ import { onError } from "@apollo/client/link/error";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { BUILD_NUMBER } from "../../BUILD_NUMBER";
 import DebounceLink from "apollo-link-debounce";
+import {
+  IUserTelemetryEvent,
+  UserTelemetryEventSender,
+} from "@guardian/user-telemetry-client";
+import { TelemetryContext, IPinboardEventTags } from "./types/Telemetry";
+import { APP } from "../../shared/constants";
 
 const SENTRY_REROUTED_FLAG = "rerouted";
 
@@ -23,6 +29,7 @@ export function mount({
   userEmail,
   appSyncConfig,
   sentryDSN,
+  stage,
 }: ClientConfig): void {
   const sentryUser = {
     email: userEmail,
@@ -70,6 +77,32 @@ export function mount({
     }
     return event;
   });
+
+  const telemetryDomain =
+    stage === "PROD" ? "gutools.co.uk" : "code.dev-gutools.co.uk";
+
+  const telemetryEventService = new UserTelemetryEventSender(
+    `https://user-telemetry.${telemetryDomain}`
+  );
+
+  const sendTelemetryEvent = (
+    type: string,
+    tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags,
+    value: boolean | number = true
+  ): void => {
+    const event = {
+      app: APP,
+      stage: stage,
+      eventTime: new Date().toISOString(),
+      type,
+      value,
+      tags: {
+        ...tags,
+        platform: window.location.hostname, // e.g. composer.gutools.co.uk
+      },
+    };
+    telemetryEventService.addEvent(event);
+  };
 
   const apolloUrlInfo: UrlInfo = {
     url: appSyncConfig.graphqlEndpoint,
@@ -130,7 +163,9 @@ export function mount({
   document.body.appendChild(element);
 
   render(
-    <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />,
+    <TelemetryContext.Provider value={sendTelemetryEvent}>
+      <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />
+    </TelemetryContext.Provider>,
     element
   );
 

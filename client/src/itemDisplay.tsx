@@ -197,7 +197,9 @@ export const ItemDisplay = ({
           <FormattedDateTime timestamp={dateInMillisecs} />
         </div>
         <div>{formattedMessage}</div>
-        {payloadAndType && <PayloadDisplay payloadAndType={payloadAndType} />}
+        {payloadAndType && (
+          <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
+        )}
       </div>
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>

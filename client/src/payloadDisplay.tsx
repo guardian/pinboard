@@ -56,7 +56,7 @@ export const PayloadDisplay = ({
           );
           sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_FROM_PINBOARD, {
             assetType: payloadAndType?.type,
-            tab: tab as Tab,
+            ...(tab && { tab }),
           });
         }}
         onClick={() => {

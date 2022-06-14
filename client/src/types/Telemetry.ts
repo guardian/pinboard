@@ -1,5 +1,6 @@
 import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
 import React from "react";
+import { PayloadType } from "./PayloadAndType";
 import { Tab } from "./Tab";
 
 export enum PINBOARD_TELEMETRY_TYPE {
@@ -18,16 +19,14 @@ export enum PINBOARD_TELEMETRY_TYPE {
 
 export interface IPinboardEventTags {
   pinboardId?: string;
-  assetType?: GridAssetType;
+  assetType?: PayloadType;
   notification?: PinboardNotificationSetting;
-  messageType?: GridAssetType | "message-only";
+  messageType?: PayloadType | "message-only";
   hasMentions?: boolean;
   tab?: Tab;
   composerId?: string;
   composerSection?: string;
 }
-
-type GridAssetType = "grid-search" | "grid-crop" | "grid-original";
 
 type PinboardNotificationSetting = "ON" | "OFF";
 

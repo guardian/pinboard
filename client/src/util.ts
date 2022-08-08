@@ -53,3 +53,16 @@ export const formatDateTime = (
     return format(timestamp, "d MMM yyyy HH:mm");
   }
 };
+
+export const useDebounce = (func: () => void, milliseconds: number) => {
+  const time = milliseconds || 250;
+  let timer: number;
+
+  return (event: Event) => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = setTimeout(func, time, event);
+  };
+};

@@ -22,6 +22,11 @@ import type { PinboardData } from "../../shared/graphql/extraTypes";
 import { isPinboardData } from "../../shared/graphql/extraTypes";
 import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
+import { ControlPosition } from "react-draggable";
+import { bottom, floatySize, right } from "./styling";
+import { useDebounce } from "./util";
+
+const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
 interface GlobalStateContextShape {
   userEmail: string;
@@ -65,6 +70,11 @@ interface GlobalStateContextShape {
   hasUnreadOnOtherPinboard: (pinboardId: string) => boolean;
 
   presetUnreadNotificationCount: number | undefined;
+
+  explicitPositionTranslation: ControlPosition;
+  setExplicitPositionTranslation: (newPosition: ControlPosition) => void;
+  boundedPositionTranslation: ControlPosition;
+  updateBoundedPositionTranslation: (newPosition: ControlPosition) => void;
 }
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
   null
@@ -331,6 +341,77 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     });
   }, []);
 
+  const calculateBoundedPositionTranslation = (
+    positionTranslation: ControlPosition
+  ) => {
+    const isTooFarRight = positionTranslation.x > 0;
+    const isTooLow = positionTranslation.y > 0;
+
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+
+    const isTooFarLeft = viewportWidth + positionTranslation.x < floatySize;
+    const isTooHigh = viewportHeight + positionTranslation.y < floatySize;
+    return {
+      x: isTooFarLeft
+        ? 10 + floatySize - viewportWidth
+        : isTooFarRight
+        ? -10
+        : positionTranslation.x,
+      y: isTooHigh
+        ? 10 + floatySize - viewportHeight
+        : isTooLow
+        ? -10
+        : positionTranslation.y,
+    };
+  };
+
+  const [
+    explicitPositionTranslation,
+    setExplicitPositionTranslationState,
+  ] = useState<ControlPosition>({ x: 0, y: 0 });
+  const setExplicitPositionTranslation = (newPosition: ControlPosition) => {
+    setExplicitPositionTranslationState(newPosition);
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY_EXPLICIT_POSITION,
+      JSON.stringify(newPosition)
+    );
+  };
+
+  const [
+    boundedPositionTranslation,
+    setBoundedPositionTranslation,
+  ] = useState<ControlPosition>({ x: 0, y: 0 });
+  // position translation must be passed in rather than using explicitPositionTranslation to avoid a rerender briefly in the old position
+  const updateBoundedPositionTranslation = (
+    positionTranslation: ControlPosition
+  ) =>
+    setBoundedPositionTranslation(
+      calculateBoundedPositionTranslation(positionTranslation)
+    );
+
+  const [lastResized, setLastResized] = useState<number>(0);
+
+  useEffect(() => {
+    updateBoundedPositionTranslation(explicitPositionTranslation);
+  }, [lastResized]);
+
+  const resizeCompleteHandler = useDebounce(
+    () => setLastResized(Date.now()),
+    250
+  );
+
+  useEffect(() => {
+    const savedExplicitPositionTranslation = JSON.parse(
+      window.localStorage.getItem(LOCAL_STORAGE_KEY_EXPLICIT_POSITION) ||
+        JSON.stringify({ x: 0 - right, y: 0 - bottom })
+    );
+    setExplicitPositionTranslation(savedExplicitPositionTranslation);
+    updateBoundedPositionTranslation(savedExplicitPositionTranslation);
+
+    window.addEventListener("resize", resizeCompleteHandler);
+  }, []);
+
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
@@ -368,6 +449,11 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     hasUnreadOnOtherPinboard,
 
     presetUnreadNotificationCount,
+
+    explicitPositionTranslation,
+    setExplicitPositionTranslation,
+    boundedPositionTranslation,
+    updateBoundedPositionTranslation,
   };
 
   return (

@@ -28,6 +28,7 @@
     "date-fns": "^2.19.0",
     "graphql": "^15.4.0",
     "preact": "^10.5.13",
+    "react-draggable": "^4.4.5",
     "react-shadow": "^19.0.2"
   },
   "devDependencies": {

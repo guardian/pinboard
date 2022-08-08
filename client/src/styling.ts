@@ -1,7 +1,7 @@
 import { css, CSSObject } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
 
-export const bottom = 108;
+export const bottom = 108; // to account for Teleporter
 export const right = 15;
 export const floatySize = 40;
 export const boxShadow =

@@ -75,7 +75,8 @@ export const handler = async (event: DynamoDBStreamEvent) => {
               // TODO: Include more scenarios that trigger desktop notification
               (item) =>
                 isUserMentioned(item, user) ||
-                doesUserManuallyHavePinboardOpen(item, user)
+                (item.userEmail !== user.email && // ensure we don't notify the person who sent the message
+                  doesUserManuallyHavePinboardOpen(item, user))
             )
             .map((item) =>
               webPush

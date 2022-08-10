@@ -76,20 +76,23 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     );
 
   const refreshPreselectedPinboard = () => {
-    if (preSelectedComposerIdFromQueryParam) {
+    if (
+      preSelectedComposerIdFromQueryParam &&
+      preSelectedComposerIdFromQueryParam != preSelectedComposerId
+    ) {
       setPreselectedComposerId(preSelectedComposerIdFromQueryParam);
     } else {
       const preselectPinboardHTMLElement: HTMLElement | null = document.querySelector(
         PRESELECT_PINBOARD_HTML_TAG
       );
-      if (preselectPinboardHTMLElement) {
-        setPreselectedComposerId(
-          preselectPinboardHTMLElement.dataset?.composerId
-        );
-        setComposerSection(
-          preselectPinboardHTMLElement.dataset?.composerSection
-        );
-      }
+      const newComposerId = preselectPinboardHTMLElement?.dataset?.composerId;
+      newComposerId !== preSelectedComposerId &&
+        setPreselectedComposerId(newComposerId);
+
+      const newComposerSection =
+        preselectPinboardHTMLElement?.dataset?.composerSection;
+      newComposerSection !== composerSection &&
+        setComposerSection(newComposerSection);
     }
   };
 

@@ -23,7 +23,7 @@ import { isPinboardData } from "../../shared/graphql/extraTypes";
 import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
-import { bottom, floatySize, right } from "./styling";
+import { bottom, top, floatySize, right } from "./styling";
 import { useDebounce } from "./util";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
@@ -351,7 +351,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     const viewportHeight = document.documentElement.clientHeight;
 
     const isTooFarLeft = viewportWidth + positionTranslation.x < floatySize;
-    const isTooHigh = viewportHeight + positionTranslation.y < floatySize;
+    const isTooHigh = viewportHeight + positionTranslation.y < floatySize + top;
     return {
       x: isTooFarLeft
         ? 10 + floatySize - viewportWidth
@@ -359,7 +359,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
         ? -10
         : positionTranslation.x,
       y: isTooHigh
-        ? 10 + floatySize - viewportHeight
+        ? top + floatySize - viewportHeight
         : isTooLow
         ? -10
         : positionTranslation.y,

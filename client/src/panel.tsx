@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useRef } from "react";
-import { bottom, boxShadow, floatySize, panelCornerSize } from "./styling";
+import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
@@ -61,7 +61,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
             ? `calc(100vh + ${
                 space[2] + panelCornerSize + boundedPositionTranslation.y
               }px)`
-            : "65px"
+            : `${top}px`
         };
         bottom: ${
           isTopHalf

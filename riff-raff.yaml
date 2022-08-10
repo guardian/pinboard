@@ -2,6 +2,9 @@ regions:
   - eu-west-1
 stacks:
   - workflow
+allowedStages:
+  - CODE
+  - PROD
 deployments:
   pinboard-cloudformation:
     type: cloud-formation

@@ -1,4 +1,4 @@
-import type { WorkflowStub } from "./graphql";
+import type { Item, WorkflowStub } from "./graphql";
 
 export type PinboardData = WorkflowStub;
 
@@ -14,3 +14,6 @@ export const isPinboardData = (
   !!maybePinboardData &&
   maybePinboardData !== "loading" &&
   maybePinboardData !== "notTrackedInWorkflow";
+
+export const isItem = (maybeItem: unknown): maybeItem is Item =>
+  !!maybeItem && typeof maybeItem === "object" && "pinboardId" in maybeItem;

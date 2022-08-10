@@ -8,8 +8,9 @@ import { Key } from "aws-sdk/clients/dynamodb";
 import { Item, MyUser } from "../../shared/graphql/graphql";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { publicVapidKey } from "../../shared/constants";
-import { DynamoDBStreamEvent } from "aws-lambda";
 import { PushSubscription } from "web-push";
+import { SQSEvent } from "aws-lambda/trigger/sqs";
+import { isItem } from "../../shared/graphql/extraTypes";
 
 type UserWithWebPushSubscription = MyUser & {
   webPushSubscription: PushSubscription;
@@ -21,22 +22,32 @@ const isUserMentioned = (item: Item, user: MyUser) =>
 const doesUserManuallyHavePinboardOpen = (item: Item, user: MyUser) =>
   user.manuallyOpenedPinboardIds?.includes(item.pinboardId);
 
-export const handler = async (event: DynamoDBStreamEvent) => {
+export const handler = async (event: Item | SQSEvent) => {
+  if (isItem(event)) {
+    const item: Item = event;
+    const sqs = new AWS.SQS();
+    await sqs
+      .sendMessage({
+        QueueUrl: getEnvironmentVariableOrThrow("notificationQueueURL"),
+        DelaySeconds: 0,
+        MessageBody: JSON.stringify(item),
+      })
+      .promise()
+      .then((sqsResult) => console.log(sqsResult))
+      .catch((sqsError) =>
+        console.error("failed to queue item for notification", sqsError)
+      );
+    return item; // always return success so that pipeline never fails on this step
+  }
+
+  const items = event.Records.map(
+    (sqsRecord) => JSON.parse(sqsRecord.body) as Item
+  );
+
   const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
   const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
   const privateVapidKey = await pinboardSecretPromiseGetter(
     "notifications/privateVapidKey"
-  );
-
-  const items: Item[] = event.Records.reduce(
-    (acc, record) =>
-      record.dynamodb?.NewImage
-        ? [
-            ...acc,
-            AWS.DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Item,
-          ]
-        : acc,
-    [] as Item[]
   );
 
   const processPageOfUsers = async (startKey?: Key) => {

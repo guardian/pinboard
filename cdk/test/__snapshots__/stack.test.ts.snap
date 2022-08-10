@@ -107,6 +107,42 @@ Object {
       },
       "Type": "AWS::AppSync::GraphQLApi",
     },
+    "pinboardappsyncapiMutationcreateItemResolverFA9560B7": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "FieldName": "createItem",
+        "Kind": "PIPELINE",
+        "PipelineConfig": Object {
+          "Functions": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "pinboardinsertitempipelinefunction3F6F60CF",
+                "FunctionId",
+              ],
+            },
+            Object {
+              "Fn::GetAtt": Array [
+                "pinboardqueuenotificationpipelinefunction6293EB5F",
+                "FunctionId",
+              ],
+            },
+          ],
+        },
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+{}",
+        "ResponseMappingTemplate": "$util.toJson($context.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
     "pinboardappsyncapiSchema868D9F5B": Object {
       "Properties": Object {
         "ApiId": Object {
@@ -471,39 +507,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::AppSync::DataSource",
     },
-    "pinboardappsyncapiitemtabledatasourceMutationcreateItemResolver7AEC9201": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "item_table_datasource",
-        "FieldName": "createItem",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-      #set($input = $ctx.args.input)
-      $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
-$util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
-      {
-        \\"version\\": \\"2017-02-28\\",
-        \\"operation\\": \\"PutItem\\",
-        \\"key\\" : {
-      \\"id\\" : $util.dynamodb.toDynamoDBJson($util.autoId())
-    },
-        \\"attributeValues\\": $util.dynamodb.toMapValuesJson($input)
-      }",
-        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
     "pinboardappsyncapiitemtabledatasourceQuerylistItemsResolver15E3DD35": Object {
       "DependsOn": Array [
         "pinboardappsyncapiitemtabledatasourceFD08E0E9",
@@ -778,6 +781,94 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "Roles": Array [
           Object {
             "Ref": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "pinboardappsyncapinotificationslambdadsFB281B61": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "LambdaConfig": Object {
+          "LambdaFunctionArn": Object {
+            "Fn::GetAtt": Array [
+              "pinboardnotificationslambdaC35CECF7",
+              "Arn",
+            ],
+          },
+        },
+        "Name": "notifications_lambda_ds",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapinotificationslambdadsServiceRoleC527BA2E",
+            "Arn",
+          ],
+        },
+        "Type": "AWS_LAMBDA",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapinotificationslambdadsServiceRoleC527BA2E": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapinotificationslambdadsServiceRoleDefaultPolicyC86ED932": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "pinboardnotificationslambdaC35CECF7",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapinotificationslambdadsServiceRoleDefaultPolicyC86ED932",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapinotificationslambdadsServiceRoleC527BA2E",
           },
         ],
       },
@@ -2254,6 +2345,38 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "pinboardinsertitempipelinefunction3F6F60CF": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "item_table_datasource",
+        "FunctionVersion": "2018-05-29",
+        "Name": "insert_item",
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+
+      #set($input = $ctx.args.input)
+      $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
+$util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
+      {
+        \\"version\\": \\"2017-02-28\\",
+        \\"operation\\": \\"PutItem\\",
+        \\"key\\" : {
+      \\"id\\" : $util.dynamodb.toDynamoDBJson($util.autoId())
+    },
+        \\"attributeValues\\": $util.dynamodb.toMapValuesJson($input)
+      }",
+        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
+      },
+      "Type": "AWS::AppSync::FunctionConfiguration",
+    },
     "pinboarditemtable83382753": Object {
       "DeletionPolicy": "Retain",
       "Properties": Object {
@@ -2382,6 +2505,9 @@ $util.toJson($ctx.result)",
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
+            "NOTIFICATION_QUEUE_URL": Object {
+              "Ref": "pinboardnotificationslambdasqsC013918E",
+            },
             "STACK": Object {
               "Ref": "Stack",
             },
@@ -2434,23 +2560,6 @@ $util.toJson($ctx.result)",
         "Timeout": 30,
       },
       "Type": "AWS::Lambda::Function",
-    },
-    "pinboardnotificationslambdaDynamoDBEventSourcePinBoardStackpinboarditemtableB307C42935A18399": Object {
-      "Properties": Object {
-        "BatchSize": 100,
-        "EventSourceArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboarditemtable83382753",
-            "StreamArn",
-          ],
-        },
-        "FunctionName": Object {
-          "Ref": "pinboardnotificationslambdaC35CECF7",
-        },
-        "MaximumBatchingWindowInSeconds": 10,
-        "StartingPosition": "LATEST",
-      },
-      "Type": "AWS::Lambda::EventSourceMapping",
     },
     "pinboardnotificationslambdaServiceRole2F6EBFE9": Object {
       "Properties": Object {
@@ -2526,6 +2635,16 @@ $util.toJson($ctx.result)",
               },
             },
             Object {
+              "Action": "sqs:SendMessage",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "pinboardnotificationslambdasqsC013918E",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
               "Action": Array [
                 "dynamodb:BatchGetItem",
                 "dynamodb:GetRecords",
@@ -2550,21 +2669,18 @@ $util.toJson($ctx.result)",
               ],
             },
             Object {
-              "Action": "dynamodb:ListStreams",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
               "Action": Array [
-                "dynamodb:DescribeStream",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
               ],
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "pinboarditemtable83382753",
-                  "StreamArn",
+                  "pinboardnotificationslambdasqsC013918E",
+                  "Arn",
                 ],
               },
             },
@@ -2579,6 +2695,69 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "pinboardnotificationslambdaSqsEventSourcePinBoardStackpinboardnotificationslambdasqs6993908FF9F3EA04": Object {
+      "Properties": Object {
+        "EventSourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdasqsC013918E",
+            "Arn",
+          ],
+        },
+        "FunctionName": Object {
+          "Ref": "pinboardnotificationslambdaC35CECF7",
+        },
+        "FunctionResponseTypes": Array [
+          "ReportBatchItemFailures",
+        ],
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
+    "pinboardnotificationslambdasqsC013918E": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "pinboardqueuenotificationpipelinefunction6293EB5F": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapinotificationslambdadsFB281B61",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "notifications_lambda_ds",
+        "FunctionVersion": "2018-05-29",
+        "Name": "queue_notification",
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+{\\"version\\": \\"2017-02-28\\", \\"operation\\": \\"Invoke\\", \\"payload\\": $util.toJson($ctx.prev.result)}",
+        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
+      },
+      "Type": "AWS::AppSync::FunctionConfiguration",
     },
     "pinboardusersrefresherlambda2D488032": Object {
       "DependsOn": Array [

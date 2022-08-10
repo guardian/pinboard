@@ -85,18 +85,19 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     <Draggable
       position={boundedPositionTranslation}
       onDrag={(event, position) => {
-        if (isDragging) return;
-        if (
+        window.getSelection()?.removeAllRanges(); // clear text selection that sometimes happens when dragging
+        if (isDragging) {
+          setExplicitPositionTranslation(position);
+          updateBoundedPositionTranslation(position);
+        } else if (
           Math.abs(explicitPositionTranslation.x - position.x) > 5 ||
           Math.abs(explicitPositionTranslation.y - position.y) > 5
         ) {
           setIsDragging(true);
         }
       }}
-      onStop={(event, position) => {
+      onStop={() => {
         if (isDragging) {
-          setExplicitPositionTranslation(position);
-          updateBoundedPositionTranslation(position);
           setTimeout(() => setIsDragging(false), 1);
         } else {
           setIsExpanded(!isExpanded);

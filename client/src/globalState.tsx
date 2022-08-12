@@ -6,7 +6,7 @@ import {
   useQuery,
   useSubscription,
 } from "@apollo/client";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Item, MyUser, User } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
@@ -70,6 +70,9 @@ interface GlobalStateContextShape {
   hasUnreadOnOtherPinboard: (pinboardId: string) => boolean;
 
   presetUnreadNotificationCount: number | undefined;
+
+  isRepositioning: boolean;
+  setIsRepositioning: (isRepositioning: boolean) => void;
 
   explicitPositionTranslation: ControlPosition;
   setExplicitPositionTranslation: (newPosition: ControlPosition) => void;
@@ -341,6 +344,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     });
   }, []);
 
+  const [isRepositioning, setIsRepositioning] = useState<boolean>(false);
+
   const calculateBoundedPositionTranslation = (
     positionTranslation: ControlPosition
   ) => {
@@ -390,13 +395,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       calculateBoundedPositionTranslation(positionTranslation)
     );
 
-  const [lastResized, setLastResized] = useState<number>(0);
-
-  useEffect(() => {
+  const resizeCompleteHandler = useCallback(() => {
     updateBoundedPositionTranslation(explicitPositionTranslation);
-  }, [lastResized]);
-
-  const resizeCompleteHandler = useThrottle(() => setLastResized(Date.now()));
+  }, [isRepositioning]);
 
   useEffect(() => {
     const savedExplicitPositionTranslation = JSON.parse(
@@ -405,9 +406,12 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     );
     setExplicitPositionTranslation(savedExplicitPositionTranslation);
     updateBoundedPositionTranslation(savedExplicitPositionTranslation);
-
-    window.addEventListener("resize", resizeCompleteHandler);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener("resize", resizeCompleteHandler);
+    return () => window.removeEventListener("resize", resizeCompleteHandler);
+  }, [resizeCompleteHandler]);
 
   const contextValue: GlobalStateContextShape = {
     userEmail,
@@ -446,6 +450,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     hasUnreadOnOtherPinboard,
 
     presetUnreadNotificationCount,
+
+    isRepositioning,
+    setIsRepositioning,
 
     explicitPositionTranslation,
     setExplicitPositionTranslation,

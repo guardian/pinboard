@@ -46,13 +46,13 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     setIsExpanded,
     hasError,
     hasUnread,
+    isRepositioning,
+    setIsRepositioning,
     explicitPositionTranslation,
     setExplicitPositionTranslation,
     boundedPositionTranslation,
     updateBoundedPositionTranslation,
   } = useGlobalStateContext();
-
-  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const badge = (() => {
     if (hasError) {
@@ -86,19 +86,19 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       position={boundedPositionTranslation}
       onDrag={(event, position) => {
         window.getSelection()?.removeAllRanges(); // clear text selection that sometimes happens when dragging
-        if (isDragging) {
+        if (isRepositioning) {
           setExplicitPositionTranslation(position);
           updateBoundedPositionTranslation(position);
         } else if (
           Math.abs(explicitPositionTranslation.x - position.x) > 5 ||
           Math.abs(explicitPositionTranslation.y - position.y) > 5
         ) {
-          setIsDragging(true);
+          setIsRepositioning(true);
         }
       }}
       onStop={() => {
-        if (isDragging) {
-          setTimeout(() => setIsDragging(false), 1);
+        if (isRepositioning) {
+          setTimeout(() => setIsRepositioning(false), 1);
         } else {
           setIsExpanded(!isExpanded);
           sendTelemetryEvent?.(
@@ -118,7 +118,7 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           width: ${floatySize}px;
           height: ${floatySize}px;
           border-radius: ${floatySize / 2}px;
-          cursor: ${isDragging ? "move" : "pointer"};
+          cursor: ${isRepositioning ? "move" : "pointer"};
           box-shadow: ${boxShadow};
           background-color: ${pinboard[500]};
           &:hover {

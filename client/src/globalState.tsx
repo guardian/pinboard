@@ -160,7 +160,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     } else {
       activePinboardsQuery.stopPolling();
     }
-  }, [isExpanded, activePinboardIds]);
+  }, [
+    isExpanded,
+    ...activePinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
+  ]);
 
   const activePinboards: PinboardData[] =
     activePinboardsQuery.data?.getPinboardsByIds || [];

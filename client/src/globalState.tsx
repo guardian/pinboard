@@ -24,7 +24,7 @@ import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
-import { useDebounce } from "./util";
+import { useThrottle } from "./util";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -396,10 +396,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     updateBoundedPositionTranslation(explicitPositionTranslation);
   }, [lastResized]);
 
-  const resizeCompleteHandler = useDebounce(
-    () => setLastResized(Date.now()),
-    250
-  );
+  const resizeCompleteHandler = useThrottle(() => setLastResized(Date.now()));
 
   useEffect(() => {
     const savedExplicitPositionTranslation = JSON.parse(

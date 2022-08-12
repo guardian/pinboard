@@ -18,6 +18,7 @@ import * as appsync from "@aws-cdk/aws-appsync";
 import * as db from "@aws-cdk/aws-dynamodb";
 import * as acm from "@aws-cdk/aws-certificatemanager";
 import * as ec2 from "@aws-cdk/aws-ec2";
+import * as rds from "@aws-cdk/aws-rds";
 import * as events from "@aws-cdk/aws-events";
 import * as eventsTargets from "@aws-cdk/aws-events-targets";
 import { join } from "path";
@@ -53,6 +54,22 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
+
+    const dbSecret = new rds.DatabaseSecret(this, "DatabaseSecret", {
+      username: "pinboard",
+    });
+
+    const dbName = "pinboard";
+
+    const database = new rds.ServerlessCluster(this, "Database", {
+      engine: rds.DatabaseClusterEngine.auroraPostgres({
+        version: rds.AuroraPostgresEngineVersion.VER_11_13, // This is the highest version which supports serverless v1, which supports data api which is required by AppSync
+      }),
+      credentials: rds.Credentials.fromSecret(dbSecret),
+      clusterIdentifier: `${APP}-db-${STAGE}`,
+      defaultDatabaseName: dbName,
+      enableDataApi: true,
+    });
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
@@ -327,6 +344,13 @@ export class PinBoardStack extends Stack {
         .split("-")
         .join("_")}_ds`,
       pinboardGridBridgeLambda
+    );
+
+    const pinboardDbDataSource = pinboardAppsyncApi.addRdsDataSource(
+      "database_datasource",
+      database,
+      dbSecret,
+      dbName
     );
 
     const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(

@@ -24,7 +24,6 @@ import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
-import { useThrottle } from "./util";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 

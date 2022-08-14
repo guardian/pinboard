@@ -112,7 +112,6 @@ const maybeConstructPayloadAndType = (
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
-  refForLastItem: React.RefObject<HTMLDivElement> | undefined;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
   seenBy: LastItemSeenByUser[] | undefined;
@@ -121,7 +120,6 @@ interface ItemDisplayProps {
 
 export const ItemDisplay = ({
   item,
-  refForLastItem,
   userLookup,
   userEmail,
   seenBy,
@@ -146,7 +144,6 @@ export const ItemDisplay = ({
 
   return (
     <div
-      ref={refForLastItem}
       css={css`
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;

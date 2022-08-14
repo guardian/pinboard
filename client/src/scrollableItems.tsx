@@ -18,6 +18,9 @@ import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useGlobalStateContext } from "./globalState";
+import { useThrottle } from "./util";
+
+const JUMP_TO_BOTTOM_HEIGHT = 32;
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -35,16 +38,13 @@ interface ScrollableItemsProps {
 const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
   scrollableArea.scrollHeight > scrollableArea.clientHeight;
 
-const elementIsVisible = (
-  scrollableArea: HTMLDivElement,
-  element: HTMLElement
+const isScrolledToBottom = (
+  { scrollTop, scrollHeight, offsetHeight }: HTMLDivElement,
+  hasUnread: boolean
 ) => {
-  const elementTopRelativeToScrollableArea =
-    element.offsetTop - scrollableArea.offsetTop;
-  const scrollTop = scrollableArea.scrollTop;
-  const scrollableAreaHeight = scrollableArea.clientHeight;
-  const scrollTopThreshold =
-    elementTopRelativeToScrollableArea - scrollableAreaHeight - 10;
+  const maxScrollTop =
+    scrollHeight - offsetHeight - (hasUnread ? JUMP_TO_BOTTOM_HEIGHT : 0);
+  const scrollTopThreshold = maxScrollTop - 10;
   return scrollTop > scrollTopThreshold;
 };
 
@@ -119,13 +119,13 @@ export const ScrollableItems = ({
     }
   }, [isRepositioning]);
 
-  const lastItemRef = useRef<HTMLDivElement>(null);
   const lastItemIndex = items.length - 1;
 
   const scrollToLastItem = () => {
-    lastItemRef.current?.scrollIntoView({
+    onScroll();
+    scrollableArea?.scroll({
+      top: Number.MAX_SAFE_INTEGER,
       behavior: "smooth",
-      block: "end",
     });
   };
 
@@ -146,9 +146,8 @@ export const ScrollableItems = ({
   const shouldBeScrolledToLastItem = () =>
     document.hasFocus() &&
     (!scrollableArea ||
-      !lastItemRef.current ||
       !isScrollbarVisible(scrollableArea) ||
-      elementIsVisible(scrollableArea, lastItemRef.current));
+      isScrolledToBottom(scrollableArea, hasUnread));
 
   const lastItemID = items[lastItemIndex]?.id;
 
@@ -205,6 +204,14 @@ export const ScrollableItems = ({
     }
   }, [isExpanded]); // runs when expanded/closed
 
+  const onScroll = () => {
+    if (shouldBeScrolledToLastItem() && lastItemID) {
+      seenLastItem();
+    }
+  };
+
+  const onScrollThrottled = useThrottle(onScroll, 250);
+
   return (
     <div
       ref={scrollableAreaRef}
@@ -214,16 +221,13 @@ export const ScrollableItems = ({
         padding: ${space[2]}px;
         position: relative;
       `}
-      onScroll={() =>
-        shouldBeScrolledToLastItem() && lastItemID && seenLastItem()
-      }
+      onScroll={onScrollThrottled}
     >
       {!isRepositioning &&
         items.map((item, index) => (
           <ItemDisplay
             key={item.id}
             item={item}
-            refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
             userLookup={userLookup}
             userEmail={userEmail}
             seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
@@ -249,8 +253,8 @@ export const ScrollableItems = ({
               fill: white;
               background-color: ${palette.neutral[20]};
               font-weight: bold;
-              height: 32px;
-              width: 32px;
+              height: ${JUMP_TO_BOTTOM_HEIGHT}px;
+              width: ${JUMP_TO_BOTTOM_HEIGHT}px;
               border-radius: 999px;
               display: flex;
               justify-content: center;

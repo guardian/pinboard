@@ -18,6 +18,7 @@ import {
   aws_ec2 as ec2,
   aws_events as events,
   aws_events_targets as eventsTargets,
+  aws_rds as rds,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -53,6 +54,26 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
+
+    const dbSecret = new rds.DatabaseSecret(this, "DatabaseSecret", {
+      username: "pinboard",
+    });
+
+    const dbName = "pinboard";
+    /*
+     * As per https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-enginemode
+     * and https://github.com/aws/aws-cdk/issues/20197 CloudFormation/CDK doesn't officially support ServerlessV2 yet, although it is on
+     * AWS' roadmap - see https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1150
+     *
+     * In the meantime, we created the serverless cluster manually, so we look it up below.
+     * */
+    const database = rds.DatabaseCluster.fromDatabaseClusterAttributes(
+      this,
+      `Database`,
+      {
+        clusterIdentifier: "pinboard-postgres-experiment", //TODO replace with name built from APP and STAGE
+      }
+    );
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,

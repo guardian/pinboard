@@ -189,7 +189,7 @@ export const ItemDisplay = ({
       >
         <div
           css={css`
-            color: ${palette.neutral["46"]};
+            color: ${palette.neutral["20"]};
             ${agateSans.xxsmall({ lineHeight: "tight" })};
             margin-bottom: 2px;
           `}

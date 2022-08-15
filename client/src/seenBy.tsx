@@ -40,7 +40,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
     >
       <span
         css={css`
-          color: ${palette.neutral[46]};
+          color: ${palette.neutral[20]};
           margin-right: 5px;
           ${agateSans.xxsmall({ lineHeight: "tight" })}
         `}

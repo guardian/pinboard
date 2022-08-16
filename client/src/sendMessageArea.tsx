@@ -12,6 +12,7 @@ import { composer } from "../colours";
 import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { SvgSpinner } from "@guardian/source-react-components";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -48,7 +49,9 @@ export const SendMessageArea = ({
     return !!message.match(gridUrlRegex);
   };
 
-  const [sendItem] = useMutation<{ createItem: Item }>(gqlCreateItem, {
+  const [sendItem, { loading: isItemSending }] = useMutation<{
+    createItem: Item;
+  }>(gqlCreateItem, {
     onCompleted: (sendMessageResult) => {
       onSuccessfulSend({
         ...sendMessageResult.createItem,
@@ -98,6 +101,7 @@ export const SendMessageArea = ({
         allUsers={allUsers}
         addUnverifiedMention={addUnverifiedMention}
         panelElement={panelElement}
+        isSending={isItemSending}
       />
       <button
         css={css`
@@ -121,14 +125,18 @@ export const SendMessageArea = ({
           }
         `}
         onClick={() => sendItem()}
-        disabled={!message && !payloadToBeSent}
+        disabled={isItemSending || !(message || payloadToBeSent)}
       >
-        <SendArrow
-          css={css`
-            width: 18px;
-            height: 16px;
-          `}
-        />
+        {isItemSending ? (
+          <SvgSpinner />
+        ) : (
+          <SendArrow
+            css={css`
+              width: 18px;
+              height: 16px;
+            `}
+          />
+        )}
       </button>
     </div>
   );

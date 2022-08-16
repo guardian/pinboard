@@ -70,6 +70,7 @@ interface CreateItemInputBoxProps {
   allUsers: User[] | undefined;
   addUnverifiedMention: (user: User) => void;
   panelElement: HTMLDivElement | null;
+  isSending: boolean;
 }
 
 export const CreateItemInputBox = ({
@@ -81,6 +82,7 @@ export const CreateItemInputBox = ({
   sendItem,
   addUnverifiedMention,
   panelElement,
+  isSending,
 }: CreateItemInputBoxProps) => (
   <div
     css={css`
@@ -91,6 +93,7 @@ export const CreateItemInputBox = ({
     `}
   >
     <ReactTextareaAutocomplete<User>
+      disabled={isSending}
       trigger={
         allUsers
           ? {

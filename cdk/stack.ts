@@ -55,19 +55,24 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
 
+    const accountVpcPrivateSubnetIds = new CfnParameter(
+      thisStack,
+      "AccountVpcPrivateSubnetIds",
+      {
+        type: "AWS::SSM::Parameter::Value<List<String>>",
+        description:
+          "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
+        default: "/account/vpc/primary/subnets/private",
+      }
+    ).valueAsList;
+
     const accountVpc = ec2.Vpc.fromVpcAttributes(thisStack, "AccountVPC", {
       vpcId: ssm.StringParameter.valueForStringParameter(
         thisStack,
         "/account/vpc/primary/id"
       ),
       availabilityZones: Fn.getAzs(region),
-      privateSubnetIds: Fn.split(
-        ",",
-        ssm.StringParameter.valueForStringParameter(
-          thisStack,
-          "/account/vpc/primary/subnets/private"
-        )
-      ),
+      privateSubnetIds: accountVpcPrivateSubnetIds,
     });
 
     const dbName = "pinboard";
@@ -93,6 +98,7 @@ export class PinBoardStack extends Stack {
     });
 
     const databaseProxy = database.addProxy("DatabaseProxy", {
+      dbProxyName: `${APP}-database-proxy-${STAGE}`,
       secrets: [dbSecret],
       iamAuth: true,
       vpc: accountVpc,

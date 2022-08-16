@@ -55,8 +55,19 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
 
-    const dbSecret = new rds.DatabaseSecret(this, "DatabaseSecret", {
-      username: "pinboard",
+    const accountVpc = ec2.Vpc.fromVpcAttributes(thisStack, "AccountVPC", {
+      vpcId: ssm.StringParameter.valueForStringParameter(
+        thisStack,
+        "/account/vpc/primary/id"
+      ),
+      availabilityZones: Fn.getAzs(region),
+      privateSubnetIds: Fn.split(
+        ",",
+        ssm.StringParameter.valueForStringParameter(
+          thisStack,
+          "/account/vpc/primary/subnets/private"
+        )
+      ),
     });
 
     const dbName = "pinboard";
@@ -71,9 +82,21 @@ export class PinBoardStack extends Stack {
       this,
       `Database`,
       {
-        clusterIdentifier: "pinboard-postgres-experiment", //TODO replace with name built from APP and STAGE
+        clusterIdentifier: `${APP}-database-${STAGE}`,
+        engine: rds.DatabaseClusterEngine.AURORA_POSTGRESQL,
+        port: 5432,
       }
     );
+
+    const dbSecret = new rds.DatabaseSecret(this, "DatabaseSecret", {
+      username: "pinboard",
+    });
+
+    const databaseProxy = database.addProxy("DatabaseProxy", {
+      secrets: [dbSecret],
+      iamAuth: true,
+      vpc: accountVpc,
+    });
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
@@ -101,7 +124,7 @@ export class PinBoardStack extends Stack {
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
-    const vpcId = Fn.importValue(
+    const workflowDatastoreVpcId = Fn.importValue(
       `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
     );
 
@@ -109,7 +132,7 @@ export class PinBoardStack extends Stack {
       thisStack,
       "workflow-datastore-vpc",
       {
-        vpcId: vpcId,
+        vpcId: workflowDatastoreVpcId,
         availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
@@ -186,6 +209,32 @@ export class PinBoardStack extends Stack {
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
+
+    const databaseBridgeLambdaBasename = "pinboard-database-bridge-lambda";
+
+    const pinboardDatabaseBridgeLambda = new lambda.Function(
+      thisStack,
+      databaseBridgeLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(5),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: `${databaseBridgeLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${databaseBridgeLambdaBasename}/${databaseBridgeLambdaBasename}.zip`
+        ),
+        initialPolicy: [],
+      }
+    );
+
+    databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
 
     const pinboardUserTableBaseName = "pinboard-user-table";
 

@@ -152,7 +152,7 @@ export const ItemDisplay = ({
         margin-bottom: ${space[1]}px;
         font-style: ${isPendingSend ? "italic" : "normal"};
         ${agateSans.small({ lineHeight: "tight" })};
-        color: ${palette.neutral[20]};
+        color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
       `}
     >

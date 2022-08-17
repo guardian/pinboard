@@ -2,7 +2,6 @@ import type {
   AppSyncIdentityLambda,
   AppSyncResolverEvent,
 } from "aws-lambda/trigger/appsync-resolver";
-import type { Mutation, Query } from "../../shared/graphql/graphql";
 import { createItem, listItems } from "./sql/Item";
 import { Sql } from "./sql/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
@@ -14,16 +13,15 @@ import {
   setWebPushSubscriptionForUser,
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
-
-type FieldName = keyof Required<Omit<Query & Mutation, "__typename">>;
+import { DatabaseOperation } from "../../shared/graphql/operations";
 
 const run = (
   sql: Sql,
-  fieldName: FieldName,
+  databaseOperation: DatabaseOperation,
   args: never,
   userEmail: string
 ) => {
-  switch (fieldName) {
+  switch (databaseOperation) {
     case "createItem":
       return createItem(sql, args, userEmail);
     case "listItems":
@@ -42,13 +40,10 @@ const run = (
       return addManuallyOpenedPinboardIds(sql, args, userEmail);
     case "removeManuallyOpenedPinboardIds":
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
-    // FIXME remove default case once RDS migration is complete, so @typescript-eslint/switch-exhaustiveness-check can do its job
-    default:
-      throw Error(`Handler for '${fieldName}' not yet implemented`);
   }
 
   throw Error(
-    `No handler for '${fieldName}' operation. @typescript-eslint/switch-exhaustiveness-check should have caught this`
+    `No handler for '${databaseOperation}' operation. @typescript-eslint/switch-exhaustiveness-check should have caught this`
   );
 };
 
@@ -59,10 +54,10 @@ export const handler = async (
   const args = payload.arguments as never;
   const userEmail: string = (payload.identity as AppSyncIdentityLambda)
     .resolverContext.userEmail;
-  const fieldName = payload.info.fieldName as FieldName;
+  const databaseOperation = payload.info.fieldName as DatabaseOperation;
 
   try {
-    return await run(sql, fieldName, args, userEmail);
+    return await run(sql, databaseOperation, args, userEmail);
   } finally {
     await sql.end();
   }

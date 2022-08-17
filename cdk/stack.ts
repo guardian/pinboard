@@ -42,6 +42,7 @@ import {
 import { Stage } from "../shared/types/stage";
 import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
 import * as fs from "fs";
+import { MUTATIONS, QUERIES } from "../shared/graphql/operations";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -567,52 +568,32 @@ export class PinBoardStack extends Stack {
         `## schema checksum : ${gqlSchemaChecksum}\n${mappingTemplate.renderTemplate()}`
       );
 
-    ["listItems", "listLastItemSeenByUsers", "listUsers", "getMyUser"].forEach(
-      (fieldName) =>
-        pinboardDatabaseBridgeLambdaDataSource.createResolver({
-          typeName: "Query",
-          fieldName,
-          responseMappingTemplate: resolverBugWorkaround(
-            appsync.MappingTemplate.lambdaResult()
-          ),
-        })
-    );
-
-    [
-      "createItem",
-      "seenItem",
-      "setWebPushSubscriptionForUser",
-      "addManuallyOpenedPinboardIds",
-      "removeManuallyOpenedPinboardIds",
-    ].forEach((fieldName) =>
-      pinboardDatabaseBridgeLambdaDataSource.createResolver({
-        typeName: "Mutation",
+    const createLambdaResolver = (
+      lambdaDS: appsync.LambdaDataSource,
+      typeName: "Query" | "Mutation"
+    ) => (fieldName: string) => {
+      lambdaDS.createResolver({
+        typeName,
         fieldName,
         responseMappingTemplate: resolverBugWorkaround(
           appsync.MappingTemplate.lambdaResult()
         ),
-      })
+      });
+    };
+
+    QUERIES.database.forEach(
+      createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Query")
+    );
+    MUTATIONS.database.forEach(
+      createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Mutation")
     );
 
-    ["listPinboards", "getPinboardByComposerId", "getPinboardsByIds"].forEach(
-      (fieldName) =>
-        pinboardWorkflowBridgeLambdaDataSource.createResolver({
-          typeName: "Query",
-          fieldName,
-          responseMappingTemplate: resolverBugWorkaround(
-            appsync.MappingTemplate.lambdaResult()
-          ),
-        })
+    QUERIES.workflow.forEach(
+      createLambdaResolver(pinboardWorkflowBridgeLambdaDataSource, "Query")
     );
 
-    ["getGridSearchSummary"].forEach((fieldName) =>
-      pinboardGridBridgeLambdaDataSource.createResolver({
-        typeName: "Query",
-        fieldName,
-        responseMappingTemplate: resolverBugWorkaround(
-          appsync.MappingTemplate.lambdaResult()
-        ),
-      })
+    QUERIES.grid.forEach(
+      createLambdaResolver(pinboardGridBridgeLambdaDataSource, "Query")
     );
 
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";

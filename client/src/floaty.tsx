@@ -4,11 +4,12 @@ import { pinMetal, pinboard, composer } from "../colours";
 import PinIcon from "../icons/pin-icon.svg";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
-import { bottom, boxShadow, floatySize, right } from "./styling";
+import { boxShadow, floatySize } from "./styling";
 import { useGlobalStateContext } from "./globalState";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import Draggable from "react-draggable";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -45,6 +46,12 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     setIsExpanded,
     hasError,
     hasUnread,
+    isRepositioning,
+    setIsRepositioning,
+    explicitPositionTranslation,
+    setExplicitPositionTranslation,
+    boundedPositionTranslation,
+    updateBoundedPositionTranslation,
   } = useGlobalStateContext();
 
   const badge = (() => {
@@ -75,47 +82,69 @@ export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const sendTelemetryEvent = useContext(TelemetryContext);
 
   return (
-    <div
-      css={css`
-        position: fixed;
-        z-index: 99999;
-        bottom: ${bottom}px;
-        right: ${right}px;
-        width: ${floatySize}px;
-        height: ${floatySize}px;
-        border-radius: ${floatySize / 2}px;
-        cursor: pointer;
-        box-shadow: ${boxShadow};
-        background-color: ${pinboard[500]};
-        &:hover {
-          background-color: ${pinboard[800]};
+    <Draggable
+      position={boundedPositionTranslation}
+      onDrag={(event, position) => {
+        window.getSelection()?.removeAllRanges(); // clear text selection that sometimes happens when dragging
+        if (isRepositioning) {
+          setExplicitPositionTranslation(position);
+          updateBoundedPositionTranslation(position);
+        } else if (
+          Math.abs(explicitPositionTranslation.x - position.x) > 5 ||
+          Math.abs(explicitPositionTranslation.y - position.y) > 5
+        ) {
+          setIsRepositioning(true);
         }
-      `}
-      onClick={() => {
-        setIsExpanded(!isExpanded);
-        sendTelemetryEvent?.(
-          isExpanded
-            ? PINBOARD_TELEMETRY_TYPE.FLOATY_CLOSED
-            : PINBOARD_TELEMETRY_TYPE.FLOATY_EXPANDED
-        );
+      }}
+      onStop={() => {
+        if (isRepositioning) {
+          setTimeout(() => setIsRepositioning(false), 1);
+        } else {
+          setIsExpanded(!isExpanded);
+          sendTelemetryEvent?.(
+            isExpanded
+              ? PINBOARD_TELEMETRY_TYPE.FLOATY_CLOSED
+              : PINBOARD_TELEMETRY_TYPE.FLOATY_EXPANDED
+          );
+        }
       }}
     >
-      {isDropTarget && <div css={{ ...dropTargetCss, borderRadius: "50%" }} />}
-      <PinIcon
+      <div
         css={css`
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          height: 22px;
-          width: 12px;
-          path {
-            stroke: ${pinMetal};
-            stroke-width: 0.5px;
+          position: fixed;
+          z-index: 99999;
+          bottom: 0;
+          right: 0;
+          width: ${floatySize}px;
+          height: ${floatySize}px;
+          border-radius: ${floatySize / 2}px;
+          cursor: ${isRepositioning ? "move" : "pointer"};
+          box-shadow: ${boxShadow};
+          background-color: ${pinboard[500]};
+          &:hover {
+            background-color: ${pinboard[800]};
           }
         `}
-      />
-      {badge}
-    </div>
+      >
+        {isDropTarget && (
+          <div css={{ ...dropTargetCss, borderRadius: "50%" }} />
+        )}
+        <PinIcon
+          css={css`
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            height: 22px;
+            width: 12px;
+            path {
+              stroke: ${pinMetal};
+              stroke-width: 0.5px;
+            }
+          `}
+        />
+        {badge}
+      </div>
+    </Draggable>
   );
 };

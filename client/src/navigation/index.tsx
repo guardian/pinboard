@@ -15,8 +15,14 @@ interface NavigationProps {
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
   headingTooltipText: string | undefined;
+  isTopHalf: boolean;
+  isLeftHalf: boolean;
 }
-export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
+export const Navigation = ({
+  isTopHalf,
+  isLeftHalf,
+  ...props
+}: PropsWithChildren<NavigationProps>) => {
   const {
     setIsExpanded,
     hasUnreadOnOtherPinboard,
@@ -37,8 +43,12 @@ export const Navigation = (props: PropsWithChildren<NavigationProps>) => {
     <div
       css={css`
         background-color: ${pinboard[500]};
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
+        border-top-${isLeftHalf ? "right" : "left"}-radius: 4px;
+        ${
+          isTopHalf
+            ? ""
+            : `border-top-${isLeftHalf ? "left" : "right"}-radius: 4px;`
+        }
         box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px;
         clip-path: inset(0 0 -40px 0);
       `}

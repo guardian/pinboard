@@ -53,3 +53,29 @@ export const formatDateTime = (
     return format(timestamp, "d MMM yyyy HH:mm");
   }
 };
+
+export const useThrottle = <E>(
+  callback: (event: E) => void,
+  milliseconds?: number
+) => {
+  //initialize throttlePause variable outside throttle function
+  let throttlePause: boolean;
+
+  const time = milliseconds || 33; // 33 default is roughly 30 times a second (approx frame rate of human eye)
+
+  return (event: E) => {
+    //don't run the function if throttlePause is true
+    if (throttlePause) return;
+
+    //set throttlePause to true after the if condition. This allows the function to be run once
+    throttlePause = true;
+
+    //setTimeout runs the callback within the specified time
+    setTimeout(() => {
+      callback(event);
+
+      //throttlePause is set to false once the function has been called, allowing the throttle function to loop
+      throttlePause = false;
+    }, time);
+  };
+};

@@ -1,12 +1,6 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useRef } from "react";
-import {
-  bottom,
-  boxShadow,
-  floatySize,
-  panelCornerSize,
-  right,
-} from "./styling";
+import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
@@ -15,6 +9,7 @@ import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
 import { ChatTab } from "./types/Tab";
+import { pinboard } from "../colours";
 
 export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -26,6 +21,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     clearSelectedPinboard,
     activeTab,
     setActiveTab,
+    boundedPositionTranslation,
   } = useGlobalStateContext();
 
   const selectedPinboard = activePinboards.find(
@@ -46,6 +42,11 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     setActiveTab(ChatTab);
   }, [selectedPinboardId]);
 
+  const isLeftHalf =
+    Math.abs(boundedPositionTranslation.x) > window.innerWidth / 2;
+  const isTopHalf =
+    Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
+
   return (
     <div
       css={css`
@@ -54,35 +55,51 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         background: ${neutral[93]};
         box-shadow: ${boxShadow};
         width: 260px;
-        height: 68vh;
-        min-height: 380px;
-        max-height: min(
-          800px,
-          calc(98vh - ${bottom + floatySize + space[4] + panelCornerSize}px)
-        );
-        bottom: ${bottom + floatySize + space[2] + panelCornerSize}px;
-        right: ${right + floatySize / 2}px;
+        transform: translateX(${isLeftHalf ? "100%" : 0});
+        top: ${
+          isTopHalf
+            ? `calc(100vh + ${
+                space[2] + panelCornerSize + boundedPositionTranslation.y
+              }px)`
+            : `${top}px`
+        };
+        bottom: ${
+          isTopHalf
+            ? bottom
+            : Math.abs(boundedPositionTranslation.y) +
+              floatySize +
+              space[2] +
+              panelCornerSize
+        }px;
+        right: ${Math.abs(boundedPositionTranslation.x) + floatySize / 2}px;
         display: ${isExpanded ? "flex" : "none"};
         flex-direction: column;
         font-family: sans-serif;
-        border-top-left-radius: 4px;
-        border-top-right-radius: 4px;
-
-        &::after {
-          content: "";
-          position: fixed;
-          background: ${neutral[93]};
-          width: ${panelCornerSize}px;
-          height: ${panelCornerSize}px;
-          bottom: ${bottom + floatySize + space[2]}px;
-          right: ${right + floatySize / 2}px;
-          border-bottom-left-radius: ${panelCornerSize}px;
-          box-shadow: ${boxShadow};
-          clip: rect(0, 50px, 50px, -25px); // clip off the top of the shadow
-        }
+        border-radius: 4px;
+        border-${isTopHalf ? "top" : "bottom"}-${
+        isLeftHalf ? "left" : "right"
+      }-radius: 0;
       `}
       ref={panelRef}
     >
+      <div
+        css={css`
+          position: absolute;
+          background: ${isTopHalf ? pinboard["500"] : neutral[93]};
+          width: ${panelCornerSize}px;
+          height: ${panelCornerSize}px;
+          ${isTopHalf ? "top" : "bottom"}: -${panelCornerSize - 1}px;
+          ${isLeftHalf ? "left" : "right"}: 0;
+          right: 0;
+          border-${isTopHalf ? "top" : "bottom"}-${
+          isLeftHalf ? "right" : "left"
+        }-radius: ${panelCornerSize}px;
+          box-shadow: ${boxShadow};
+          clip: rect(${
+            isTopHalf ? -5 : 0
+          }px, 50px, 50px, -25px); // clip off the top of the shadow FIXME make relative
+      `}
+      />
       {isDropTarget && <div css={{ ...dropTargetCss }} />}
       <Navigation
         activeTab={activeTab}
@@ -92,6 +109,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         headingTooltipText={
           selectedPinboard && getTooltipText(selectedPinboard)
         }
+        isTopHalf={isTopHalf}
+        isLeftHalf={isLeftHalf}
       >
         <span
           css={{

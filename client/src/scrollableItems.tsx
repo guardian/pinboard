@@ -1,9 +1,9 @@
 import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, {
-  ReactElement,
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -17,6 +17,7 @@ import { LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { useGlobalStateContext } from "./globalState";
 
 interface ScrollableItemsProps {
   initialItems: Item[];
@@ -62,7 +63,9 @@ export const ScrollableItems = ({
   pinboardId,
   lastItemSeenByUserLookup,
   showNotification,
-}: ScrollableItemsProps): ReactElement => {
+}: ScrollableItemsProps) => {
+  const { isRepositioning } = useGlobalStateContext();
+
   const itemsMap = [
     ...initialItems,
     ...successfulSends,
@@ -97,6 +100,24 @@ export const ScrollableItems = ({
 
   const scrollableAreaRef = useRef<HTMLDivElement>(null);
   const scrollableArea = scrollableAreaRef.current;
+
+  const [
+    scrollTopBeforeReposition,
+    setScrollTopBeforeReposition,
+  ] = useState<number>(50);
+  useMemo(() => {
+    if (isRepositioning && scrollableArea) {
+      console.log("reposition started, capturing scrollTop");
+      setScrollTopBeforeReposition(scrollableArea.scrollTop);
+    }
+  }, [isRepositioning]);
+
+  useLayoutEffect(() => {
+    if (!isRepositioning && scrollableArea) {
+      console.log("reposition finished, restoring scrollTop");
+      scrollableArea.scrollTop = scrollTopBeforeReposition;
+    }
+  }, [isRepositioning]);
 
   const lastItemRef = useRef<HTMLDivElement>(null);
   const lastItemIndex = items.length - 1;
@@ -197,17 +218,18 @@ export const ScrollableItems = ({
         shouldBeScrolledToLastItem() && lastItemID && seenLastItem()
       }
     >
-      {items.map((item, index) => (
-        <ItemDisplay
-          key={item.id}
-          item={item}
-          refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
-          userLookup={userLookup}
-          userEmail={userEmail}
-          seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-          maybePreviousItem={items[index - 1]}
-        />
-      ))}
+      {!isRepositioning &&
+        items.map((item, index) => (
+          <ItemDisplay
+            key={item.id}
+            item={item}
+            refForLastItem={index === lastItemIndex ? lastItemRef : undefined}
+            userLookup={userLookup}
+            userEmail={userEmail}
+            seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+            maybePreviousItem={items[index - 1]}
+          />
+        ))}
       {hasUnread && (
         <div
           css={css`

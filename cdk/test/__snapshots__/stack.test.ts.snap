@@ -48,6 +48,11 @@ Object {
     },
   },
   "Parameters": Object {
+    "BootstrapVersion": Object {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
       "Default": "/pinboard/sentryDSN",
       "Type": "AWS::SSM::Parameter::Value<String>",
@@ -425,12 +430,28 @@ $util.toJson($ctx.result)",
             Object {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "pinboardgridbridgelambda79AD9656",
-                  "Arn",
-                ],
-              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardgridbridgelambda79AD9656",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardgridbridgelambda79AD9656",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
             },
           ],
           "Version": "2012-10-17",
@@ -1214,12 +1235,28 @@ $util.toJson($ctx.result)",
             Object {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "pinboardworkflowbridgelambda30D4AA22",
-                  "Arn",
-                ],
-              },
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardworkflowbridgelambda30D4AA22",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardworkflowbridgelambda30D4AA22",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
             },
           ],
           "Version": "2012-10-17",
@@ -1310,28 +1347,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::Lambda::Function",
     },
-    "pinboardauthlambdaInvokeServicePrincipalappsyncamazonawscomE688F3A1": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "pinboardauthlambdaC1D899AE",
-            "Arn",
-          ],
-        },
-        "Principal": "appsync.amazonaws.com",
-        "SourceAccount": Object {
-          "Ref": "AWS::AccountId",
-        },
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
     "pinboardauthlambdaServiceRole8197EA98": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
@@ -1401,6 +1416,19 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "pinboardauthlambdaappsync13E2B14E": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardauthlambdaC1D899AE",
+            "Arn",
+          ],
+        },
+        "Principal": "appsync.amazonaws.com",
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "pinboardbootstrappinglambdaD2C487DA": Object {
       "DependsOn": Array [
@@ -1761,6 +1789,7 @@ $util.toJson($ctx.result)",
       "Type": "AWS::Lambda::Permission",
     },
     "pinboardbootstrappinglambdaapiAccountF1D904A1": Object {
+      "DeletionPolicy": "Retain",
       "DependsOn": Array [
         "pinboardbootstrappinglambdaapi577E85F1",
       ],
@@ -1773,8 +1802,10 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
     },
     "pinboardbootstrappinglambdaapiCloudWatchRole71E5177D": Object {
+      "DeletionPolicy": "Retain",
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -1822,6 +1853,7 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
     },
     "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfa18e3d3af308dd131f6627bd80d2597": Object {
       "DependsOn": Array [
@@ -3098,6 +3130,33 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+  },
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  Object {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
     },
   },
 }

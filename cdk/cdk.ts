@@ -1,5 +1,9 @@
-import * as cdk from "@aws-cdk/core";
 import { PinBoardStack } from "./stack";
+import { App, DefaultStackSynthesizer } from "aws-cdk-lib";
 
-const app = new cdk.App();
-new PinBoardStack(app, "PinBoardStack");
+const app = new App();
+new PinBoardStack(app, "PinBoardStack", {
+  synthesizer: new DefaultStackSynthesizer({
+    generateBootstrapVersionRule: false,
+  }),
+});

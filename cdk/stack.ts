@@ -1,33 +1,33 @@
 import {
+  App,
   CfnMapping,
   CfnOutput,
   CfnParameter,
-  Construct,
   Duration,
   Fn,
   Stack,
   StackProps,
   Tags,
-} from "@aws-cdk/core";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as S3 from "@aws-cdk/aws-s3";
-import * as iam from "@aws-cdk/aws-iam";
-import * as ssm from "@aws-cdk/aws-ssm";
-import * as apigateway from "@aws-cdk/aws-apigateway";
-import * as appsync from "@aws-cdk/aws-appsync";
-import * as db from "@aws-cdk/aws-dynamodb";
-import * as acm from "@aws-cdk/aws-certificatemanager";
-import * as ec2 from "@aws-cdk/aws-ec2";
-import * as events from "@aws-cdk/aws-events";
-import * as eventsTargets from "@aws-cdk/aws-events-targets";
+  aws_lambda as lambda,
+  aws_s3 as S3,
+  aws_iam as iam,
+  aws_ssm as ssm,
+  aws_apigateway as apiGateway,
+  aws_dynamodb as db,
+  aws_certificatemanager as acm,
+  aws_ec2 as ec2,
+  aws_events as events,
+  aws_events_targets as eventsTargets,
+} from "aws-cdk-lib";
+import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
 import { APP } from "../shared/constants";
 import crypto from "crypto";
-import { DynamoEventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 
 export class PinBoardStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: App, id: string, props?: StackProps) {
     super(scope, id, props);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -254,16 +254,6 @@ export class PinBoardStack extends Stack {
         },
         xrayEnabled: true,
       }
-    );
-    pinboardAuthLambda.grantInvoke(
-      new iam.ServicePrincipal("appsync.amazonaws.com").withConditions({
-        ArnLike: {
-          "aws:SourceArn": pinboardAppsyncApi.arn,
-        },
-        StringEquals: {
-          "aws:SourceAccount": account,
-        },
-      })
     );
 
     const pinboardItemTableBaseName = "pinboard-item-table";
@@ -666,13 +656,13 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const bootstrappingApiGateway = new apigateway.LambdaRestApi(
+    const bootstrappingApiGateway = new apiGateway.LambdaRestApi(
       thisStack,
       bootstrappingLambdaApiBaseName,
       {
         restApiName: `${bootstrappingLambdaApiBaseName}-${STAGE}`,
         handler: bootstrappingLambdaFunction,
-        endpointTypes: [apigateway.EndpointType.REGIONAL],
+        endpointTypes: [apiGateway.EndpointType.REGIONAL],
         policy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
@@ -715,13 +705,13 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const bootstrappingApiDomainName = new apigateway.DomainName(
+    const bootstrappingApiDomainName = new apiGateway.DomainName(
       thisStack,
       `${bootstrappingLambdaApiBaseName}-domain-name`,
       {
         domainName,
         certificate: bootstrappingApiCertificate,
-        endpointType: apigateway.EndpointType.REGIONAL,
+        endpointType: apiGateway.EndpointType.REGIONAL,
       }
     );
 

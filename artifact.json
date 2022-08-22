@@ -4,7 +4,7 @@
   "actions": [
     {
       "action": "pinboard-cloudformation",
-      "path": "cdk/cloudformation.yaml",
+      "path": "cdk/cdk.out/PinBoardStack.template.json",
       "compress": false
     },
     {

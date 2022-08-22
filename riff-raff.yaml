@@ -23,6 +23,7 @@ deployments:
       - pinboard-users-refresher-lambda
       - pinboard-notifications-lambda
       - pinboard-auth-lambda
+      - pinboard-database-bridge-lambda
     type: aws-lambda
     parameters:
       prefixStack: false
@@ -79,3 +80,13 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-auth-lambda.zip
       functionNames: [pinboard-auth-lambda-]
+
+  pinboard-database-bridge-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-database-bridge-lambda.zip
+      functionNames: [pinboard-database-bridge-lambda-]

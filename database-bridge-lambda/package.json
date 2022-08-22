@@ -1,0 +1,19 @@
+{
+  "name": "database-bridge-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to interact with the database",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
+    "build": "run-p --print-label type-check bundle",
+    "watch": "ts-node-dev --respawn run.ts"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.840.0",
+    "ts-node-dev": "^1.0.0"
+  },
+  "dependencies": {
+    "postgres": "^3.2.4"
+  }
+}

@@ -8,6 +8,7 @@ import {
   aws_events_targets as eventsTargets,
   aws_iam as iam,
   aws_lambda as lambda,
+  aws_lambda_event_sources as lambdaEventSources,
   aws_rds as rds,
   aws_s3 as S3,
   aws_ssm as ssm,
@@ -25,7 +26,6 @@ import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
 import { APP } from "../shared/constants";
 import crypto from "crypto";
-import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 import {
   DATABASE_NAME,
@@ -34,7 +34,6 @@ import {
   getDatabaseProxyName,
 } from "../shared/database";
 import { Stage } from "../shared/types/stage";
-import { StorageType } from "aws-cdk-lib/aws-rds";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -94,7 +93,7 @@ export class PinBoardStack extends Stack {
       databaseName: DATABASE_NAME,
       credentials: rds.Credentials.fromGeneratedSecret(DATABASE_USERNAME),
       iamAuthentication: true,
-      storageType: StorageType.GP2, // SSD
+      storageType: rds.StorageType.GP2, // SSD
       allocatedStorage: 20, // minimum for GP2
       storageEncrypted: true,
       autoMinorVersionUpgrade: true,
@@ -109,9 +108,10 @@ export class PinBoardStack extends Stack {
 
     const databaseProxy = database.addProxy("DatabaseProxy", {
       dbProxyName: getDatabaseProxyName(STAGE as Stage),
+      vpc: accountVpc,
       secrets: [database.secret!],
       iamAuth: true,
-      vpc: accountVpc,
+      requireTLS: true,
     });
 
     const databaseHostname = databaseProxy.endpoint;
@@ -228,6 +228,59 @@ export class PinBoardStack extends Stack {
       }
     );
 
+    const databaseBridgeLambdaBasename = "pinboard-database-bridge-lambda";
+
+    const pinboardDatabaseBridgeLambda = new lambda.Function(
+      thisStack,
+      databaseBridgeLambdaBasename,
+      {
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(30),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
+        },
+        functionName: `${databaseBridgeLambdaBasename}-${STAGE}`,
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${databaseBridgeLambdaBasename}/${databaseBridgeLambdaBasename}.zip`
+        ),
+        initialPolicy: [],
+        vpc: accountVpc,
+      }
+    );
+
+    databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
+
+    // unfortunately the grantConnect above doesn't update the DB Proxy security group to allow connection from the
+    // database bridge lambda, so we have to do it manually below
+    // (using an escape hatch, since DatabaseProxy nor lambda expose the generated security group)
+    const cfnDatabaseProxy = databaseProxy.node.defaultChild as rds.CfnDBProxy;
+    const cfnLambda = pinboardDatabaseBridgeLambda.node
+      .defaultChild as lambda.CfnFunction;
+    const cfnLambdaVpcConfig = cfnLambda.vpcConfig as lambda.CfnFunction.VpcConfigProperty;
+    if (
+      cfnDatabaseProxy.vpcSecurityGroupIds &&
+      cfnLambdaVpcConfig.securityGroupIds
+    ) {
+      const dbProxySecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+        thisStack,
+        "dbProxySecurityGroup",
+        Fn.select(0, cfnDatabaseProxy.vpcSecurityGroupIds)
+      );
+      dbProxySecurityGroup.addIngressRule(
+        ec2.Peer.securityGroupId(
+          Fn.select(0, cfnLambdaVpcConfig.securityGroupIds)
+        ),
+        ec2.Port.tcp(DATABASE_PORT),
+        `Allow ${pinboardDatabaseBridgeLambda.functionName} to connect to the ${databaseProxy.dbProxyName}`
+      );
+    }
+
     const pinboardUserTableBaseName = "pinboard-user-table";
 
     const pinboardAppsyncUserTable = new db.Table(
@@ -339,7 +392,7 @@ export class PinBoardStack extends Stack {
     );
 
     pinboardNotificationsLambda.addEventSource(
-      new DynamoEventSource(pinboardAppsyncItemTable, {
+      new lambdaEventSources.DynamoEventSource(pinboardAppsyncItemTable, {
         maxBatchingWindow: Duration.seconds(10),
         startingPosition: lambda.StartingPosition.LATEST,
       })

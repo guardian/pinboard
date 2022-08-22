@@ -48,9 +48,18 @@ Object {
     },
   },
   "Parameters": Object {
+    "AccountVpcPrivateSubnetIds": Object {
+      "Default": "/account/vpc/primary/subnets/private",
+      "Description": "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
+      "Type": "AWS::SSM::Parameter::Value<List<String>>",
+    },
     "BootstrapVersion": Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
+      "Default": "/account/vpc/primary/id",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
@@ -67,6 +76,382 @@ Object {
     },
   },
   "Resources": Object {
+    "DatabaseB269D8BB": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AllocatedStorage": "20",
+        "AutoMinorVersionUpgrade": true,
+        "CopyTagsToSnapshot": true,
+        "DBInstanceClass": "db.t4g.micro",
+        "DBInstanceIdentifier": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-db-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "DBName": "pinboard",
+        "DBSubnetGroupName": Object {
+          "Ref": "DatabaseSubnetGroup7D60F180",
+        },
+        "DeletionProtection": true,
+        "EnableIAMDatabaseAuthentication": true,
+        "Engine": "postgres",
+        "EngineVersion": "13.7",
+        "MasterUserPassword": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+              },
+              ":SecretString:password::}}",
+            ],
+          ],
+        },
+        "MasterUsername": "pinboard",
+        "MultiAZ": false,
+        "Port": "5432",
+        "PubliclyAccessible": false,
+        "StorageEncrypted": true,
+        "StorageType": "gp2",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VPCSecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseSecurityGroup5C91FDCB",
+              "GroupId",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBInstance",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DatabaseDatabaseProxy537ACFCB": Object {
+      "Properties": Object {
+        "Auth": Array [
+          Object {
+            "AuthScheme": "SECRETS",
+            "IAMAuth": "REQUIRED",
+            "SecretArn": Object {
+              "Ref": "DatabaseSecretAttachmentE5D1B020",
+            },
+          },
+        ],
+        "DBProxyName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-proxy-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "EngineFamily": "POSTGRESQL",
+        "RequireTLS": true,
+        "RoleArn": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseDatabaseProxyIAMRoleFD415DDD",
+            "Arn",
+          ],
+        },
+        "VpcSecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+              "GroupId",
+            ],
+          },
+        ],
+        "VpcSubnetIds": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+      },
+      "Type": "AWS::RDS::DBProxy",
+    },
+    "DatabaseDatabaseProxyIAMRoleDefaultPolicyB21E77C5": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "DatabaseSecretAttachmentE5D1B020",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseDatabaseProxyIAMRoleDefaultPolicyB21E77C5",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseDatabaseProxyIAMRoleFD415DDD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DatabaseDatabaseProxyIAMRoleFD415DDD": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "rds.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseDatabaseProxyProxySecurityGroup62D74C1F": Object {
+      "Properties": Object {
+        "GroupDescription": "SecurityGroup for Database Proxy",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseDatabaseProxyProxyTargetGroupFF78BEFD": Object {
+      "Properties": Object {
+        "ConnectionPoolConfigurationInfo": Object {},
+        "DBInstanceIdentifiers": Array [
+          Object {
+            "Ref": "DatabaseB269D8BB",
+          },
+        ],
+        "DBProxyName": Object {
+          "Ref": "DatabaseDatabaseProxy537ACFCB",
+        },
+        "TargetGroupName": "default",
+      },
+      "Type": "AWS::RDS::DBProxyTargetGroup",
+    },
+    "DatabaseSecretAttachmentE5D1B020": Object {
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+        },
+        "TargetId": Object {
+          "Ref": "DatabaseB269D8BB",
+        },
+        "TargetType": "AWS::RDS::DBInstance",
+      },
+      "Type": "AWS::SecretsManager::SecretTargetAttachment",
+    },
+    "DatabaseSecurityGroup5C91FDCB": Object {
+      "Properties": Object {
+        "GroupDescription": "Security group for Database database",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseSecurityGroupfromPinBoardStackDatabaseDatabaseProxyProxySecurityGroup6ED094B9IndirectPortD6D1383E": Object {
+      "Properties": Object {
+        "Description": "Allow connections to the database Instance from the Proxy",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSecurityGroup5C91FDCB",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseSubnetGroup7D60F180": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "DBSubnetGroupDescription": "Subnet group for Database database",
+        "SubnetIds": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Generated by the CDK for stack: ",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "GenerateSecretString": Object {
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\",
+          "GenerateStringKey": "password",
+          "PasswordLength": 30,
+          "SecretStringTemplate": "{\\"username\\":\\"pinboard\\"}",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
     "pinboardappsyncapi9D519400": Object {
       "Properties": Object {
         "AuthenticationType": "AWS_LAMBDA",

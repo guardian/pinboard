@@ -1,23 +1,25 @@
 import {
   App,
+  aws_apigateway as apiGateway,
+  aws_certificatemanager as acm,
+  aws_dynamodb as db,
+  aws_ec2 as ec2,
+  aws_events as events,
+  aws_events_targets as eventsTargets,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_rds as rds,
+  aws_s3 as S3,
+  aws_ssm as ssm,
   CfnMapping,
   CfnOutput,
   CfnParameter,
   Duration,
   Fn,
+  RemovalPolicy,
   Stack,
   StackProps,
   Tags,
-  aws_lambda as lambda,
-  aws_s3 as S3,
-  aws_iam as iam,
-  aws_ssm as ssm,
-  aws_apigateway as apiGateway,
-  aws_dynamodb as db,
-  aws_certificatemanager as acm,
-  aws_ec2 as ec2,
-  aws_events as events,
-  aws_events_targets as eventsTargets,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -25,6 +27,14 @@ import { APP } from "../shared/constants";
 import crypto from "crypto";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
+import {
+  DATABASE_NAME,
+  DATABASE_PORT,
+  DATABASE_USERNAME,
+  getDatabaseProxyName,
+} from "../shared/database";
+import { Stage } from "../shared/types/stage";
+import { StorageType } from "aws-cdk-lib/aws-rds";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -54,6 +64,58 @@ export class PinBoardStack extends Stack {
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
 
+    const accountVpcPrivateSubnetIds = new CfnParameter(
+      thisStack,
+      "AccountVpcPrivateSubnetIds",
+      {
+        type: "AWS::SSM::Parameter::Value<List<String>>",
+        description:
+          "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
+        default: "/account/vpc/primary/subnets/private",
+      }
+    ).valueAsList;
+
+    const accountVpc = ec2.Vpc.fromVpcAttributes(thisStack, "AccountVPC", {
+      vpcId: ssm.StringParameter.valueForStringParameter(
+        thisStack,
+        "/account/vpc/primary/id"
+      ),
+      availabilityZones: Fn.getAzs(region),
+      privateSubnetIds: accountVpcPrivateSubnetIds,
+    });
+
+    const database = new rds.DatabaseInstance(this, "Database", {
+      instanceIdentifier: `${APP}-db-${STAGE}`,
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_13_7, // RDS Proxy fails to create with a Postgres 14 instance (comment on 22 Aug 2022)
+      }),
+      vpc: accountVpc,
+      port: DATABASE_PORT,
+      databaseName: DATABASE_NAME,
+      credentials: rds.Credentials.fromGeneratedSecret(DATABASE_USERNAME),
+      iamAuthentication: true,
+      storageType: StorageType.GP2, // SSD
+      allocatedStorage: 20, // minimum for GP2
+      storageEncrypted: true,
+      autoMinorVersionUpgrade: true,
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T4G,
+        ec2.InstanceSize.MICRO // TODO consider small for PROD
+      ),
+      multiAz: false, // TODO consider turning on for PROD
+      publiclyAccessible: false,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    const databaseProxy = database.addProxy("DatabaseProxy", {
+      dbProxyName: getDatabaseProxyName(STAGE as Stage),
+      secrets: [database.secret!],
+      iamAuth: true,
+      vpc: accountVpc,
+    });
+
+    const databaseHostname = databaseProxy.endpoint;
+
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
       "workflow-dist",
@@ -80,7 +142,7 @@ export class PinBoardStack extends Stack {
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
-    const vpcId = Fn.importValue(
+    const workflowDatastoreVpcId = Fn.importValue(
       `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
     );
 
@@ -88,7 +150,7 @@ export class PinBoardStack extends Stack {
       thisStack,
       "workflow-datastore-vpc",
       {
-        vpcId: vpcId,
+        vpcId: workflowDatastoreVpcId,
         availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",

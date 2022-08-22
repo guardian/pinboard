@@ -452,6 +452,55 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
+    "dbProxySecurityGroupfromIndirectPeer54327EF01EB5": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Allow ",
+              Object {
+                "Ref": "pinboarddatabasebridgelambda34091516",
+              },
+              " to connect to the ",
+              Object {
+                "Ref": "DatabaseDatabaseProxy537ACFCB",
+              },
+            ],
+          ],
+        },
+        "FromPort": 5432,
+        "GroupId": Object {
+          "Fn::Select": Array [
+            0,
+            Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+                  "GroupId",
+                ],
+              },
+            ],
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::Select": Array [
+            0,
+            Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
+                  "GroupId",
+                ],
+              },
+            ],
+          ],
+        },
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "pinboardappsyncapi9D519400": Object {
       "Properties": Object {
         "AuthenticationType": "AWS_LAMBDA",
@@ -2508,6 +2557,258 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::ApiGateway::Resource",
+    },
+    "pinboarddatabasebridgelambda34091516": Object {
+      "DependsOn": Array [
+        "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827",
+        "pinboarddatabasebridgelambdaServiceRole07A568AB",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-database-bridge-lambda/pinboard-database-bridge-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-bridge-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboarddatabasebridgelambdaServiceRole07A568AB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 30,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7": Object {
+      "Properties": Object {
+        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackpinboarddatabasebridgelambdaEBBDC95F",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "pinboarddatabasebridgelambdaServiceRole07A568AB": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboarddatabasebridgelambdaServiceRole07A568AB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "pinboardgridbridgelambda79AD9656": Object {
       "DependsOn": Array [

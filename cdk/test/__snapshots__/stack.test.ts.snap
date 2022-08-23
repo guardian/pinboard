@@ -774,6 +774,110 @@ input TableStringFilterInput {
       },
       "Type": "AWS::AppSync::GraphQLSchema",
     },
+    "pinboardappsyncapidatabasebridgelambdads970CB9A7": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "LambdaConfig": Object {
+          "LambdaFunctionArn": Object {
+            "Fn::GetAtt": Array [
+              "pinboarddatabasebridgelambda34091516",
+              "Arn",
+            ],
+          },
+        },
+        "Name": "database_bridge_lambda_ds",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697",
+            "Arn",
+          ],
+        },
+        "Type": "AWS_LAMBDA",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsServiceRoleDefaultPolicyF3582502": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboarddatabasebridgelambda34091516",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboarddatabasebridgelambda34091516",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapidatabasebridgelambdadsServiceRoleDefaultPolicyF3582502",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "pinboardappsyncapigridbridgelambdads1C89A823": Object {
       "Properties": Object {
         "ApiId": Object {

@@ -458,6 +458,14 @@ export class PinBoardStack extends Stack {
       pinboardAppsyncUserTable
     );
 
+    const pinboardDatabaseBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
+      `${databaseBridgeLambdaBasename
+        .replace("pinboard-", "")
+        .split("-")
+        .join("_")}_ds`,
+      pinboardDatabaseBridgeLambda
+    );
+
     const gqlSchemaChecksum = crypto
       .createHash("md5")
       .update(gqlSchema.definition, "utf8")

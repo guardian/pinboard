@@ -491,28 +491,15 @@ export class PinBoardStack extends Stack {
       "$util.toJson($context.result)"
     );
 
-    pinboardItemDataSource.createResolver({
+    ["listItems"].map(fieldName => pinboardDatabaseBridgeLambdaDataSource.createResolver({
       typeName: "Query",
-      fieldName: "listItems",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
+      fieldName,
+    }));
 
-    pinboardItemDataSource.createResolver({
+    ["createItem"].map(fieldName => pinboardDatabaseBridgeLambdaDataSource.createResolver({
       typeName: "Mutation",
-      fieldName: "createItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbPutItem(
-          appsync.PrimaryKey.partition("id").auto(),
-          appsync.Values.projecting("input")
-            .attribute("timestamp")
-            .is("$util.time.nowEpochSeconds()")
-            .attribute("userEmail")
-            .is("$ctx.identity.resolverContext.userEmail")
-        )
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
+      fieldName,
+    }));
 
     pinboardLastItemSeenByUserDataSource.createResolver({
       typeName: "Query",

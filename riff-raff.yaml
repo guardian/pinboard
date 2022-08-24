@@ -14,6 +14,11 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: pinboard
       templatePath: PinBoardStack.template.json
+      amiTags:
+        Recipe: editorial-tools-bionic-java8-ARM-WITH-cdk-base
+        AmigoStage: PROD
+      amiEncrypted: true
+      amiParameter: DatabaseJumpHostAmiID
 
   pinboard-bootstrapping-lambda-api:
     dependencies:

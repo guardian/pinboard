@@ -953,44 +953,6 @@ input TableStringFilterInput {
       },
       "Type": "AWS::AppSync::DataSource",
     },
-    "pinboardappsyncapidatabasebridgelambdadsMutationcreateItemResolverF3DD77B1": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "database_bridge_lambda_ds",
-        "FieldName": "createItem",
-        "Kind": "UNIT",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapidatabasebridgelambdadsQuerylistItemsResolver88BD585F": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "database_bridge_lambda_ds",
-        "FieldName": "listItems",
-        "Kind": "UNIT",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
     "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
@@ -1219,6 +1181,67 @@ $util.toJson($ctx.result)",
         "Type": "AMAZON_DYNAMODB",
       },
       "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapiitemtabledatasourceMutationcreateItemResolver7AEC9201": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "item_table_datasource",
+        "FieldName": "createItem",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+
+      #set($input = $ctx.args.input)
+      $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
+$util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
+      {
+        \\"version\\": \\"2017-02-28\\",
+        \\"operation\\": \\"PutItem\\",
+        \\"key\\" : {
+      \\"id\\" : $util.dynamodb.toDynamoDBJson($util.autoId())
+    },
+        \\"attributeValues\\": $util.dynamodb.toMapValuesJson($input)
+      }",
+        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapiitemtabledatasourceQuerylistItemsResolver15E3DD35": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "item_table_datasource",
+        "FieldName": "listItems",
+        "Kind": "UNIT",
+        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+
+        {
+          \\"version\\": \\"2017-02-28\\",
+          \\"operation\\": \\"Scan\\",
+          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+        }
+      ",
+        "ResponseMappingTemplate": "$util.toJson($context.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
     },
     "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E": Object {
       "Properties": Object {

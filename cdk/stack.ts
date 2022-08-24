@@ -1,6 +1,7 @@
 import {
   App,
   aws_apigateway as apiGateway,
+  aws_autoscaling as autoscaling,
   aws_certificatemanager as acm,
   aws_dynamodb as db,
   aws_ec2 as ec2,
@@ -31,9 +32,11 @@ import {
   DATABASE_NAME,
   DATABASE_PORT,
   DATABASE_USERNAME,
+  getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
 } from "../shared/database";
 import { Stage } from "../shared/types/stage";
+import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -58,6 +61,15 @@ export class PinBoardStack extends Stack {
       type: "String",
       description: "Stage",
     }).valueAsString;
+
+    const DatabaseJumpHostAmiID = new CfnParameter(
+      thisStack,
+      "DatabaseJumpHostAmiID",
+      {
+        type: "AWS::EC2::Image::Id",
+        description: "AMI ID to be used for database 'jump host'",
+      }
+    ).valueAsString;
 
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
@@ -260,26 +272,53 @@ export class PinBoardStack extends Stack {
     // database bridge lambda, so we have to do it manually below
     // (using an escape hatch, since DatabaseProxy nor lambda expose the generated security group)
     const cfnDatabaseProxy = databaseProxy.node.defaultChild as rds.CfnDBProxy;
-    const cfnLambda = pinboardDatabaseBridgeLambda.node
+    const cfnDatabaseBridgeLambda = pinboardDatabaseBridgeLambda.node
       .defaultChild as lambda.CfnFunction;
-    const cfnLambdaVpcConfig = cfnLambda.vpcConfig as lambda.CfnFunction.VpcConfigProperty;
-    if (
-      cfnDatabaseProxy.vpcSecurityGroupIds &&
-      cfnLambdaVpcConfig.securityGroupIds
-    ) {
-      const dbProxySecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+    const cfnDatabaseBridgeLambdaVpcConfig = cfnDatabaseBridgeLambda.vpcConfig as lambda.CfnFunction.VpcConfigProperty;
+    const databaseBridgeLambdaSecurityGroupID = Fn.select(
+      0,
+      cfnDatabaseBridgeLambdaVpcConfig!.securityGroupIds!
+    );
+    ec2.SecurityGroup.fromSecurityGroupId(
+      thisStack,
+      "databaseProxySecurityGroup",
+      Fn.select(0, cfnDatabaseProxy!.vpcSecurityGroupIds!)
+    ).addIngressRule(
+      ec2.Peer.securityGroupId(databaseBridgeLambdaSecurityGroupID),
+      ec2.Port.tcp(DATABASE_PORT),
+      `Allow ${pinboardDatabaseBridgeLambda.functionName} to connect to the ${databaseProxy.dbProxyName}`
+    );
+
+    // TODO make instance reduce ASG desired count if no connections for a period of time
+    const selfTerminatingUserDataScript = ec2.UserData.custom("");
+
+    new autoscaling.AutoScalingGroup(thisStack, "DatabaseJumpHostASG", {
+      autoScalingGroupName: getDatabaseJumpHostAsgName(STAGE as Stage),
+      vpc: accountVpc,
+      allowAllOutbound: false,
+      machineImage: {
+        getImage: () => ({
+          imageId: DatabaseJumpHostAmiID,
+          osType: OperatingSystemType.LINUX,
+          userData: selfTerminatingUserDataScript,
+        }),
+      },
+      securityGroup: ec2.SecurityGroup.fromSecurityGroupId(
         thisStack,
-        "dbProxySecurityGroup",
-        Fn.select(0, cfnDatabaseProxy.vpcSecurityGroupIds)
-      );
-      dbProxySecurityGroup.addIngressRule(
-        ec2.Peer.securityGroupId(
-          Fn.select(0, cfnLambdaVpcConfig.securityGroupIds)
-        ),
-        ec2.Port.tcp(DATABASE_PORT),
-        `Allow ${pinboardDatabaseBridgeLambda.functionName} to connect to the ${databaseProxy.dbProxyName}`
-      );
-    }
+        "DatabaseBridgeLambdaSecurityGroup",
+        databaseBridgeLambdaSecurityGroupID
+        // TODO might need to add an ingress rule for ssh
+      ),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T4G,
+        ec2.InstanceSize.NANO
+      ),
+      minCapacity: 0,
+      maxCapacity: 1,
+      desiredCapacity: 0,
+      userData: selfTerminatingUserDataScript,
+    });
+    // TODO add alarm for when ASG instance has been running for more than X hours
 
     const pinboardUserTableBaseName = "pinboard-user-table";
 
@@ -491,15 +530,19 @@ export class PinBoardStack extends Stack {
       "$util.toJson($context.result)"
     );
 
-    ["listItems"].map(fieldName => pinboardDatabaseBridgeLambdaDataSource.createResolver({
-      typeName: "Query",
-      fieldName,
-    }));
+    ["listItems"].map((fieldName) =>
+      pinboardDatabaseBridgeLambdaDataSource.createResolver({
+        typeName: "Query",
+        fieldName,
+      })
+    );
 
-    ["createItem"].map(fieldName => pinboardDatabaseBridgeLambdaDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName,
-    }));
+    ["createItem"].map((fieldName) =>
+      pinboardDatabaseBridgeLambdaDataSource.createResolver({
+        typeName: "Mutation",
+        fieldName,
+      })
+    );
 
     pinboardLastItemSeenByUserDataSource.createResolver({
       typeName: "Query",

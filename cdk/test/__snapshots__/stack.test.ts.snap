@@ -58,6 +58,10 @@ Object {
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
+    "DatabaseJumpHostAmiID": Object {
+      "Description": "AMI ID to be used for database 'jump host'",
+      "Type": "AWS::EC2::Image::Id",
+    },
     "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
       "Default": "/account/vpc/primary/id",
       "Type": "AWS::SSM::Parameter::Value<String>",
@@ -304,6 +308,154 @@ Object {
       },
       "Type": "AWS::RDS::DBProxyTargetGroup",
     },
+    "DatabaseJumpHostASG7442506A": Object {
+      "Properties": Object {
+        "AutoScalingGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-jump-host-ASG-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "DesiredCapacity": "0",
+        "LaunchConfigurationName": Object {
+          "Ref": "DatabaseJumpHostASGLaunchConfig7E2B6251",
+        },
+        "MaxSize": "1",
+        "MinSize": "0",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "PropagateAtLaunch": true,
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Name",
+            "PropagateAtLaunch": true,
+            "Value": "PinBoardStack/DatabaseJumpHostASG",
+          },
+          Object {
+            "Key": "Stack",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VPCZoneIdentifier": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+      },
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy": Object {
+        "AutoScalingScheduledAction": Object {
+          "IgnoreUnmodifiedGroupSizeProperties": true,
+        },
+      },
+    },
+    "DatabaseJumpHostASGInstanceProfile309E3B68": Object {
+      "Properties": Object {
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseJumpHostASGInstanceRoleD6B4FC9F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "DatabaseJumpHostASGInstanceRoleD6B4FC9F": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "ec2.",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "PinBoardStack/DatabaseJumpHostASG",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseJumpHostASGLaunchConfig7E2B6251": Object {
+      "DependsOn": Array [
+        "DatabaseJumpHostASGInstanceRoleD6B4FC9F",
+      ],
+      "Properties": Object {
+        "IamInstanceProfile": Object {
+          "Ref": "DatabaseJumpHostASGInstanceProfile309E3B68",
+        },
+        "ImageId": Object {
+          "Ref": "DatabaseJumpHostAmiID",
+        },
+        "InstanceType": "t4g.nano",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::Select": Array [
+              0,
+              Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
+                    "GroupId",
+                  ],
+                },
+              ],
+            ],
+          },
+        ],
+        "UserData": Object {
+          "Fn::Base64": "",
+        },
+      },
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+    },
     "DatabaseSecretAttachmentE5D1B020": Object {
       "Properties": Object {
         "SecretId": Object {
@@ -452,7 +604,7 @@ Object {
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
     },
-    "dbProxySecurityGroupfromIndirectPeer54327EF01EB5": Object {
+    "databaseProxySecurityGroupfromIndirectPeer5432453AB7EA": Object {
       "Properties": Object {
         "Description": Object {
           "Fn::Join": Array [

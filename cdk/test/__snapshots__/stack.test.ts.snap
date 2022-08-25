@@ -391,7 +391,7 @@ Object {
       "Properties": Object {
         "Roles": Array [
           Object {
-            "Ref": "SSMRole4E0C2080",
+            "Ref": "DatabaseJumpHostRole001D5530",
           },
         ],
       },
@@ -399,7 +399,8 @@ Object {
     },
     "DatabaseJumpHostASGLaunchConfig7E2B6251": Object {
       "DependsOn": Array [
-        "SSMRole4E0C2080",
+        "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
+        "DatabaseJumpHostRole001D5530",
       ],
       "Properties": Object {
         "IamInstanceProfile": Object {
@@ -429,6 +430,117 @@ Object {
         },
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
+    },
+    "DatabaseJumpHostRole001D5530": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "ec2.",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::ImportValue": "guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseJumpHostRoleDefaultPolicyA1BA6E09": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseJumpHostRole001D5530",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "DatabaseSecretAttachmentE5D1B020": Object {
       "Properties": Object {
@@ -577,56 +689,6 @@ Object {
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
-    },
-    "SSMRole4E0C2080": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "ec2.",
-                      Object {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                    ],
-                  ],
-                },
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::ImportValue": "guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy",
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
     },
     "databaseProxySecurityGroupfromIndirectPeer5432453AB7EA": Object {
       "Properties": Object {

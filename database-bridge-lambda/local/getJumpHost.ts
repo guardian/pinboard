@@ -1,7 +1,10 @@
 import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../shared/awsIntegration";
 import { Stage } from "../../shared/types/stage";
-import { getDatabaseJumpHostAsgName } from "../../shared/database";
+import {
+  databaseJumpHostASGLogicalID,
+  getDatabaseJumpHostAsgName,
+} from "../../shared/database";
 import { APP } from "../../shared/constants";
 
 export const getJumpHost = async (stage: Stage) => {
@@ -30,7 +33,10 @@ export const getJumpHost = async (stage: Stage) => {
       Filters: [
         { Name: "tag:App", Values: [APP] },
         { Name: "tag:Stage", Values: [stage] },
-        { Name: "tag:Name", Values: ["PinBoardStack/DatabaseJumpHostASG"] },
+        {
+          Name: "tag:Name",
+          Values: [`PinBoardStack/${databaseJumpHostASGLogicalID}`],
+        },
         { Name: "instance-state-name", Values: ["running"] },
       ],
     })

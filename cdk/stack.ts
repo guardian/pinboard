@@ -32,6 +32,7 @@ import {
   DATABASE_NAME,
   DATABASE_PORT,
   DATABASE_USERNAME,
+  databaseJumpHostASGLogicalID,
   getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
 } from "../shared/database";
@@ -304,37 +305,43 @@ export class PinBoardStack extends Stack {
     // TODO make instance reduce ASG desired count if no connections for a period of time
     const selfTerminatingUserDataScript = ec2.UserData.custom("");
 
-    new autoscaling.AutoScalingGroup(thisStack, "DatabaseJumpHostASG", {
-      autoScalingGroupName: getDatabaseJumpHostAsgName(STAGE as Stage),
-      vpc: accountVpc,
-      allowAllOutbound: false,
-      machineImage: {
-        getImage: () => ({
-          imageId: DatabaseJumpHostAmiID,
-          osType: OperatingSystemType.LINUX,
-          userData: selfTerminatingUserDataScript,
+    const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
+      thisStack,
+      databaseJumpHostASGLogicalID,
+      {
+        autoScalingGroupName: getDatabaseJumpHostAsgName(STAGE as Stage),
+        vpc: accountVpc,
+        allowAllOutbound: false,
+        machineImage: {
+          getImage: () => ({
+            imageId: DatabaseJumpHostAmiID,
+            osType: OperatingSystemType.LINUX,
+            userData: selfTerminatingUserDataScript,
+          }),
+        },
+        role: new iam.Role(thisStack, "DatabaseJumpHostRole", {
+          assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+          managedPolicies: [
+            iam.ManagedPolicy.fromManagedPolicyArn(
+              thisStack,
+              "SSMPolicy",
+              Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
+            ),
+          ],
         }),
-      },
-      role: new iam.Role(thisStack, "SSMRole", {
-        assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-        managedPolicies: [
-          iam.ManagedPolicy.fromManagedPolicyArn(
-            thisStack,
-            "SSMPolicy",
-            Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
-          ),
-        ],
-      }),
-      securityGroup: databaseBridgeLambdaSecurityGroup,
-      instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T4G,
-        ec2.InstanceSize.NANO
-      ),
-      minCapacity: 0,
-      maxCapacity: 1,
-      desiredCapacity: 0,
-      userData: selfTerminatingUserDataScript,
-    });
+        securityGroup: databaseBridgeLambdaSecurityGroup,
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.T4G,
+          ec2.InstanceSize.NANO
+        ),
+        minCapacity: 0,
+        maxCapacity: 1,
+        desiredCapacity: 0,
+        userData: selfTerminatingUserDataScript,
+      }
+    );
+
+    databaseProxy.grantConnect(databaseJumpHostASG);
     // TODO add alarm for when ASG instance has been running for more than X hours
 
     const pinboardUserTableBaseName = "pinboard-user-table";

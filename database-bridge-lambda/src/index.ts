@@ -15,7 +15,6 @@ import type { Mutation, Query } from "../../shared/graphql/graphql";
 import { listItems } from "./sql/listItems";
 import { createItem } from "./sql/createItem";
 import { Sql } from "./sql/types";
-import { CreateItemInput } from "../../shared/graphql/graphql";
 
 type FieldName = keyof Required<Omit<Query & Mutation, "__typename">>;
 

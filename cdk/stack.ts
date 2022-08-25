@@ -279,6 +279,12 @@ export class PinBoardStack extends Stack {
       0,
       cfnDatabaseBridgeLambdaVpcConfig!.securityGroupIds!
     );
+    const databaseBridgeLambdaSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
+      thisStack,
+      "DatabaseBridgeLambdaSecurityGroup",
+      databaseBridgeLambdaSecurityGroupID
+    );
+
     ec2.SecurityGroup.fromSecurityGroupId(
       thisStack,
       "databaseProxySecurityGroup",
@@ -287,6 +293,12 @@ export class PinBoardStack extends Stack {
       ec2.Peer.securityGroupId(databaseBridgeLambdaSecurityGroupID),
       ec2.Port.tcp(DATABASE_PORT),
       `Allow ${pinboardDatabaseBridgeLambda.functionName} to connect to the ${databaseProxy.dbProxyName}`
+    );
+
+    databaseBridgeLambdaSecurityGroup.addIngressRule(
+      ec2.Peer.ipv4("77.91.248.0/21"),
+      ec2.Port.tcp(22),
+      "Allow SSH for tunneling purposes when this security group is reused for database jump host."
     );
 
     // TODO make instance reduce ASG desired count if no connections for a period of time
@@ -313,12 +325,7 @@ export class PinBoardStack extends Stack {
           ),
         ],
       }),
-      securityGroup: ec2.SecurityGroup.fromSecurityGroupId(
-        thisStack,
-        "DatabaseBridgeLambdaSecurityGroup",
-        databaseBridgeLambdaSecurityGroupID
-        // TODO might need to add an ingress rule for ssh
-      ),
+      securityGroup: databaseBridgeLambdaSecurityGroup,
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T4G,
         ec2.InstanceSize.NANO

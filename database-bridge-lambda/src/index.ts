@@ -42,8 +42,12 @@ const run = (
 export const handler = async (
   payload: AppSyncResolverEvent<unknown, unknown>
 ) => {
+  const isRunningLocally = !process.env.LAMBDA_TASK_ROOT;
+
+  const databaseHostname = getEnvironmentVariableOrThrow("databaseHostname");
+
   const basicConnectionDetails = {
-    hostname: getEnvironmentVariableOrThrow("databaseHostname"),
+    hostname: databaseHostname,
     port: DATABASE_PORT,
     username: DATABASE_USERNAME,
   };
@@ -53,8 +57,14 @@ export const handler = async (
     credentials: await standardAwsConfig.credentialProvider.resolvePromise(),
   }).getAuthToken(basicConnectionDetails);
 
+  isRunningLocally &&
+    console.log(
+      `\nIAM Token to use as DB password (if you want to connect from command line, IntelliJ etc.)\n${iamToken}\n`
+    );
+
   const sql = postgres({
     ...basicConnectionDetails,
+    hostname: isRunningLocally ? "localhost" : databaseHostname,
     database: DATABASE_NAME,
     password: iamToken,
     ssl: "require",
@@ -65,9 +75,9 @@ export const handler = async (
     .resolverContext.userEmail;
   const fieldName = payload.info.fieldName as FieldName;
 
-  const result = await run(sql, fieldName, args, userEmail);
-
-  await sql.end();
-
-  return result;
+  try {
+    return await run(sql, fieldName, args, userEmail);
+  } finally {
+    await sql.end();
+  }
 };

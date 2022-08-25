@@ -23,9 +23,9 @@ export const getJumpHost = async (stage: Stage) => {
     })
     .promise();
 
-  console.log("Waiting for instance to be 'running'");
+  console.log("Waiting for instance to be 'running'...");
 
-  const instanceWaitResult = await ec2
+  const instanceRunningResult = await ec2
     .waitFor("instanceRunning", {
       Filters: [
         { Name: "tag:App", Values: [APP] },
@@ -36,13 +36,22 @@ export const getJumpHost = async (stage: Stage) => {
     .promise();
 
   const maybeInstanceId =
-    instanceWaitResult.Reservations?.[0]?.Instances?.[0]?.InstanceId;
+    instanceRunningResult.Reservations?.[0]?.Instances?.[0]?.InstanceId;
 
   if (!maybeInstanceId) {
-    throw "EC2 waiter suggested instance was ready, but then doesn't have an instance for us 😢";
+    throw "EC2 waiter suggested instance was running, but then doesn't have an instance for us 😢";
   }
 
   console.log(`Instance ${maybeInstanceId} is running 🎉`);
+  console.log("Waiting for instance to have 'OK' status...");
+
+  await ec2
+    .waitFor("instanceStatusOk", {
+      InstanceIds: [maybeInstanceId],
+    })
+    .promise();
+
+  console.log(`Instance ${maybeInstanceId} has OK status 🎉`);
 
   return maybeInstanceId;
 };

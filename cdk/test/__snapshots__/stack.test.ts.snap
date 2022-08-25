@@ -368,64 +368,15 @@ Object {
       "Properties": Object {
         "Roles": Array [
           Object {
-            "Ref": "DatabaseJumpHostASGInstanceRoleD6B4FC9F",
+            "Ref": "SSMRole4E0C2080",
           },
         ],
       },
       "Type": "AWS::IAM::InstanceProfile",
     },
-    "DatabaseJumpHostASGInstanceRoleD6B4FC9F": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "ec2.",
-                      Object {
-                        "Ref": "AWS::URLSuffix",
-                      },
-                    ],
-                  ],
-                },
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Name",
-            "Value": "PinBoardStack/DatabaseJumpHostASG",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
     "DatabaseJumpHostASGLaunchConfig7E2B6251": Object {
       "DependsOn": Array [
-        "DatabaseJumpHostASGInstanceRoleD6B4FC9F",
+        "SSMRole4E0C2080",
       ],
       "Properties": Object {
         "IamInstanceProfile": Object {
@@ -603,6 +554,56 @@ Object {
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
+    },
+    "SSMRole4E0C2080": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "ec2.",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::ImportValue": "guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "databaseProxySecurityGroupfromIndirectPeer5432453AB7EA": Object {
       "Properties": Object {

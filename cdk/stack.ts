@@ -303,6 +303,16 @@ export class PinBoardStack extends Stack {
           userData: selfTerminatingUserDataScript,
         }),
       },
+      role: new iam.Role(thisStack, "SSMRole", {
+        assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+        managedPolicies: [
+          iam.ManagedPolicy.fromManagedPolicyArn(
+            thisStack,
+            "SSMPolicy",
+            Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
+          ),
+        ],
+      }),
       securityGroup: ec2.SecurityGroup.fromSecurityGroupId(
         thisStack,
         "DatabaseBridgeLambdaSecurityGroup",

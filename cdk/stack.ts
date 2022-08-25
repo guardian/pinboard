@@ -3,6 +3,8 @@ import {
   aws_apigateway as apiGateway,
   aws_autoscaling as autoscaling,
   aws_certificatemanager as acm,
+  aws_cloudwatch as cloudwatch,
+  aws_cloudwatch_actions as cloudwatchActions,
   aws_dynamodb as db,
   aws_ec2 as ec2,
   aws_events as events,
@@ -12,6 +14,7 @@ import {
   aws_lambda_event_sources as lambdaEventSources,
   aws_rds as rds,
   aws_s3 as S3,
+  aws_sns as sns,
   aws_ssm as ssm,
   CfnMapping,
   CfnOutput,
@@ -302,16 +305,45 @@ export class PinBoardStack extends Stack {
       "Allow SSH for tunneling purposes when this security group is reused for database jump host."
     );
 
-    // TODO make instance reduce ASG desired count if no connections for a period of time
-    const selfTerminatingUserDataScript = ec2.UserData.custom("");
+    const databaseJumpHostASGName = getDatabaseJumpHostAsgName(STAGE as Stage);
+
+    const selfTerminatingUserDataScript = ec2.UserData.custom(`
+    #cloud-boothook
+    #!/bin/bash -ev
+    LAST_ACTIVE_SSHD=$(date +%s)
+    while :
+    do
+        echo "SSH tunnel last active at $LAST_ACTIVE_SSHD"
+        if [ "$(sudo lsof -i -n | egrep '\\<sshd\\>' | grep ubuntu)" = "1" ]; then
+            echo "SSH tunnel detected, bumping LAST_ACTIVE_SSHD"
+            LAST_ACTIVE_SSHD=$(date +%s)
+        fi
+        NOW=$(date +%s)
+        DIFF=$((NOW - LAST_ACTIVE_SSHD))
+        if [ "$DIFF" -gt 300 ]; then #i.e. 5 mins since last active ssh tunnel
+            echo "No active SSH tunnel in the last 5mins - so scaling down"
+            aws autoscaling set-desired-capacity \
+                --auto-scaling-group-name ${databaseJumpHostASGName}\
+                --desired-capacity 0 \
+                --no-honor-cooldown \
+                --region ${region}
+        fi
+        sleep 60
+    done
+    `);
 
     const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
       thisStack,
       databaseJumpHostASGLogicalID,
       {
-        autoScalingGroupName: getDatabaseJumpHostAsgName(STAGE as Stage),
+        autoScalingGroupName: databaseJumpHostASGName,
         vpc: accountVpc,
         allowAllOutbound: false,
+        groupMetrics: [
+          new autoscaling.GroupMetrics(
+            autoscaling.GroupMetric.IN_SERVICE_INSTANCES
+          ),
+        ],
         machineImage: {
           getImage: () => ({
             imageId: DatabaseJumpHostAmiID,
@@ -336,13 +368,55 @@ export class PinBoardStack extends Stack {
         ),
         minCapacity: 0,
         maxCapacity: 1,
-        desiredCapacity: 0,
         userData: selfTerminatingUserDataScript,
       }
     );
 
     databaseProxy.grantConnect(databaseJumpHostASG);
-    // TODO add alarm for when ASG instance has been running for more than X hours
+
+    // allow the instance to effectively terminate itself by reducing the capacity of the ASG that controls it
+    databaseJumpHostASG.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["autoscaling:SetDesiredCapacity"],
+        resources: [
+          `arn:aws:autoscaling:${region}:${account}:*${databaseJumpHostASGName}`,
+        ],
+      })
+    );
+
+    const alarmsSnsTopic = sns.Topic.fromTopicArn(
+      this,
+      "CloudwatchAlertsSNS",
+      `arn:aws:sns:${region}:${account}:Cloudwatch-Alerts`
+    );
+
+    const databaseJumpHostOverunningAlarm = new cloudwatch.Alarm(
+      thisStack,
+      "DatabaseJumpHostOverunningAlarm",
+      {
+        alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
+        alarmDescription: `The ${APP} database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken`,
+        metric: new cloudwatch.Metric({
+          metricName: "GroupInServiceInstances",
+          namespace: "AWS/AutoScaling",
+          dimensionsMap: {
+            AutoScalingGroupName: databaseJumpHostASG.autoScalingGroupName,
+          },
+          period: Duration.hours(1),
+        }),
+        comparisonOperator:
+          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold: 0,
+        evaluationPeriods: 12,
+      }
+    );
+    databaseJumpHostOverunningAlarm.addAlarmAction(
+      new cloudwatchActions.SnsAction(alarmsSnsTopic)
+    );
+    databaseJumpHostOverunningAlarm.addOkAction(
+      new cloudwatchActions.SnsAction(alarmsSnsTopic)
+    );
 
     const pinboardUserTableBaseName = "pinboard-user-table";
 

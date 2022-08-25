@@ -1,23 +1,41 @@
 import { handler } from "./src";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 import { AppSyncResolverEvent } from "aws-lambda/trigger/appsync-resolver";
-import { establishTunnelToDBProxy } from "./local/establishTunnel";
+import {
+  establishTunnelToDBProxy,
+  isThereExistingTunnel,
+} from "./local/establishTunnel";
 import { getJumpHost } from "./local/getJumpHost";
+import { DATABASE_PORT, getDatabaseProxyName } from "../shared/database";
+import * as AWS from "aws-sdk";
+import { standardAwsConfig } from "../shared/awsIntegration";
 
 (async () => {
-  const stage = "CODE"; //TODO prompt for stage
+  const stage = "CODE"; //TODO prompt for stage (so we can do PROD)
 
-  const jumpHostInstanceId = await getJumpHost(stage);
+  const DBProxyName = getDatabaseProxyName(stage);
 
-  process.env[ENVIRONMENT_VARIABLE_KEYS.databaseHostname] = "localhost";
+  const dbProxyResponse = await new AWS.RDS(standardAwsConfig)
+    .describeDBProxies({ DBProxyName })
+    .promise();
 
-  await establishTunnelToDBProxy(stage, jumpHostInstanceId);
+  const { Endpoint } = dbProxyResponse.DBProxies![0]!;
+  process.env[ENVIRONMENT_VARIABLE_KEYS.databaseHostname] = Endpoint!;
+  console.log(`DB Proxy Hostname: ${Endpoint!}`);
+
+  if (await isThereExistingTunnel(Endpoint!)) {
+    console.log(
+      `It looks like there is already a suitable SSH tunnel established on localhost:${DATABASE_PORT} 🎉`
+    );
+  } else {
+    const jumpHostInstanceId = await getJumpHost(stage);
+
+    await establishTunnelToDBProxy(stage, jumpHostInstanceId, Endpoint!);
+  }
 
   const payload = {
     identity: { resolverContext: { userEmail: "foo@bar.com" } },
-    arguments: {
-      pinboardId: "123",
-    },
+    arguments: { filter: { pinboardId: { eq: "123" } } },
     info: {
       fieldName: "listItems",
     },

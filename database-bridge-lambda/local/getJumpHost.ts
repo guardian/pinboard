@@ -31,6 +31,7 @@ export const getJumpHost = async (stage: Stage) => {
         { Name: "tag:App", Values: [APP] },
         { Name: "tag:Stage", Values: [stage] },
         { Name: "tag:Name", Values: ["PinBoardStack/DatabaseJumpHostASG"] },
+        { Name: "instance-state-name", Values: ["running"] },
       ],
     })
     .promise();

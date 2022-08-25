@@ -19,6 +19,8 @@ export const establishTunnelToDBProxy = async (
 
   const { Endpoint } = dbProxyResponse.DBProxies![0]!;
 
+  console.log("Fetching SSH details...");
+
   const ssmResult = await runCommandPromise(
     `ssm ssh --profile workflow -i ${instanceID} --raw`
   );
@@ -28,6 +30,8 @@ export const establishTunnelToDBProxy = async (
     console.error(ssmResult.stderr);
     throw Error("Failed to establish get SSH command");
   }
+
+  console.log("SSH details fetched, establishing SSH tunnel...");
 
   const sshCommand = ssmResult.stdout;
 

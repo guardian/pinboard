@@ -154,6 +154,29 @@ Object {
       "Type": "AWS::RDS::DBInstance",
       "UpdateReplacePolicy": "Retain",
     },
+    "DatabaseBridgeLambdaSecurityGroupfrom7791248021221EF4D898": Object {
+      "Properties": Object {
+        "CidrIp": "77.91.248.0/21",
+        "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
+        "FromPort": 22,
+        "GroupId": Object {
+          "Fn::Select": Array [
+            0,
+            Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
+                  "GroupId",
+                ],
+              },
+            ],
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 22,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "DatabaseDatabaseProxy537ACFCB": Object {
       "Properties": Object {
         "Auth": Array [

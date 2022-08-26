@@ -35,7 +35,7 @@ import { standardAwsConfig } from "../shared/awsIntegration";
 
   const listItemsPayload = {
     identity: { resolverContext: { userEmail: "foo@bar.com" } },
-    arguments: { filter: { pinboardId: { eq: "123" } } },
+    arguments: { pinboardId: "123" },
     info: {
       fieldName: "listItems",
     },

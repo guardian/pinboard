@@ -13,3 +13,5 @@ generates:
 config:
   scalars:
     AWSJSON: string
+    AWSTimestamp: number
+    AWSDateTime: string

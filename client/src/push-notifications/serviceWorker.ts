@@ -12,7 +12,7 @@ const showNotification = (
     `📌 ${item.userEmail.substring(
       0,
       item.userEmail.indexOf("@")
-    )} at ${new Date(item.timestamp * 1000).toLocaleTimeString()}`,
+    )} at ${new Date(item.timestamp).toLocaleTimeString()}`,
     {
       tag: item.id,
       data: item,

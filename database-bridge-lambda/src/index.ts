@@ -12,8 +12,7 @@ import type {
   AppSyncResolverEvent,
 } from "aws-lambda/trigger/appsync-resolver";
 import type { Mutation, Query } from "../../shared/graphql/graphql";
-import { listItems } from "./sql/listItems";
-import { createItem } from "./sql/createItem";
+import { createItem, listItems } from "./sql/Item";
 import { Sql } from "./sql/types";
 
 type FieldName = keyof Required<Omit<Query & Mutation, "__typename">>;

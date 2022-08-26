@@ -33,7 +33,23 @@ import { standardAwsConfig } from "../shared/awsIntegration";
     await establishTunnelToDBProxy(stage, jumpHostInstanceId, Endpoint!);
   }
 
-  const payload = {
+  const createItemPayload = {
+    identity: { resolverContext: { userEmail: "foo@bar.com" } },
+    arguments: {
+      message: "hello",
+      type: "message-only",
+      pinboardId: "123",
+      mentions: ["ara@guardian.com", "bar@bar.com"],
+      payload: { foo: "bar" },
+    },
+    info: {
+      fieldName: "createItem",
+    },
+  } as AppSyncResolverEvent<unknown, unknown>;
+
+  console.log(JSON.stringify(await handler(createItemPayload)));
+
+  const listItemsPayload = {
     identity: { resolverContext: { userEmail: "foo@bar.com" } },
     arguments: { filter: { pinboardId: { eq: "123" } } },
     info: {
@@ -41,5 +57,5 @@ import { standardAwsConfig } from "../shared/awsIntegration";
     },
   } as AppSyncResolverEvent<unknown, unknown>;
 
-  console.log(JSON.stringify(await handler(payload)));
+  console.log(JSON.stringify(await handler(listItemsPayload)));
 })();

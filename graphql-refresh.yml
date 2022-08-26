@@ -8,6 +8,8 @@ generates:
     plugins:
       - "typescript"
       - "typescript-resolvers"
+    config:
+      avoidOptionals: true
 config:
   scalars:
     AWSJSON: string

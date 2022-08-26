@@ -78,8 +78,8 @@ export const ScrollableItems = ({
     {} as ItemsMap
   );
 
-  const items = Object.values(itemsMap).sort(
-    (a, b) => a.timestamp - b.timestamp
+  const items = Object.values(itemsMap).sort((a, b) =>
+    a.timestamp.localeCompare(b.timestamp)
   );
 
   const lastItemSeenByUsersForItemIDLookup = Object.values(

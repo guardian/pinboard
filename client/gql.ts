@@ -43,7 +43,7 @@ const mentionReturnFields = `
 export const gqlGetInitialItems = (pinboardId: string) => gql`
   query MyQuery {
     listItems(pinboardId: "${pinboardId}") {
-      items { ${itemReturnFields} }
+      ${itemReturnFields}
     }
   }
 `;

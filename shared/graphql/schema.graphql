@@ -8,7 +8,7 @@ type Item {
   id: ID!
   message: String
   payload: AWSJSON
-  timestamp: AWSTimestamp!
+  timestamp: AWSDateTime!
   type: String!
   userEmail: String!
   pinboardId: String!

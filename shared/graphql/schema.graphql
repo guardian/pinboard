@@ -85,11 +85,7 @@ type Mutation {
 }
 
 type Query {
-  listItems(
-    filter: TableItemFilterInput
-    limit: Int
-    nextToken: String
-  ): [Item]
+  listItems(pinboardId: String!): [Item]
 
   listLastItemSeenByUsers(
     filter: TableLastItemSeenByUserFilterInput
@@ -178,14 +174,6 @@ input TableIntFilterInput {
   lt: Int
   ne: Int
   notContains: Int
-}
-
-input TableItemFilterInput {
-  id: TableIDFilterInput
-  message: TableStringFilterInput
-  timestamp: TableIntFilterInput
-  type: TableStringFilterInput
-  pinboardId: TableStringFilterInput
 }
 
 input TableLastItemSeenByUserFilterInput {

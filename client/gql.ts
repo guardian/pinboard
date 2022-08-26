@@ -42,7 +42,7 @@ const mentionReturnFields = `
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
 export const gqlGetInitialItems = (pinboardId: string) => gql`
   query MyQuery {
-    listItems(filter: { pinboardId: { eq: "${pinboardId}" } }) {
+    listItems(pinboardId: "${pinboardId}") {
       items { ${itemReturnFields} }
     }
   }

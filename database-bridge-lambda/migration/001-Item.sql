@@ -8,5 +8,3 @@ CREATE TABLE Item (
     "pinboardId" varchar(128) NOT NULL,
     "mentions" varchar(512)[]
 );
-
--- TODO create index on pinboardId

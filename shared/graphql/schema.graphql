@@ -66,11 +66,6 @@ type GridSearchSummary {
   queryBreakdown: GridSearchQueryBreakdown
 }
 
-type ItemConnection {
-  items: [Item]
-  nextToken: String
-}
-
 type UserConnection {
   items: [User]
   nextToken: String
@@ -94,7 +89,7 @@ type Query {
     filter: TableItemFilterInput
     limit: Int
     nextToken: String
-  ): ItemConnection
+  ): [Item]
 
   listLastItemSeenByUsers(
     filter: TableLastItemSeenByUserFilterInput

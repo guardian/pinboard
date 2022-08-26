@@ -628,28 +628,25 @@ export class PinBoardStack extends Stack {
       "$util.toJson($context.result)"
     );
 
-    pinboardItemDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listItems",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
+    ["listItems"].forEach((fieldName) =>
+      pinboardDatabaseBridgeLambdaDataSource.createResolver({
+        typeName: "Query",
+        fieldName,
+        responseMappingTemplate: resolverBugWorkaround(
+          appsync.MappingTemplate.lambdaResult()
+        ),
+      })
+    );
 
-    pinboardItemDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "createItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbPutItem(
-          appsync.PrimaryKey.partition("id").auto(),
-          appsync.Values.projecting("input")
-            .attribute("timestamp")
-            .is("$util.time.nowEpochSeconds()")
-            .attribute("userEmail")
-            .is("$ctx.identity.resolverContext.userEmail")
-        )
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
+    ["createItem"].forEach((fieldName) =>
+      pinboardDatabaseBridgeLambdaDataSource.createResolver({
+        typeName: "Mutation",
+        fieldName,
+        responseMappingTemplate: resolverBugWorkaround(
+          appsync.MappingTemplate.lambdaResult()
+        ),
+      })
+    );
 
     pinboardLastItemSeenByUserDataSource.createResolver({
       typeName: "Query",

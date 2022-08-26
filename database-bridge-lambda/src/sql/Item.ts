@@ -1,13 +1,15 @@
 import { CreateItemInput } from "../../../shared/graphql/graphql";
 import { Sql } from "./types";
 
-export const createItem = (
+export const createItem = async (
   sql: Sql,
-  args: CreateItemInput,
+  args: { input: CreateItemInput },
   userEmail: string
-) => sql`
-    INSERT INTO Item ${sql({ userEmail, ...args })} 
-`;
+) =>
+  sql`
+    INSERT INTO Item ${sql({ userEmail, ...args.input })} 
+    RETURNING *
+`.then((rows) => rows[0]);
 
 export const listItems = (sql: Sql, args: { pinboardId: string }) => sql`
     SELECT *

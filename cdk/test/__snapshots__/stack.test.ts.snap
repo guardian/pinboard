@@ -442,7 +442,7 @@ LAST_ACTIVE_SSHD=$(date +%s)
 while :
 do
     echo \\"SSH tunnel last active at $LAST_ACTIVE_SSHD\\"
-    if [ \\"$(sudo lsof -i -n | egrep '\\\\\\\\<sshd\\\\\\\\>' | grep ubuntu)\\" = \\"1\\" ]; then
+    if [ \\"$(sudo lsof -i -n | egrep '\\\\<sshd\\\\>' | grep ubuntu)\\" = \\"1\\" ]; then
         echo \\"SSH tunnel detected, bumping LAST_ACTIVE_SSHD\\"
         LAST_ACTIVE_SSHD=$(date +%s)
     fi

@@ -555,22 +555,6 @@ export class PinBoardStack extends Stack {
       pinboardGridBridgeLambda
     );
 
-    const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardItemTableBaseName
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncItemTable
-    );
-
-    const pinboardLastItemSeenByUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardLastItemSeenByUserTableBaseName
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncLastItemSeenByUserTable
-    );
-
     const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
       `${pinboardUserTableBaseName
         .replace("pinboard-", "")
@@ -612,7 +596,7 @@ export class PinBoardStack extends Stack {
       "$util.toJson($context.result)"
     );
 
-    ["listItems"].forEach((fieldName) =>
+    ["listItems", "listLastItemSeenByUsers"].forEach((fieldName) =>
       pinboardDatabaseBridgeLambdaDataSource.createResolver({
         typeName: "Query",
         fieldName,
@@ -622,7 +606,7 @@ export class PinBoardStack extends Stack {
       })
     );
 
-    ["createItem"].forEach((fieldName) =>
+    ["createItem", "seenItem"].forEach((fieldName) =>
       pinboardDatabaseBridgeLambdaDataSource.createResolver({
         typeName: "Mutation",
         fieldName,
@@ -631,38 +615,6 @@ export class PinBoardStack extends Stack {
         ),
       })
     );
-
-    pinboardLastItemSeenByUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listLastItemSeenByUsers",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate, // TODO consider custom resolver for performance
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
-
-    pinboardLastItemSeenByUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "seenItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "SET seenAt = :seenAt, itemID = :itemID",
-            "expressionValues": {
-              ":seenAt" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
-              ":itemID" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
 
     ["listPinboards", "getPinboardByComposerId", "getPinboardsByIds"].forEach(
       (fieldName) =>

@@ -19,7 +19,7 @@ type LastItemSeenByUser {
   pinboardId: String!
   userEmail: String!
   itemID: String!
-  seenAt: AWSTimestamp!
+  seenAt: AWSDateTime!
 }
 
 type User {
@@ -71,11 +71,6 @@ type UserConnection {
   nextToken: String
 }
 
-type LastItemSeenByUserConnection {
-  items: [LastItemSeenByUser]
-  nextToken: String
-}
-
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
@@ -86,13 +81,7 @@ type Mutation {
 
 type Query {
   listItems(pinboardId: String!): [Item]
-
-  listLastItemSeenByUsers(
-    filter: TableLastItemSeenByUserFilterInput
-    limit: Int
-    nextToken: String
-  ): LastItemSeenByUserConnection
-
+  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
 
   listUsers(
@@ -174,10 +163,6 @@ input TableIntFilterInput {
   lt: Int
   ne: Int
   notContains: Int
-}
-
-input TableLastItemSeenByUserFilterInput {
-  pinboardId: TableStringFilterInput
 }
 
 input TableUserFilterInput {

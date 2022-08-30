@@ -25,7 +25,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
       const user = userLookup?.[userEmail];
       const name = user ? `${user.firstName} ${user.lastName}` : userEmail;
 
-      return `${name} (${formatDateTime(seenAt * 1000)})`;
+      return `${name} (${formatDateTime(new Date(seenAt).valueOf())})`;
     })
     .join("\n");
 

@@ -106,7 +106,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     () =>
       initialLastItemSeenByUsers.data &&
       setLastItemSeenByUserLookup((prevState) =>
-        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.items.reduce(
+        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.reduce(
           (
             acc: LastItemSeenByUserLookup,
             newLastItemSeenByUser: LastItemSeenByUser

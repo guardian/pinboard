@@ -140,8 +140,8 @@ const lastItemSeenByUserReturnFields = `
 
 export const gqlGetLastItemSeenByUsers = (pinboardId: string) => gql`
   query MyQuery {
-    listLastItemSeenByUsers(filter: { pinboardId: { eq: "${pinboardId}" } }) {
-      items { ${lastItemSeenByUserReturnFields} }
+    listLastItemSeenByUsers(pinboardId: "${pinboardId}") {
+      ${lastItemSeenByUserReturnFields}
     }
   }
 `;

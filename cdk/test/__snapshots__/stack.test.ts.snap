@@ -948,7 +948,7 @@ type LastItemSeenByUser {
   pinboardId: String!
   userEmail: String!
   itemID: String!
-  seenAt: AWSTimestamp!
+  seenAt: AWSDateTime!
 }
 
 type User {
@@ -1000,11 +1000,6 @@ type UserConnection {
   nextToken: String
 }
 
-type LastItemSeenByUserConnection {
-  items: [LastItemSeenByUser]
-  nextToken: String
-}
-
 type Mutation {
   createItem(input: CreateItemInput!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
@@ -1015,13 +1010,7 @@ type Mutation {
 
 type Query {
   listItems(pinboardId: String!): [Item]
-
-  listLastItemSeenByUsers(
-    filter: TableLastItemSeenByUserFilterInput
-    limit: Int
-    nextToken: String
-  ): LastItemSeenByUserConnection
-
+  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
 
   listUsers(
@@ -1105,10 +1094,6 @@ input TableIntFilterInput {
   notContains: Int
 }
 
-input TableLastItemSeenByUserFilterInput {
-  pinboardId: TableStringFilterInput
-}
-
 input TableUserFilterInput {
   firstName: TableStringFilterInput
   lastName: TableStringFilterInput
@@ -1172,7 +1157,28 @@ input TableStringFilterInput {
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationseenItemResolver502C087E": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "seenItem",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1193,7 +1199,28 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerylistLastItemSeenByUsersResolver579A4481": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "listLastItemSeenByUsers",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1318,7 +1345,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1401,284 +1428,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardappsyncapiitemtabledatasourceFD08E0E9": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboarditemtable83382753",
-          },
-        },
-        "Name": "item_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboarditemtable83382753",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboardlastitemseenbyusertable132BE99C",
-          },
-        },
-        "Name": "last_item_seen_by_user_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceMutationseenItemResolverF0C9BBCC": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "last_item_seen_by_user_table_datasource",
-        "FieldName": "seenItem",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"pinboardId\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            \\"userEmail\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"SET seenAt = :seenAt, itemID = :itemID\\",
-            \\"expressionValues\\": {
-              \\":seenAt\\" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
-              \\":itemID\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceQuerylistLastItemSeenByUsersResolver32A84101": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "last_item_seen_by_user_table_datasource",
-        "FieldName": "listLastItemSeenByUsers",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"Scan\\",
-          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($context.result)",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardlastitemseenbyusertable132BE99C",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "pinboardappsyncapiusertabledatasource482E1AE5": Object {
       "Properties": Object {
         "ApiId": Object {
@@ -1721,7 +1470,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "user_table_datasource",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -1766,7 +1515,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "user_table_datasource",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -1806,7 +1555,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "user_table_datasource",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -1846,7 +1595,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "user_table_datasource",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -1880,7 +1629,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "user_table_datasource",
         "FieldName": "listUsers",
         "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 
         {
           \\"version\\": \\"2017-02-28\\",
@@ -2020,7 +1769,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2041,7 +1790,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2062,7 +1811,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 9338f9f2337c72cba4d9a77db7fc2ba7
+        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },

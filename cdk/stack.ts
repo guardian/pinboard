@@ -41,6 +41,7 @@ import {
 } from "../shared/database";
 import { Stage } from "../shared/types/stage";
 import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
+import * as fs from "fs";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -307,30 +308,13 @@ export class PinBoardStack extends Stack {
 
     const databaseJumpHostASGName = getDatabaseJumpHostAsgName(STAGE as Stage);
 
-    const selfTerminatingUserDataScript = ec2.UserData.custom(`
-    #cloud-boothook
-    #!/bin/bash -ev
-    LAST_ACTIVE_SSHD=$(date +%s)
-    while :
-    do
-        echo "SSH tunnel last active at $LAST_ACTIVE_SSHD"
-        if [ "$(sudo lsof -i -n | egrep '\\<sshd\\>' | grep ubuntu)" = "1" ]; then
-            echo "SSH tunnel detected, bumping LAST_ACTIVE_SSHD"
-            LAST_ACTIVE_SSHD=$(date +%s)
-        fi
-        NOW=$(date +%s)
-        DIFF=$((NOW - LAST_ACTIVE_SSHD))
-        if [ "$DIFF" -gt 300 ]; then #i.e. 5 mins since last active ssh tunnel
-            echo "No active SSH tunnel in the last 5mins - so scaling down"
-            aws autoscaling set-desired-capacity \
-                --auto-scaling-group-name ${databaseJumpHostASGName}\
-                --desired-capacity 0 \
-                --no-honor-cooldown \
-                --region ${region}
-        fi
-        sleep 60
-    done
-    `);
+    const selfTerminatingUserDataScript = ec2.UserData.custom(
+      fs
+        .readFileSync("./UserData.sh")
+        .toString()
+        .replace("${databaseJumpHostASGName}", databaseJumpHostASGName)
+        .replace("${region}", region)
+    );
 
     const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
       thisStack,

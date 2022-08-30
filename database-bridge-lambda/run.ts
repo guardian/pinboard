@@ -41,5 +41,8 @@ import { standardAwsConfig } from "../shared/awsIntegration";
     },
   } as AppSyncResolverEvent<unknown, unknown>;
 
-  console.log(JSON.stringify(await handler(listItemsPayload)));
+  console.log(
+    "Testing tunnel with 'listItems' Query...\n",
+    JSON.stringify(await handler(listItemsPayload))
+  );
 })();

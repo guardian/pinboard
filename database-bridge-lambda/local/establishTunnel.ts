@@ -35,6 +35,9 @@ export const isThereExistingTunnel = async (
   return false;
 };
 
+const SSH_TUNNEL_OPTIONS =
+  "-o ExitOnForwardFailure=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2";
+
 export const establishTunnelToDBProxy = async (
   stage: Stage,
   instanceID: string,
@@ -58,7 +61,7 @@ export const establishTunnelToDBProxy = async (
 
   // ssh doesn't seem to play nicely with 'exec' so we have to fire and forget then check if the tunnel is established
   runCommandPromise(
-    `${sshCommand} -L ${DATABASE_PORT}:${dbProxyEndpoint}:${DATABASE_PORT} -N -f -o ExitOnForwardFailure=yes`
+    `${sshCommand} -f -N ${SSH_TUNNEL_OPTIONS} -L ${DATABASE_PORT}:${dbProxyEndpoint}:${DATABASE_PORT}`
   ).catch(console.error);
 
   await new Promise((resolve) => setTimeout(resolve, 7500)); // wait before checking the if the tunnel is established

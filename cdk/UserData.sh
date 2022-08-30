@@ -18,4 +18,5 @@ do
          --region ${region}
     fi
     sleep 60
-done
+done & # this ampersand runs the whole loop in the background...
+# ...so cloud-init will 'finish' so other things on the box can actually start, notably ssm-agent for SSHing

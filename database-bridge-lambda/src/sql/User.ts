@@ -2,7 +2,7 @@ import { Sql } from "./types";
 
 export const listUsers = (sql: Sql) => sql`
     SELECT "email", "firstName", "lastName", "avatarUrl", "isMentionable"
-    FROM User
+    FROM "User"
 `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
@@ -10,7 +10,7 @@ const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
 
 export const getMyUser = (sql: Sql, userEmail: string) => sql`
     SELECT ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
-    FROM User
+    FROM "User"
     WHERE "email" = ${userEmail}
 `;
 
@@ -20,9 +20,9 @@ export const setWebPushSubscriptionForUser = async (
   userEmail: string
 ) =>
   sql`
-    UPDATE User 
+    UPDATE "User" 
     SET "webPushSubscription" = ${args.webPushSubscription}
-    WHERE "userEmail" = ${userEmail}
+    WHERE "email" = ${userEmail}
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);
 
@@ -32,11 +32,11 @@ export const addManuallyOpenedPinboardIds = async (
   userEmail: string
 ) =>
   sql`
-    UPDATE User 
+    UPDATE "User" 
     SET "manuallyOpenedPinboardIds" = ARRAY_APPEND(ARRAY_REMOVE("manuallyOpenedPinboardIds", ${
       args.pinboardId
     }), ${args.pinboardId})
-    WHERE "userEmail" = ${args.maybeEmailOverride || userEmail}
+    WHERE "email" = ${args.maybeEmailOverride || userEmail}
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);
 
@@ -46,10 +46,10 @@ export const removeManuallyOpenedPinboardIds = async (
   userEmail: string
 ) =>
   sql`
-    UPDATE User 
+    UPDATE "User" 
     SET "manuallyOpenedPinboardIds" = ARRAY_REMOVE("manuallyOpenedPinboardIds", ${
       args.pinboardIdToClose
     })
-    WHERE "userEmail" = ${userEmail}
+    WHERE "email" = ${userEmail}
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);

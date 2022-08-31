@@ -1,1 +1,1 @@
-CREATE INDEX ItemTablePinboardIdIndex ON Item("pinboardId");
+CREATE INDEX ItemTablePinboardIdIndex ON "Item"("pinboardId");

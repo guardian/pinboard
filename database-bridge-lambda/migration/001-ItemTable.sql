@@ -1,4 +1,4 @@
-CREATE TABLE Item (
+CREATE TABLE "Item" (
     "id" SERIAL PRIMARY KEY,
     "message" TEXT,
     "payload" JSONB,

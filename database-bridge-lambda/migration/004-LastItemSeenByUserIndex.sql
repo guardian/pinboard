@@ -1,1 +1,1 @@
-CREATE INDEX LastItemSeenByUserTablePinboardIdIndex ON LastItemSeenByUser("pinboardId");
+CREATE INDEX LastItemSeenByUserTablePinboardIdIndex ON "LastItemSeenByUser"("pinboardId");

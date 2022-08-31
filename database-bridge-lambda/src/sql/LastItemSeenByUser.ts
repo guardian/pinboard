@@ -7,7 +7,7 @@ export const seenItem = async (
   userEmail: string
 ) =>
   sql`
-    INSERT INTO LastItemSeenByUser("pinboardId", "itemID", "userEmail", "seenAt")
+    INSERT INTO "LastItemSeenByUser"("pinboardId", "itemID", "userEmail", "seenAt")
     VALUES (${args.input.pinboardId}, ${args.input.itemID}, ${userEmail}, current_timestamp)
     ON CONFLICT ("pinboardId", "itemID", "userEmail") DO UPDATE SET "seenAt" = current_timestamp
     RETURNING *
@@ -18,6 +18,6 @@ export const listLastItemSeenByUsers = (
   args: { pinboardId: string }
 ) => sql`
     SELECT *
-    FROM LastItemSeenByUser
+    FROM "LastItemSeenByUser"
     WHERE "pinboardId" = ${args.pinboardId}
 `;

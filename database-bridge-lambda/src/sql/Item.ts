@@ -7,12 +7,12 @@ export const createItem = async (
   userEmail: string
 ) =>
   sql`
-    INSERT INTO Item ${sql({ userEmail, ...args.input })} 
+    INSERT INTO "Item" ${sql({ userEmail, ...args.input })} 
     RETURNING *
 `.then((rows) => rows[0]);
 
 export const listItems = (sql: Sql, args: { pinboardId: string }) => sql`
     SELECT *
-    FROM Item
+    FROM "Item"
     WHERE "pinboardId" = ${args.pinboardId}
 `;

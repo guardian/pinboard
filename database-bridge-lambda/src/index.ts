@@ -15,6 +15,13 @@ import type { Mutation, Query } from "../../shared/graphql/graphql";
 import { createItem, listItems } from "./sql/Item";
 import { Sql } from "./sql/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
+import {
+  addManuallyOpenedPinboardIds,
+  getMyUser,
+  listUsers,
+  removeManuallyOpenedPinboardIds,
+  setWebPushSubscriptionForUser,
+} from "./sql/User";
 
 type FieldName = keyof Required<Omit<Query & Mutation, "__typename">>;
 
@@ -33,6 +40,16 @@ const run = (
       return seenItem(sql, args, userEmail);
     case "listLastItemSeenByUsers":
       return listLastItemSeenByUsers(sql, args);
+    case "listUsers":
+      return listUsers(sql);
+    case "getMyUser":
+      return getMyUser(sql, userEmail);
+    case "setWebPushSubscriptionForUser":
+      return setWebPushSubscriptionForUser(sql, args, userEmail);
+    case "addManuallyOpenedPinboardIds":
+      return addManuallyOpenedPinboardIds(sql, args, userEmail);
+    case "removeManuallyOpenedPinboardIds":
+      return removeManuallyOpenedPinboardIds(sql, args, userEmail);
     // FIXME remove default case once RDS migration is complete, so @typescript-eslint/switch-exhaustiveness-check can do its job
     default:
       throw Error(`Handler for '${fieldName}' not yet implemented`);

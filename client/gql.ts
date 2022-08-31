@@ -83,9 +83,8 @@ const myUserReturnFields = `${userReturnFields}
 export const gqlGetAllUsers = gql`
     query MyQuery {
         listUsers {
-            items { ${userReturnFields}
-                isMentionable
-            }
+            ${userReturnFields}
+            isMentionable
         }
     }
 `;
@@ -107,16 +106,16 @@ export const gqlSetWebPushSubscriptionForUser = gql`
 `;
 
 export const gqlAddManuallyOpenedPinboardIds = gql`
-  mutation AddManuallyOpenedPinboardIds($ids: [String!]!, $maybeEmailOverride: String) {
-    addManuallyOpenedPinboardIds(ids: $ids, maybeEmailOverride: $maybeEmailOverride) {
+  mutation AddManuallyOpenedPinboardIds($pinboardId: String!, $maybeEmailOverride: String) {
+    addManuallyOpenedPinboardIds(pinboardId: $pinboardId, maybeEmailOverride: $maybeEmailOverride) {
       # including fields here makes them accessible in our subscription data
       ${myUserReturnFields}
     }
   }
 `;
 export const gqlRemoveManuallyOpenedPinboardIds = gql`
-  mutation RemoveManuallyOpenedPinboardIds($ids: [String!]!) {
-    removeManuallyOpenedPinboardIds(ids: $ids) {
+  mutation RemoveManuallyOpenedPinboardIds($pinboardIdToClose: String!) {
+    removeManuallyOpenedPinboardIds(pinboardIdToClose: $pinboardIdToClose) {
       # including fields here makes them accessible in our subscription data
       ${myUserReturnFields}
     }

@@ -555,14 +555,6 @@ export class PinBoardStack extends Stack {
       pinboardGridBridgeLambda
     );
 
-    const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardUserTableBaseName
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncUserTable
-    );
-
     const pinboardDatabaseBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
       `${databaseBridgeLambdaBasename
         .replace("pinboard-", "")
@@ -583,30 +575,24 @@ export class PinBoardStack extends Stack {
         `## schema checksum : ${gqlSchemaChecksum}\n${mappingTemplate.renderTemplate()}`
       );
 
-    const dynamoFilterRequestMappingTemplate = resolverBugWorkaround(
-      appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-        }
-      `)
-    );
-    const dynamoFilterResponseMappingTemplate = appsync.MappingTemplate.fromString(
-      "$util.toJson($context.result)"
+    ["listItems", "listLastItemSeenByUsers", "listUsers", "getMyUser"].forEach(
+      (fieldName) =>
+        pinboardDatabaseBridgeLambdaDataSource.createResolver({
+          typeName: "Query",
+          fieldName,
+          responseMappingTemplate: resolverBugWorkaround(
+            appsync.MappingTemplate.lambdaResult()
+          ),
+        })
     );
 
-    ["listItems", "listLastItemSeenByUsers"].forEach((fieldName) =>
-      pinboardDatabaseBridgeLambdaDataSource.createResolver({
-        typeName: "Query",
-        fieldName,
-        responseMappingTemplate: resolverBugWorkaround(
-          appsync.MappingTemplate.lambdaResult()
-        ),
-      })
-    );
-
-    ["createItem", "seenItem"].forEach((fieldName) =>
+    [
+      "createItem",
+      "seenItem",
+      "setWebPushSubscriptionForUser",
+      "addManuallyOpenedPinboardIds",
+      "removeManuallyOpenedPinboardIds",
+    ].forEach((fieldName) =>
       pinboardDatabaseBridgeLambdaDataSource.createResolver({
         typeName: "Mutation",
         fieldName,
@@ -636,125 +622,6 @@ export class PinBoardStack extends Stack {
         ),
       })
     );
-
-    const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
-      .MappingTemplate.fromString(`
-        #set($output = $ctx.result)
-        $util.qr($output.put("hasWebPushSubscription", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    `);
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listUsers",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          "filter": {
-            "expression": "attribute_exists(#firstName) AND attribute_exists(#lastName)",
-            "expressionNames": {
-              "#firstName": "firstName",
-              "#lastName": "lastName",
-            },
-          },
-        }
-      `)
-      ),
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "setWebPushSubscriptionForUser",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "SET webPushSubscription = :webPushSubscription",
-            "expressionValues": {
-              ":webPushSubscription" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "addManuallyOpenedPinboardIds",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson(
-              $util.defaultIfNull(
-                $ctx.args.maybeEmailOverride,
-                $ctx.identity.resolverContext.userEmail
-              )
-            )
-          },
-          "update" : {
-            "expression" : "ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
-            "expressionValues": {
-              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "removeManuallyOpenedPinboardIds",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
-            "expressionValues": {
-              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "getMyUser",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
 
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
 

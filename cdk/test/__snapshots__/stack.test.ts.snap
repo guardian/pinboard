@@ -933,6 +933,41 @@ done & # this ampersand runs the whole loop in the background...
   subscription: Subscription
 }
 
+type Query {
+  listItems(pinboardId: String!): [Item]
+  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
+  getMyUser: MyUser
+  listUsers: [User]
+
+  listPinboards(searchText: String): [WorkflowStub]
+  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
+  getPinboardByComposerId(composerId: String!): WorkflowStub
+
+  getGridSearchSummary(apiUrl: String!): GridSearchSummary
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
+  addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
+  removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
+}
+
+type Subscription {
+  onCreateItem(
+    pinboardId: String
+  ): Item @aws_subscribe(mutations: [\\"createItem\\"])
+
+  onSeenItem(
+    pinboardId: String!
+  ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
+
+  onManuallyOpenedPinboardIdsChanged(
+    email: String! # unfortunately this can't be done via 'identity' in the resolver
+  ): MyUser @aws_subscribe(mutations: [\\"addManuallyOpenedPinboardIds\\", \\"removeManuallyOpenedPinboardIds\\"])
+}
+
 type Item {
   id: ID!
   message: String
@@ -995,50 +1030,6 @@ type GridSearchSummary {
   queryBreakdown: GridSearchQueryBreakdown
 }
 
-type UserConnection {
-  items: [User]
-  nextToken: String
-}
-
-type Mutation {
-  createItem(input: CreateItemInput!): Item
-  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
-  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
-  addManuallyOpenedPinboardIds(ids: [String!]!, maybeEmailOverride: String): MyUser
-  removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
-}
-
-type Query {
-  listItems(pinboardId: String!): [Item]
-  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
-  getMyUser: MyUser
-
-  listUsers(
-    limit: Int
-    nextToken: String
-  ): UserConnection
-
-  listPinboards(searchText: String): [WorkflowStub]
-  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
-  getPinboardByComposerId(composerId: String!): WorkflowStub
-
-  getGridSearchSummary(apiUrl: String!): GridSearchSummary
-}
-
-type Subscription {
-  onCreateItem(
-    pinboardId: String
-  ): Item @aws_subscribe(mutations: [\\"createItem\\"])
-
-  onSeenItem(
-    pinboardId: String!
-  ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
-
-  onManuallyOpenedPinboardIdsChanged(
-    email: String! # unfortunately this can't be done via 'identity' in the resolver
-  ): MyUser @aws_subscribe(mutations: [\\"addManuallyOpenedPinboardIds\\", \\"removeManuallyOpenedPinboardIds\\"])
-}
-
 input CreateItemInput {
   message: String
   payload: AWSJSON
@@ -1050,68 +1041,7 @@ input CreateItemInput {
 input LastItemSeenByUserInput {
   pinboardId: String!
   itemID: String!
-}
-
-input TableBooleanFilterInput {
-  eq: Boolean
-  ne: Boolean
-}
-
-input TableFloatFilterInput {
-  between: [Float]
-  contains: Float
-  eq: Float
-  ge: Float
-  gt: Float
-  le: Float
-  lt: Float
-  ne: Float
-  notContains: Float
-}
-
-input TableIDFilterInput {
-  beginsWith: ID
-  between: [ID]
-  contains: ID
-  eq: ID
-  ge: ID
-  gt: ID
-  le: ID
-  lt: ID
-  ne: ID
-  notContains: ID
-}
-
-input TableIntFilterInput {
-  between: [Int]
-  contains: Int
-  eq: Int
-  ge: Int
-  gt: Int
-  le: Int
-  lt: Int
-  ne: Int
-  notContains: Int
-}
-
-input TableUserFilterInput {
-  firstName: TableStringFilterInput
-  lastName: TableStringFilterInput
-}
-
-input TableStringFilterInput {
-  beginsWith: String
-  between: [String]
-  contains: String
-  eq: String
-  ge: String
-  gt: String
-  le: String
-  lt: String
-  ne: String
-  notContains: String
-}
-",
+}",
       },
       "Type": "AWS::AppSync::GraphQLSchema",
     },
@@ -1142,6 +1072,27 @@ input TableStringFilterInput {
       },
       "Type": "AWS::AppSync::DataSource",
     },
+    "pinboardappsyncapidatabasebridgelambdadsMutationaddManuallyOpenedPinboardIdsResolver28AE76DE": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "addManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
     "pinboardappsyncapidatabasebridgelambdadsMutationcreateItemResolverF3DD77B1": Object {
       "DependsOn": Array [
         "pinboardappsyncapidatabasebridgelambdads970CB9A7",
@@ -1157,7 +1108,28 @@ input TableStringFilterInput {
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationremoveManuallyOpenedPinboardIdsResolver865937F3": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "removeManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1178,9 +1150,51 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationsetWebPushSubscriptionForUserResolver3B67A566": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "setWebPushSubscriptionForUser",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerygetMyUserResolverD2F32419": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "getMyUser",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
       },
       "Type": "AWS::AppSync::Resolver",
     },
@@ -1199,7 +1213,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1220,7 +1234,28 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerylistUsersResolver5D9F6D38": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "listUsers",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1345,7 +1380,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1428,305 +1463,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardappsyncapiusertabledatasource482E1AE5": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboardusertable2621B03F",
-          },
-        },
-        "Name": "user_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationaddManuallyOpenedPinboardIdsResolver0DD39E33": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "addManuallyOpenedPinboardIds",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson(
-              $util.defaultIfNull(
-                $ctx.args.maybeEmailOverride,
-                $ctx.identity.resolverContext.userEmail
-              )
-            )
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
-            \\"expressionValues\\": {
-              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationremoveManuallyOpenedPinboardIdsResolver3CF1CC1A": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "removeManuallyOpenedPinboardIds",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
-            \\"expressionValues\\": {
-              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationsetWebPushSubscriptionForUserResolver7F09BAD2": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "setWebPushSubscriptionForUser",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"SET webPushSubscription = :webPushSubscription\\",
-            \\"expressionValues\\": {
-              \\":webPushSubscription\\" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceQuerygetMyUserResolver96BA80E5": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "getMyUser",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"GetItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceQuerylistUsersResolverCD9616AD": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "listUsers",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"Scan\\",
-          \\"filter\\": {
-            \\"expression\\": \\"attribute_exists(#firstName) AND attribute_exists(#lastName)\\",
-            \\"expressionNames\\": {
-              \\"#firstName\\": \\"firstName\\",
-              \\"#lastName\\": \\"lastName\\",
-            },
-          },
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($context.result)",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "pinboardappsyncapiworkflowbridgelambdadsD8193E3E": Object {
       "Properties": Object {
         "ApiId": Object {
@@ -1769,7 +1505,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1790,7 +1526,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1811,7 +1547,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 3cf8b40c1e0c05ae7814ebc387bbaefc
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },

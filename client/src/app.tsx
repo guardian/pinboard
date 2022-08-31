@@ -173,7 +173,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
   //TODO: make use of usersQuery.error and usersQuery.loading
 
-  const allUsers: User[] | undefined = usersQuery.data?.listUsers.items;
+  const allUsers: User[] | undefined = usersQuery.data?.listUsers;
 
   const userLookup = allUsers?.reduce(
     (lookup, user) => ({

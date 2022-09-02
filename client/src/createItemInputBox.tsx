@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -83,82 +83,93 @@ export const CreateItemInputBox = ({
   addUnverifiedMention,
   panelElement,
   isSending,
-}: CreateItemInputBoxProps) => (
-  <div
-    css={css`
-      flex-grow: 1;
-      background-color: white;
-      border-radius: ${space[1]}px;
-      ${rtaStyles}
-    `}
-  >
-    <ReactTextareaAutocomplete<User>
-      disabled={isSending}
-      trigger={
-        allUsers
-          ? {
-              "@": {
-                dataProvider: mentionsDataProvider(allUsers),
-                component: UserSuggestion,
-                output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
-              },
-            }
-          : {}
-      }
-      minChar={0}
-      loadingComponent={() => <span>Loading</span>}
-      placeholder="enter message here..."
-      value={message}
-      onChange={(event) => {
-        event.target.style.height = "0";
-        // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
-        event.target.style.height = `${event.target.scrollHeight + 0.1}px`;
-        setMessage(event.target.value);
-      }}
-      onKeyPress={(event) => {
-        event.stopPropagation();
-        if (isEnterKey(event)) {
-          if (message || payloadToBeSent) {
-            sendItem();
-          }
-          event.preventDefault();
-        }
-      }}
-      onItemSelected={({ item }) => addUnverifiedMention(item)}
-      rows={1}
+}: CreateItemInputBoxProps) => {
+  const textAreaRef = useRef<HTMLTextAreaElement>();
+
+  useLayoutEffect(() => {
+    if (!isSending) {
+      textAreaRef.current?.focus();
+    }
+  }, [isSending]);
+
+  return (
+    <div
       css={css`
-        box-sizing: border-box;
-        background-color: transparent;
-        border: none;
-        vertical-align: middle;
-        &:focus-visible {
-          outline: none;
-        }
-        /* Firefox needs this hint to get the correct initial height.
-           Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
-        height: 21.1px;
-        max-height: 74px;
-        ${agateSans.small({ lineHeight: "tight" })};
-        resize: none;
-        ${scrollbarsCss(palette.neutral[86])}
+        flex-grow: 1;
+        background-color: white;
+        border-radius: ${space[1]}px;
+        ${rtaStyles}
       `}
-      autoFocus
-      boundariesElement={panelElement || undefined}
-    />
-    {payloadToBeSent && (
-      <div
+    >
+      <ReactTextareaAutocomplete<User>
+        innerRef={(element) => (textAreaRef.current = element)}
+        disabled={isSending}
+        trigger={
+          allUsers
+            ? {
+                "@": {
+                  dataProvider: mentionsDataProvider(allUsers),
+                  component: UserSuggestion,
+                  output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
+                },
+              }
+            : {}
+        }
+        minChar={0}
+        loadingComponent={() => <span>Loading</span>}
+        placeholder="enter message here..."
+        value={message}
+        onChange={(event) => {
+          event.target.style.height = "0";
+          // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
+          event.target.style.height = `${event.target.scrollHeight + 0.1}px`;
+          setMessage(event.target.value);
+        }}
+        onKeyPress={(event) => {
+          event.stopPropagation();
+          if (isEnterKey(event)) {
+            if (message || payloadToBeSent) {
+              sendItem();
+            }
+            event.preventDefault();
+          }
+        }}
+        onItemSelected={({ item }) => addUnverifiedMention(item)}
+        rows={1}
         css={css`
-          margin-left: ${space[1]}px;
+          box-sizing: border-box;
+          background-color: transparent;
+          border: none;
+          vertical-align: middle;
+          &:focus-visible {
+            outline: none;
+          }
+          /* Firefox needs this hint to get the correct initial height.
+           Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
+          height: 21.1px;
+          max-height: 74px;
+          ${agateSans.small({ lineHeight: "tight" })};
+          resize: none;
+          ${scrollbarsCss(palette.neutral[86])}
         `}
-      >
-        <PayloadDisplay
-          payloadAndType={payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-        />
-      </div>
-    )}
-  </div>
-);
+        autoFocus
+        boundariesElement={panelElement || undefined}
+      />
+      {payloadToBeSent && (
+        <div
+          css={css`
+            margin-left: ${space[1]}px;
+          `}
+        >
+          <PayloadDisplay
+            payloadAndType={payloadToBeSent}
+            clearPayloadToBeSent={clearPayloadToBeSent}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const rtaStyles = css`
   .rta {

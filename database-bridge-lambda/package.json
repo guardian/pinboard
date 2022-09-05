@@ -7,7 +7,8 @@
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
     "build": "run-p --print-label type-check bundle",
-    "tunnel": "ts-node-dev run.ts"
+    "tunnel": "ts-node-dev run.ts",
+    "migrate": "ts-node-dev migration/runMigration.ts"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.102",

@@ -3,5 +3,5 @@ CREATE TABLE "LastItemSeenByUser" (
       "itemID" INT NOT NULL,
       "userEmail" varchar(512) NOT NULL,
       "seenAt" TIMESTAMP NOT NULL,
-      PRIMARY KEY ("pinboardId", "itemID", "userEmail")
+      PRIMARY KEY ("pinboardId", "userEmail")
 );

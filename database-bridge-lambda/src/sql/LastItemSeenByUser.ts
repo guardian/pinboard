@@ -9,7 +9,7 @@ export const seenItem = async (
   sql`
     INSERT INTO "LastItemSeenByUser"("pinboardId", "itemID", "userEmail", "seenAt")
     VALUES (${args.input.pinboardId}, ${args.input.itemID}, ${userEmail}, current_timestamp)
-    ON CONFLICT ("pinboardId", "itemID", "userEmail") DO UPDATE SET "seenAt" = current_timestamp
+    ON CONFLICT ("pinboardId", "userEmail") DO UPDATE SET "itemID"=${args.input.itemID}, "seenAt" = current_timestamp
     RETURNING *
 `.then((rows) => rows[0]);
 

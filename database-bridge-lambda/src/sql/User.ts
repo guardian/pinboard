@@ -8,11 +8,12 @@ export const listUsers = (sql: Sql) => sql`
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
   sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription"`;
 
-export const getMyUser = (sql: Sql, userEmail: string) => sql`
+export const getMyUser = (sql: Sql, userEmail: string) =>
+  sql`
     SELECT ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
     FROM "User"
     WHERE "email" = ${userEmail}
-`;
+`.then((rows) => rows[0]);
 
 export const setWebPushSubscriptionForUser = async (
   sql: Sql,

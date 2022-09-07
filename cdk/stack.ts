@@ -512,26 +512,6 @@ export class PinBoardStack extends Stack {
       })
     );
 
-    const pinboardLastItemSeenByUserTableBaseName =
-      "pinboard-last-item-seen-by-user-table";
-
-    const pinboardAppsyncLastItemSeenByUserTable = new db.Table(
-      thisStack,
-      pinboardLastItemSeenByUserTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "pinboardId",
-          type: db.AttributeType.STRING,
-        },
-        sortKey: {
-          name: "userEmail",
-          type: db.AttributeType.STRING,
-        },
-        encryption: db.TableEncryption.DEFAULT,
-      }
-    );
-
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
       `${workflowBridgeLambdaBasename
         .replace("pinboard-", "")

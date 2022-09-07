@@ -2933,55 +2933,6 @@ $util.toJson($ctx.result)",
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardlastitemseenbyusertable132BE99C": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "pinboardId",
-            "AttributeType": "S",
-          },
-          Object {
-            "AttributeName": "userEmail",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "pinboardId",
-            "KeyType": "HASH",
-          },
-          Object {
-            "AttributeName": "userEmail",
-            "KeyType": "RANGE",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
-    },
     "pinboardnotificationslambdaC35CECF7": Object {
       "DependsOn": Array [
         "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A",

@@ -1,3 +1,7 @@
 import { handler } from "./src";
+import { createDbTunnel } from "../shared/database/local/tunnel";
 
-handler({}).then(console.log).catch(console.error);
+(async () => {
+  await createDbTunnel();
+  await handler({});
+})();

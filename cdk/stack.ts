@@ -130,6 +130,7 @@ export class PinBoardStack extends Stack {
       iamAuth: true,
       requireTLS: true,
     });
+    const cfnDatabaseProxy = databaseProxy.node.defaultChild as rds.CfnDBProxy;
 
     const databaseHostname = databaseProxy.endpoint;
 
@@ -247,6 +248,31 @@ export class PinBoardStack extends Stack {
 
     const databaseBridgeLambdaBasename = "pinboard-database-bridge-lambda";
 
+    const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${STAGE}`;
+    const databaseSecurityGroup = new ec2.SecurityGroup(
+      thisStack,
+      "DatabaseSecurityGroup",
+      {
+        vpc: accountVpc,
+        allowAllOutbound: true,
+        securityGroupName: databaseSecurityGroupName,
+      }
+    );
+    databaseSecurityGroup.addIngressRule(
+      ec2.Peer.ipv4("77.91.248.0/21"),
+      ec2.Port.tcp(22),
+      "Allow SSH for tunneling purposes when this security group is reused for database jump host."
+    );
+    ec2.SecurityGroup.fromSecurityGroupId(
+      thisStack,
+      "databaseProxySecurityGroup",
+      Fn.select(0, cfnDatabaseProxy!.vpcSecurityGroupIds!)
+    ).addIngressRule(
+      ec2.Peer.securityGroupId(databaseSecurityGroup.securityGroupId),
+      ec2.Port.tcp(DATABASE_PORT),
+      `Allow ${databaseSecurityGroupName} to connect to the ${databaseProxy.dbProxyName}`
+    );
+
     const pinboardDatabaseBridgeLambda = new lambda.Function(
       thisStack,
       databaseBridgeLambdaBasename,
@@ -268,43 +294,10 @@ export class PinBoardStack extends Stack {
         ),
         initialPolicy: [],
         vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
       }
     );
-
     databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
-
-    // unfortunately the grantConnect above doesn't update the DB Proxy security group to allow connection from the
-    // database bridge lambda, so we have to do it manually below
-    // (using an escape hatch, since DatabaseProxy nor lambda expose the generated security group)
-    const cfnDatabaseProxy = databaseProxy.node.defaultChild as rds.CfnDBProxy;
-    const cfnDatabaseBridgeLambda = pinboardDatabaseBridgeLambda.node
-      .defaultChild as lambda.CfnFunction;
-    const cfnDatabaseBridgeLambdaVpcConfig = cfnDatabaseBridgeLambda.vpcConfig as lambda.CfnFunction.VpcConfigProperty;
-    const databaseBridgeLambdaSecurityGroupID = Fn.select(
-      0,
-      cfnDatabaseBridgeLambdaVpcConfig!.securityGroupIds!
-    );
-    const databaseBridgeLambdaSecurityGroup = ec2.SecurityGroup.fromSecurityGroupId(
-      thisStack,
-      "DatabaseBridgeLambdaSecurityGroup",
-      databaseBridgeLambdaSecurityGroupID
-    );
-
-    ec2.SecurityGroup.fromSecurityGroupId(
-      thisStack,
-      "databaseProxySecurityGroup",
-      Fn.select(0, cfnDatabaseProxy!.vpcSecurityGroupIds!)
-    ).addIngressRule(
-      ec2.Peer.securityGroupId(databaseBridgeLambdaSecurityGroupID),
-      ec2.Port.tcp(DATABASE_PORT),
-      `Allow ${pinboardDatabaseBridgeLambda.functionName} to connect to the ${databaseProxy.dbProxyName}`
-    );
-
-    databaseBridgeLambdaSecurityGroup.addIngressRule(
-      ec2.Peer.ipv4("77.91.248.0/21"),
-      ec2.Port.tcp(22),
-      "Allow SSH for tunneling purposes when this security group is reused for database jump host."
-    );
 
     const databaseJumpHostASGName = getDatabaseJumpHostAsgName(STAGE as Stage);
 
@@ -345,7 +338,7 @@ export class PinBoardStack extends Stack {
             ),
           ],
         }),
-        securityGroup: databaseBridgeLambdaSecurityGroup,
+        securityGroup: databaseSecurityGroup,
         instanceType: ec2.InstanceType.of(
           ec2.InstanceClass.T4G,
           ec2.InstanceSize.NANO
@@ -355,7 +348,6 @@ export class PinBoardStack extends Stack {
         userData: selfTerminatingUserDataScript,
       }
     );
-
     databaseProxy.grantConnect(databaseJumpHostASG);
 
     // allow the instance to effectively terminate itself by reducing the capacity of the ASG that controls it
@@ -637,8 +629,7 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
-            pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
         functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -649,9 +640,11 @@ export class PinBoardStack extends Stack {
           permissionsFilePolicyStatement,
           pandaConfigAndKeyPolicyStatement,
         ],
+        vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
       }
     );
-    pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
+    databaseProxy.grantConnect(usersRefresherLambdaFunction);
 
     new events.Rule(
       thisStack,

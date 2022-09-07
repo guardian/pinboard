@@ -154,29 +154,6 @@ Object {
       "Type": "AWS::RDS::DBInstance",
       "UpdateReplacePolicy": "Retain",
     },
-    "DatabaseBridgeLambdaSecurityGroupfrom7791248021221EF4D898": Object {
-      "Properties": Object {
-        "CidrIp": "77.91.248.0/21",
-        "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
-        "FromPort": 22,
-        "GroupId": Object {
-          "Fn::Select": Array [
-            0,
-            Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
-                  "GroupId",
-                ],
-              },
-            ],
-          ],
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 22,
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
     "DatabaseDatabaseProxy537ACFCB": Object {
       "Properties": Object {
         "Auth": Array [
@@ -419,16 +396,9 @@ Object {
         "InstanceType": "t4g.nano",
         "SecurityGroups": Array [
           Object {
-            "Fn::Select": Array [
-              0,
-              Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
-                    "GroupId",
-                  ],
-                },
-              ],
+            "Fn::GetAtt": Array [
+              "DatabaseSecurityGroup7319C0F6",
+              "GroupId",
             ],
           },
         ],
@@ -723,6 +693,60 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "DatabaseSecurityGroup7319C0F6": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack/DatabaseSecurityGroup",
+        "GroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "PinboardDatabaseSecurityGroup",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "77.91.248.0/21",
+            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
     "DatabaseSecurityGroupfromPinBoardStackDatabaseDatabaseProxyProxySecurityGroup6ED094B9IndirectPortD6D1383E": Object {
       "Properties": Object {
         "Description": "Allow connections to the database Instance from the Proxy",
@@ -831,9 +855,9 @@ done & # this ampersand runs the whole loop in the background...
           "Fn::Join": Array [
             "",
             Array [
-              "Allow ",
+              "Allow PinboardDatabaseSecurityGroup",
               Object {
-                "Ref": "pinboarddatabasebridgelambda34091516",
+                "Ref": "Stage",
               },
               " to connect to the ",
               Object {
@@ -858,16 +882,9 @@ done & # this ampersand runs the whole loop in the background...
         },
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
-          "Fn::Select": Array [
-            0,
-            Array [
-              Object {
-                "Fn::GetAtt": Array [
-                  "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
-                  "GroupId",
-                ],
-              },
-            ],
+          "Fn::GetAtt": Array [
+            "DatabaseSecurityGroup7319C0F6",
+            "GroupId",
           ],
         },
         "ToPort": 5432,
@@ -2568,7 +2585,7 @@ $util.toJson($ctx.result)",
           "SecurityGroupIds": Array [
             Object {
               "Fn::GetAtt": Array [
-                "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7",
+                "DatabaseSecurityGroup7319C0F6",
                 "GroupId",
               ],
             },
@@ -2579,40 +2596,6 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::Lambda::Function",
-    },
-    "pinboarddatabasebridgelambdaSecurityGroup1AF44AC7": Object {
-      "Properties": Object {
-        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackpinboarddatabasebridgelambdaEBBDC95F",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
     },
     "pinboarddatabasebridgelambdaServiceRole07A568AB": Object {
       "Properties": Object {
@@ -3251,14 +3234,17 @@ $util.toJson($ctx.result)",
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
             "STACK": Object {
               "Ref": "Stack",
             },
             "STAGE": Object {
               "Ref": "Stage",
-            },
-            "USERS_TABLE_NAME": Object {
-              "Ref": "pinboardusertable2621B03F",
             },
           },
         },
@@ -3301,6 +3287,19 @@ $util.toJson($ctx.result)",
           },
         ],
         "Timeout": 900,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -3328,6 +3327,18 @@ $util.toJson($ctx.result)",
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
               ],
             ],
           },
@@ -3379,32 +3390,49 @@ $util.toJson($ctx.result)",
               "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
             },
             Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
+              "Action": "rds-db:connect",
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
                   ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",

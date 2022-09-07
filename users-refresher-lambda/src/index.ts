@@ -8,9 +8,7 @@ import {
 } from "../../shared/panDomainAuth";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
-import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
-
+import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 
 interface BasicUser {
@@ -29,30 +27,12 @@ export const handler = async ({
 }: {
   isProcessPermissionChangesOnly?: boolean;
 }) => {
-  const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
-
-  const getStoredUsers = async (
-    startKey?: DocumentClient.Key
-  ): Promise<BasicUser[]> => {
-    const userResults = await dynamo
-      .scan({
-        TableName: usersTableName,
-        ExclusiveStartKey: startKey,
-        AttributesToGet: ["email", "isMentionable"],
-      })
-      .promise();
-
-    const storedUsers =
-      userResults.Items?.map((user) => user as BasicUser) || [];
-
-    if (userResults.LastEvaluatedKey) {
-      return [
-        ...storedUsers,
-        ...(await getStoredUsers(userResults.LastEvaluatedKey)),
-      ];
-    } else {
-      return storedUsers;
-    }
+  const sql = await getDatabaseConnection();
+  const getStoredUsers = async (): Promise<BasicUser[]> => {
+    // TODO this select will get as many users as there are, how many might that be?
+    const userResultsRds = await sql`SELECT "email", "isMentionable"
+                                         FROM "User"`;
+    return userResultsRds.map((user) => user as BasicUser) || [];
   };
 
   const emailsOfUsersWithPinboardPermission = (
@@ -233,30 +213,20 @@ export const handler = async ({
       ({ resourceName, email, firstName, lastName, isMentionable }) => {
         const maybeAvatarUrl = resourceName && photoUrlLookup[resourceName];
 
-        console.log(`Upserting details for user ${email}`);
-
-        const upsertResult = dynamo
-          .update({
-            TableName: usersTableName,
-            Key: {
-              email,
-            },
-            UpdateExpression: `set isMentionable = :isMentionable${
-              firstName ? ", firstName = :firstName" : ""
-            }${lastName ? ", lastName = :lastName" : ""}${
-              maybeAvatarUrl ? ", avatarUrl = :avatarUrl" : ""
-            }`,
-            ExpressionAttributeValues: {
-              ":firstName": firstName,
-              ":lastName": lastName,
-              ":avatarUrl": maybeAvatarUrl,
-              ":isMentionable": isMentionable,
-            },
-          })
-          .promise();
-
-        upsertResult.catch(console.error);
-
+        const upsertResult = sql`
+        INSERT INTO "User"("email", "firstName", "lastName", "isMentionable", "avatarUrl")
+        VALUES (${email}, ${firstName || null}, ${
+          lastName || null
+        }, ${isMentionable}, ${maybeAvatarUrl || null})
+        ON CONFLICT ("email") DO UPDATE SET "firstName"=${
+          firstName || null
+        }, "lastName"=${
+          lastName || null
+        }, "isMentionable"=${isMentionable}, "avatarUrl=${
+          maybeAvatarUrl || null
+        }"
+        RETURNING *
+    `.then((rows) => rows[0]);
         return upsertResult;
       }
     )

@@ -1,7 +1,11 @@
-import { DATABASE_PORT } from "../../shared/database";
-import { Stage } from "../../shared/types/stage";
+import { DATABASE_PORT, getDatabaseProxyName } from "../database";
+import { Stage } from "../../types/stage";
 import { exec } from "child_process";
 import { promisify } from "util";
+import AWS from "aws-sdk";
+import { standardAwsConfig } from "../../awsIntegration";
+import { ENVIRONMENT_VARIABLE_KEYS } from "../../environmentVariables";
+import { getJumpHost } from "./getJumpHost";
 
 const runCommandPromise = promisify(exec);
 
@@ -72,3 +76,27 @@ export const establishTunnelToDBProxy = async (
     throw Error("Failed to establish SSH tunnel");
   }
 };
+
+export async function createDbTunnel() {
+  const stage = "CODE"; //TODO prompt for stage (so we can do PROD)
+
+  const DBProxyName = getDatabaseProxyName(stage);
+
+  const dbProxyResponse = await new AWS.RDS(standardAwsConfig)
+    .describeDBProxies({ DBProxyName })
+    .promise();
+
+  const { Endpoint } = dbProxyResponse.DBProxies![0]!;
+  process.env[ENVIRONMENT_VARIABLE_KEYS.databaseHostname] = Endpoint!;
+  console.log(`DB Proxy Hostname: ${Endpoint!}`);
+
+  if (await isThereExistingTunnel(Endpoint!)) {
+    console.log(
+      `It looks like there is already a suitable SSH tunnel established on localhost:${DATABASE_PORT} 🎉`
+    );
+  } else {
+    const jumpHostInstanceId = await getJumpHost(stage);
+
+    await establishTunnelToDBProxy(stage, jumpHostInstanceId, Endpoint!);
+  }
+}

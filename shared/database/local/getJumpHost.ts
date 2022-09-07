@@ -1,11 +1,11 @@
 import * as AWS from "aws-sdk";
-import { standardAwsConfig } from "../../shared/awsIntegration";
-import { Stage } from "../../shared/types/stage";
+import { standardAwsConfig } from "../../awsIntegration";
+import { Stage } from "../../types/stage";
 import {
   databaseJumpHostASGLogicalID,
   getDatabaseJumpHostAsgName,
-} from "../../shared/database";
-import { APP } from "../../shared/constants";
+} from "../database";
+import { APP } from "../../constants";
 
 export const getJumpHost = async (stage: Stage) => {
   const AutoScalingGroupName = getDatabaseJumpHostAsgName(stage);

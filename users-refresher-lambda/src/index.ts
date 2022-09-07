@@ -12,15 +12,21 @@ import { getDatabaseConnection } from "../../shared/database/databaseConnection"
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 
 interface BasicUser {
-  resourceName?: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
   isMentionable: boolean;
 }
 
+interface UserFromGoogle extends BasicUser {
+  resourceName: string;
+  firstName: string;
+  lastName: string;
+}
+
+const isUserFromGoogle = (
+  user: BasicUser | UserFromGoogle
+): user is UserFromGoogle => "resourceName" in user;
+
 const S3 = new AWS.S3(standardAwsConfig);
-const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
 export const handler = async ({
   isProcessPermissionChangesOnly,
@@ -28,12 +34,10 @@ export const handler = async ({
   isProcessPermissionChangesOnly?: boolean;
 }) => {
   const sql = await getDatabaseConnection();
-  const getStoredUsers = async (): Promise<BasicUser[]> => {
-    // TODO this select will get as many users as there are, how many might that be?
-    const userResultsRds = await sql`SELECT "email", "isMentionable"
-                                         FROM "User"`;
-    return userResultsRds.map((user) => user as BasicUser) || [];
-  };
+  const getStoredUsers = async (): Promise<BasicUser[]> =>
+    (await sql`SELECT "email", "isMentionable" FROM "User"`).map(
+      (user) => user as BasicUser
+    ) || [];
 
   const emailsOfUsersWithPinboardPermission = (
     await getPinboardPermissionOverrides(S3)
@@ -121,7 +125,9 @@ export const handler = async ({
     auth,
   });
 
-  const basicUsersWithPinboardPermission: BasicUser[] = await Promise.all(
+  const usersWithPinboardPermission: Array<
+    BasicUser | UserFromGoogle
+  > = await Promise.all(
     emailsToLookup.map(async (emailFromPermission) => {
       const userResult = await directoryService.users
         .get({
@@ -147,8 +153,8 @@ export const handler = async ({
       return {
         resourceName: `people/${id}`,
         email,
-        firstName: user.name?.givenName || undefined,
-        lastName: user.name?.familyName || undefined,
+        firstName: user.name!.givenName!,
+        lastName: user.name!.familyName!,
         isMentionable: true,
       };
     })
@@ -197,38 +203,45 @@ export const handler = async ({
       : thisBatchLookup;
   };
   const photoUrlLookup = await buildPhotoUrlLookup(
-    basicUsersWithPinboardPermission.reduce<string[]>(
-      (acc, { resourceName }) => (resourceName ? [...acc, resourceName] : acc),
-      []
-    )
+    usersWithPinboardPermission
+      .filter(isUserFromGoogle)
+      .map(({ resourceName }) => resourceName)
   );
 
-  const usersToUpsert: BasicUser[] = [
-    ...basicUsersWithPinboardPermission,
+  const usersToUpsert: Array<BasicUser | UserFromGoogle> = [
+    ...usersWithPinboardPermission,
     ...basicUsersWherePinboardPermissionRemoved,
   ];
 
-  return await Promise.allSettled(
-    usersToUpsert.map(
-      ({ resourceName, email, firstName, lastName, isMentionable }) => {
-        const maybeAvatarUrl = resourceName && photoUrlLookup[resourceName];
+  for (const user of usersToUpsert) {
+    console.log(`Upserting details for user ${user.email}`);
 
-        const upsertResult = sql`
-        INSERT INTO "User"("email", "firstName", "lastName", "isMentionable", "avatarUrl")
-        VALUES (${email}, ${firstName || null}, ${
-          lastName || null
-        }, ${isMentionable}, ${maybeAvatarUrl || null})
-        ON CONFLICT ("email") DO UPDATE SET "firstName"=${
-          firstName || null
-        }, "lastName"=${
-          lastName || null
-        }, "isMentionable"=${isMentionable}, "avatarUrl=${
-          maybeAvatarUrl || null
-        }"
-        RETURNING *
-    `.then((rows) => rows[0]);
-        return upsertResult;
-      }
-    )
-  );
+    const handleError = (error: Error) => {
+      console.error(`Error upserting user ${user.email}\n`, error);
+      console.error(user);
+    };
+
+    if (isUserFromGoogle(user)) {
+      const { resourceName, ...userToUpsert } = user;
+      const maybeAvatarUrl = photoUrlLookup[resourceName];
+      await sql`
+          INSERT INTO "User" ${sql(
+            maybeAvatarUrl
+              ? { ...userToUpsert, avatarUrl: maybeAvatarUrl }
+              : userToUpsert
+          )}
+          ON CONFLICT ("email") DO UPDATE SET
+            "firstName"=${user.firstName},
+            "lastName"=${user.lastName},
+            "isMentionable"=${user.isMentionable},
+            "avatarUrl"=${maybeAvatarUrl || null}
+      `.catch(handleError);
+    } else {
+      await sql`
+          UPDATE "User" 
+          SET "isMentionable"=${user.isMentionable}
+          WHERE "email"=${user.email} 
+      `.catch(handleError);
+    }
+  }
 };

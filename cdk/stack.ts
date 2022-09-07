@@ -38,7 +38,7 @@ import {
   databaseJumpHostASGLogicalID,
   getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
-} from "../shared/database";
+} from "../shared/database/database";
 import { Stage } from "../shared/types/stage";
 import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
 import * as fs from "fs";

@@ -1,5 +1,5 @@
-import { Stage } from "./types/stage";
-import { APP } from "./constants";
+import { Stage } from "../types/stage";
+import { APP } from "../constants";
 
 export const DATABASE_USERNAME = APP;
 

@@ -1,12 +1,3 @@
-import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-import * as AWS from "aws-sdk";
-import { standardAwsConfig } from "../../shared/awsIntegration";
-import postgres from "postgres";
-import {
-  DATABASE_NAME,
-  DATABASE_PORT,
-  DATABASE_USERNAME,
-} from "../../shared/database";
 import type {
   AppSyncIdentityLambda,
   AppSyncResolverEvent,
@@ -22,6 +13,7 @@ import {
   removeManuallyOpenedPinboardIds,
   setWebPushSubscriptionForUser,
 } from "./sql/User";
+import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 
 type FieldName = keyof Required<Omit<Query & Mutation, "__typename">>;
 
@@ -63,34 +55,7 @@ const run = (
 export const handler = async (
   payload: AppSyncResolverEvent<unknown, unknown>
 ) => {
-  const isRunningLocally = !process.env.LAMBDA_TASK_ROOT;
-
-  const databaseHostname = getEnvironmentVariableOrThrow("databaseHostname");
-
-  const basicConnectionDetails = {
-    hostname: databaseHostname,
-    port: DATABASE_PORT,
-    username: DATABASE_USERNAME,
-  };
-
-  const iamToken = new AWS.RDS.Signer({
-    ...standardAwsConfig,
-    credentials: await standardAwsConfig.credentialProvider.resolvePromise(),
-  }).getAuthToken(basicConnectionDetails);
-
-  isRunningLocally &&
-    console.log(
-      `\nIAM Token to use as DB password (if you want to connect from command line, IntelliJ etc.)\n${iamToken}\n`
-    );
-
-  const sql = postgres({
-    ...basicConnectionDetails,
-    hostname: isRunningLocally ? "localhost" : databaseHostname,
-    database: DATABASE_NAME,
-    password: iamToken,
-    ssl: "require",
-  });
-
+  const sql = await getDatabaseConnection();
   const args = payload.arguments as never;
   const userEmail: string = (payload.identity as AppSyncIdentityLambda)
     .resolverContext.userEmail;

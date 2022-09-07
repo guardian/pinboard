@@ -6,6 +6,7 @@ import AWS from "aws-sdk";
 import { standardAwsConfig } from "../../awsIntegration";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../environmentVariables";
 import { getJumpHost } from "./getJumpHost";
+import prompts from "prompts";
 
 const runCommandPromise = promisify(exec);
 
@@ -78,7 +79,15 @@ export const establishTunnelToDBProxy = async (
 };
 
 export async function createDbTunnel() {
-  const stage = "CODE"; //TODO prompt for stage (so we can do PROD)
+  const { stage } = await prompts({
+    type: "select",
+    name: "stage",
+    message: "Stage?",
+    choices: [
+      { title: "CODE", value: "CODE", selected: true },
+      { title: "PROD", value: "PROD" },
+    ],
+  });
 
   const DBProxyName = getDatabaseProxyName(stage);
 
@@ -99,4 +108,6 @@ export async function createDbTunnel() {
 
     await establishTunnelToDBProxy(stage, jumpHostInstanceId, Endpoint!);
   }
+
+  return stage;
 }

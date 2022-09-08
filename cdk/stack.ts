@@ -5,13 +5,11 @@ import {
   aws_certificatemanager as acm,
   aws_cloudwatch as cloudwatch,
   aws_cloudwatch_actions as cloudwatchActions,
-  aws_dynamodb as db,
   aws_ec2 as ec2,
   aws_events as events,
   aws_events_targets as eventsTargets,
   aws_iam as iam,
   aws_lambda as lambda,
-  aws_lambda_event_sources as lambdaEventSources,
   aws_rds as rds,
   aws_s3 as S3,
   aws_sns as sns,
@@ -395,27 +393,13 @@ export class PinBoardStack extends Stack {
       new cloudwatchActions.SnsAction(alarmsSnsTopic)
     );
 
-    const pinboardUserTableBaseName = "pinboard-user-table";
-
-    const pinboardAppsyncUserTable = new db.Table(
-      thisStack,
-      pinboardUserTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "email",
-          type: db.AttributeType.STRING,
-        },
-        encryption: db.TableEncryption.DEFAULT,
-      }
-    );
-
     const pinboardNotificationsLambdaBasename = "pinboard-notifications-lambda";
 
     const pinboardNotificationsLambda = new lambda.Function(
       thisStack,
       pinboardNotificationsLambdaBasename,
       {
+        vpc: accountVpc,
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
         timeout: Duration.seconds(30),
@@ -424,8 +408,6 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
-            pinboardAppsyncUserTable.tableName,
         },
         functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -435,8 +417,24 @@ export class PinBoardStack extends Stack {
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
-    pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
 
+    const notificationLambdaInvokeRole = new iam.Role(
+      thisStack,
+      "NotificationLambdaInvokeRole",
+      {
+        assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"),
+        roleName: `${APP}-${pinboardNotificationsLambda.functionName}-database-invoke-${STAGE}`,
+        description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
+      }
+    );
+
+    pinboardNotificationsLambda.grantInvoke(notificationLambdaInvokeRole);
+    (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
+      {
+        featureName: "Lambda",
+        roleArn: notificationLambdaInvokeRole.roleArn,
+      },
+    ];
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 
     const pinboardAuthLambda = new lambda.Function(
@@ -483,33 +481,6 @@ export class PinBoardStack extends Stack {
         },
         xrayEnabled: true,
       }
-    );
-
-    const pinboardItemTableBaseName = "pinboard-item-table";
-
-    const pinboardAppsyncItemTable = new db.Table(
-      thisStack,
-      pinboardItemTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "id",
-          type: db.AttributeType.STRING,
-        },
-        sortKey: {
-          name: "timestamp",
-          type: db.AttributeType.NUMBER,
-        },
-        encryption: db.TableEncryption.DEFAULT,
-        stream: db.StreamViewType.NEW_IMAGE,
-      }
-    );
-
-    pinboardNotificationsLambda.addEventSource(
-      new lambdaEventSources.DynamoEventSource(pinboardAppsyncItemTable, {
-        maxBatchingWindow: Duration.seconds(10),
-        startingPosition: lambda.StartingPosition.LATEST,
-      })
     );
 
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(

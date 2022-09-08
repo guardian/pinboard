@@ -84,6 +84,17 @@ Object {
       "DeletionPolicy": "Retain",
       "Properties": Object {
         "AllocatedStorage": "20",
+        "AssociatedRoles": Array [
+          Object {
+            "FeatureName": "Lambda",
+            "RoleArn": Object {
+              "Fn::GetAtt": Array [
+                "NotificationLambdaInvokeRoleFE403E3F",
+                "Arn",
+              ],
+            },
+          },
+        ],
         "AutoMinorVersionUpgrade": true,
         "CopyTagsToSnapshot": true,
         "DBInstanceClass": "db.t4g.micro",
@@ -806,6 +817,109 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::RDS::DBSubnetGroup",
       "UpdateReplacePolicy": "Retain",
+    },
+    "NotificationLambdaInvokeRoleDefaultPolicy45F27235": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardnotificationslambdaC35CECF7",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardnotificationslambdaC35CECF7",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "NotificationLambdaInvokeRoleDefaultPolicy45F27235",
+        "Roles": Array [
+          Object {
+            "Ref": "NotificationLambdaInvokeRoleFE403E3F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "NotificationLambdaInvokeRoleFE403E3F": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "rds.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Give pinboard RDS Postgres instance permission to invoke ",
+              Object {
+                "Ref": "pinboardnotificationslambdaC35CECF7",
+              },
+            ],
+          ],
+        },
+        "RoleName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-",
+              Object {
+                "Ref": "pinboardnotificationslambdaC35CECF7",
+              },
+              "-database-invoke-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
@@ -2881,58 +2995,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboarditemtable83382753": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "id",
-            "AttributeType": "S",
-          },
-          Object {
-            "AttributeName": "timestamp",
-            "AttributeType": "N",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "id",
-            "KeyType": "HASH",
-          },
-          Object {
-            "AttributeName": "timestamp",
-            "KeyType": "RANGE",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "StreamSpecification": Object {
-          "StreamViewType": "NEW_IMAGE",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
-    },
     "pinboardnotificationslambdaC35CECF7": Object {
       "DependsOn": Array [
         "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A",
@@ -2965,9 +3027,6 @@ $util.toJson($ctx.result)",
             },
             "STAGE": Object {
               "Ref": "Stage",
-            },
-            "USERS_TABLE_NAME": Object {
-              "Ref": "pinboardusertable2621B03F",
             },
           },
         },
@@ -3010,25 +3069,55 @@ $util.toJson($ctx.result)",
           },
         ],
         "Timeout": 30,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "pinboardnotificationslambdaSecurityGroupCE2444D9",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
       },
       "Type": "AWS::Lambda::Function",
     },
-    "pinboardnotificationslambdaDynamoDBEventSourcePinBoardStackpinboarditemtableB307C42935A18399": Object {
+    "pinboardnotificationslambdaSecurityGroupCE2444D9": Object {
       "Properties": Object {
-        "BatchSize": 100,
-        "EventSourceArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboarditemtable83382753",
-            "StreamArn",
-          ],
+        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackpinboardnotificationslambda8B273F85",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
         },
-        "FunctionName": Object {
-          "Ref": "pinboardnotificationslambdaC35CECF7",
-        },
-        "MaximumBatchingWindowInSeconds": 10,
-        "StartingPosition": "LATEST",
       },
-      "Type": "AWS::Lambda::EventSourceMapping",
+      "Type": "AWS::EC2::SecurityGroup",
     },
     "pinboardnotificationslambdaServiceRole2F6EBFE9": Object {
       "Properties": Object {
@@ -3054,6 +3143,18 @@ $util.toJson($ctx.result)",
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
               ],
             ],
           },
@@ -3100,49 +3201,6 @@ $util.toJson($ctx.result)",
                     },
                     ":parameter/pinboard/*",
                   ],
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": "dynamodb:ListStreams",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "dynamodb:DescribeStream",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "pinboarditemtable83382753",
-                  "StreamArn",
                 ],
               },
             },
@@ -3495,47 +3553,6 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::Lambda::Permission",
-    },
-    "pinboardusertable2621B03F": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "email",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "email",
-            "KeyType": "HASH",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
     },
     "pinboardworkflowbridgelambda30D4AA22": Object {
       "DependsOn": Array [

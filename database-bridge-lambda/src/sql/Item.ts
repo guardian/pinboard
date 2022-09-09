@@ -1,5 +1,5 @@
 import { CreateItemInput } from "../../../shared/graphql/graphql";
-import { Sql } from "./types";
+import { Sql } from "../../../shared/database/types";
 
 export const createItem = async (
   sql: Sql,

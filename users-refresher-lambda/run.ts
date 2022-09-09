@@ -1,7 +1,7 @@
 import { handler } from "./src";
-import { createDbTunnel } from "../shared/database/local/tunnel";
+import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
 
 (async () => {
-  await createDbTunnel();
+  await createDatabaseTunnel();
   await handler({});
 })();

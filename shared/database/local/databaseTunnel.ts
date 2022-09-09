@@ -5,7 +5,7 @@ import { promisify } from "util";
 import AWS from "aws-sdk";
 import { standardAwsConfig } from "../../awsIntegration";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../environmentVariables";
-import { getJumpHost } from "./getJumpHost";
+import { getDatabaseJumpHost } from "./getDatabaseJumpHost";
 import prompts from "prompts";
 
 const runCommandPromise = promisify(exec);
@@ -78,7 +78,7 @@ export const establishTunnelToDBProxy = async (
   }
 };
 
-export async function createDbTunnel() {
+export async function createDatabaseTunnel() {
   const { stage } = await prompts({
     type: "select",
     name: "stage",
@@ -104,7 +104,7 @@ export async function createDbTunnel() {
       `It looks like there is already a suitable SSH tunnel established on localhost:${DATABASE_PORT} 🎉`
     );
   } else {
-    const jumpHostInstanceId = await getJumpHost(stage);
+    const jumpHostInstanceId = await getDatabaseJumpHost(stage);
 
     await establishTunnelToDBProxy(stage, jumpHostInstanceId, Endpoint!);
   }

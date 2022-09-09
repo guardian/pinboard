@@ -1,4 +1,4 @@
-import { Sql } from "./types";
+import { Sql } from "../../../shared/database/types";
 import { LastItemSeenByUserInput } from "../../../shared/graphql/graphql";
 
 export const seenItem = async (

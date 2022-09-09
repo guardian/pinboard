@@ -26,7 +26,11 @@ import {
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
-import { APP } from "../shared/constants";
+import {
+  APP,
+  getNotificationsLambdaFunctionName,
+  NOTIFICATIONS_LAMBDA_BASENAME,
+} from "../shared/constants";
 import crypto from "crypto";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
 import {
@@ -393,11 +397,9 @@ export class PinBoardStack extends Stack {
       new cloudwatchActions.SnsAction(alarmsSnsTopic)
     );
 
-    const pinboardNotificationsLambdaBasename = "pinboard-notifications-lambda";
-
     const pinboardNotificationsLambda = new lambda.Function(
       thisStack,
-      pinboardNotificationsLambdaBasename,
+      NOTIFICATIONS_LAMBDA_BASENAME,
       {
         vpc: accountVpc,
         runtime: LAMBDA_NODE_VERSION,
@@ -409,15 +411,14 @@ export class PinBoardStack extends Stack {
           STACK,
           APP,
         },
-        functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
+        functionName: getNotificationsLambdaFunctionName(STAGE as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${pinboardNotificationsLambdaBasename}/${pinboardNotificationsLambdaBasename}.zip`
+          `${STACK}/${STAGE}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
         ),
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
-
     const notificationLambdaInvokeRole = new iam.Role(
       thisStack,
       "NotificationLambdaInvokeRole",
@@ -427,7 +428,6 @@ export class PinBoardStack extends Stack {
         description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
       }
     );
-
     pinboardNotificationsLambda.grantInvoke(notificationLambdaInvokeRole);
     (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
       {
@@ -435,6 +435,7 @@ export class PinBoardStack extends Stack {
         roleArn: notificationLambdaInvokeRole.roleArn,
       },
     ];
+
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 
     const pinboardAuthLambda = new lambda.Function(

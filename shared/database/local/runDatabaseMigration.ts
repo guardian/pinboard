@@ -1,9 +1,9 @@
 import AWS from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
-import { standardAwsConfig } from "../../shared/awsIntegration";
-import { Sql } from "../src/sql/types";
-import { createDbTunnel } from "../../shared/database/local/tunnel";
-import { getDatabaseConnection } from "../../shared/database/databaseConnection";
+import { standardAwsConfig } from "../../awsIntegration";
+import { createDatabaseTunnel } from "./databaseTunnel";
+import { getDatabaseConnection } from "../databaseConnection";
+import { Sql } from "../types";
 
 const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
@@ -126,7 +126,7 @@ export async function migrateItemsAndLastItemSeenByUser(
     },
   };
 
-  const stage: "CODE" | "PROD" = await createDbTunnel();
+  const stage: "CODE" | "PROD" = await createDatabaseTunnel();
 
   const sql = await getDatabaseConnection();
 

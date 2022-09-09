@@ -1,4 +1,4 @@
-import { Sql } from "./types";
+import { Sql } from "../../../shared/database/types";
 
 export const listUsers = (sql: Sql) => sql`
     SELECT "email", "firstName", "lastName", "avatarUrl", "isMentionable"

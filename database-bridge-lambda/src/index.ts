@@ -3,7 +3,7 @@ import type {
   AppSyncResolverEvent,
 } from "aws-lambda/trigger/appsync-resolver";
 import { createItem, listItems } from "./sql/Item";
-import { Sql } from "./sql/types";
+import { Sql } from "../../shared/database/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
 import {
   addManuallyOpenedPinboardIds,

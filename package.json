@@ -24,7 +24,9 @@
     "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
     "test": "wsrun --parallel --fast-exit --prefix --report --exclude-missing test ",
     "build": "wsrun --parallel --fast-exit --prefix --report build ",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "database-setup": "ts-node-dev shared/database/local/runDatabaseSetup.ts",
+    "database-migrate": "ts-node-dev shared/database/local/runDatabaseMigration.ts"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",

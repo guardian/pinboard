@@ -1,9 +1,9 @@
 import { handler } from "./src";
 import { AppSyncResolverEvent } from "aws-lambda/trigger/appsync-resolver";
-import { createDbTunnel } from "../shared/database/local/tunnel";
+import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
 
 (async () => {
-  await createDbTunnel();
+  await createDatabaseTunnel();
   console.log(
     "Testing tunnel with 'listItems' Query...\n",
     await handler({

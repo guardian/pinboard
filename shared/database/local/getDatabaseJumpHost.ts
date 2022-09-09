@@ -7,7 +7,7 @@ import {
 } from "../database";
 import { APP } from "../../constants";
 
-export const getJumpHost = async (stage: Stage) => {
+export const getDatabaseJumpHost = async (stage: Stage) => {
   const AutoScalingGroupName = getDatabaseJumpHostAsgName(stage);
 
   const autoscaling = new AWS.AutoScaling(standardAwsConfig);

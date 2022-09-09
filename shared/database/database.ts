@@ -14,3 +14,6 @@ export const databaseJumpHostASGLogicalID = "DatabaseJumpHostASG";
 
 export const getDatabaseJumpHostAsgName = (stage: Stage) =>
   `pinboard-database-jump-host-ASG-${stage}`;
+
+export const NOTIFICATIONS_DATABASE_TRIGGER_NAME =
+  "trigger_notifications_lambda_after_item_insert_if_applicable";

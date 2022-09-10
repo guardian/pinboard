@@ -1,20 +1,44 @@
-import { handler } from "./src";
+import { handler, UserWithWebPushSubscription } from "./src";
+import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
+import { getDatabaseConnection } from "../shared/database/databaseConnection";
+import { standardAwsConfig } from "../shared/awsIntegration";
+import AWS from "aws-sdk";
 
-handler({
-  Records: [
-    {
-      dynamodb: {
-        NewImage: {
-          pinboardId: { S: "63923" },
-          payload: { NULL: true },
-          mentions: { L: [{ S: "tom.richards@guardian.co.uk" }] },
-          userEmail: { S: "tom.richards@guardian.co.uk" },
-          id: { S: "535b86e2-4f01-4f60-a2d0-a5e4f5a7d312" },
-          message: { S: "testing one two three" },
-          type: { S: "message-only" },
-          timestamp: { N: "1630517452" },
-        },
-      },
+(async () => {
+  const userName = (
+    await new AWS.STS(standardAwsConfig).getCallerIdentity().promise()
+  ).UserId?.split(":")[1];
+
+  await createDatabaseTunnel();
+
+  const sql = await getDatabaseConnection();
+
+  const yourEmail = `${userName}@guardian.co.uk`;
+
+  const yourUser = await sql`
+      SELECT *
+      FROM "User"
+      WHERE "email" = ${yourEmail}
+        AND "webPushSubscription" IS NOT NULL
+  `.then((rows) => rows[0]);
+
+  if (!yourUser) {
+    throw Error(
+      `You (${yourEmail}) don't have a web push subscription in the DB. Please try again after subscribing in the browser via pinboard UI.`
+    );
+  }
+
+  await handler({
+    item: {
+      pinboardId: "63923",
+      payload: null,
+      mentions: ["tom.richards@guardian.co.uk"],
+      userEmail: "tom.richards@guardian.co.uk",
+      id: "535b86e2-4f01-4f60-a2d0-a5e4f5a7d312",
+      message: "testing one two three",
+      type: "message-only",
+      timestamp: new Date(1630517452000).toISOString(),
     },
-  ],
-});
+    users: [yourUser as UserWithWebPushSubscription],
+  });
+})().catch(console.error);

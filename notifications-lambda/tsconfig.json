@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["ES2019.Array"]
+    "lib": ["ES2020"]
   }
 }

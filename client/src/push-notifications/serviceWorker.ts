@@ -3,16 +3,20 @@ import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
 const showNotification = (
   item: ItemWithParsedPayload & {
     clientId?: string;
+    firstName?: string;
+    lastName?: string;
   }
 ) => {
+  const user =
+    item.firstName && item.lastName
+      ? `${item.firstName} ${item.lastName}`
+      : item.userEmail.substring(0, item.userEmail.indexOf("@"));
+
   // TODO check for existing notification first (to preserve the `clientId` field)
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   self.registration.showNotification(
-    `📌 ${item.userEmail.substring(
-      0,
-      item.userEmail.indexOf("@")
-    )} at ${new Date(item.timestamp).toLocaleTimeString()}`,
+    `📌 ${user} at ${new Date(item.timestamp).toLocaleTimeString()}`,
     {
       tag: item.id,
       data: item,

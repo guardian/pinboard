@@ -13,12 +13,14 @@ interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
   clearPayloadToBeSent?: () => void;
   tab?: Tab;
+  scrollToBottomIfApplicable?: () => void;
 }
 
 export const PayloadDisplay = ({
   payloadAndType,
   clearPayloadToBeSent,
   tab,
+  scrollToBottomIfApplicable,
 }: PayloadDisplayProps) => {
   const { payload } = payloadAndType;
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -72,11 +74,15 @@ export const PayloadDisplay = ({
           <GridStaticImageDisplay
             type={payloadAndType.type}
             payload={payloadAndType.payload}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
           />
         )}
 
         {payloadAndType.type === "grid-search" && (
-          <GridDynamicSearchDisplay payload={payloadAndType.payload} />
+          <GridDynamicSearchDisplay
+            payload={payloadAndType.payload}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+          />
         )}
 
         {clearPayloadToBeSent && (

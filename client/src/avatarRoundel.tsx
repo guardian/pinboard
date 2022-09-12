@@ -52,7 +52,7 @@ export const AvatarRoundel = ({
         justify-content: center;
         align-items: center;
         ${size < 20 // arbitrary breakpoint
-          ? agateSans.xxsmall()
+          ? `${agateSans.xxsmall()} font-size: 10px;`
           : agateSans.small()}
       `}
     >

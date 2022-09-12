@@ -1,4 +1,7 @@
 import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
+import { OPEN_PINBOARD_QUERY_PARAM } from "../../../shared/constants";
+
+const toolsDomain = self.location.hostname.replace("pinboard.", "");
 
 const showNotification = (
   item: ItemWithParsedPayload & {
@@ -73,8 +76,8 @@ self.addEventListener("notificationclick", (event: any) => {
 
   const item = event.notification.data;
 
-  // TODO make pinboard actually use these (a bit like we have for PRESELECT_PINBOARD_QUERY_PARAM)
-  const openToItemQueryParam = `pinboardId=${item.pinboardId}&pinboardItemId=${item.id}`;
+  // TODO add `&pinboardItemId=${item.id}` make pinboard actually scroll to that item
+  const openToItemQueryParam = `${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`;
 
   event.waitUntil(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -96,7 +99,10 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            `https://media.gutools.co.uk/search?${openToItemQueryParam}`
+            `https://media.${toolsDomain}/search?${openToItemQueryParam}`.replace(
+              ".code.",
+              ".test."
+            )
           );
         } else if (
           event.action === "composer" ||
@@ -106,8 +112,8 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            //TODO somehow find out the composer ID (perhaps workflow has a nice redirect service from pinboard ID i.e. workflow stub ID)
-            `https://composer.gutools.co.uk?${openToItemQueryParam}`
+            //FIXME somehow find out the composer ID (perhaps workflow has a nice redirect service from pinboard ID i.e. workflow stub ID)
+            `https://composer.${toolsDomain}?${openToItemQueryParam}`
           );
         }
       })

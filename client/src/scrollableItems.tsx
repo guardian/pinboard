@@ -20,8 +20,6 @@ import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
 
-const JUMP_TO_BOTTOM_HEIGHT = 32;
-
 interface ScrollableItemsProps {
   initialItems: Item[];
   successfulSends: PendingItem[];
@@ -34,19 +32,6 @@ interface ScrollableItemsProps {
   lastItemSeenByUserLookup: LastItemSeenByUserLookup;
   showNotification: (item: Item) => void;
 }
-
-const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
-  scrollableArea.scrollHeight > scrollableArea.clientHeight;
-
-const isScrolledToBottom = (
-  { scrollTop, scrollHeight, offsetHeight }: HTMLDivElement,
-  hasUnread: boolean
-) => {
-  const maxScrollTop =
-    scrollHeight - offsetHeight - (hasUnread ? JUMP_TO_BOTTOM_HEIGHT : 0);
-  const scrollTopThreshold = maxScrollTop - 10;
-  return scrollTop > scrollTopThreshold;
-};
 
 interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -65,6 +50,8 @@ export const ScrollableItems = ({
   showNotification,
 }: ScrollableItemsProps) => {
   const { isRepositioning } = useGlobalStateContext();
+
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
   const itemsMap = [
     ...initialItems,
@@ -136,18 +123,11 @@ export const ScrollableItems = ({
 
   useEffect(() => {
     scrollableArea &&
-      scrollableArea.scrollHeight > 0 &&
       !hasThisPinboardEverBeenExpanded &&
       setHasThisPinboardEverBeenExpanded(true);
   });
 
   useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
-
-  const shouldBeScrolledToLastItem = () =>
-    document.hasFocus() &&
-    (!scrollableArea ||
-      !isScrollbarVisible(scrollableArea) ||
-      isScrolledToBottom(scrollableArea, hasUnread));
 
   const lastItemID = items[lastItemIndex]?.id;
 
@@ -188,7 +168,7 @@ export const ScrollableItems = ({
   }, [hasUnread]);
 
   useEffect(() => {
-    if (shouldBeScrolledToLastItem()) {
+    if (isScrolledToBottom) {
       scrollToLastItem();
       isExpanded && seenLastItem();
     }
@@ -199,13 +179,21 @@ export const ScrollableItems = ({
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && shouldBeScrolledToLastItem() && lastItemID) {
+    if (isExpanded && isScrolledToBottom && lastItemID) {
       seenLastItem();
     }
   }, [isExpanded]); // runs when expanded/closed
 
   const onScroll = () => {
-    if (shouldBeScrolledToLastItem() && lastItemID) {
+    if (!scrollableArea) {
+      return;
+    }
+    const { scrollHeight, offsetHeight, scrollTop } = scrollableArea;
+    const maxScrollTop = scrollHeight - offsetHeight - 10; // 10 is for padding
+    const scrollTopThreshold = maxScrollTop - 10; // in case not exactly scrolled to bottom
+    const newIsScrolledToBottom = scrollTop > scrollTopThreshold;
+    setIsScrolledToBottom(newIsScrolledToBottom);
+    if (newIsScrolledToBottom && lastItemID && isExpanded) {
       seenLastItem();
     }
   };
@@ -244,17 +232,13 @@ export const ScrollableItems = ({
           `}
         >
           <button
-            onClick={() =>
-              scrollableArea && isScrollbarVisible(scrollableArea)
-                ? scrollToLastItem()
-                : seenLastItem()
-            }
+            onClick={scrollToLastItem}
             css={css`
               fill: white;
               background-color: ${palette.neutral[20]};
               font-weight: bold;
-              height: ${JUMP_TO_BOTTOM_HEIGHT}px;
-              width: ${JUMP_TO_BOTTOM_HEIGHT}px;
+              height: 32px;
+              width: 32px;
               border-radius: 999px;
               display: flex;
               justify-content: center;

@@ -102,33 +102,46 @@ export const Pinboard: React.FC<PinboardProps> = ({
     },
   });
 
-  useEffect(
-    () =>
-      initialLastItemSeenByUsers.data &&
-      setLastItemSeenByUserLookup((prevState) =>
-        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.reduce(
-          (
-            acc: LastItemSeenByUserLookup,
-            newLastItemSeenByUser: LastItemSeenByUser
-          ) => {
-            const previousLastItemSeenByUser =
-              acc[newLastItemSeenByUser.userEmail];
-            if (
-              !previousLastItemSeenByUser ||
-              previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
-            ) {
-              return {
-                ...acc,
-                [newLastItemSeenByUser.userEmail]: newLastItemSeenByUser,
-              };
-            }
-            return acc;
-          },
-          prevState
-        )
-      ),
-    [initialLastItemSeenByUsers.data]
-  );
+  useEffect(() => {
+    if (initialLastItemSeenByUsers.data) {
+      const newLastItemSeenByUserLookup = initialLastItemSeenByUsers.data.listLastItemSeenByUsers.reduce(
+        (
+          acc: LastItemSeenByUserLookup,
+          newLastItemSeenByUser: LastItemSeenByUser
+        ) => {
+          const previousLastItemSeenByUser =
+            acc[newLastItemSeenByUser.userEmail];
+          if (
+            !previousLastItemSeenByUser ||
+            previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
+          ) {
+            return {
+              ...acc,
+              [newLastItemSeenByUser.userEmail]: newLastItemSeenByUser,
+            };
+          }
+          return acc;
+        },
+        lastItemSeenByUserLookup
+      );
+      setLastItemSeenByUserLookup(newLastItemSeenByUserLookup);
+
+      const lastItemSeenByUser = newLastItemSeenByUserLookup[userEmail];
+      if (initialItemsQuery.data) {
+        const lastInitialItem = [
+          ...initialItemsQuery.data.listItems,
+        ].sort((a: Item, b: Item) =>
+          b.timestamp.localeCompare(a.timestamp)
+        )?.[0];
+        if (
+          lastInitialItem &&
+          lastInitialItem.id !== lastItemSeenByUser?.itemID
+        ) {
+          setUnreadFlag(pinboardId)(true);
+        }
+      }
+    }
+  }, [initialItemsQuery.data, initialLastItemSeenByUsers.data]);
 
   useEffect(
     () =>

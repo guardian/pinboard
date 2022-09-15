@@ -58,56 +58,58 @@ server.get("/pinboard.loader.js", async (request, response) => {
 
   applyJavascriptContentType(response);
 
-  const mainJsFilename: string | undefined = fs
-    .readdirSync(clientDirectory)
-    .filter(
-      (filename) =>
-        filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
-        filename.endsWith(JS_EXTENSION)
-    )
-    .reduce((mostRecentSoFar, filename) => {
-      const lastModified = fs.statSync(`${clientDirectory}/${filename}`).mtime;
-      if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
-        return mostRecentSoFar;
-      }
-      return {
-        filename,
-        lastModified,
-      };
-    }, undefined as FileWithLastModified | undefined)?.filename;
+  return response.send("console.log('pinboard is down for maintenance');");
 
-  if (!mainJsFilename) {
-    const message = "no hashed pinboard.main js file available";
-    console.error(message);
-    return response.send(`console.error('${message}')`);
-  }
-
-  const maybeCookieHeader = request.header("Cookie");
-
-  const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
-
-  if (!maybeAuthedUserEmail) {
-    const message = "pan-domain auth cookie missing, invalid or expired";
-    console.warn(message);
-    response.send(`console.error('${message}')`);
-  } else if (await userHasPermission(maybeAuthedUserEmail)) {
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
-
-    response.send(
-      loaderTemplate(
-        {
-          sentryDSN: getEnvironmentVariableOrThrow("sentryDSN"),
-          appSyncConfig,
-          userEmail: maybeAuthedUserEmail,
-          stage: (process.env.STAGE as Stage) || "LOCAL",
-        },
-        mainJsFilename,
-        request.hostname
-      )
-    );
-  } else {
-    response.send("console.log('You do not have permission to use PinBoard')");
-  }
+  // const mainJsFilename: string | undefined = fs
+  //   .readdirSync(clientDirectory)
+  //   .filter(
+  //     (filename) =>
+  //       filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
+  //       filename.endsWith(JS_EXTENSION)
+  //   )
+  //   .reduce((mostRecentSoFar, filename) => {
+  //     const lastModified = fs.statSync(`${clientDirectory}/${filename}`).mtime;
+  //     if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
+  //       return mostRecentSoFar;
+  //     }
+  //     return {
+  //       filename,
+  //       lastModified,
+  //     };
+  //   }, undefined as FileWithLastModified | undefined)?.filename;
+  //
+  // if (!mainJsFilename) {
+  //   const message = "no hashed pinboard.main js file available";
+  //   console.error(message);
+  //   return response.send(`console.error('${message}')`);
+  // }
+  //
+  // const maybeCookieHeader = request.header("Cookie");
+  //
+  // const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
+  //
+  // if (!maybeAuthedUserEmail) {
+  //   const message = "pan-domain auth cookie missing, invalid or expired";
+  //   console.warn(message);
+  //   response.send(`console.error('${message}')`);
+  // } else if (await userHasPermission(maybeAuthedUserEmail)) {
+  //   const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+  //
+  //   response.send(
+  //     loaderTemplate(
+  //       {
+  //         sentryDSN: getEnvironmentVariableOrThrow("sentryDSN"),
+  //         appSyncConfig,
+  //         userEmail: maybeAuthedUserEmail,
+  //         stage: (process.env.STAGE as Stage) || "LOCAL",
+  //       },
+  //       mainJsFilename,
+  //       request.hostname
+  //     )
+  //   );
+  // } else {
+  //   response.send("console.log('You do not have permission to use PinBoard')");
+  // }
 });
 
 server.get(

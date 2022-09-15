@@ -13,7 +13,7 @@ deployments:
       cloudFormationStackByTags: false
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: pinboard
-      templatePath: cloudformation.yaml
+      templatePath: PinBoardStack.template.json
 
   pinboard-bootstrapping-lambda-api:
     dependencies:

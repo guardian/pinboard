@@ -26,7 +26,8 @@
     "build": "wsrun --parallel --fast-exit --prefix --report build ",
     "prepare": "husky install",
     "database-setup": "ts-node-dev shared/database/local/runDatabaseSetup.ts",
-    "database-migrate": "ts-node-dev shared/database/local/runDatabaseMigration.ts"
+    "database-migrate": "ts-node-dev shared/database/local/runDatabaseMigration.ts",
+    "generate-appsync-auth-token": "ts-node-dev bootstrapping-lambda/generateAppSyncAuthToken.ts"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.19.2",

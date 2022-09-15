@@ -1,19 +1,14 @@
 import { handler, UserWithWebPushSubscription } from "./src";
 import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
 import { getDatabaseConnection } from "../shared/database/databaseConnection";
-import { standardAwsConfig } from "../shared/awsIntegration";
-import AWS from "aws-sdk";
+import { getYourEmail } from "../shared/local/yourEmail";
 
 (async () => {
-  const userName = (
-    await new AWS.STS(standardAwsConfig).getCallerIdentity().promise()
-  ).UserId?.split(":")[1];
+  const yourEmail = await getYourEmail();
 
   await createDatabaseTunnel();
 
   const sql = await getDatabaseConnection();
-
-  const yourEmail = `${userName}@guardian.co.uk`;
 
   const yourUser = await sql`
       SELECT *

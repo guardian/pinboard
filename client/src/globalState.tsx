@@ -220,6 +220,31 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       },
     });
 
+  const [interTabChannel] = useState<BroadcastChannel>(
+    new BroadcastChannel("pinboard-inter-tab-communication")
+  );
+
+  useEffect(() => {
+    interTabChannel.onmessage = (event) => {
+      if (
+        event.data.composerId &&
+        window.parent.location.href?.includes(
+          `content/${event.data.composerId}`
+        )
+      ) {
+        // unfortunately we cannot bring this tab to the fore as browsers prevent it, so we alert to make it easier to find
+        alert(
+          `This is the composer file you wanted to open from pinboard in tab '${event.data.composerTabTitle}'`
+        );
+        // reply with acknowledgement
+        interTabChannel.postMessage({
+          composerIdFocused: event.data.composerId,
+          composerTabTitle: window.document.title,
+        });
+      }
+    };
+  }, []);
+
   const openPinboard = (
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
@@ -237,21 +262,42 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       );
     }
 
-    if (isOpenInNewTab) {
-      const hostname = window.location.hostname;
-      const composerDomain =
-        hostname.includes(".local.") ||
-        hostname.includes(".code.") ||
-        hostname.includes(".test.")
-          ? "code.dev-gutools.co.uk"
-          : "gutools.co.uk";
-      const composerUrl = `https://composer.${composerDomain}/content/${
-        pinboardData.composerId || ".."
-      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-
-      window?.open(composerUrl, "_blank")?.focus();
-    } else {
+    if (!isOpenInNewTab) {
       setSelectedPinboardId(pinboardData.id);
+    } else {
+      const openInNewTabTimeoutId = setTimeout(() => {
+        const hostname = window.location.hostname;
+        const composerDomain =
+          hostname.includes(".local.") ||
+          hostname.includes(".code.") ||
+          hostname.includes(".test.")
+            ? "code.dev-gutools.co.uk"
+            : "gutools.co.uk";
+        const composerUrl = `https://composer.${composerDomain}/content/${
+          pinboardData.composerId || ".."
+        }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+        window?.open(composerUrl, "_blank")?.focus();
+      }, 500);
+
+      interTabChannel.addEventListener(
+        "message",
+        (event) => {
+          if (event.data.composerIdFocused === pinboardData.composerId) {
+            clearTimeout(openInNewTabTimeoutId);
+            alert(
+              "The composer file you want to see is already open in another tab.\n\n" +
+                "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
+            );
+          }
+        },
+        { once: true }
+      );
+
+      interTabChannel.postMessage({
+        composerId: pinboardData.composerId,
+        composerTabTitle: window.document.title,
+      });
     }
   };
 

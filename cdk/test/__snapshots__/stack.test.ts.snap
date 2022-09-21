@@ -48,9 +48,22 @@ Object {
     },
   },
   "Parameters": Object {
+    "AccountVpcPrivateSubnetIds": Object {
+      "Default": "/account/vpc/primary/subnets/private",
+      "Description": "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
+      "Type": "AWS::SSM::Parameter::Value<List<String>>",
+    },
     "BootstrapVersion": Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "DatabaseJumpHostAmiID": Object {
+      "Description": "AMI ID to be used for database 'jump host'",
+      "Type": "AWS::EC2::Image::Id",
+    },
+    "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
+      "Default": "/account/vpc/primary/id",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
@@ -67,6 +80,931 @@ Object {
     },
   },
   "Resources": Object {
+    "DatabaseB269D8BB": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AllocatedStorage": "20",
+        "AssociatedRoles": Array [
+          Object {
+            "FeatureName": "Lambda",
+            "RoleArn": Object {
+              "Fn::GetAtt": Array [
+                "NotificationLambdaInvokeRoleFE403E3F",
+                "Arn",
+              ],
+            },
+          },
+        ],
+        "AutoMinorVersionUpgrade": true,
+        "CopyTagsToSnapshot": true,
+        "DBInstanceClass": "db.t4g.micro",
+        "DBInstanceIdentifier": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-db-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "DBName": "pinboard",
+        "DBSubnetGroupName": Object {
+          "Ref": "DatabaseSubnetGroup7D60F180",
+        },
+        "DeletionProtection": true,
+        "EnableIAMDatabaseAuthentication": true,
+        "Engine": "postgres",
+        "EngineVersion": "13.7",
+        "MasterUserPassword": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+              },
+              ":SecretString:password::}}",
+            ],
+          ],
+        },
+        "MasterUsername": "pinboard",
+        "MultiAZ": false,
+        "Port": "5432",
+        "PubliclyAccessible": false,
+        "StorageEncrypted": true,
+        "StorageType": "gp2",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VPCSecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseSecurityGroup5C91FDCB",
+              "GroupId",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBInstance",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DatabaseDatabaseProxy537ACFCB": Object {
+      "Properties": Object {
+        "Auth": Array [
+          Object {
+            "AuthScheme": "SECRETS",
+            "IAMAuth": "REQUIRED",
+            "SecretArn": Object {
+              "Ref": "DatabaseSecretAttachmentE5D1B020",
+            },
+          },
+        ],
+        "DBProxyName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-proxy-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "EngineFamily": "POSTGRESQL",
+        "RequireTLS": true,
+        "RoleArn": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseDatabaseProxyIAMRoleFD415DDD",
+            "Arn",
+          ],
+        },
+        "VpcSecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+              "GroupId",
+            ],
+          },
+        ],
+        "VpcSubnetIds": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+      },
+      "Type": "AWS::RDS::DBProxy",
+    },
+    "DatabaseDatabaseProxyIAMRoleDefaultPolicyB21E77C5": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Ref": "DatabaseSecretAttachmentE5D1B020",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseDatabaseProxyIAMRoleDefaultPolicyB21E77C5",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseDatabaseProxyIAMRoleFD415DDD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DatabaseDatabaseProxyIAMRoleFD415DDD": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "rds.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseDatabaseProxyProxySecurityGroup62D74C1F": Object {
+      "Properties": Object {
+        "GroupDescription": "SecurityGroup for Database Proxy",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseDatabaseProxyProxyTargetGroupFF78BEFD": Object {
+      "Properties": Object {
+        "ConnectionPoolConfigurationInfo": Object {},
+        "DBInstanceIdentifiers": Array [
+          Object {
+            "Ref": "DatabaseB269D8BB",
+          },
+        ],
+        "DBProxyName": Object {
+          "Ref": "DatabaseDatabaseProxy537ACFCB",
+        },
+        "TargetGroupName": "default",
+      },
+      "Type": "AWS::RDS::DBProxyTargetGroup",
+    },
+    "DatabaseJumpHostASG7442506A": Object {
+      "Properties": Object {
+        "AutoScalingGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-jump-host-ASG-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "LaunchConfigurationName": Object {
+          "Ref": "DatabaseJumpHostASGLaunchConfig7E2B6251",
+        },
+        "MaxSize": "1",
+        "MetricsCollection": Array [
+          Object {
+            "Granularity": "1Minute",
+            "Metrics": Array [
+              "GroupInServiceInstances",
+            ],
+          },
+        ],
+        "MinSize": "0",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "PropagateAtLaunch": true,
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Name",
+            "PropagateAtLaunch": true,
+            "Value": "PinBoardStack/DatabaseJumpHostASG",
+          },
+          Object {
+            "Key": "Stack",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "PropagateAtLaunch": true,
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VPCZoneIdentifier": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+      },
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy": Object {
+        "AutoScalingScheduledAction": Object {
+          "IgnoreUnmodifiedGroupSizeProperties": true,
+        },
+      },
+    },
+    "DatabaseJumpHostASGInstanceProfile309E3B68": Object {
+      "Properties": Object {
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseJumpHostRole001D5530",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "DatabaseJumpHostASGLaunchConfig7E2B6251": Object {
+      "DependsOn": Array [
+        "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
+        "DatabaseJumpHostRole001D5530",
+      ],
+      "Properties": Object {
+        "IamInstanceProfile": Object {
+          "Ref": "DatabaseJumpHostASGInstanceProfile309E3B68",
+        },
+        "ImageId": Object {
+          "Ref": "DatabaseJumpHostAmiID",
+        },
+        "InstanceType": "t4g.nano",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseSecurityGroup7319C0F6",
+              "GroupId",
+            ],
+          },
+        ],
+        "UserData": Object {
+          "Fn::Base64": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "#!/bin/bash -ev
+LAST_ACTIVE_SSHD=$(date +%s)
+while :
+do
+    echo \\"SSH tunnel last active at $LAST_ACTIVE_SSHD\\"
+    if [ \\"$(sudo lsof -i -n | egrep '\\\\<sshd\\\\>' | grep ubuntu)\\" = \\"1\\" ]; then
+        echo \\"SSH tunnel detected, bumping LAST_ACTIVE_SSHD\\"
+        LAST_ACTIVE_SSHD=$(date +%s)
+    fi
+    NOW=$(date +%s)
+    DIFF=$((NOW - LAST_ACTIVE_SSHD))
+    if [ \\"$DIFF\\" -gt 9000 ]; then #i.e. 150 mins since last active ssh tunnel
+        echo \\"No active SSH tunnel in the last 5mins - so scaling down\\"
+        aws autoscaling set-desired-capacity\\\\
+         --auto-scaling-group-name pinboard-database-jump-host-ASG-",
+                Object {
+                  "Ref": "Stage",
+                },
+                "\\\\
+         --desired-capacity 0\\\\
+         --no-honor-cooldown\\\\
+         --region ",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                "
+    fi
+    sleep 60
+done & # this ampersand runs the whole loop in the background...
+# ...so cloud-init will 'finish' so other things on the box can actually start, notably ssm-agent for SSHing
+",
+              ],
+            ],
+          },
+        },
+      },
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+    },
+    "DatabaseJumpHostOverunningAlarm12DC5CA9": Object {
+      "Properties": Object {
+        "AlarmActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The pinboard database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken",
+        "AlarmName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Ref": "DatabaseJumpHostASG7442506A",
+              },
+              " instance running for more than 12 hours",
+            ],
+          ],
+        },
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": Array [
+          Object {
+            "Name": "AutoScalingGroupName",
+            "Value": Object {
+              "Ref": "DatabaseJumpHostASG7442506A",
+            },
+          },
+        ],
+        "EvaluationPeriods": 12,
+        "MetricName": "GroupInServiceInstances",
+        "Namespace": "AWS/AutoScaling",
+        "OKActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
+        "Period": 3600,
+        "Statistic": "Average",
+        "Threshold": 0,
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DatabaseJumpHostRole001D5530": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "ec2.",
+                      Object {
+                        "Ref": "AWS::URLSuffix",
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::ImportValue": "guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DatabaseJumpHostRoleDefaultPolicyA1BA6E09": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "autoscaling:SetDesiredCapacity",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:autoscaling:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":*pinboard-database-jump-host-ASG-",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
+        "Roles": Array [
+          Object {
+            "Ref": "DatabaseJumpHostRole001D5530",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "DatabaseSecretAttachmentE5D1B020": Object {
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+        },
+        "TargetId": Object {
+          "Ref": "DatabaseB269D8BB",
+        },
+        "TargetType": "AWS::RDS::DBInstance",
+      },
+      "Type": "AWS::SecretsManager::SecretTargetAttachment",
+    },
+    "DatabaseSecurityGroup5C91FDCB": Object {
+      "Properties": Object {
+        "GroupDescription": "Security group for Database database",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseSecurityGroup7319C0F6": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack/DatabaseSecurityGroup",
+        "GroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "PinboardDatabaseSecurityGroup",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "77.91.248.0/21",
+            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseSecurityGroupfromPinBoardStackDatabaseDatabaseProxyProxySecurityGroup6ED094B9IndirectPortD6D1383E": Object {
+      "Properties": Object {
+        "Description": "Allow connections to the database Instance from the Proxy",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSecurityGroup5C91FDCB",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseSubnetGroup7D60F180": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "DBSubnetGroupDescription": "Subnet group for Database database",
+        "SubnetIds": Object {
+          "Ref": "AccountVpcPrivateSubnetIds",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "NotificationLambdaInvokeRoleDefaultPolicy45F27235": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardnotificationslambdaC35CECF7",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardnotificationslambdaC35CECF7",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "NotificationLambdaInvokeRoleDefaultPolicy45F27235",
+        "Roles": Array [
+          Object {
+            "Ref": "NotificationLambdaInvokeRoleFE403E3F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "NotificationLambdaInvokeRoleFE403E3F": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "rds.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Give pinboard RDS Postgres instance permission to invoke ",
+              Object {
+                "Ref": "pinboardnotificationslambdaC35CECF7",
+              },
+            ],
+          ],
+        },
+        "RoleName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-",
+              Object {
+                "Ref": "pinboardnotificationslambdaC35CECF7",
+              },
+              "-database-invoke-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Generated by the CDK for stack: ",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "GenerateSecretString": Object {
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\",
+          "GenerateStringKey": "password",
+          "PasswordLength": 30,
+          "SecretStringTemplate": "{\\"username\\":\\"pinboard\\"}",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "databaseProxySecurityGroupfromIndirectPeer5432453AB7EA": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Allow PinboardDatabaseSecurityGroup",
+              Object {
+                "Ref": "Stage",
+              },
+              " to connect to the ",
+              Object {
+                "Ref": "DatabaseDatabaseProxy537ACFCB",
+              },
+            ],
+          ],
+        },
+        "FromPort": 5432,
+        "GroupId": Object {
+          "Fn::Select": Array [
+            0,
+            Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+                  "GroupId",
+                ],
+              },
+            ],
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSecurityGroup7319C0F6",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "pinboardappsyncapi9D519400": Object {
       "Properties": Object {
         "AuthenticationType": "AWS_LAMBDA",
@@ -126,11 +1064,46 @@ Object {
   subscription: Subscription
 }
 
+type Query {
+  listItems(pinboardId: String!): [Item]
+  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
+  getMyUser: MyUser
+  listUsers: [User]
+
+  listPinboards(searchText: String): [WorkflowStub]
+  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
+  getPinboardByComposerId(composerId: String!): WorkflowStub
+
+  getGridSearchSummary(apiUrl: String!): GridSearchSummary
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
+  addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
+  removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
+}
+
+type Subscription {
+  onCreateItem(
+    pinboardId: String
+  ): Item @aws_subscribe(mutations: [\\"createItem\\"])
+
+  onSeenItem(
+    pinboardId: String!
+  ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
+
+  onManuallyOpenedPinboardIdsChanged(
+    email: String! # unfortunately this can't be done via 'identity' in the resolver
+  ): MyUser @aws_subscribe(mutations: [\\"addManuallyOpenedPinboardIds\\", \\"removeManuallyOpenedPinboardIds\\"])
+}
+
 type Item {
   id: ID!
   message: String
   payload: AWSJSON
-  timestamp: AWSTimestamp!
+  timestamp: AWSDateTime!
   type: String!
   userEmail: String!
   pinboardId: String!
@@ -141,7 +1114,7 @@ type LastItemSeenByUser {
   pinboardId: String!
   userEmail: String!
   itemID: String!
-  seenAt: AWSTimestamp!
+  seenAt: AWSDateTime!
 }
 
 type User {
@@ -188,70 +1161,6 @@ type GridSearchSummary {
   queryBreakdown: GridSearchQueryBreakdown
 }
 
-type ItemConnection {
-  items: [Item]
-  nextToken: String
-}
-
-type UserConnection {
-  items: [User]
-  nextToken: String
-}
-
-type LastItemSeenByUserConnection {
-  items: [LastItemSeenByUser]
-  nextToken: String
-}
-
-type Mutation {
-  createItem(input: CreateItemInput!): Item
-  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
-  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
-  addManuallyOpenedPinboardIds(ids: [String!]!, maybeEmailOverride: String): MyUser
-  removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
-}
-
-type Query {
-  listItems(
-    filter: TableItemFilterInput
-    limit: Int
-    nextToken: String
-  ): ItemConnection
-
-  listLastItemSeenByUsers(
-    filter: TableLastItemSeenByUserFilterInput
-    limit: Int
-    nextToken: String
-  ): LastItemSeenByUserConnection
-
-  getMyUser: MyUser
-
-  listUsers(
-    limit: Int
-    nextToken: String
-  ): UserConnection
-
-  listPinboards(searchText: String): [WorkflowStub]
-  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
-  getPinboardByComposerId(composerId: String!): WorkflowStub
-
-  getGridSearchSummary(apiUrl: String!): GridSearchSummary
-}
-
-type Subscription {
-  onCreateItem(
-    pinboardId: String
-  ): Item @aws_subscribe(mutations: [\\"createItem\\"])
-
-  onSeenItem(
-    pinboardId: String!
-  ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
-
-  onManuallyOpenedPinboardIdsChanged(
-    email: String! # unfortunately this can't be done via 'identity' in the resolver
-  ): MyUser @aws_subscribe(mutations: [\\"addManuallyOpenedPinboardIds\\", \\"removeManuallyOpenedPinboardIds\\"])
-}
-
 input CreateItemInput {
   message: String
   payload: AWSJSON
@@ -263,82 +1172,302 @@ input CreateItemInput {
 input LastItemSeenByUserInput {
   pinboardId: String!
   itemID: String!
-}
-
-input TableBooleanFilterInput {
-  eq: Boolean
-  ne: Boolean
-}
-
-input TableFloatFilterInput {
-  between: [Float]
-  contains: Float
-  eq: Float
-  ge: Float
-  gt: Float
-  le: Float
-  lt: Float
-  ne: Float
-  notContains: Float
-}
-
-input TableIDFilterInput {
-  beginsWith: ID
-  between: [ID]
-  contains: ID
-  eq: ID
-  ge: ID
-  gt: ID
-  le: ID
-  lt: ID
-  ne: ID
-  notContains: ID
-}
-
-input TableIntFilterInput {
-  between: [Int]
-  contains: Int
-  eq: Int
-  ge: Int
-  gt: Int
-  le: Int
-  lt: Int
-  ne: Int
-  notContains: Int
-}
-
-input TableItemFilterInput {
-  id: TableIDFilterInput
-  message: TableStringFilterInput
-  timestamp: TableIntFilterInput
-  type: TableStringFilterInput
-  pinboardId: TableStringFilterInput
-}
-
-input TableLastItemSeenByUserFilterInput {
-  pinboardId: TableStringFilterInput
-}
-
-input TableUserFilterInput {
-  firstName: TableStringFilterInput
-  lastName: TableStringFilterInput
-}
-
-input TableStringFilterInput {
-  beginsWith: String
-  between: [String]
-  contains: String
-  eq: String
-  ge: String
-  gt: String
-  le: String
-  lt: String
-  ne: String
-  notContains: String
-}
-",
+}",
       },
       "Type": "AWS::AppSync::GraphQLSchema",
+    },
+    "pinboardappsyncapidatabasebridgelambdads970CB9A7": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "LambdaConfig": Object {
+          "LambdaFunctionArn": Object {
+            "Fn::GetAtt": Array [
+              "pinboarddatabasebridgelambda34091516",
+              "Arn",
+            ],
+          },
+        },
+        "Name": "database_bridge_lambda_ds",
+        "ServiceRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697",
+            "Arn",
+          ],
+        },
+        "Type": "AWS_LAMBDA",
+      },
+      "Type": "AWS::AppSync::DataSource",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationaddManuallyOpenedPinboardIdsResolver28AE76DE": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "addManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationcreateItemResolverF3DD77B1": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "createItem",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationremoveManuallyOpenedPinboardIdsResolver865937F3": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "removeManuallyOpenedPinboardIds",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationseenItemResolver502C087E": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "seenItem",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsMutationsetWebPushSubscriptionForUserResolver3B67A566": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "setWebPushSubscriptionForUser",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Mutation",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerygetMyUserResolverD2F32419": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "getMyUser",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerylistItemsResolver88BD585F": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "listItems",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerylistLastItemSeenByUsersResolver579A4481": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "listLastItemSeenByUsers",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsQuerylistUsersResolver5D9F6D38": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "listUsers",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
+$util.toJson($ctx.result)",
+        "TypeName": "Query",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "appsync.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboardappsyncapidatabasebridgelambdadsServiceRoleDefaultPolicyF3582502": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboarddatabasebridgelambda34091516",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboarddatabasebridgelambda34091516",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboardappsyncapidatabasebridgelambdadsServiceRoleDefaultPolicyF3582502",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboardappsyncapidatabasebridgelambdadsServiceRole5A08D697",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "pinboardappsyncapigridbridgelambdads1C89A823": Object {
       "Properties": Object {
@@ -382,7 +1511,7 @@ input TableStringFilterInput {
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -465,644 +1594,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardappsyncapiitemtabledatasourceFD08E0E9": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboarditemtable83382753",
-          },
-        },
-        "Name": "item_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapiitemtabledatasourceMutationcreateItemResolver7AEC9201": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "item_table_datasource",
-        "FieldName": "createItem",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-      #set($input = $ctx.args.input)
-      $util.qr($input.put(\\"timestamp\\", $util.time.nowEpochSeconds()))
-$util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
-      {
-        \\"version\\": \\"2017-02-28\\",
-        \\"operation\\": \\"PutItem\\",
-        \\"key\\" : {
-      \\"id\\" : $util.dynamodb.toDynamoDBJson($util.autoId())
-    },
-        \\"attributeValues\\": $util.dynamodb.toMapValuesJson($input)
-      }",
-        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiitemtabledatasourceQuerylistItemsResolver15E3DD35": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiitemtabledatasourceFD08E0E9",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "item_table_datasource",
-        "FieldName": "listItems",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"Scan\\",
-          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($context.result)",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboarditemtable83382753",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapiitemtabledatasourceServiceRoleDefaultPolicy22889B14",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapiitemtabledatasourceServiceRole2F27B37E",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboardlastitemseenbyusertable132BE99C",
-          },
-        },
-        "Name": "last_item_seen_by_user_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceMutationseenItemResolverF0C9BBCC": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "last_item_seen_by_user_table_datasource",
-        "FieldName": "seenItem",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"pinboardId\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            \\"userEmail\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"SET seenAt = :seenAt, itemID = :itemID\\",
-            \\"expressionValues\\": {
-              \\":seenAt\\" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
-              \\":itemID\\" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($ctx.result)",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceQuerylistLastItemSeenByUsersResolver32A84101": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapilastitemseenbyusertabledatasource40222CE1",
-        "pinboardappsyncapiSchema868D9F5B",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "last_item_seen_by_user_table_datasource",
-        "FieldName": "listLastItemSeenByUsers",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"Scan\\",
-          \\"filter\\": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($context.result)",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardlastitemseenbyusertable132BE99C",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRoleDefaultPolicyEC78D333",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapilastitemseenbyusertabledatasourceServiceRole1E70FCA2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "pinboardappsyncapiusertabledatasource482E1AE5": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DynamoDBConfig": Object {
-          "AwsRegion": Object {
-            "Ref": "AWS::Region",
-          },
-          "TableName": Object {
-            "Ref": "pinboardusertable2621B03F",
-          },
-        },
-        "Name": "user_table_datasource",
-        "ServiceRoleArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
-            "Arn",
-          ],
-        },
-        "Type": "AMAZON_DYNAMODB",
-      },
-      "Type": "AWS::AppSync::DataSource",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationaddManuallyOpenedPinboardIdsResolver0DD39E33": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "addManuallyOpenedPinboardIds",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson(
-              $util.defaultIfNull(
-                $ctx.args.maybeEmailOverride,
-                $ctx.identity.resolverContext.userEmail
-              )
-            )
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
-            \\"expressionValues\\": {
-              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationremoveManuallyOpenedPinboardIdsResolver3CF1CC1A": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "removeManuallyOpenedPinboardIds",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds\\",
-            \\"expressionValues\\": {
-              \\":manuallyOpenedPinboardIds\\" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceMutationsetWebPushSubscriptionForUserResolver7F09BAD2": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "setWebPushSubscriptionForUser",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"UpdateItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          \\"update\\" : {
-            \\"expression\\" : \\"SET webPushSubscription = :webPushSubscription\\",
-            \\"expressionValues\\": {
-              \\":webPushSubscription\\" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
-            }
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Mutation",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceQuerygetMyUserResolver96BA80E5": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "getMyUser",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"GetItem\\",
-          \\"key\\" : {
-            \\"email\\" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          }
-        }
-      ",
-        "ResponseMappingTemplate": "
-        #set($output = $ctx.result)
-        $util.qr($output.put(\\"hasWebPushSubscription\\", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    ",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceQuerylistUsersResolverCD9616AD": Object {
-      "DependsOn": Array [
-        "pinboardappsyncapiSchema868D9F5B",
-        "pinboardappsyncapiusertabledatasource482E1AE5",
-      ],
-      "Properties": Object {
-        "ApiId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardappsyncapi9D519400",
-            "ApiId",
-          ],
-        },
-        "DataSourceName": "user_table_datasource",
-        "FieldName": "listUsers",
-        "Kind": "UNIT",
-        "RequestMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
-
-        {
-          \\"version\\": \\"2017-02-28\\",
-          \\"operation\\": \\"Scan\\",
-          \\"filter\\": {
-            \\"expression\\": \\"attribute_exists(#firstName) AND attribute_exists(#lastName)\\",
-            \\"expressionNames\\": {
-              \\"#firstName\\": \\"firstName\\",
-              \\"#lastName\\": \\"lastName\\",
-            },
-          },
-        }
-      ",
-        "ResponseMappingTemplate": "$util.toJson($context.result)",
-        "TypeName": "Query",
-      },
-      "Type": "AWS::AppSync::Resolver",
-    },
-    "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "appsync.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "pinboardappsyncapiusertabledatasourceServiceRoleDefaultPolicyF45D6092",
-        "Roles": Array [
-          Object {
-            "Ref": "pinboardappsyncapiusertabledatasourceServiceRole5D336F3C",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
     "pinboardappsyncapiworkflowbridgelambdadsD8193E3E": Object {
       "Properties": Object {
         "ApiId": Object {
@@ -1145,7 +1636,7 @@ $util.qr($input.put(\\"userEmail\\", $ctx.identity.resolverContext.userEmail))
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1166,7 +1657,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1187,7 +1678,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 069f29169cf579ccf5c31b1d41c78246
+        "ResponseMappingTemplate": "## schema checksum : ec341970b323acbc4146f5852acf0929
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2124,6 +2615,224 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::ApiGateway::Resource",
     },
+    "pinboarddatabasebridgelambda34091516": Object {
+      "DependsOn": Array [
+        "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827",
+        "pinboarddatabasebridgelambdaServiceRole07A568AB",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "workflow-dist",
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Ref": "Stack",
+                },
+                "/",
+                Object {
+                  "Ref": "Stage",
+                },
+                "/pinboard-database-bridge-lambda/pinboard-database-bridge-lambda.zip",
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
+            "STACK": Object {
+              "Ref": "Stack",
+            },
+            "STAGE": Object {
+              "Ref": "Stage",
+            },
+          },
+        },
+        "FunctionName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "pinboard-database-bridge-lambda-",
+              Object {
+                "Ref": "Stage",
+              },
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "pinboarddatabasebridgelambdaServiceRole07A568AB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "Timeout": 30,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "pinboarddatabasebridgelambdaServiceRole07A568AB": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "pinboarddatabasebridgelambdaServiceRoleDefaultPolicy7C65F827",
+        "Roles": Array [
+          Object {
+            "Ref": "pinboarddatabasebridgelambdaServiceRole07A568AB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "pinboardgridbridgelambda79AD9656": Object {
       "DependsOn": Array [
         "pinboardgridbridgelambdaServiceRoleDefaultPolicyFB133D07",
@@ -2286,107 +2995,6 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboarditemtable83382753": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "id",
-            "AttributeType": "S",
-          },
-          Object {
-            "AttributeName": "timestamp",
-            "AttributeType": "N",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "id",
-            "KeyType": "HASH",
-          },
-          Object {
-            "AttributeName": "timestamp",
-            "KeyType": "RANGE",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "StreamSpecification": Object {
-          "StreamViewType": "NEW_IMAGE",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "pinboardlastitemseenbyusertable132BE99C": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "pinboardId",
-            "AttributeType": "S",
-          },
-          Object {
-            "AttributeName": "userEmail",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "pinboardId",
-            "KeyType": "HASH",
-          },
-          Object {
-            "AttributeName": "userEmail",
-            "KeyType": "RANGE",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
-    },
     "pinboardnotificationslambdaC35CECF7": Object {
       "DependsOn": Array [
         "pinboardnotificationslambdaServiceRoleDefaultPolicy623D6F0A",
@@ -2419,9 +3027,6 @@ $util.toJson($ctx.result)",
             },
             "STAGE": Object {
               "Ref": "Stage",
-            },
-            "USERS_TABLE_NAME": Object {
-              "Ref": "pinboardusertable2621B03F",
             },
           },
         },
@@ -2464,25 +3069,55 @@ $util.toJson($ctx.result)",
           },
         ],
         "Timeout": 30,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "pinboardnotificationslambdaSecurityGroupCE2444D9",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
       },
       "Type": "AWS::Lambda::Function",
     },
-    "pinboardnotificationslambdaDynamoDBEventSourcePinBoardStackpinboarditemtableB307C42935A18399": Object {
+    "pinboardnotificationslambdaSecurityGroupCE2444D9": Object {
       "Properties": Object {
-        "BatchSize": 100,
-        "EventSourceArn": Object {
-          "Fn::GetAtt": Array [
-            "pinboarditemtable83382753",
-            "StreamArn",
-          ],
+        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackpinboardnotificationslambda8B273F85",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": Object {
+              "Ref": "Stack",
+            },
+          },
+          Object {
+            "Key": "Stage",
+            "Value": Object {
+              "Ref": "Stage",
+            },
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
         },
-        "FunctionName": Object {
-          "Ref": "pinboardnotificationslambdaC35CECF7",
-        },
-        "MaximumBatchingWindowInSeconds": 10,
-        "StartingPosition": "LATEST",
       },
-      "Type": "AWS::Lambda::EventSourceMapping",
+      "Type": "AWS::EC2::SecurityGroup",
     },
     "pinboardnotificationslambdaServiceRole2F6EBFE9": Object {
       "Properties": Object {
@@ -2508,6 +3143,18 @@ $util.toJson($ctx.result)",
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
               ],
             ],
           },
@@ -2557,49 +3204,6 @@ $util.toJson($ctx.result)",
                 ],
               },
             },
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": "dynamodb:ListStreams",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-            Object {
-              "Action": Array [
-                "dynamodb:DescribeStream",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "pinboarditemtable83382753",
-                  "StreamArn",
-                ],
-              },
-            },
           ],
           "Version": "2012-10-17",
         },
@@ -2639,14 +3243,17 @@ $util.toJson($ctx.result)",
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
             "STACK": Object {
               "Ref": "Stack",
             },
             "STAGE": Object {
               "Ref": "Stage",
-            },
-            "USERS_TABLE_NAME": Object {
-              "Ref": "pinboardusertable2621B03F",
             },
           },
         },
@@ -2689,6 +3296,19 @@ $util.toJson($ctx.result)",
           },
         ],
         "Timeout": 900,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "AccountVpcPrivateSubnetIds",
+          },
+        },
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -2716,6 +3336,18 @@ $util.toJson($ctx.result)",
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
               ],
             ],
           },
@@ -2767,32 +3399,49 @@ $util.toJson($ctx.result)",
               "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
             },
             Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
+              "Action": "rds-db:connect",
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardusertable2621B03F",
-                    "Arn",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
                   ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
@@ -2904,47 +3553,6 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::Lambda::Permission",
-    },
-    "pinboardusertable2621B03F": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "email",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "email",
-            "KeyType": "HASH",
-          },
-        ],
-        "SSESpecification": Object {
-          "SSEEnabled": false,
-        },
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
-          },
-          Object {
-            "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
     },
     "pinboardworkflowbridgelambda30D4AA22": Object {
       "DependsOn": Array [

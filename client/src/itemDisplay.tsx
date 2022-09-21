@@ -137,7 +137,7 @@ export const ItemDisplay = ({
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
 
-  const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
+  const dateInMillisecs = new Date(item.timestamp).valueOf();
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;

@@ -1,30 +1,50 @@
 import {
   App,
+  aws_apigateway as apiGateway,
+  aws_autoscaling as autoscaling,
+  aws_certificatemanager as acm,
+  aws_cloudwatch as cloudwatch,
+  aws_cloudwatch_actions as cloudwatchActions,
+  aws_ec2 as ec2,
+  aws_events as events,
+  aws_events_targets as eventsTargets,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_rds as rds,
+  aws_s3 as S3,
+  aws_sns as sns,
+  aws_ssm as ssm,
   CfnMapping,
   CfnOutput,
   CfnParameter,
   Duration,
   Fn,
+  RemovalPolicy,
   Stack,
   StackProps,
   Tags,
-  aws_lambda as lambda,
-  aws_s3 as S3,
-  aws_iam as iam,
-  aws_ssm as ssm,
-  aws_apigateway as apiGateway,
-  aws_dynamodb as db,
-  aws_certificatemanager as acm,
-  aws_ec2 as ec2,
-  aws_events as events,
-  aws_events_targets as eventsTargets,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
-import { APP } from "../shared/constants";
+import {
+  APP,
+  getNotificationsLambdaFunctionName,
+  NOTIFICATIONS_LAMBDA_BASENAME,
+} from "../shared/constants";
 import crypto from "crypto";
-import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
+import {
+  DATABASE_NAME,
+  DATABASE_PORT,
+  DATABASE_USERNAME,
+  databaseJumpHostASGLogicalID,
+  getDatabaseJumpHostAsgName,
+  getDatabaseProxyName,
+} from "../shared/database/database";
+import { Stage } from "../shared/types/stage";
+import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
+import * as fs from "fs";
+import { MUTATIONS, QUERIES } from "../shared/graphql/operations";
 
 export class PinBoardStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
@@ -50,9 +70,72 @@ export class PinBoardStack extends Stack {
       description: "Stage",
     }).valueAsString;
 
+    const DatabaseJumpHostAmiID = new CfnParameter(
+      thisStack,
+      "DatabaseJumpHostAmiID",
+      {
+        type: "AWS::EC2::Image::Id",
+        description: "AMI ID to be used for database 'jump host'",
+      }
+    ).valueAsString;
+
     Tags.of(thisStack).add("App", APP);
     Tags.of(thisStack).add("Stage", STAGE);
     Tags.of(thisStack).add("Stack", STACK);
+
+    const accountVpcPrivateSubnetIds = new CfnParameter(
+      thisStack,
+      "AccountVpcPrivateSubnetIds",
+      {
+        type: "AWS::SSM::Parameter::Value<List<String>>",
+        description:
+          "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
+        default: "/account/vpc/primary/subnets/private",
+      }
+    ).valueAsList;
+
+    const accountVpc = ec2.Vpc.fromVpcAttributes(thisStack, "AccountVPC", {
+      vpcId: ssm.StringParameter.valueForStringParameter(
+        thisStack,
+        "/account/vpc/primary/id"
+      ),
+      availabilityZones: Fn.getAzs(region),
+      privateSubnetIds: accountVpcPrivateSubnetIds,
+    });
+
+    const database = new rds.DatabaseInstance(this, "Database", {
+      instanceIdentifier: `${APP}-db-${STAGE}`,
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_13_7, // RDS Proxy fails to create with a Postgres 14 instance (comment on 22 Aug 2022)
+      }),
+      vpc: accountVpc,
+      port: DATABASE_PORT,
+      databaseName: DATABASE_NAME,
+      credentials: rds.Credentials.fromGeneratedSecret(DATABASE_USERNAME),
+      iamAuthentication: true,
+      storageType: rds.StorageType.GP2, // SSD
+      allocatedStorage: 20, // minimum for GP2
+      storageEncrypted: true,
+      autoMinorVersionUpgrade: true,
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T4G,
+        ec2.InstanceSize.MICRO // TODO consider small for PROD
+      ),
+      multiAz: false, // TODO consider turning on for PROD
+      publiclyAccessible: false,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    const databaseProxy = database.addProxy("DatabaseProxy", {
+      dbProxyName: getDatabaseProxyName(STAGE as Stage),
+      vpc: accountVpc,
+      secrets: [database.secret!],
+      iamAuth: true,
+      requireTLS: true,
+    });
+    const cfnDatabaseProxy = databaseProxy.node.defaultChild as rds.CfnDBProxy;
+
+    const databaseHostname = databaseProxy.endpoint;
 
     const deployBucket = S3.Bucket.fromBucketName(
       thisStack,
@@ -80,7 +163,7 @@ export class PinBoardStack extends Stack {
 
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
-    const vpcId = Fn.importValue(
+    const workflowDatastoreVpcId = Fn.importValue(
       `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
     );
 
@@ -88,7 +171,7 @@ export class PinBoardStack extends Stack {
       thisStack,
       "workflow-datastore-vpc",
       {
-        vpcId: vpcId,
+        vpcId: workflowDatastoreVpcId,
         availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
@@ -166,26 +249,36 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardUserTableBaseName = "pinboard-user-table";
+    const databaseBridgeLambdaBasename = "pinboard-database-bridge-lambda";
 
-    const pinboardAppsyncUserTable = new db.Table(
+    const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${STAGE}`;
+    const databaseSecurityGroup = new ec2.SecurityGroup(
       thisStack,
-      pinboardUserTableBaseName,
+      "DatabaseSecurityGroup",
       {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "email",
-          type: db.AttributeType.STRING,
-        },
-        encryption: db.TableEncryption.DEFAULT,
+        vpc: accountVpc,
+        allowAllOutbound: true,
+        securityGroupName: databaseSecurityGroupName,
       }
     );
-
-    const pinboardNotificationsLambdaBasename = "pinboard-notifications-lambda";
-
-    const pinboardNotificationsLambda = new lambda.Function(
+    databaseSecurityGroup.addIngressRule(
+      ec2.Peer.ipv4("77.91.248.0/21"),
+      ec2.Port.tcp(22),
+      "Allow SSH for tunneling purposes when this security group is reused for database jump host."
+    );
+    ec2.SecurityGroup.fromSecurityGroupId(
       thisStack,
-      pinboardNotificationsLambdaBasename,
+      "databaseProxySecurityGroup",
+      Fn.select(0, cfnDatabaseProxy!.vpcSecurityGroupIds!)
+    ).addIngressRule(
+      ec2.Peer.securityGroupId(databaseSecurityGroup.securityGroupId),
+      ec2.Port.tcp(DATABASE_PORT),
+      `Allow ${databaseSecurityGroupName} to connect to the ${databaseProxy.dbProxyName}`
+    );
+
+    const pinboardDatabaseBridgeLambda = new lambda.Function(
+      thisStack,
+      databaseBridgeLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
@@ -195,18 +288,153 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
-            pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: `${pinboardNotificationsLambdaBasename}-${STAGE}`,
+        functionName: `${databaseBridgeLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${pinboardNotificationsLambdaBasename}/${pinboardNotificationsLambdaBasename}.zip`
+          `${STACK}/${STAGE}/${databaseBridgeLambdaBasename}/${databaseBridgeLambdaBasename}.zip`
+        ),
+        initialPolicy: [],
+        vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
+      }
+    );
+    databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
+
+    const databaseJumpHostASGName = getDatabaseJumpHostAsgName(STAGE as Stage);
+
+    const selfTerminatingUserDataScript = ec2.UserData.custom(
+      fs
+        .readFileSync("./UserData.sh")
+        .toString()
+        .replace("${databaseJumpHostASGName}", databaseJumpHostASGName)
+        .replace("${region}", region)
+    );
+
+    const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
+      thisStack,
+      databaseJumpHostASGLogicalID,
+      {
+        autoScalingGroupName: databaseJumpHostASGName,
+        vpc: accountVpc,
+        allowAllOutbound: false,
+        groupMetrics: [
+          new autoscaling.GroupMetrics(
+            autoscaling.GroupMetric.IN_SERVICE_INSTANCES
+          ),
+        ],
+        machineImage: {
+          getImage: () => ({
+            imageId: DatabaseJumpHostAmiID,
+            osType: OperatingSystemType.LINUX,
+            userData: selfTerminatingUserDataScript,
+          }),
+        },
+        role: new iam.Role(thisStack, "DatabaseJumpHostRole", {
+          assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+          managedPolicies: [
+            iam.ManagedPolicy.fromManagedPolicyArn(
+              thisStack,
+              "SSMPolicy",
+              Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
+            ),
+          ],
+        }),
+        securityGroup: databaseSecurityGroup,
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.T4G,
+          ec2.InstanceSize.NANO
+        ),
+        minCapacity: 0,
+        maxCapacity: 1,
+        userData: selfTerminatingUserDataScript,
+      }
+    );
+    databaseProxy.grantConnect(databaseJumpHostASG);
+
+    // allow the instance to effectively terminate itself by reducing the capacity of the ASG that controls it
+    databaseJumpHostASG.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["autoscaling:SetDesiredCapacity"],
+        resources: [
+          `arn:aws:autoscaling:${region}:${account}:*${databaseJumpHostASGName}`,
+        ],
+      })
+    );
+
+    const alarmsSnsTopic = sns.Topic.fromTopicArn(
+      this,
+      "CloudwatchAlertsSNS",
+      `arn:aws:sns:${region}:${account}:Cloudwatch-Alerts`
+    );
+
+    const databaseJumpHostOverunningAlarm = new cloudwatch.Alarm(
+      thisStack,
+      "DatabaseJumpHostOverunningAlarm",
+      {
+        alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
+        alarmDescription: `The ${APP} database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken`,
+        metric: new cloudwatch.Metric({
+          metricName: "GroupInServiceInstances",
+          namespace: "AWS/AutoScaling",
+          dimensionsMap: {
+            AutoScalingGroupName: databaseJumpHostASG.autoScalingGroupName,
+          },
+          period: Duration.hours(1),
+        }),
+        comparisonOperator:
+          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+        threshold: 0,
+        evaluationPeriods: 12,
+      }
+    );
+    databaseJumpHostOverunningAlarm.addAlarmAction(
+      new cloudwatchActions.SnsAction(alarmsSnsTopic)
+    );
+    databaseJumpHostOverunningAlarm.addOkAction(
+      new cloudwatchActions.SnsAction(alarmsSnsTopic)
+    );
+
+    const pinboardNotificationsLambda = new lambda.Function(
+      thisStack,
+      NOTIFICATIONS_LAMBDA_BASENAME,
+      {
+        vpc: accountVpc,
+        runtime: LAMBDA_NODE_VERSION,
+        memorySize: 128,
+        timeout: Duration.seconds(30),
+        handler: "index.handler",
+        environment: {
+          STAGE,
+          STACK,
+          APP,
+        },
+        functionName: getNotificationsLambdaFunctionName(STAGE as Stage),
+        code: lambda.Code.fromBucket(
+          deployBucket,
+          `${STACK}/${STAGE}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
         ),
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
-    pinboardAppsyncUserTable.grantReadData(pinboardNotificationsLambda);
+    const notificationLambdaInvokeRole = new iam.Role(
+      thisStack,
+      "NotificationLambdaInvokeRole",
+      {
+        assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"),
+        roleName: `${APP}-${pinboardNotificationsLambda.functionName}-database-invoke-${STAGE}`,
+        description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
+      }
+    );
+    pinboardNotificationsLambda.grantInvoke(notificationLambdaInvokeRole);
+    (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
+      {
+        featureName: "Lambda",
+        roleArn: notificationLambdaInvokeRole.roleArn,
+      },
+    ];
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 
@@ -256,53 +484,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const pinboardItemTableBaseName = "pinboard-item-table";
-
-    const pinboardAppsyncItemTable = new db.Table(
-      thisStack,
-      pinboardItemTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "id",
-          type: db.AttributeType.STRING,
-        },
-        sortKey: {
-          name: "timestamp",
-          type: db.AttributeType.NUMBER,
-        },
-        encryption: db.TableEncryption.DEFAULT,
-        stream: db.StreamViewType.NEW_IMAGE,
-      }
-    );
-
-    pinboardNotificationsLambda.addEventSource(
-      new DynamoEventSource(pinboardAppsyncItemTable, {
-        maxBatchingWindow: Duration.seconds(10),
-        startingPosition: lambda.StartingPosition.LATEST,
-      })
-    );
-
-    const pinboardLastItemSeenByUserTableBaseName =
-      "pinboard-last-item-seen-by-user-table";
-
-    const pinboardAppsyncLastItemSeenByUserTable = new db.Table(
-      thisStack,
-      pinboardLastItemSeenByUserTableBaseName,
-      {
-        billingMode: db.BillingMode.PAY_PER_REQUEST,
-        partitionKey: {
-          name: "pinboardId",
-          type: db.AttributeType.STRING,
-        },
-        sortKey: {
-          name: "userEmail",
-          type: db.AttributeType.STRING,
-        },
-        encryption: db.TableEncryption.DEFAULT,
-      }
-    );
-
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
       `${workflowBridgeLambdaBasename
         .replace("pinboard-", "")
@@ -319,28 +500,12 @@ export class PinBoardStack extends Stack {
       pinboardGridBridgeLambda
     );
 
-    const pinboardItemDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardItemTableBaseName
+    const pinboardDatabaseBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
+      `${databaseBridgeLambdaBasename
         .replace("pinboard-", "")
         .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncItemTable
-    );
-
-    const pinboardLastItemSeenByUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardLastItemSeenByUserTableBaseName
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncLastItemSeenByUserTable
-    );
-
-    const pinboardUserDataSource = pinboardAppsyncApi.addDynamoDbDataSource(
-      `${pinboardUserTableBaseName
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_datasource`,
-      pinboardAppsyncUserTable
+        .join("_")}_ds`,
+      pinboardDatabaseBridgeLambda
     );
 
     const gqlSchemaChecksum = crypto
@@ -355,213 +520,33 @@ export class PinBoardStack extends Stack {
         `## schema checksum : ${gqlSchemaChecksum}\n${mappingTemplate.renderTemplate()}`
       );
 
-    const dynamoFilterRequestMappingTemplate = resolverBugWorkaround(
-      appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
-        }
-      `)
-    );
-    const dynamoFilterResponseMappingTemplate = appsync.MappingTemplate.fromString(
-      "$util.toJson($context.result)"
-    );
-
-    pinboardItemDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listItems",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate,
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
-
-    pinboardItemDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "createItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.dynamoDbPutItem(
-          appsync.PrimaryKey.partition("id").auto(),
-          appsync.Values.projecting("input")
-            .attribute("timestamp")
-            .is("$util.time.nowEpochSeconds()")
-            .attribute("userEmail")
-            .is("$ctx.identity.resolverContext.userEmail")
-        )
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
-
-    pinboardLastItemSeenByUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listLastItemSeenByUsers",
-      requestMappingTemplate: dynamoFilterRequestMappingTemplate, // TODO consider custom resolver for performance
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
-
-    pinboardLastItemSeenByUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "seenItem",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "pinboardId" : $util.dynamodb.toDynamoDBJson($ctx.args.input.pinboardId),
-            "userEmail" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "SET seenAt = :seenAt, itemID = :itemID",
-            "expressionValues": {
-              ":seenAt" : $util.dynamodb.toDynamoDBJson($util.time.nowEpochSeconds()),
-              ":itemID" : $util.dynamodb.toDynamoDBJson($ctx.args.input.itemID)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: appsync.MappingTemplate.dynamoDbResultItem(),
-    });
-
-    ["listPinboards", "getPinboardByComposerId", "getPinboardsByIds"].forEach(
-      (fieldName) =>
-        pinboardWorkflowBridgeLambdaDataSource.createResolver({
-          typeName: "Query",
-          fieldName,
-          responseMappingTemplate: resolverBugWorkaround(
-            appsync.MappingTemplate.lambdaResult()
-          ),
-        })
-    );
-
-    ["getGridSearchSummary"].forEach((fieldName) =>
-      pinboardGridBridgeLambdaDataSource.createResolver({
-        typeName: "Query",
+    const createLambdaResolver = (
+      lambdaDS: appsync.LambdaDataSource,
+      typeName: "Query" | "Mutation"
+    ) => (fieldName: string) => {
+      lambdaDS.createResolver({
+        typeName,
         fieldName,
         responseMappingTemplate: resolverBugWorkaround(
           appsync.MappingTemplate.lambdaResult()
         ),
-      })
+      });
+    };
+
+    QUERIES.database.forEach(
+      createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Query")
+    );
+    MUTATIONS.database.forEach(
+      createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Mutation")
     );
 
-    const removePushNotificationSecretsFromUserResponseMappingTemplate = appsync
-      .MappingTemplate.fromString(`
-        #set($output = $ctx.result)
-        $util.qr($output.put("hasWebPushSubscription", $util.isMap($ctx.result.webPushSubscription)))
-        $util.toJson($output)
-    `);
+    QUERIES.workflow.forEach(
+      createLambdaResolver(pinboardWorkflowBridgeLambdaDataSource, "Query")
+    );
 
-    pinboardUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "listUsers",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "Scan",
-          "filter": {
-            "expression": "attribute_exists(#firstName) AND attribute_exists(#lastName)",
-            "expressionNames": {
-              "#firstName": "firstName",
-              "#lastName": "lastName",
-            },
-          },
-        }
-      `)
-      ),
-      responseMappingTemplate: dynamoFilterResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "setWebPushSubscriptionForUser",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "SET webPushSubscription = :webPushSubscription",
-            "expressionValues": {
-              ":webPushSubscription" : $util.dynamodb.toDynamoDBJson($ctx.args.webPushSubscription)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "addManuallyOpenedPinboardIds",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson(
-              $util.defaultIfNull(
-                $ctx.args.maybeEmailOverride,
-                $ctx.identity.resolverContext.userEmail
-              )
-            )
-          },
-          "update" : {
-            "expression" : "ADD manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
-            "expressionValues": {
-              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Mutation",
-      fieldName: "removeManuallyOpenedPinboardIds",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "UpdateItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          },
-          "update" : {
-            "expression" : "DELETE manuallyOpenedPinboardIds :manuallyOpenedPinboardIds",
-            "expressionValues": {
-              ":manuallyOpenedPinboardIds" : $util.dynamodb.toStringSetJson($ctx.args.ids)
-            }
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
-
-    pinboardUserDataSource.createResolver({
-      typeName: "Query",
-      fieldName: "getMyUser",
-      requestMappingTemplate: resolverBugWorkaround(
-        appsync.MappingTemplate.fromString(`
-        {
-          "version": "2017-02-28",
-          "operation": "GetItem",
-          "key" : {
-            "email" : $util.dynamodb.toDynamoDBJson($ctx.identity.resolverContext.userEmail)
-          }
-        }
-      `)
-      ),
-      responseMappingTemplate: removePushNotificationSecretsFromUserResponseMappingTemplate,
-    });
+    QUERIES.grid.forEach(
+      createLambdaResolver(pinboardGridBridgeLambdaDataSource, "Query")
+    );
 
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
 
@@ -577,8 +562,7 @@ export class PinBoardStack extends Stack {
           STAGE,
           STACK,
           APP,
-          [ENVIRONMENT_VARIABLE_KEYS.usersTableName]:
-            pinboardAppsyncUserTable.tableName,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
         functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
         code: lambda.Code.fromBucket(
@@ -589,9 +573,11 @@ export class PinBoardStack extends Stack {
           permissionsFilePolicyStatement,
           pandaConfigAndKeyPolicyStatement,
         ],
+        vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
       }
     );
-    pinboardAppsyncUserTable.grantReadWriteData(usersRefresherLambdaFunction);
+    databaseProxy.grantConnect(usersRefresherLambdaFunction);
 
     new events.Rule(
       thisStack,

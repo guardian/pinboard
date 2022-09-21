@@ -24,7 +24,7 @@ export const AssetView: React.FC<AssetView> = ({
     ...successfulSends,
     ...subscriptionItems,
   ]
-    .sort((a, b) => a.timestamp - b.timestamp)
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     .reduce<PayloadAndType[]>((accumulator, item) => {
       if (!item.payload) {
         return accumulator;

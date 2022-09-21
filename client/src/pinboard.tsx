@@ -106,7 +106,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     () =>
       initialLastItemSeenByUsers.data &&
       setLastItemSeenByUserLookup((prevState) =>
-        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.items.reduce(
+        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.reduce(
           (
             acc: LastItemSeenByUserLookup,
             newLastItemSeenByUser: LastItemSeenByUser
@@ -219,7 +219,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}
-          initialItems={initialItemsQuery.data.listItems.items}
+          initialItems={initialItemsQuery.data.listItems}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
           setUnreadFlag={setUnreadFlag(pinboardId)}
@@ -232,7 +232,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
         <AssetView
-          initialItems={initialItemsQuery.data.listItems.items}
+          initialItems={initialItemsQuery.data.listItems}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
         />

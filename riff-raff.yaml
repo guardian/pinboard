@@ -14,6 +14,11 @@ deployments:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: pinboard
       templatePath: PinBoardStack.template.json
+      amiTags:
+        Recipe: editorial-tools-bionic-java8-ARM-WITH-cdk-base
+        AmigoStage: PROD
+      amiEncrypted: true
+      amiParameter: DatabaseJumpHostAmiID
 
   pinboard-bootstrapping-lambda-api:
     dependencies:
@@ -23,6 +28,7 @@ deployments:
       - pinboard-users-refresher-lambda
       - pinboard-notifications-lambda
       - pinboard-auth-lambda
+      - pinboard-database-bridge-lambda
     type: aws-lambda
     parameters:
       prefixStack: false
@@ -79,3 +85,13 @@ deployments:
       bucket: workflow-dist
       fileName: pinboard-auth-lambda.zip
       functionNames: [pinboard-auth-lambda-]
+
+  pinboard-database-bridge-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    parameters:
+      prefixStack: false
+      bucket: workflow-dist
+      fileName: pinboard-database-bridge-lambda.zip
+      functionNames: [pinboard-database-bridge-lambda-]

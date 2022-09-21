@@ -4,11 +4,46 @@ schema {
   subscription: Subscription
 }
 
+type Query {
+  listItems(pinboardId: String!): [Item]
+  listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
+  getMyUser: MyUser
+  listUsers: [User]
+
+  listPinboards(searchText: String): [WorkflowStub]
+  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
+  getPinboardByComposerId(composerId: String!): WorkflowStub
+
+  getGridSearchSummary(apiUrl: String!): GridSearchSummary
+}
+
+type Mutation {
+  createItem(input: CreateItemInput!): Item
+  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
+  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
+  addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
+  removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
+}
+
+type Subscription {
+  onCreateItem(
+    pinboardId: String
+  ): Item @aws_subscribe(mutations: ["createItem"])
+
+  onSeenItem(
+    pinboardId: String!
+  ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
+
+  onManuallyOpenedPinboardIdsChanged(
+    email: String! # unfortunately this can't be done via 'identity' in the resolver
+  ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
+}
+
 type Item {
   id: ID!
   message: String
   payload: AWSJSON
-  timestamp: AWSTimestamp!
+  timestamp: AWSDateTime!
   type: String!
   userEmail: String!
   pinboardId: String!
@@ -19,7 +54,7 @@ type LastItemSeenByUser {
   pinboardId: String!
   userEmail: String!
   itemID: String!
-  seenAt: AWSTimestamp!
+  seenAt: AWSDateTime!
 }
 
 type User {
@@ -66,70 +101,6 @@ type GridSearchSummary {
   queryBreakdown: GridSearchQueryBreakdown
 }
 
-type ItemConnection {
-  items: [Item]
-  nextToken: String
-}
-
-type UserConnection {
-  items: [User]
-  nextToken: String
-}
-
-type LastItemSeenByUserConnection {
-  items: [LastItemSeenByUser]
-  nextToken: String
-}
-
-type Mutation {
-  createItem(input: CreateItemInput!): Item
-  seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
-  setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
-  addManuallyOpenedPinboardIds(ids: [String!]!, maybeEmailOverride: String): MyUser
-  removeManuallyOpenedPinboardIds(ids: [String!]!): MyUser
-}
-
-type Query {
-  listItems(
-    filter: TableItemFilterInput
-    limit: Int
-    nextToken: String
-  ): ItemConnection
-
-  listLastItemSeenByUsers(
-    filter: TableLastItemSeenByUserFilterInput
-    limit: Int
-    nextToken: String
-  ): LastItemSeenByUserConnection
-
-  getMyUser: MyUser
-
-  listUsers(
-    limit: Int
-    nextToken: String
-  ): UserConnection
-
-  listPinboards(searchText: String): [WorkflowStub]
-  getPinboardsByIds(ids: [String!]!): [WorkflowStub]
-  getPinboardByComposerId(composerId: String!): WorkflowStub
-
-  getGridSearchSummary(apiUrl: String!): GridSearchSummary
-}
-
-type Subscription {
-  onCreateItem(
-    pinboardId: String
-  ): Item @aws_subscribe(mutations: ["createItem"])
-
-  onSeenItem(
-    pinboardId: String!
-  ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
-
-  onManuallyOpenedPinboardIdsChanged(
-    email: String! # unfortunately this can't be done via 'identity' in the resolver
-  ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
-}
-
 input CreateItemInput {
   message: String
   payload: AWSJSON
@@ -141,76 +112,4 @@ input CreateItemInput {
 input LastItemSeenByUserInput {
   pinboardId: String!
   itemID: String!
-}
-
-input TableBooleanFilterInput {
-  eq: Boolean
-  ne: Boolean
-}
-
-input TableFloatFilterInput {
-  between: [Float]
-  contains: Float
-  eq: Float
-  ge: Float
-  gt: Float
-  le: Float
-  lt: Float
-  ne: Float
-  notContains: Float
-}
-
-input TableIDFilterInput {
-  beginsWith: ID
-  between: [ID]
-  contains: ID
-  eq: ID
-  ge: ID
-  gt: ID
-  le: ID
-  lt: ID
-  ne: ID
-  notContains: ID
-}
-
-input TableIntFilterInput {
-  between: [Int]
-  contains: Int
-  eq: Int
-  ge: Int
-  gt: Int
-  le: Int
-  lt: Int
-  ne: Int
-  notContains: Int
-}
-
-input TableItemFilterInput {
-  id: TableIDFilterInput
-  message: TableStringFilterInput
-  timestamp: TableIntFilterInput
-  type: TableStringFilterInput
-  pinboardId: TableStringFilterInput
-}
-
-input TableLastItemSeenByUserFilterInput {
-  pinboardId: TableStringFilterInput
-}
-
-input TableUserFilterInput {
-  firstName: TableStringFilterInput
-  lastName: TableStringFilterInput
-}
-
-input TableStringFilterInput {
-  beginsWith: String
-  between: [String]
-  contains: String
-  eq: String
-  ge: String
-  gt: String
-  le: String
-  lt: String
-  ne: String
-  notContains: String
 }

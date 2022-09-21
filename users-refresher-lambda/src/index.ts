@@ -8,52 +8,36 @@ import {
 } from "../../shared/panDomainAuth";
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
-import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-import { DocumentClient } from "aws-sdk/lib/dynamodb/document_client";
-
+import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
 
 interface BasicUser {
-  resourceName?: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
   isMentionable: boolean;
 }
 
+interface UserFromGoogle extends BasicUser {
+  resourceName: string;
+  firstName: string;
+  lastName: string;
+}
+
+const isUserFromGoogle = (
+  user: BasicUser | UserFromGoogle
+): user is UserFromGoogle => "resourceName" in user;
+
 const S3 = new AWS.S3(standardAwsConfig);
-const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
 
 export const handler = async ({
   isProcessPermissionChangesOnly,
 }: {
   isProcessPermissionChangesOnly?: boolean;
 }) => {
-  const usersTableName = getEnvironmentVariableOrThrow("usersTableName");
-
-  const getStoredUsers = async (
-    startKey?: DocumentClient.Key
-  ): Promise<BasicUser[]> => {
-    const userResults = await dynamo
-      .scan({
-        TableName: usersTableName,
-        ExclusiveStartKey: startKey,
-        AttributesToGet: ["email", "isMentionable"],
-      })
-      .promise();
-
-    const storedUsers =
-      userResults.Items?.map((user) => user as BasicUser) || [];
-
-    if (userResults.LastEvaluatedKey) {
-      return [
-        ...storedUsers,
-        ...(await getStoredUsers(userResults.LastEvaluatedKey)),
-      ];
-    } else {
-      return storedUsers;
-    }
-  };
+  const sql = await getDatabaseConnection();
+  const getStoredUsers = async (): Promise<BasicUser[]> =>
+    (await sql`SELECT "email", "isMentionable" FROM "User"`).map(
+      (user) => user as BasicUser
+    ) || [];
 
   const emailsOfUsersWithPinboardPermission = (
     await getPinboardPermissionOverrides(S3)
@@ -141,7 +125,9 @@ export const handler = async ({
     auth,
   });
 
-  const basicUsersWithPinboardPermission: BasicUser[] = await Promise.all(
+  const usersWithPinboardPermission: Array<
+    BasicUser | UserFromGoogle
+  > = await Promise.all(
     emailsToLookup.map(async (emailFromPermission) => {
       const userResult = await directoryService.users
         .get({
@@ -167,8 +153,8 @@ export const handler = async ({
       return {
         resourceName: `people/${id}`,
         email,
-        firstName: user.name?.givenName || undefined,
-        lastName: user.name?.familyName || undefined,
+        firstName: user.name!.givenName!,
+        lastName: user.name!.familyName!,
         isMentionable: true,
       };
     })
@@ -217,48 +203,45 @@ export const handler = async ({
       : thisBatchLookup;
   };
   const photoUrlLookup = await buildPhotoUrlLookup(
-    basicUsersWithPinboardPermission.reduce<string[]>(
-      (acc, { resourceName }) => (resourceName ? [...acc, resourceName] : acc),
-      []
-    )
+    usersWithPinboardPermission
+      .filter(isUserFromGoogle)
+      .map(({ resourceName }) => resourceName)
   );
 
-  const usersToUpsert: BasicUser[] = [
-    ...basicUsersWithPinboardPermission,
+  const usersToUpsert: Array<BasicUser | UserFromGoogle> = [
+    ...usersWithPinboardPermission,
     ...basicUsersWherePinboardPermissionRemoved,
   ];
 
-  return await Promise.allSettled(
-    usersToUpsert.map(
-      ({ resourceName, email, firstName, lastName, isMentionable }) => {
-        const maybeAvatarUrl = resourceName && photoUrlLookup[resourceName];
+  for (const user of usersToUpsert) {
+    console.log(`Upserting details for user ${user.email}`);
 
-        console.log(`Upserting details for user ${email}`);
+    const handleError = (error: Error) => {
+      console.error(`Error upserting user ${user.email}\n`, error);
+      console.error(user);
+    };
 
-        const upsertResult = dynamo
-          .update({
-            TableName: usersTableName,
-            Key: {
-              email,
-            },
-            UpdateExpression: `set isMentionable = :isMentionable${
-              firstName ? ", firstName = :firstName" : ""
-            }${lastName ? ", lastName = :lastName" : ""}${
-              maybeAvatarUrl ? ", avatarUrl = :avatarUrl" : ""
-            }`,
-            ExpressionAttributeValues: {
-              ":firstName": firstName,
-              ":lastName": lastName,
-              ":avatarUrl": maybeAvatarUrl,
-              ":isMentionable": isMentionable,
-            },
-          })
-          .promise();
-
-        upsertResult.catch(console.error);
-
-        return upsertResult;
-      }
-    )
-  );
+    if (isUserFromGoogle(user)) {
+      const { resourceName, ...userToUpsert } = user;
+      const maybeAvatarUrl = photoUrlLookup[resourceName];
+      await sql`
+          INSERT INTO "User" ${sql(
+            maybeAvatarUrl
+              ? { ...userToUpsert, avatarUrl: maybeAvatarUrl }
+              : userToUpsert
+          )}
+          ON CONFLICT ("email") DO UPDATE SET
+            "firstName"=${user.firstName},
+            "lastName"=${user.lastName},
+            "isMentionable"=${user.isMentionable},
+            "avatarUrl"=${maybeAvatarUrl || null}
+      `.catch(handleError);
+    } else {
+      await sql`
+          UPDATE "User" 
+          SET "isMentionable"=${user.isMentionable}
+          WHERE "email"=${user.email} 
+      `.catch(handleError);
+    }
+  }
 };

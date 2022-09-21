@@ -34,6 +34,7 @@ interface GlobalStateContextShape {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
 
+  isLoadingActivePinboardList: boolean;
   activePinboardIds: string[];
   activePinboards: PinboardData[];
 
@@ -177,6 +178,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ...activePinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
+  const isLoadingActivePinboardList = activePinboardsQuery.loading;
+
   const activePinboards: PinboardData[] =
     activePinboardsQuery.data?.getPinboardsByIds || [];
 
@@ -212,7 +215,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   ) =>
     addManuallyOpenedPinboardIds({
       variables: {
-        ids: [pinboardId],
+        pinboardId,
         maybeEmailOverride,
       },
     });
@@ -297,7 +300,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const closePinboard = (pinboardIdToClose: string) => {
     if (activePinboardIds.includes(pinboardIdToClose)) {
       removeManuallyOpenedPinboardIds({
-        variables: { ids: [pinboardIdToClose] },
+        variables: { pinboardIdToClose },
       }).then(
         (result) =>
           result.data
@@ -419,6 +422,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     activeTab,
     setActiveTab,
 
+    isLoadingActivePinboardList,
     activePinboards,
     activePinboardIds,
 

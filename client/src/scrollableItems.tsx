@@ -1,10 +1,10 @@
 import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
 import React, {
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { css } from "@emotion/react";
@@ -67,8 +67,27 @@ export const ScrollableItems = ({
       };
     }, {} as { [itemID: string]: LastItemSeenByUser[] });
 
-  const scrollableAreaRef = useRef<HTMLDivElement>(null);
-  const scrollableArea = scrollableAreaRef.current;
+  const [
+    hasPinboardNeverBeenExpanded,
+    setHasPinboardNeverBeenExpanded,
+  ] = useState(true);
+
+  const [scrollableArea, setScrollableArea] = useState<HTMLDivElement | null>(
+    null
+  );
+  const setScrollableAreaRef = useCallback(
+    (node) => node && setScrollableArea(node),
+    []
+  );
+  useLayoutEffect(() => {
+    if (hasPinboardNeverBeenExpanded && scrollableArea && isExpanded) {
+      scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
+      setTimeout(() => {
+        scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
+      }, 100);
+      setHasPinboardNeverBeenExpanded(false);
+    }
+  }, [scrollableArea, isExpanded]);
 
   const [
     scrollTopBeforeReposition,
@@ -89,25 +108,12 @@ export const ScrollableItems = ({
   }, [isRepositioning]);
 
   const scrollToLastItem = () => {
-    onScroll();
     scrollableArea?.scroll({
       top: Number.MAX_SAFE_INTEGER,
       behavior: "smooth",
     });
+    onScroll();
   };
-
-  const [
-    hasThisPinboardEverBeenExpanded,
-    setHasThisPinboardEverBeenExpanded,
-  ] = useState(false);
-
-  useEffect(() => {
-    scrollableArea &&
-      !hasThisPinboardEverBeenExpanded &&
-      setHasThisPinboardEverBeenExpanded(true);
-  });
-
-  useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
 
   const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
     gqlSeenItem,
@@ -182,7 +188,7 @@ export const ScrollableItems = ({
 
   return (
     <div
-      ref={scrollableAreaRef}
+      ref={setScrollableAreaRef}
       css={css`
         overflow-y: auto;
         ${scrollbarsCss(palette.neutral[60])}

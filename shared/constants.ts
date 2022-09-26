@@ -10,3 +10,6 @@ export const MAX_PINBOARDS_TO_DISPLAY = 25;
 export const NOTIFICATIONS_LAMBDA_BASENAME = "pinboard-notifications-lambda";
 export const getNotificationsLambdaFunctionName = (stage: Stage) =>
   `${NOTIFICATIONS_LAMBDA_BASENAME}-${stage}`;
+
+export const OPEN_PINBOARD_QUERY_PARAM = "pinboardId";
+export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";

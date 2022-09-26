@@ -555,7 +555,7 @@ export class PinBoardStack extends Stack {
       usersRefresherLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
-        memorySize: 128,
+        memorySize: 256,
         timeout: Duration.minutes(15),
         handler: "index.handler",
         environment: {

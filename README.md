@@ -70,6 +70,10 @@ This generation step is run for you as part of the `setup.sh`, `start.sh` and `c
 
 Note, `shared/graphql/schema.graphql` is also used in CDK to form part of the Cloudformation.
 
+### Testing queries/mutations from AppSync area of AWS Console (in the browser)
+
+Occasionally you may want to test the GraphQL queries/mutations directly from the AWS Console. You for which you will need an auth token, you can generate these by running `yarn generate-appsync-auth-token` in the root of the project and selecting CODE or PROD from the prompt.
+
 ## Running locally
 
 ### First-time set-up

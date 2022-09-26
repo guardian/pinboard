@@ -116,6 +116,7 @@ interface ItemDisplayProps {
   userEmail: string;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
+  scrollToBottomIfApplicable: () => void;
 }
 
 export const ItemDisplay = ({
@@ -124,6 +125,7 @@ export const ItemDisplay = ({
   userEmail,
   seenBy,
   maybePreviousItem,
+  scrollToBottomIfApplicable,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
@@ -195,7 +197,11 @@ export const ItemDisplay = ({
         </div>
         <div>{formattedMessage}</div>
         {payloadAndType && (
-          <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
+          <PayloadDisplay
+            payloadAndType={payloadAndType}
+            tab="chat"
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+          />
         )}
       </div>
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}

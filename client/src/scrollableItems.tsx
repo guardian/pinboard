@@ -200,6 +200,9 @@ export const ScrollableItems = ({
 
   const onScrollThrottled = useThrottle(onScroll, 250);
 
+  const scrollToBottomIfApplicable = () =>
+    isScrolledToBottom && scrollToLastItem();
+
   return (
     <div
       ref={scrollableAreaRef}
@@ -220,6 +223,7 @@ export const ScrollableItems = ({
             userEmail={userEmail}
             seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
             maybePreviousItem={items[index - 1]}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
           />
         ))}
       {hasUnread && (

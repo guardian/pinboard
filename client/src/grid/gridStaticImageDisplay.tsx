@@ -5,11 +5,14 @@ import CropIcon from "../../icons/crop.svg";
 import PictureIcon from "../../icons/picture.svg";
 import { palette } from "@guardian/source-foundations";
 
-type GridStaticImageDisplayProps = StaticGridPayload;
+type GridStaticImageDisplayProps = StaticGridPayload & {
+  scrollToBottomIfApplicable: undefined | (() => void);
+};
 
 export const GridStaticImageDisplay = ({
   type,
   payload,
+  scrollToBottomIfApplicable,
 }: GridStaticImageDisplayProps) => (
   <React.Fragment>
     <img
@@ -20,6 +23,7 @@ export const GridStaticImageDisplay = ({
         height: 100%;
       `}
       draggable={false}
+      onLoad={scrollToBottomIfApplicable}
       // TODO: hover for larger thumbnail
     />
 

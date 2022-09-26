@@ -10,7 +10,6 @@ import React, {
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { ItemDisplay } from "./itemDisplay";
-import { PendingItem } from "./types/PendingItem";
 import { useMutation } from "@apollo/client";
 import { gqlSeenItem } from "../gql";
 import { LastItemSeenByUserLookup } from "./pinboard";
@@ -19,12 +18,14 @@ import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
+import { PendingItem } from "./types/PendingItem";
 
 interface ScrollableItemsProps {
-  initialItems: Item[];
+  items: Item[];
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
-  setUnreadFlag: (hasUnread: boolean) => void;
+  maybeLastItem: Item | undefined;
+  hasUnread: boolean | undefined;
   isExpanded: boolean;
   userLookup: { [email: string]: User } | undefined;
   userEmail: string;
@@ -33,15 +34,12 @@ interface ScrollableItemsProps {
   showNotification: (item: Item) => void;
 }
 
-interface ItemsMap {
-  [id: string]: Item | PendingItem;
-}
-
 export const ScrollableItems = ({
-  initialItems,
+  items,
   successfulSends,
   subscriptionItems,
-  setUnreadFlag,
+  maybeLastItem,
+  hasUnread,
   isExpanded,
   userLookup,
   userEmail,
@@ -52,22 +50,6 @@ export const ScrollableItems = ({
   const { isRepositioning } = useGlobalStateContext();
 
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
-
-  const itemsMap = [
-    ...initialItems,
-    ...successfulSends,
-    ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
-  ].reduce(
-    (accumulator, item) => ({
-      ...accumulator,
-      [item.id]: item,
-    }),
-    {} as ItemsMap
-  );
-
-  const items = Object.values(itemsMap).sort((a, b) =>
-    a.timestamp.localeCompare(b.timestamp)
-  );
 
   const lastItemSeenByUsersForItemIDLookup = Object.values(
     lastItemSeenByUserLookup
@@ -106,8 +88,6 @@ export const ScrollableItems = ({
     }
   }, [isRepositioning]);
 
-  const lastItemIndex = items.length - 1;
-
   const scrollToLastItem = () => {
     onScroll();
     scrollableArea?.scroll({
@@ -129,8 +109,6 @@ export const ScrollableItems = ({
 
   useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
 
-  const lastItemID = items[lastItemIndex]?.id;
-
   const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
     gqlSeenItem,
     {
@@ -144,12 +122,15 @@ export const ScrollableItems = ({
 
   const seenLastItem = () => {
     // don't keep sending mutations if everyone already knows we've seen it
-    if (lastItemID !== lastItemSeenByUserLookup[userEmail]?.itemID) {
+    if (
+      maybeLastItem &&
+      maybeLastItem.id !== lastItemSeenByUserLookup[userEmail]?.itemID
+    ) {
       seenItem({
         variables: {
           input: {
             pinboardId,
-            itemID: lastItemID,
+            itemID: maybeLastItem.id,
           },
         },
       });
@@ -159,27 +140,23 @@ export const ScrollableItems = ({
     }
   };
 
-  const hasUnread =
-    lastItemSeenByUserLookup &&
-    lastItemSeenByUserLookup[userEmail]?.itemID !== lastItemID;
-
-  useEffect(() => {
-    setUnreadFlag(hasUnread);
-  }, [hasUnread]);
-
   useEffect(() => {
     if (isScrolledToBottom) {
       scrollToLastItem();
       isExpanded && seenLastItem();
     }
-    if (successfulSends?.length > 0 && subscriptionItems?.length > 0) {
+    if (
+      maybeLastItem &&
+      successfulSends?.length > 0 &&
+      subscriptionItems?.length > 0
+    ) {
       // guard against first mount where these arrays are empty
-      showNotification(items[lastItemIndex]);
+      showNotification(maybeLastItem);
     }
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && isScrolledToBottom && lastItemID) {
+    if (isExpanded && isScrolledToBottom && maybeLastItem) {
       seenLastItem();
     }
   }, [isExpanded]); // runs when expanded/closed
@@ -193,7 +170,7 @@ export const ScrollableItems = ({
     const scrollTopThreshold = maxScrollTop - 10; // in case not exactly scrolled to bottom
     const newIsScrolledToBottom = scrollTop > scrollTopThreshold;
     setIsScrolledToBottom(newIsScrolledToBottom);
-    if (newIsScrolledToBottom && lastItemID && isExpanded) {
+    if (newIsScrolledToBottom && maybeLastItem && isExpanded) {
       seenLastItem();
     }
   };

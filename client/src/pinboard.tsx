@@ -19,6 +19,10 @@ import { agateSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 
+interface ItemsMap {
+  [id: string]: Item | PendingItem;
+}
+
 export interface LastItemSeenByUserLookup {
   [userEmail: string]: LastItemSeenByUser;
 }
@@ -49,6 +53,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     errors,
     setError,
 
+    unreadFlags,
     setUnreadFlag,
 
     addManuallyOpenedPinboardId,
@@ -75,7 +80,26 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId));
 
-  const initialLastItemSeenByUsers = useQuery(
+  const itemsMap: ItemsMap = [
+    ...(initialItemsQuery.data?.listItems || []),
+    ...successfulSends,
+    ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
+  ].reduce(
+    (accumulator, item) => ({
+      ...accumulator,
+      [item.id]: item,
+    }),
+    {} as ItemsMap
+  );
+
+  const items = Object.values(itemsMap).sort((a, b) =>
+    a.timestamp.localeCompare(b.timestamp)
+  );
+
+  const lastItemIndex = items.length - 1;
+  const lastItem = items[lastItemIndex];
+
+  const initialLastItemSeenByUsersQuery = useQuery(
     gqlGetLastItemSeenByUsers(pinboardId)
   );
 
@@ -104,9 +128,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   useEffect(
     () =>
-      initialLastItemSeenByUsers.data &&
+      initialLastItemSeenByUsersQuery.data &&
       setLastItemSeenByUserLookup((prevState) =>
-        initialLastItemSeenByUsers.data.listLastItemSeenByUsers.reduce(
+        initialLastItemSeenByUsersQuery.data.listLastItemSeenByUsers.reduce(
           (
             acc: LastItemSeenByUserLookup,
             newLastItemSeenByUser: LastItemSeenByUser
@@ -127,8 +151,18 @@ export const Pinboard: React.FC<PinboardProps> = ({
           prevState
         )
       ),
-    [initialLastItemSeenByUsers.data]
+    [initialLastItemSeenByUsersQuery.data]
   );
+
+  const hasUnread = unreadFlags[pinboardId];
+  useEffect(() => {
+    if (initialLastItemSeenByUsersQuery.data && items && items.length > 0) {
+      const lastItemSeenByUser = lastItemSeenByUserLookup[userEmail];
+      setUnreadFlag(pinboardId)(
+        lastItem && lastItem.id !== lastItemSeenByUser?.itemID
+      );
+    }
+  }, [lastItem, lastItemSeenByUserLookup]);
 
   useEffect(
     () =>
@@ -219,10 +253,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}
-          initialItems={initialItemsQuery.data.listItems}
+          items={items}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
-          setUnreadFlag={setUnreadFlag(pinboardId)}
+          maybeLastItem={lastItem}
+          hasUnread={hasUnread}
           isExpanded={isExpanded}
           userLookup={userLookup}
           userEmail={userEmail}
@@ -231,11 +266,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
-        <AssetView
-          initialItems={initialItemsQuery.data.listItems}
-          successfulSends={successfulSends}
-          subscriptionItems={subscriptionItems}
-        />
+        <AssetView items={items} />
       )}
       {activeTab === "chat" && (
         <SendMessageArea

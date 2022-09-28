@@ -9,7 +9,8 @@ import {
 import { p12ToPem } from "./p12ToPem";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
-const GUARDIAN_EMAIL_DOMAIN = "@guardian.co.uk";
+
+const MAX_USERS_TO_LOOKUP_IN_ONE_RUN = 50;
 
 interface BasicUser {
   email: string;
@@ -75,10 +76,22 @@ export const handler = async ({
     );
   }
 
-  const emailsToLookup = emailsOfUsersWithPinboardPermission.filter(
-    (email) =>
-      !isProcessPermissionChangesOnly || !storedUsersEmails.includes(email)
+  const allEmailsToLookup = isProcessPermissionChangesOnly
+    ? emailsOfUsersWithPinboardPermission.filter(
+        (email) => !storedUsersEmails.includes(email)
+      )
+    : emailsOfUsersWithPinboardPermission;
+
+  const emailsToLookup = allEmailsToLookup.slice(
+    0,
+    MAX_USERS_TO_LOOKUP_IN_ONE_RUN
   );
+
+  if (allEmailsToLookup.length > emailsToLookup.length) {
+    console.log(
+      `WARNING: there are ${allEmailsToLookup.length} emails to lookup/process which is too many for one run. Only processing ${MAX_USERS_TO_LOOKUP_IN_ONE_RUN} in this run.`
+    );
+  }
 
   if (!isProcessPermissionChangesOnly) {
     console.log("FULL RUN");
@@ -145,14 +158,9 @@ export const handler = async ({
         throw Error("Invalid response from Google Directory API");
       }
       const { id, ...user } = userResult.data;
-      const email = user.primaryEmail?.endsWith(GUARDIAN_EMAIL_DOMAIN)
-        ? user.primaryEmail
-        : user.emails.find((_: { address: string }) =>
-            _.address.endsWith(GUARDIAN_EMAIL_DOMAIN)
-          )?.address;
       return {
         resourceName: `people/${id}`,
-        email,
+        email: emailFromPermission,
         firstName: user.name!.givenName!,
         lastName: user.name!.familyName!,
         isMentionable: true,

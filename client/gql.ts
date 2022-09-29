@@ -89,6 +89,24 @@ export const gqlGetAllUsers = gql`
     }
 `;
 
+export const gqlSearchMentionableUsers = (prefix: string) => gql`
+    query MyQuery {
+        searchMentionableUsers(prefix: "${prefix}") {
+            ${userReturnFields}
+            isMentionable
+        }
+    }
+`;
+
+export const gqlGetUsers = gql`
+    query MyQuery($emails: [String!]!) {
+        getUsers(emails: $emails) {
+            ${userReturnFields}
+            isMentionable
+        }
+    }
+`;
+
 export const gqlGetMyUser = gql`
 query MyQuery {
   getMyUser {

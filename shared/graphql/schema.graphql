@@ -9,6 +9,8 @@ type Query {
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
   listUsers: [User]
+  searchMentionableUsers(prefix: String!): [User]
+  getUsers(emails: [String!]!): [User]
 
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]

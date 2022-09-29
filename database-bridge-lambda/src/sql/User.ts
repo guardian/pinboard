@@ -1,11 +1,31 @@
 import { Sql } from "../../../shared/database/types";
 
+const fragmentUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
+  sql`"email", "firstName", "lastName", "avatarUrl", "isMentionable"`;
+
 export const listUsers = (sql: Sql) => sql`
-    SELECT "email", "firstName", "lastName", "avatarUrl", "isMentionable"
+    SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
     FROM "User"
     ORDER BY "isMentionable" DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "webPushSubscription" IS NOT NULL DESC
     LIMIT 25
 `;
+
+export const searchMentionableUsers = (sql: Sql, args: { prefix: string }) =>
+  sql`
+    SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
+    FROM "User"
+    WHERE "isMentionable" = true AND (
+      "firstName" ILIKE ${args.prefix + "%"}
+        OR "lastName" ILIKE ${args.prefix + "%"}
+    )
+`;
+
+export const getUsers = (sql: Sql, args: { emails: string[] }) =>
+  sql`
+      SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
+      FROM "User"
+      WHERE "email" IN ${sql(args.emails)}
+  `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
   sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription"`;

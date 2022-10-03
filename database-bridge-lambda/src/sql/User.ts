@@ -18,7 +18,7 @@ export const searchMentionableUsers = (sql: Sql, args: { prefix: string }) =>
       "firstName" ILIKE ${args.prefix + "%"}
         OR "lastName" ILIKE ${args.prefix + "%"}
     )
-    ORDER BY "firstName"
+    ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
     LIMIT 5
 `;
 

@@ -10,21 +10,11 @@ import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
+import { useApolloClient } from "@apollo/client";
+import { gqlSearchMentionableUsers } from "../gql";
 interface WithEntity<E> {
   entity: E;
 }
-
-const mentionsDataProvider = (allUsers: User[]) => (token: string) => {
-  const tokenLower = token.toLowerCase();
-  return allUsers
-    ?.filter(
-      (_) =>
-        _.isMentionable === true &&
-        (_.firstName.toLowerCase().startsWith(tokenLower) ||
-          _.lastName.toLowerCase().startsWith(tokenLower))
-    )
-    .slice(0, 5);
-};
 
 const UserSuggestion = ({ entity }: WithEntity<User>) => (
   <div
@@ -67,14 +57,12 @@ interface CreateItemInputBoxProps {
   message: string;
   setMessage: (newMessage: string) => void;
   sendItem: () => void;
-  allUsers: User[] | undefined;
   addUnverifiedMention: (user: User) => void;
   panelElement: HTMLDivElement | null;
   isSending: boolean;
 }
 
 export const CreateItemInputBox = ({
-  allUsers,
   payloadToBeSent,
   clearPayloadToBeSent,
   message,
@@ -92,6 +80,15 @@ export const CreateItemInputBox = ({
     }
   }, [isSending]);
 
+  const apolloClient = useApolloClient();
+
+  const mentionsDataProvider = (token: string) =>
+    apolloClient
+      .query({
+        query: gqlSearchMentionableUsers(token),
+      })
+      .then((queryResult) => queryResult.data.searchMentionableUsers);
+
   return (
     <div
       css={css`
@@ -104,17 +101,13 @@ export const CreateItemInputBox = ({
       <ReactTextareaAutocomplete<User>
         innerRef={(element) => (textAreaRef.current = element)}
         disabled={isSending}
-        trigger={
-          allUsers
-            ? {
-                "@": {
-                  dataProvider: mentionsDataProvider(allUsers),
-                  component: UserSuggestion,
-                  output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
-                },
-              }
-            : {}
-        }
+        trigger={{
+          "@": {
+            dataProvider: mentionsDataProvider,
+            component: UserSuggestion,
+            output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
+          },
+        }}
         minChar={0}
         loadingComponent={() => <span>Loading</span>}
         placeholder="enter message here..."

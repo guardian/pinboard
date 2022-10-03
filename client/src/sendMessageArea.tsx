@@ -17,7 +17,6 @@ import { SvgSpinner } from "@guardian/source-react-components";
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
-  allUsers: User[] | undefined;
   onSuccessfulSend: (item: PendingItem) => void;
   onError: (error: ApolloError) => void;
   userEmail: string;
@@ -28,7 +27,6 @@ interface SendMessageAreaProps {
 export const SendMessageArea = ({
   payloadToBeSent,
   clearPayloadToBeSent,
-  allUsers,
   onSuccessfulSend,
   onError,
   pinboardId,
@@ -98,7 +96,6 @@ export const SendMessageArea = ({
         message={message}
         setMessage={setMessage}
         sendItem={sendItem}
-        allUsers={allUsers}
         addUnverifiedMention={addUnverifiedMention}
         panelElement={panelElement}
         isSending={isItemSending}

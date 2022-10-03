@@ -273,7 +273,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
           onSuccessfulSend={onSuccessfulSend}
           payloadToBeSent={payloadToBeSent}
           clearPayloadToBeSent={clearPayloadToBeSent}
-          allUsers={userLookup && Object.values(userLookup)}
           onError={(error) => setError(pinboardId, error)}
           userEmail={userEmail}
           pinboardId={pinboardId}

@@ -18,6 +18,7 @@ export const searchMentionableUsers = (sql: Sql, args: { prefix: string }) =>
       "firstName" ILIKE ${args.prefix + "%"}
         OR "lastName" ILIKE ${args.prefix + "%"}
     )
+    ORDER BY "firstName"
     LIMIT 5
 `;
 

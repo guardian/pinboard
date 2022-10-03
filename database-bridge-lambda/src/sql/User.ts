@@ -3,6 +3,8 @@ import { Sql } from "../../../shared/database/types";
 export const listUsers = (sql: Sql) => sql`
     SELECT "email", "firstName", "lastName", "avatarUrl", "isMentionable"
     FROM "User"
+    ORDER BY "isMentionable" DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "webPushSubscription" IS NOT NULL DESC
+    LIMIT 25
 `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>

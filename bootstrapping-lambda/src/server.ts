@@ -3,7 +3,7 @@ import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
-import { standardAwsConfig } from "../../shared/awsIntegration";
+import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
 import { userHasPermission } from "./permissionCheck";
 import * as AWS from "aws-sdk";
 import fs from "fs";
@@ -57,6 +57,10 @@ server.get("/pinboard.loader.js", async (request, response) => {
   applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
 
   applyJavascriptContentType(response);
+
+  if (STAGE === "PROD") {
+    return response.send("console.log('Pinboard PROD load testing');");
+  }
 
   const mainJsFilename: string | undefined = fs
     .readdirSync(clientDirectory)

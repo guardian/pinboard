@@ -123,7 +123,12 @@ export const CreateItemInputBox = ({
           "@": {
             dataProvider: mentionsDataProvider,
             component: UserSuggestion,
-            output: userToMentionHandle, // TODO: ensure backspacing onto the lastName brings the prompt back up (the space is problematic)
+            output: (user) => ({
+              key: user.email,
+              text: userToMentionHandle(user),
+              caretPosition: "next",
+            }),
+            allowWhitespace: true,
           },
         }}
         minChar={0}

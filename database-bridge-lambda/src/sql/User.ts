@@ -17,6 +17,7 @@ export const searchMentionableUsers = (sql: Sql, args: { prefix: string }) =>
     WHERE "isMentionable" = true AND (
       "firstName" ILIKE ${args.prefix + "%"}
         OR "lastName" ILIKE ${args.prefix + "%"}
+        OR CONCAT("firstName", ' ', "lastName") ILIKE ${args.prefix + "%"}
     )
     ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
     LIMIT 5

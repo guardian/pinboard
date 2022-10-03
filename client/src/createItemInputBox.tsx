@@ -86,6 +86,7 @@ export const CreateItemInputBox = ({
     apolloClient
       .query({
         query: gqlSearchMentionableUsers(token),
+        context: { debounceKey: "user-search", debounceTimeout: 250 },
       })
       .then((queryResult) => queryResult.data.searchMentionableUsers);
 

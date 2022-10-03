@@ -138,19 +138,27 @@ export const handler = async ({
     auth,
   });
 
+  // noinspection TypeScriptValidateJSTypes
   const usersWithPinboardPermission: Array<
     BasicUser | UserFromGoogle
   > = await Promise.all(
-    emailsToLookup.map(async (emailFromPermission) => {
+    emailsToLookup.map(async (emailFromPermission: string) => {
       const userResult = await directoryService.users
         .get({
           userKey: emailFromPermission,
         })
         .catch((_) => _.response);
 
+      const namePartOfEmail = emailFromPermission.split("@")?.[0];
+      const namePartsFromEmail = namePartOfEmail?.split(".");
+      const firstNameFallback = namePartsFromEmail[0] || namePartOfEmail;
+      const lastNameFallback = namePartsFromEmail[1] || namePartOfEmail;
+
       if (userResult.status === 404) {
         return {
           email: emailFromPermission,
+          firstName: firstNameFallback,
+          lastName: lastNameFallback,
           isMentionable: false,
         };
       }
@@ -161,8 +169,8 @@ export const handler = async ({
       return {
         resourceName: `people/${id}`,
         email: emailFromPermission,
-        firstName: user.name!.givenName!,
-        lastName: user.name!.familyName!,
+        firstName: user.name?.givenName || firstNameFallback,
+        lastName: user.name?.familyName || lastNameFallback,
         isMentionable: true,
       };
     })
@@ -229,7 +237,7 @@ export const handler = async ({
       console.error(user);
     };
 
-    if (isUserFromGoogle(user)) {
+    if (isUserFromGoogle(user) || "firstName" in user) {
       const { resourceName, ...userToUpsert } = user;
       const maybeAvatarUrl = photoUrlLookup[resourceName];
       await sql`

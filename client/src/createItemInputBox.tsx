@@ -12,9 +12,26 @@ import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useApolloClient } from "@apollo/client";
 import { gqlSearchMentionableUsers } from "../gql";
+import { SvgSpinner } from "@guardian/source-react-components";
 interface WithEntity<E> {
   entity: E;
 }
+
+const LoadingUsers = () => (
+  <div
+    css={css`
+      display: flex;
+      align-items: center;
+      gap: ${space["2"]}px;
+      background: ${palette.neutral["100"]};
+      padding: ${space["2"]}px;
+      font-family: ${agateSans.small({ lineHeight: "tight" })};
+    `}
+  >
+    <SvgSpinner size="xsmall" />
+    <span>loading</span>
+  </div>
+);
 
 const UserSuggestion = ({ entity }: WithEntity<User>) => (
   <div
@@ -110,7 +127,7 @@ export const CreateItemInputBox = ({
           },
         }}
         minChar={0}
-        loadingComponent={() => <span>Loading</span>}
+        loadingComponent={LoadingUsers}
         placeholder="enter message here..."
         value={message}
         onChange={(event) => {

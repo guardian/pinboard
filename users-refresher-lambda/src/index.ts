@@ -54,7 +54,6 @@ export const handler = async ({
     }
 
     const storedUsers = await getStoredUsers();
-    const storedUsersEmails = storedUsers.map(({ email }) => email);
 
     const basicUsersWherePinboardPermissionRemoved = storedUsers.reduce<
       BasicUser[]
@@ -78,9 +77,15 @@ export const handler = async ({
       );
     }
 
+    const storedUsersEmailsWhoAreMentionable = storedUsers.reduce<string[]>(
+      (acc, { email, isMentionable }) =>
+        isMentionable ? [...acc, email] : acc,
+      []
+    );
+
     const allEmailsToLookup = isProcessPermissionChangesOnly
       ? emailsOfUsersWithPinboardPermission.filter(
-          (email) => !storedUsersEmails.includes(email)
+          (email) => !storedUsersEmailsWhoAreMentionable.includes(email)
         )
       : emailsOfUsersWithPinboardPermission;
 

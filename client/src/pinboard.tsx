@@ -44,6 +44,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     activeTab,
     userEmail,
     userLookup,
+    addEmailsToLookup,
 
     payloadToBeSent,
     clearPayloadToBeSent,
@@ -62,13 +63,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
   // TODO: extract to floaty level?
   const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
-      const updateForSubscription = subscriptionData.data.onCreateItem;
-      setSubscriptionItems((prevState) => [
-        ...prevState,
-        updateForSubscription,
-      ]);
+      const itemFromSubscription: Item = subscriptionData.data.onCreateItem;
+      addEmailsToLookup([itemFromSubscription.userEmail]);
+      setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
       if (!isExpanded) {
-        showNotification(updateForSubscription);
+        showNotification(itemFromSubscription);
         setUnreadFlag(pinboardId)(true);
       }
     },
@@ -78,7 +77,13 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
 
-  const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId));
+  const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId), {
+    onCompleted: (data) => {
+      addEmailsToLookup(
+        data.listItems?.map((item: Item) => item.userEmail) || []
+      );
+    },
+  });
 
   const itemsMap: ItemsMap = [
     ...(initialItemsQuery.data?.listItems || []),
@@ -100,7 +105,17 @@ export const Pinboard: React.FC<PinboardProps> = ({
   const lastItem = items[lastItemIndex];
 
   const initialLastItemSeenByUsersQuery = useQuery(
-    gqlGetLastItemSeenByUsers(pinboardId)
+    gqlGetLastItemSeenByUsers(pinboardId),
+    {
+      onCompleted: (data) => {
+        addEmailsToLookup(
+          data.listLastItemSeenByUsers?.map(
+            (lastItemSeenByUser: LastItemSeenByUser) =>
+              lastItemSeenByUser.userEmail
+          ) || []
+        );
+      },
+    }
   );
 
   const [
@@ -112,6 +127,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     onSubscriptionData: ({ subscriptionData }) => {
       const newLastItemSeenByUser: LastItemSeenByUser =
         subscriptionData.data.onSeenItem;
+      addEmailsToLookup([newLastItemSeenByUser.userEmail]);
       const previousLastItemSeenByUser =
         lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
       if (

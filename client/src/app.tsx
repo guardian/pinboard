@@ -10,7 +10,6 @@ import {
   useSubscription,
 } from "@apollo/client";
 import {
-  gqlGetAllUsers,
   gqlGetMyUser,
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
@@ -36,6 +35,8 @@ import {
   EXPAND_PINBOARD_QUERY_PARAM,
   OPEN_PINBOARD_QUERY_PARAM,
 } from "../../shared/constants";
+import { UserLookup } from "./types/UserLookup";
+import { gqlGetUsers } from "../gql";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -131,8 +132,44 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
+  const [userLookup, setUserLookup] = useState<UserLookup>({});
+  const [userEmailsToLookup, setEmailsToLookup] = useState<Set<string>>(
+    new Set()
+  );
+
+  useEffect(() => {
+    const newUsersToLookup = Array.from(userEmailsToLookup).filter(
+      (email) => !userLookup[email]
+    );
+    if (newUsersToLookup.length > 0) {
+      apolloClient
+        .query({
+          query: gqlGetUsers,
+          variables: { emails: newUsersToLookup },
+        })
+        .then(({ data }) => {
+          setUserLookup((existingUserLookup) =>
+            data.getUsers.reduce(
+              (acc: UserLookup, user: User) => ({
+                ...acc,
+                [user.email]: user,
+              }),
+              existingUserLookup
+            )
+          );
+        });
+    }
+  }, [userEmailsToLookup]);
+
+  const addEmailsToLookup = (emails: string[]) => {
+    setEmailsToLookup(
+      (existingEmails) => new Set([...existingEmails, ...emails])
+    );
+  };
+
   const meQuery = useQuery<{ getMyUser: MyUser }>(gqlGetMyUser, {
     client: apolloClient,
+    onCompleted: ({ getMyUser }) => addEmailsToLookup([getMyUser.email]),
   });
 
   const me = meQuery.data?.getMyUser;
@@ -164,19 +201,6 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   useEffect(() => {
     setHasWebPushSubscription(rawHasWebPushSubscription);
   }, [rawHasWebPushSubscription]);
-
-  const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
-  //TODO: make use of usersQuery.error and usersQuery.loading
-
-  const allUsers: User[] | undefined = usersQuery.data?.listUsers;
-
-  const userLookup = allUsers?.reduce(
-    (lookup, user) => ({
-      ...lookup,
-      [user.email]: user,
-    }),
-    {} as { [email: string]: User }
-  );
 
   const [setWebPushSubscriptionForUser] = useMutation<{
     setWebPushSubscriptionForUser: MyUser;
@@ -318,6 +342,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
             userLookup={userLookup}
+            addEmailsToLookup={addEmailsToLookup}
             hasWebPushSubscription={hasWebPushSubscription}
             manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
             setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}

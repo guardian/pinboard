@@ -8,7 +8,6 @@ type Query {
   listItems(pinboardId: String!): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
-  listUsers: [User]
   searchMentionableUsers(prefix: String!): [User]
   getUsers(emails: [String!]!): [User]
 

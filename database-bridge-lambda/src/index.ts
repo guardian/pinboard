@@ -9,7 +9,6 @@ import {
   addManuallyOpenedPinboardIds,
   getMyUser,
   getUsers,
-  listUsers,
   removeManuallyOpenedPinboardIds,
   searchMentionableUsers,
   setWebPushSubscriptionForUser,
@@ -32,8 +31,6 @@ const run = (
       return seenItem(sql, args, userEmail);
     case "listLastItemSeenByUsers":
       return listLastItemSeenByUsers(sql, args);
-    case "listUsers":
-      return listUsers(sql);
     case "searchMentionableUsers":
       return searchMentionableUsers(sql, args);
     case "getUsers":

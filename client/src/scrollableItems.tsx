@@ -1,4 +1,4 @@
-import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
 import React, {
   useCallback,
   useContext,
@@ -19,6 +19,7 @@ import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
+import { UserLookup } from "./types/UserLookup";
 
 interface ScrollableItemsProps {
   items: Item[];
@@ -27,7 +28,7 @@ interface ScrollableItemsProps {
   maybeLastItem: Item | undefined;
   hasUnread: boolean | undefined;
   isExpanded: boolean;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
   userEmail: string;
   pinboardId: string;
   lastItemSeenByUserLookup: LastItemSeenByUserLookup;

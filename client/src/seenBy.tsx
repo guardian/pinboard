@@ -2,11 +2,12 @@ import { css } from "@emotion/react";
 import { palette } from "@guardian/source-foundations";
 import { SvgPlus } from "@guardian/source-react-components";
 import React, { useContext } from "react";
-import { LastItemSeenByUser, User } from "../../shared/graphql/graphql";
+import { LastItemSeenByUser } from "../../shared/graphql/graphql";
 import { agateSans } from "../fontNormaliser";
 import { AvatarRoundel } from "./avatarRoundel";
 import { TickContext } from "./formattedDateTime";
 import { formatDateTime } from "./util";
+import { UserLookup } from "./types/UserLookup";
 
 const maxSeenByIcons = 2;
 const roundelHeightPx = 15;
@@ -14,7 +15,7 @@ const roundelOverlapPct = 25;
 
 interface SeenByProps {
   seenBy: LastItemSeenByUser[];
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
 }
 
 export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {

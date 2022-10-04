@@ -1,6 +1,8 @@
 # PinBoard 📌
 
-`the omnipresent 'content association' and chat tool.`
+```
+A Guardian discussion and asset sharing app for editorial story development, integrated with our key editorial tools such as Composer (news stories) and the Grid (images).
+```
 
 This project is written pretty much exclusively in TypeScript (both frontend & backend) and is entirely serverless (server side is a set of lambdas plus [AWS AppSync](https://aws.amazon.com/appsync/)) except the database which is an RDS Postgres instance.
 

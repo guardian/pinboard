@@ -58,10 +58,6 @@ server.get("/pinboard.loader.js", async (request, response) => {
 
   applyJavascriptContentType(response);
 
-  if (STAGE === "PROD") {
-    return response.send("console.log('Pinboard PROD load testing');");
-  }
-
   const mainJsFilename: string | undefined = fs
     .readdirSync(clientDirectory)
     .filter(
@@ -96,6 +92,12 @@ server.get("/pinboard.loader.js", async (request, response) => {
     response.send(`console.error('${message}')`);
   } else if (await userHasPermission(maybeAuthedUserEmail)) {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+
+    if (STAGE === "PROD") {
+      return response.send(
+        "console.log('Pinboard PROD load testing (Phase 2)');"
+      );
+    }
 
     response.send(
       loaderTemplate(

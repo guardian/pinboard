@@ -14,6 +14,7 @@ const MAX_USERS_TO_LOOKUP_IN_ONE_RUN = 1000;
 interface BasicUser {
   email: string;
   isMentionable: boolean;
+  googleID: string | null; // null denotes that the user is not in the Google directory (typically because they have left the organisation)
 }
 
 interface UserFromGoogle extends BasicUser {
@@ -37,7 +38,7 @@ export const handler = async ({
   try {
     const getStoredUsers = async (): Promise<BasicUser[]> =>
       (
-        await sql`SELECT "email", "isMentionable"
+        await sql`SELECT "email", "isMentionable", "googleID"
                  FROM "User"`
       ).map((user) => user as BasicUser) || [];
 
@@ -53,17 +54,17 @@ export const handler = async ({
     }
 
     const storedUsers = await getStoredUsers();
-    const storedUsersEmails = storedUsers.map(({ email }) => email);
 
     const basicUsersWherePinboardPermissionRemoved = storedUsers.reduce<
       BasicUser[]
     >(
-      (acc, { email, isMentionable }) =>
+      (acc, { email, isMentionable, googleID }) =>
         isMentionable && !emailsOfUsersWithPinboardPermission.includes(email)
           ? [
               ...acc,
               {
                 email,
+                googleID,
                 isMentionable: false,
               },
             ]
@@ -79,7 +80,10 @@ export const handler = async ({
 
     const allEmailsToLookup = isProcessPermissionChangesOnly
       ? emailsOfUsersWithPinboardPermission.filter(
-          (email) => !storedUsersEmails.includes(email)
+          (email) =>
+            !storedUsers.find(
+              (storedUser) => storedUser.email === email && storedUser.googleID //TODO check this is the correct way round
+            )
         )
       : emailsOfUsersWithPinboardPermission;
 
@@ -152,6 +156,7 @@ export const handler = async ({
             firstName: firstNameFallback,
             lastName: lastNameFallback,
             isMentionable: false,
+            googleID: null,
           };
         }
         if (userResult.data?.error?.message?.startsWith("Type not supported")) {
@@ -167,6 +172,7 @@ export const handler = async ({
         const { id, ...user } = userResult.data;
         return {
           resourceName: `people/${id}`,
+          googleID: id,
           email: emailFromPermission,
           firstName: user.name?.givenName || firstNameFallback,
           lastName: user.name?.familyName || lastNameFallback,
@@ -250,6 +256,7 @@ export const handler = async ({
             DO UPDATE SET
             "firstName"=${user.firstName},
             "lastName"=${user.lastName},
+            "googleID"=${user.googleID},
             "isMentionable"=${user.isMentionable},
             "avatarUrl"=${maybeAvatarUrl || null}
         `.catch(handleError);

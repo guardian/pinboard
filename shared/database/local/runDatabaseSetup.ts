@@ -42,6 +42,8 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
           .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
           .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
       ),
+    "add googleID column to User table": () =>
+      runSetupSqlFile(sql, "008-AddGoogleIDToUserTable.sql"),
   };
 
   const allSteps = async () => {

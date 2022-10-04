@@ -571,7 +571,7 @@ export class PinBoardStack extends Stack {
         ),
         initialPolicy: [
           permissionsFilePolicyStatement,
-          pandaConfigAndKeyPolicyStatement,
+          readPinboardParamStorePolicyStatement,
         ],
         vpc: accountVpc,
         securityGroups: [databaseSecurityGroup],

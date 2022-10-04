@@ -1,12 +1,11 @@
 import { admin as googleAdminAPI, auth as googleAuth } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
 import * as AWS from "aws-sdk";
-import { standardAwsConfig } from "../../shared/awsIntegration";
 import {
-  pandaSettingsBucketName,
-  getPandaConfig,
-} from "../../shared/panDomainAuth";
-import { p12ToPem } from "./p12ToPem";
+  pinboardSecretPromiseGetter,
+  STAGE,
+  standardAwsConfig,
+} from "../../shared/awsIntegration";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 
@@ -104,30 +103,21 @@ export const handler = async ({
       return;
     }
 
-    const pandaConfig = await getPandaConfig<{
-      googleServiceAccountId: string;
-      googleServiceAccountCert: string;
-      google2faUser: string;
-    }>(S3);
-
-    const serviceAccountPrivateKey = p12ToPem(
-      (
-        await S3.getObject({
-          Bucket: pandaSettingsBucketName,
-          Key: pandaConfig.googleServiceAccountCert,
-        }).promise()
-      ).Body?.toString("base64")
+    const googleServiceAccountDetails = JSON.parse(
+      await pinboardSecretPromiseGetter(
+        `google/${STAGE === "PROD" ? "PROD" : "CODE"}/serviceAccountKey`
+      )
     );
 
     const auth = new googleAuth.JWT({
-      key: serviceAccountPrivateKey,
+      key: googleServiceAccountDetails.private_key,
       scopes: [
         "https://www.googleapis.com/auth/directory.readonly",
         "https://www.googleapis.com/auth/admin.directory.user.readonly",
         "https://www.googleapis.com/auth/admin.directory.group.member.readonly",
       ],
-      email: pandaConfig.googleServiceAccountId,
-      subject: pandaConfig.google2faUser,
+      email: googleServiceAccountDetails.client_email,
+      subject: await pinboardSecretPromiseGetter("google/authSubject"),
     });
 
     const directoryService = googleAdminAPI({
@@ -164,7 +154,8 @@ export const handler = async ({
             isMentionable: false,
           };
         }
-        if (!userResult.data) {
+        if (!userResult.data || userResult.data.error) {
+          console.log(emailFromPermission, userResult.data?.error);
           throw Error("Invalid response from Google Directory API");
         }
         const { id, ...user } = userResult.data;
@@ -264,6 +255,9 @@ export const handler = async ({
         `.catch(handleError);
       }
     }
+  } catch (e) {
+    console.error(e);
+    throw e;
   } finally {
     await sql.end();
   }

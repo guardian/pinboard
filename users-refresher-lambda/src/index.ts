@@ -154,6 +154,12 @@ export const handler = async ({
             isMentionable: false,
           };
         }
+        if (userResult.data?.error?.message?.startsWith("Type not supported")) {
+          return {
+            email: emailFromPermission,
+            isMentionable: false,
+          };
+        }
         if (!userResult.data || userResult.data.error) {
           console.log(emailFromPermission, userResult.data?.error);
           throw Error("Invalid response from Google Directory API");

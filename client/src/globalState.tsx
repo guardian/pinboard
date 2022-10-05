@@ -7,7 +7,7 @@ import {
   useSubscription,
 } from "@apollo/client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { Item, MyUser, User } from "../../shared/graphql/graphql";
+import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
@@ -24,12 +24,14 @@ import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
+import { UserLookup } from "./types/UserLookup";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
 interface GlobalStateContextShape {
   userEmail: string;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
+  addEmailsToLookup: (emails: string[]) => void;
 
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
@@ -100,7 +102,8 @@ interface GlobalStateProviderProps {
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
+  addEmailsToLookup: (emails: string[]) => void;
   hasWebPushSubscription: boolean | null | undefined;
   manuallyOpenedPinboardIds: string[];
   setManuallyOpenedPinboardIds: (newMyUser: MyUser) => void;
@@ -118,6 +121,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   isExpanded,
   setIsExpanded,
   userLookup,
+  addEmailsToLookup,
   hasWebPushSubscription,
   manuallyOpenedPinboardIds,
   setManuallyOpenedPinboardIds,
@@ -472,6 +476,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
+    addEmailsToLookup,
 
     activeTab,
     setActiveTab,

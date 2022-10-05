@@ -80,9 +80,18 @@ const myUserReturnFields = `${userReturnFields}
   manuallyOpenedPinboardIds
 `;
 
-export const gqlGetAllUsers = gql`
+export const gqlSearchMentionableUsers = (prefix: string) => gql`
     query MyQuery {
-        listUsers {
+        searchMentionableUsers(prefix: "${prefix}") {
+            ${userReturnFields}
+            isMentionable
+        }
+    }
+`;
+
+export const gqlGetUsers = gql`
+    query MyQuery($emails: [String!]!) {
+        getUsers(emails: $emails) {
             ${userReturnFields}
             isMentionable
         }

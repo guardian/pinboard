@@ -16,6 +16,7 @@ import {
 } from "./types/PayloadAndType";
 import { FormattedDateTime } from "./formattedDateTime";
 import * as Sentry from "@sentry/react";
+import { UserLookup } from "./types/UserLookup";
 
 const userMentioned = (unread: boolean | undefined) => css`
   color: white;
@@ -112,7 +113,7 @@ const maybeConstructPayloadAndType = (
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
   userEmail: string;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;

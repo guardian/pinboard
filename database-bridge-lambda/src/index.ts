@@ -8,8 +8,9 @@ import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
 import {
   addManuallyOpenedPinboardIds,
   getMyUser,
-  listUsers,
+  getUsers,
   removeManuallyOpenedPinboardIds,
+  searchMentionableUsers,
   setWebPushSubscriptionForUser,
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
@@ -30,8 +31,10 @@ const run = (
       return seenItem(sql, args, userEmail);
     case "listLastItemSeenByUsers":
       return listLastItemSeenByUsers(sql, args);
-    case "listUsers":
-      return listUsers(sql);
+    case "searchMentionableUsers":
+      return searchMentionableUsers(sql, args);
+    case "getUsers":
+      return getUsers(sql, args);
     case "getMyUser":
       return getMyUser(sql, userEmail);
     case "setWebPushSubscriptionForUser":

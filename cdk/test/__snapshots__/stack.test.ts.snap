@@ -3292,7 +3292,7 @@ $util.toJson($ctx.result)",
           ],
         },
         "Handler": "index.handler",
-        "MemorySize": 128,
+        "MemorySize": 512,
         "Role": Object {
           "Fn::GetAtt": Array [
             "pinboardusersrefresherlambdaServiceRoleBF872882",

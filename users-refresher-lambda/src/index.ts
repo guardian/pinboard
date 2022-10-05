@@ -9,7 +9,7 @@ import {
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 
-const MAX_USERS_TO_LOOKUP_IN_ONE_RUN = 50;
+const MAX_USERS_TO_LOOKUP_IN_ONE_RUN = 1000;
 
 interface BasicUser {
   email: string;

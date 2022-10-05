@@ -16,6 +16,7 @@ interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expand: () => void;
+  isLoadTesting: boolean;
 }
 
 const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
@@ -43,6 +44,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
     <root.div
       css={css`
         ${textSans.small()}
+        display: ${props.isLoadTesting ? "none" : "block"};
       `}
     >
       <button
@@ -88,6 +90,7 @@ interface ButtonPortalProps {
   node: HTMLElement;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expand: () => void;
+  isLoadTesting: boolean;
 }
 
 export const ButtonPortal = ({

@@ -3,7 +3,7 @@ import * as lambda from "aws-lambda";
 import { default as express } from "express";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
-import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
+import { standardAwsConfig } from "../../shared/awsIntegration";
 import { userHasPermission } from "./permissionCheck";
 import * as AWS from "aws-sdk";
 import fs from "fs";

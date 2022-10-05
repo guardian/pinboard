@@ -13,9 +13,10 @@ export const loaderTemplate = (
     script.onload = function () {
         ${
           STAGE === "PROD"
-            ? "console.log('Pinboard PROD load testing (Phase 3)');"
-            : `PinBoard.mount(${JSON.stringify(clientConfig)});`
+            ? "console.log('Pinboard PROD load testing (Phase 4)');"
+            : ""
         }
+        PinBoard.mount(${JSON.stringify(clientConfig)});
     };
     script.src = 'https://${hostname}/${mainJsFilename}';
     document.head.appendChild(script);

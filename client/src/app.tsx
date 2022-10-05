@@ -44,9 +44,14 @@ const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
 interface PinBoardAppProps {
   apolloClient: ApolloClient<Record<string, unknown>>;
   userEmail: string;
+  isLoadTesting: boolean;
 }
 
-export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
+export const PinBoardApp = ({
+  apolloClient,
+  userEmail,
+  isLoadTesting,
+}: PinBoardAppProps) => {
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
@@ -306,6 +311,9 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
       <ApolloProvider client={apolloClient}>
         <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
         <root.div
+          css={{
+            display: isLoadTesting ? "none" : "block",
+          }}
           onDragOver={(event) =>
             isGridDragEvent(event) && event.preventDefault()
           }
@@ -363,6 +371,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             node={node}
             setPayloadToBeSent={setPayloadToBeSent}
             expand={expandFloaty}
+            isLoadTesting={isLoadTesting}
           />
         ))}
       </ApolloProvider>

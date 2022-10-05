@@ -164,7 +164,11 @@ export function mount({
 
   render(
     <TelemetryContext.Provider value={sendTelemetryEvent}>
-      <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />
+      <PinBoardApp
+        apolloClient={apolloClient}
+        userEmail={userEmail}
+        isLoadTesting={stage === "PROD"}
+      />
     </TelemetryContext.Provider>,
     element
   );

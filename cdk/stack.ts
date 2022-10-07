@@ -555,7 +555,7 @@ export class PinBoardStack extends Stack {
       usersRefresherLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
-        memorySize: 128,
+        memorySize: 512,
         timeout: Duration.minutes(15),
         handler: "index.handler",
         environment: {
@@ -571,7 +571,7 @@ export class PinBoardStack extends Stack {
         ),
         initialPolicy: [
           permissionsFilePolicyStatement,
-          pandaConfigAndKeyPolicyStatement,
+          readPinboardParamStorePolicyStatement,
         ],
         vpc: accountVpc,
         securityGroups: [databaseSecurityGroup],

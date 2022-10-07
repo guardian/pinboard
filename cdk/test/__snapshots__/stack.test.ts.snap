@@ -3292,7 +3292,7 @@ $util.toJson($ctx.result)",
           ],
         },
         "Handler": "index.handler",
-        "MemorySize": 128,
+        "MemorySize": 512,
         "Role": Object {
           "Fn::GetAtt": Array [
             "pinboardusersrefresherlambdaServiceRoleBF872882",
@@ -3417,9 +3417,24 @@ $util.toJson($ctx.result)",
               },
             },
             Object {
-              "Action": "s3:GetObject",
+              "Action": "ssm:GetParameter",
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/pinboard/*",
+                  ],
+                ],
+              },
             },
             Object {
               "Action": "rds-db:connect",

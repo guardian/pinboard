@@ -92,6 +92,7 @@ server.get("/pinboard.loader.js", async (request, response) => {
     response.send(`console.error('${message}')`);
   } else if (await userHasPermission(maybeAuthedUserEmail)) {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+
     response.send(
       loaderTemplate(
         {

@@ -54,7 +54,7 @@ export const establishTunnelToDBProxy = async (
     `ssm ssh --profile workflow -i ${instanceID} --raw`
   );
 
-  if (ssmResult.stderr?.trim() || !ssmResult.stdout?.trim()) {
+  if (!ssmResult.stdout?.trim()) {
     console.log(ssmResult.stdout);
     console.error(ssmResult.stderr);
     throw Error("Failed to establish get SSH command");

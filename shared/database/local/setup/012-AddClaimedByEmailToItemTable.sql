@@ -1,0 +1,1 @@
+ALTER TABLE "Item" ADD COLUMN "claimedByEmail" VARCHAR(128)[];

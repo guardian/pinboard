@@ -49,6 +49,8 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       runSetupSqlFile(sql, "010-GroupMemberTable.sql"),
     "add groupMentions column to Item table": () =>
       runSetupSqlFile(sql, "011-AddGroupMentionsToItemTable.sql"),
+    "add claimedByEmail column to Item table": () =>
+      runSetupSqlFile(sql, "012-AddClaimedByEmailToItemTable.sql"),
   };
 
   const allSteps = async () => {

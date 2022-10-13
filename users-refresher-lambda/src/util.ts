@@ -30,3 +30,7 @@ export const handleUpsertError = (user: User) => (error: Error) => {
   console.error(`Error upserting user ${user.email}\n`, error);
   console.error(user);
 };
+
+export interface GroupsToLookup {
+  [shorthand: string]: string; // value is any email associated with that group
+}

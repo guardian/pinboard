@@ -2,6 +2,7 @@ import { admin as googleAdminAPI, auth as googleAuth } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
 import * as AWS from "aws-sdk";
 import {
+  pinboardConfigPromiseGetter,
   pinboardSecretPromiseGetter,
   STAGE,
   standardAwsConfig,
@@ -10,8 +11,14 @@ import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { buildPhotoUrlLookup } from "./google/buildPhotoUrlLookup";
 import { buildUserLookupFromGoogle } from "./google/buildUserLookupFromGoogle";
-import { extractNamesWithFallback, handleUpsertError } from "./util";
+import {
+  extractNamesWithFallback,
+  GroupsToLookup,
+  handleUpsertError,
+} from "./util";
 import { buildUserLookupFromDatabase } from "./google/buildUserLookupFromDatabase";
+import { getGroupMembersFromGoogle } from "./google/getGroupMembersFromGoogle";
+import { getGroupDetailFromGoogle } from "./google/getGroupDetailFromGoogle";
 import { isDefinitelyDifferentAvatar } from "./google/isDefinitelyDifferentAvatar";
 
 const S3 = new AWS.S3(standardAwsConfig);
@@ -91,6 +98,7 @@ export const handler = async ({
       scopes: [
         "https://www.googleapis.com/auth/directory.readonly",
         "https://www.googleapis.com/auth/admin.directory.user.readonly",
+        "https://www.googleapis.com/auth/admin.directory.group.readonly",
         "https://www.googleapis.com/auth/admin.directory.group.member.readonly",
       ],
       email: googleServiceAccountDetails.client_email,
@@ -187,6 +195,50 @@ export const handler = async ({
             INSERT INTO "User" ${sql(user)}
           `.catch(handleUpsertError(user));
       }
+    }
+
+    if (!isProcessPermissionChangesOnly) {
+      const groupsToLookup = JSON.parse(
+        await pinboardConfigPromiseGetter(
+          `groups/${STAGE === "PROD" ? "PROD" : "CODE"}`
+        )
+      ) as GroupsToLookup;
+
+      const groups = await getGroupDetailFromGoogle(
+        directoryService,
+        groupsToLookup
+      );
+      const groupMembers = await getGroupMembersFromGoogle(
+        directoryService,
+        groupsToLookup
+      );
+
+      await sql.begin((sql) => [
+        sql`CREATE TABLE "Group_NEW"
+                    (
+                        LIKE "Group"
+                    );`,
+        sql`CREATE TABLE "GroupMember_NEW"
+                    (
+                        LIKE "GroupMember"
+                    );`,
+        ...groups.map((group) => {
+          console.log(
+            `Upserting Group '${group.shorthand}' (${group.primaryEmail})`
+          );
+          return sql`INSERT INTO "Group_NEW" ${sql(group)}`;
+        }),
+        ...groupMembers.map((groupMember) => {
+          console.log(
+            `Upserting Group Member ${groupMember.userGoogleID} into Group '${groupMember.groupShorthand}'`
+          );
+          return sql`INSERT INTO "GroupMember_NEW" ${sql(groupMember)}`;
+        }),
+        sql`DROP TABLE "GroupMember"`,
+        sql`DROP TABLE "Group"`,
+        sql`ALTER TABLE "Group_NEW" RENAME TO "Group"`,
+        sql`ALTER TABLE "GroupMember_NEW" RENAME TO "GroupMember"`,
+      ]);
     }
   } catch (e) {
     console.error(e);

@@ -73,8 +73,15 @@ const myUserReturnFields = `${userReturnFields}
 export const gqlSearchMentionableUsers = (prefix: string) => gql`
     query MyQuery {
         searchMentionableUsers(prefix: "${prefix}") {
+          users {
             ${userReturnFields}
-            isMentionable
+            isMentionable 
+          }
+          groups {
+            shorthand
+            name
+            memberEmails
+          }
         }
     }
 `;

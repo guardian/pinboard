@@ -4,8 +4,8 @@ import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
-import { User } from "../../shared/graphql/graphql";
-import { userToMentionHandle } from "./util";
+import { Group, User } from "../../shared/graphql/graphql";
+import { groupToMentionHandle, userToMentionHandle } from "./util";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
@@ -13,11 +13,13 @@ import { composer } from "../colours";
 import { useApolloClient } from "@apollo/client";
 import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
+import { isGroup } from "../../shared/graphql/extraTypes";
+
 interface WithEntity<E> {
   entity: E;
 }
 
-const LoadingUsers = () => (
+const LoadingSuggestions = () => (
   <div
     css={css`
       display: flex;
@@ -33,37 +35,40 @@ const LoadingUsers = () => (
   </div>
 );
 
-const UserSuggestion = ({ entity }: WithEntity<User>) => (
-  <div
-    css={css`
-      display: flex;
-      padding: ${space[1]}px;
-    `}
-  >
-    <div css={{ paddingRight: `${space[1]}px` }}>
-      <AvatarRoundel maybeUser={entity} size={28} userEmail={entity.email} />
-    </div>
-    <div>
-      <div
-        css={{
-          fontFamily: agateSans.xsmall({
-            lineHeight: "tight",
-            fontWeight: "bold",
-          }),
-        }}
-      >
-        {entity.firstName} {entity.lastName}
+const Suggestion = ({ entity }: WithEntity<User | Group>) =>
+  isGroup(entity) ? (
+    <div>Group: {entity.name}</div>
+  ) : (
+    <div
+      css={css`
+        display: flex;
+        padding: ${space[1]}px;
+      `}
+    >
+      <div css={{ paddingRight: `${space[1]}px` }}>
+        <AvatarRoundel maybeUser={entity} size={28} userEmail={entity.email} />
       </div>
-      <div
-        css={{
-          fontFamily: agateSans.xxsmall({ lineHeight: "tight" }),
-        }}
-      >
-        {entity.email}
+      <div>
+        <div
+          css={{
+            fontFamily: agateSans.xsmall({
+              lineHeight: "tight",
+              fontWeight: "bold",
+            }),
+          }}
+        >
+          {entity.firstName} {entity.lastName}
+        </div>
+        <div
+          css={{
+            fontFamily: agateSans.xxsmall({ lineHeight: "tight" }),
+          }}
+        >
+          {entity.email}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
@@ -74,7 +79,7 @@ interface CreateItemInputBoxProps {
   message: string;
   setMessage: (newMessage: string) => void;
   sendItem: () => void;
-  addUnverifiedMention: (user: User) => void;
+  addUnverifiedMention: (userOrGroup: User | Group) => void;
   panelElement: HTMLDivElement | null;
   isSending: boolean;
 }
@@ -105,7 +110,10 @@ export const CreateItemInputBox = ({
         query: gqlSearchMentionableUsers(token),
         context: { debounceKey: "user-search", debounceTimeout: 250 },
       })
-      .then((queryResult) => queryResult.data.searchMentionableUsers);
+      .then(({ data: { searchMentionableUsers: { users, groups } } }) => [
+        ...users,
+        ...groups,
+      ]);
 
   return (
     <div
@@ -116,23 +124,27 @@ export const CreateItemInputBox = ({
         ${rtaStyles}
       `}
     >
-      <ReactTextareaAutocomplete<User>
+      <ReactTextareaAutocomplete<User | Group>
         innerRef={(element) => (textAreaRef.current = element)}
         disabled={isSending}
         trigger={{
           "@": {
             dataProvider: mentionsDataProvider,
-            component: UserSuggestion,
-            output: (user) => ({
-              key: user.email,
-              text: userToMentionHandle(user),
+            component: Suggestion,
+            output: (userOrGroup) => ({
+              key: isGroup(userOrGroup)
+                ? userOrGroup.shorthand
+                : userOrGroup.email,
+              text: isGroup(userOrGroup)
+                ? groupToMentionHandle(userOrGroup)
+                : userToMentionHandle(userOrGroup),
               caretPosition: "next",
             }),
             allowWhitespace: true,
           },
         }}
         minChar={0}
-        loadingComponent={LoadingUsers}
+        loadingComponent={LoadingSuggestions}
         placeholder="enter message here..."
         value={message}
         onChange={(event) => {

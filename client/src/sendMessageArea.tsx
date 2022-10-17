@@ -2,17 +2,18 @@ import { ApolloError, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
-import { Item, User } from "../../shared/graphql/graphql";
+import { Group, Item, User } from "../../shared/graphql/graphql";
 import { gqlCreateItem } from "../gql";
 import { CreateItemInputBox } from "./createItemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { PendingItem } from "./types/PendingItem";
-import { userToMentionHandle } from "./util";
+import { groupToMentionHandle, userToMentionHandle } from "./util";
 import { composer } from "../colours";
 import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
+import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -33,12 +34,21 @@ export const SendMessageArea = ({
   panelElement,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
-  const [unverifiedMentions, setUnverifiedMentions] = useState<User[]>([]);
-  const addUnverifiedMention = (user: User) =>
-    setUnverifiedMentions((prevState) => [...prevState, user]); // TODO: also make user unique in list
-  const verifiedMentionEmails = unverifiedMentions
+  const [unverifiedMentions, setUnverifiedMentions] = useState<
+    Array<User | Group>
+  >([]);
+  const addUnverifiedMention = (userOrGroup: User | Group) =>
+    setUnverifiedMentions((prevState) => [...prevState, userOrGroup]); // TODO: also make user unique in list
+
+  const verifiedIndividualMentionEmails = unverifiedMentions
+    .filter(isUser)
     .filter((user) => message.includes(userToMentionHandle(user)))
     .map((user) => user.email);
+
+  const verifiedGroupMentionShorthands = unverifiedMentions
+    .filter(isGroup)
+    .filter((group) => message.includes(groupToMentionHandle(group)))
+    .map((group) => group.shorthand);
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
@@ -61,7 +71,9 @@ export const SendMessageArea = ({
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
         pinboardId: sendMessageResult.createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
-        hasMentions: !!verifiedMentionEmails.length,
+        hasMentions:
+          !!verifiedIndividualMentionEmails.length ||
+          !!verifiedGroupMentionShorthands.length,
       });
       setMessage("");
       clearPayloadToBeSent();
@@ -74,7 +86,8 @@ export const SendMessageArea = ({
         message,
         payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
         pinboardId,
-        mentions: verifiedMentionEmails,
+        mentions: verifiedIndividualMentionEmails,
+        groupMentions: verifiedGroupMentionShorthands,
       },
     },
   });

@@ -28,6 +28,7 @@ import { getYourEmail } from "../shared/local/yourEmail";
       pinboardId: "63923",
       payload: null,
       mentions: ["tom.richards@guardian.co.uk"],
+      groupMentions: [],
       userEmail: "tom.richards@guardian.co.uk",
       id: "535b86e2-4f01-4f60-a2d0-a5e4f5a7d312",
       message: "testing one two three",

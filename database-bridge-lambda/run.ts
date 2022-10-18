@@ -8,26 +8,32 @@ const baseInput = {
 };
 
 const sampleInputs = {
-  listItems: { pinboardId: "123" },
+  listItems: { pinboardId: "63206" },
   searchMentionableUsers: { prefix: "a" },
 };
 
 (async () => {
   await createDatabaseTunnel();
 
-  const { inputPayload } = await prompts({
-    type: "select",
-    name: "inputPayload",
-    message: "Operation?",
-    choices: Object.entries(sampleInputs).map(([operation, sampleInput]) => ({
-      title: operation,
-      value: {
-        ...baseInput,
-        arguments: sampleInput,
-        info: { fieldName: operation },
-      } as AppSyncResolverEvent<unknown, unknown>,
-    })),
-  });
+  // noinspection InfiniteLoopJS
+  while (
+    // eslint-disable-next-line no-constant-condition
+    true
+  ) {
+    const { inputPayload } = await prompts({
+      type: "select",
+      name: "inputPayload",
+      message: "Operation?",
+      choices: Object.entries(sampleInputs).map(([operation, sampleInput]) => ({
+        title: operation,
+        value: {
+          ...baseInput,
+          arguments: sampleInput,
+          info: { fieldName: operation },
+        } as AppSyncResolverEvent<unknown, unknown>,
+      })),
+    });
 
-  console.log(JSON.stringify(await handler(inputPayload), null, 2));
+    console.log(JSON.stringify(await handler(inputPayload), null, 2));
+  }
 })();

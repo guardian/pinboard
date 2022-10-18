@@ -18,7 +18,7 @@ import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
-  onSuccessfulSend: (item: PendingItem) => void;
+  onSuccessfulSend: (item: PendingItem, mentionEmails: string[]) => void;
   onError: (error: ApolloError) => void;
   userEmail: string;
   pinboardId: string;
@@ -40,15 +40,23 @@ export const SendMessageArea = ({
   const addUnverifiedMention = (userOrGroup: User | Group) =>
     setUnverifiedMentions((prevState) => [...prevState, userOrGroup]); // TODO: also make user unique in list
 
-  const verifiedIndividualMentionEmails = unverifiedMentions
-    .filter(isUser)
-    .filter((user) => message.includes(userToMentionHandle(user)))
-    .map((user) => user.email);
+  const verifiedIndividualMentionEmails = Array.from(
+    new Set(
+      unverifiedMentions
+        .filter(isUser)
+        .filter((user) => message.includes(userToMentionHandle(user)))
+        .map((user) => user.email)
+    )
+  );
 
-  const verifiedGroupMentionShorthands = unverifiedMentions
-    .filter(isGroup)
-    .filter((group) => message.includes(groupToMentionHandle(group)))
-    .map((group) => group.shorthand);
+  const verifiedGroupMentionShorthands = Array.from(
+    new Set(
+      unverifiedMentions
+        .filter(isGroup)
+        .filter((group) => message.includes(groupToMentionHandle(group)))
+        .map((group) => group.shorthand)
+    )
+  );
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
@@ -61,10 +69,13 @@ export const SendMessageArea = ({
     createItem: Item;
   }>(gqlCreateItem, {
     onCompleted: (sendMessageResult) => {
-      onSuccessfulSend({
-        ...sendMessageResult.createItem,
-        pending: true,
-      });
+      onSuccessfulSend(
+        {
+          ...sendMessageResult.createItem,
+          pending: true,
+        },
+        verifiedIndividualMentionEmails
+      );
       if (hasGridUrl(message)) {
         sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_LINK_PASTED);
       }

@@ -40,6 +40,11 @@ type Subscription {
   ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
 }
 
+type MentionHandle {
+  label: String!
+  isMe: Boolean!
+}
+
 type Item {
   id: ID!
   message: String
@@ -48,8 +53,8 @@ type Item {
   type: String!
   userEmail: String!
   pinboardId: String!
-  mentions: [String!]
-  groupMentions: [String!]
+  mentions: [MentionHandle!]
+  groupMentions: [MentionHandle!]
 }
 
 type LastItemSeenByUser {

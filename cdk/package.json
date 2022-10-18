@@ -5,9 +5,12 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "license": "MIT",
   "scripts": {
-    "test": "tsc --noEmit & jest",
-    "watch": "tsc --noEmit --watch & jest --watch",
-    "build": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts'",
+    "type-check": "tsc --noEmit",
+    "jest": "jest",
+    "test": "run-p --print-label type-check jest",
+    "watch": "yarn test -- --watch",
+    "synth": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts'",
+    "build": "run-p --print-label type-check synth",
     "update-snapshot": "jest -u"
   },
   "devDependencies": {

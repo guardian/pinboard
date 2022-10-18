@@ -23,6 +23,7 @@
     "watch-bootstrapping-lambda": "yarn --cwd 'bootstrapping-lambda' watch 2>&1",
     "watch": "run-p --print-label watch-client watch-bootstrapping-lambda",
     "test": "wsrun --parallel --fast-exit --prefix --report --exclude-missing test ",
+    "type-check": "wsrun --parallel --fast-exit --prefix --report type-check",
     "build": "wsrun --parallel --fast-exit --prefix --report build ",
     "prepare": "husky install",
     "database-setup": "ts-node-dev shared/database/local/runDatabaseSetup.ts",

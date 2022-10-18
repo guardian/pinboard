@@ -165,9 +165,9 @@ export const ItemDisplay = ({
         {isDifferentUserFromPreviousItem && (
           <React.Fragment>
             <AvatarRoundel
-              maybeUser={user}
+              maybeUserOrGroup={user}
               size={28}
-              userEmail={item.userEmail}
+              fallback={item.userEmail}
             />
             <span
               css={css`

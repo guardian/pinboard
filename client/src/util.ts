@@ -12,7 +12,7 @@ import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
 export const userToMentionHandle = (user: User) =>
   `@${user.firstName} ${user.lastName}`;
 
-export const groupToMentionHandle = (group: Group) => `@${group.name}`;
+export const groupToMentionHandle = (group: Group) => `@${group.shorthand}`;
 
 export const getTooltipText = (pinboardData: PinboardData) =>
   `WT: ${pinboardData.title}` +

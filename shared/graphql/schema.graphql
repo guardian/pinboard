@@ -55,6 +55,8 @@ type Item {
   pinboardId: String!
   mentions: [MentionHandle!]
   groupMentions: [MentionHandle!]
+  claimedByEmail: String
+  claimable: Boolean!
 }
 
 type LastItemSeenByUser {
@@ -126,6 +128,7 @@ input CreateItemInput {
   pinboardId: String!
   mentions: [String!]
   groupMentions: [String!]
+  claimable: Boolean
 }
 
 input LastItemSeenByUserInput {

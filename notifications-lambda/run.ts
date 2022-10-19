@@ -34,6 +34,8 @@ import { getYourEmail } from "../shared/local/yourEmail";
       message: "testing one two three",
       type: "message-only",
       timestamp: new Date(1630517452000).toISOString(),
+      claimable: false,
+      claimedByEmail: null,
     },
     users: [yourUser as UserWithWebPushSubscription],
   });

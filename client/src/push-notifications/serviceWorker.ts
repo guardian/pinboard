@@ -24,7 +24,7 @@ const showNotification = (
     {
       tag: item.id,
       data: item,
-      body: item.message,
+      body: item.type === "claim" ? `claimed a group mention` : item.message,
       icon: item.payload?.thumbnail,
       image: item.payload?.thumbnail,
       requireInteraction: true,

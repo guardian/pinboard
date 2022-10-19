@@ -175,6 +175,19 @@ export const gqlSeenItem = gql`
   }
 `;
 
+export const gqlClaimItem = gql`
+  mutation ClaimItem($itemId: String!) {
+    claimItem(itemId: $itemId) {
+      updatedItem {
+        ${itemReturnFields}
+      }
+      newItem {
+        ${itemReturnFields}
+      }
+    }
+  }
+`;
+
 const gridBadgeFields = `
   text
   color

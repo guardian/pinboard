@@ -77,9 +77,12 @@ export const claimItem = (
     const [updatedItem] = await sql`
         UPDATE "Item"
         SET "claimedByEmail" = ${userEmail}
-        WHERE "id" = ${args.itemId}
+        WHERE "id" = ${args.itemId} AND "claimedByEmail" IS NULL
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `;
+    if (!updatedItem) {
+      throw new Error("Item already claimed or item not found");
+    }
     const payload = {
       itemId: args.itemId,
     };

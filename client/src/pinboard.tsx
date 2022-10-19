@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useQuery, useSubscription } from "@apollo/client";
-import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
+import {
+  Claimed,
+  Item,
+  LastItemSeenByUser,
+} from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { PendingItem } from "./types/PendingItem";
 import {
+  gqlClaimItem,
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
   gqlOnCreateItem,
@@ -19,7 +24,7 @@ import { agateSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 
-interface ItemsMap {
+export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
 
@@ -72,6 +77,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
     },
   });
 
+  const [claimItems, setClaimItems] = useState<Item[]>([]);
+
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
@@ -88,6 +95,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     ...(initialItemsQuery.data?.listItems || []),
     ...successfulSends,
     ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
+    ...claimItems,
   ].reduce(
     (accumulator, item) => ({
       ...accumulator,
@@ -201,6 +209,19 @@ export const Pinboard: React.FC<PinboardProps> = ({
     );
   };
 
+  const handleClaimed = (data: { claimItem: Claimed }) =>
+    setClaimItems((prevState) => [
+      ...prevState,
+      data.claimItem.updatedItem,
+      data.claimItem.newItem,
+    ]);
+
+  const [claimItem] = useMutation(gqlClaimItem, {
+    onCompleted: handleClaimed,
+  });
+
+  // FIXME add a GraphQL subscription to hear about claims performed by other people (reusing handleClaimed)
+
   return !isSelected ? null : (
     <React.Fragment>
       {initialItemsQuery.loading && "Loading..."}
@@ -272,6 +293,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <ScrollableItems
           showNotification={showNotification}
           items={items}
+          itemsMap={itemsMap}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
           maybeLastItem={lastItem}
@@ -281,6 +303,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           userEmail={userEmail}
           pinboardId={pinboardId}
           lastItemSeenByUserLookup={lastItemSeenByUserLookup}
+          claimItem={claimItem}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (

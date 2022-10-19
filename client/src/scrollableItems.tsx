@@ -1,4 +1,9 @@
-import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
+import {
+  Claimed,
+  Item,
+  LastItemSeenByUser,
+  MutationClaimItemArgs,
+} from "../../shared/graphql/graphql";
 import React, {
   useCallback,
   useContext,
@@ -10,9 +15,9 @@ import React, {
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { ItemDisplay } from "./itemDisplay";
-import { useMutation } from "@apollo/client";
+import { FetchResult, useMutation } from "@apollo/client";
 import { gqlSeenItem } from "../gql";
-import { LastItemSeenByUserLookup } from "./pinboard";
+import { ItemsMap, LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
@@ -23,6 +28,7 @@ import { UserLookup } from "./types/UserLookup";
 
 interface ScrollableItemsProps {
   items: Item[];
+  itemsMap: ItemsMap;
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
   maybeLastItem: Item | undefined;
@@ -33,10 +39,14 @@ interface ScrollableItemsProps {
   pinboardId: string;
   lastItemSeenByUserLookup: LastItemSeenByUserLookup;
   showNotification: (item: Item) => void;
+  claimItem: (options: {
+    variables: MutationClaimItemArgs;
+  }) => Promise<FetchResult<{ claimItem: Claimed }>>;
 }
 
 export const ScrollableItems = ({
   items,
+  itemsMap,
   successfulSends,
   subscriptionItems,
   maybeLastItem,
@@ -47,6 +57,7 @@ export const ScrollableItems = ({
   pinboardId,
   lastItemSeenByUserLookup,
   showNotification,
+  claimItem,
 }: ScrollableItemsProps) => {
   const { isRepositioning } = useGlobalStateContext();
 
@@ -207,6 +218,12 @@ export const ScrollableItems = ({
             seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
             maybePreviousItem={items[index - 1]}
             scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+            claimItem={() => claimItem({ variables: { itemId: item.id } })}
+            maybeClaimedItem={
+              item.type === "claim" &&
+              !!item.payload &&
+              itemsMap[JSON.parse(item.payload).itemId]
+            }
           />
         ))}
       {hasUnread && (

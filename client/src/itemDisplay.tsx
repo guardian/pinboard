@@ -142,6 +142,8 @@ export const ItemDisplay = ({
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
+  const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];
+
   const isMentionApplicableToMe = item.groupMentions?.find(({ isMe }) => isMe);
   return (
     <div
@@ -203,7 +205,19 @@ export const ItemDisplay = ({
           />
         )}
       </div>
+      {maybeClaimedBy && (
+        <span>
+          claimed by{" "}
+          <AvatarRoundel
+            maybeUserOrGroup={maybeClaimedBy}
+            size={16}
+            fallback={maybeClaimedBy.email}
+          />{" "}
+          {maybeClaimedBy.firstName} {maybeClaimedBy.lastName}
+        </span>
+      )}
       {item.claimable &&
+        !item.claimedByEmail &&
         (isMentionApplicableToMe ? (
           <button>claim</button>
         ) : (

@@ -6,13 +6,13 @@ const fragmentIndividualMentionsToMentionHandles = (
   userEmail: string
 ) => sql`
     SELECT json_agg(
-        json_build_object(
-            'label', concat('@', "firstName", ' ', "lastName"),
-            'isMe', "email" = ${userEmail}
-        )
-    )
+                   json_build_object(
+                           'label', concat('@', "firstName", ' ', "lastName"),
+                           'isMe', "email" = ${userEmail}
+                       )
+               )
     FROM "User"
-    WHERE "email" = ANY("mentions")
+    WHERE "email" = ANY ("mentions")
 `;
 
 const fragmentGroupMentionsToMentionHandles = (
@@ -20,29 +20,33 @@ const fragmentGroupMentionsToMentionHandles = (
   userEmail: string
 ) => sql`
     SELECT json_agg(
-        json_build_object(
-            'label', concat('@', "shorthand"),
-            'isMe', EXISTS(
-                SELECT 1
-                FROM "User", "GroupMember"
-                WHERE "GroupMember"."groupShorthand" = "shorthand"
-                    AND "GroupMember"."userGoogleID" = "User"."googleID"
-                    AND "User"."email" = ${userEmail} 
-            )
-        )
-    )
+                   json_build_object(
+                           'label', concat('@', "shorthand"),
+                           'isMe', EXISTS(
+                                   SELECT 1
+                                   FROM "User",
+                                        "GroupMember"
+                                   WHERE "GroupMember"."groupShorthand" = "shorthand"
+                                     AND "GroupMember"."userGoogleID" = "User"."googleID"
+                                     AND "User"."email" = ${userEmail}
+                               )
+                       )
+               )
     FROM "Group"
-    WHERE "shorthand" = ANY("groupMentions")
+    WHERE "shorthand" = ANY ("groupMentions")
 `;
 
 const fragmentItemFields = (sql: Sql, userEmail: string) => sql`
-    *, (${fragmentIndividualMentionsToMentionHandles(
-      sql,
-      userEmail
-    )}) as "mentions", (${fragmentGroupMentionsToMentionHandles(
-  sql,
-  userEmail
-)}) as "groupMentions"`;
+    *, (
+    ${fragmentIndividualMentionsToMentionHandles(sql, userEmail)}
+    )
+    as
+    "mentions",
+    (
+    ${fragmentGroupMentionsToMentionHandles(sql, userEmail)}
+    )
+    as
+    "groupMentions"`;
 
 export const createItem = async (
   sql: Sql,
@@ -50,9 +54,9 @@ export const createItem = async (
   userEmail: string
 ) =>
   sql`
-    INSERT INTO "Item" ${sql({ userEmail, ...args.input })} 
-    RETURNING ${fragmentItemFields(sql, userEmail)}
-`.then((rows) => rows[0]);
+        INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
+            RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
 
 export const listItems = (
   sql: Sql,
@@ -63,3 +67,29 @@ export const listItems = (
     FROM "Item"
     WHERE "pinboardId" = ${args.pinboardId}
 `;
+
+export const claimItem = (
+  sql: Sql,
+  args: { itemId: string },
+  userEmail: string
+) =>
+  sql.begin(async (sql) => {
+    const [updatedItem] = await sql`
+        UPDATE "Item"
+        SET "claimedByEmail" = ${userEmail}
+        WHERE "id" = ${args.itemId}
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `;
+    const payload = {
+      itemId: args.itemId,
+    };
+    const [newItem] = await sql`
+        INSERT INTO "Item" ("type", "userEmail", "pinboardId", "payload")
+        VALUES ('claim', ${userEmail}, ${updatedItem.pinboardId}, ${payload})
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `;
+    return {
+      updatedItem,
+      newItem,
+    };
+  });

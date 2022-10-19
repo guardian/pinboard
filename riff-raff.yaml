@@ -32,7 +32,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-bootstrapping-lambda-api.zip
       functionNames: [pinboard-bootstrapping-lambda-]
 
@@ -42,7 +41,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-workflow-bridge-lambda.zip
       functionNames: [pinboard-workflow-bridge-lambda-]
 
@@ -52,7 +50,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-grid-bridge-lambda.zip
       functionNames: [pinboard-grid-bridge-lambda-]
 
@@ -62,7 +59,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-users-refresher-lambda.zip
       functionNames: [pinboard-users-refresher-lambda-]
 
@@ -72,7 +68,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-notifications-lambda.zip
       functionNames: [pinboard-notifications-lambda-]
 
@@ -82,7 +77,6 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-auth-lambda.zip
       functionNames: [pinboard-auth-lambda-]
 
@@ -92,6 +86,5 @@ deployments:
     type: aws-lambda
     parameters:
       prefixStack: false
-      bucket: workflow-dist
       fileName: pinboard-database-bridge-lambda.zip
       functionNames: [pinboard-database-bridge-lambda-]

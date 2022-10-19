@@ -1,0 +1,3 @@
+ALTER TABLE "Item"
+    ADD COLUMN "claimedByEmail" VARCHAR(128),
+    ADD COLUMN "claimable" BOOLEAN NOT NULL DEFAULT FALSE;

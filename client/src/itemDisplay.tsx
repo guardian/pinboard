@@ -142,6 +142,7 @@ export const ItemDisplay = ({
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
+  const isMentionApplicableToMe = item.groupMentions?.find(({ isMe }) => isMe);
   return (
     <div
       css={css`
@@ -202,6 +203,12 @@ export const ItemDisplay = ({
           />
         )}
       </div>
+      {item.claimable &&
+        (isMentionApplicableToMe ? (
+          <button>claim</button>
+        ) : (
+          <em>awaiting claim</em>
+        ))}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );

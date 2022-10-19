@@ -65,7 +65,7 @@ export const SendMessageArea = ({
     return !!message.match(gridUrlRegex);
   };
 
-  const [sendItem, { loading: isItemSending }] = useMutation<{
+  const [_sendItem, { loading: isItemSending }] = useMutation<{
     createItem: Item;
   }>(gqlCreateItem, {
     onCompleted: (sendMessageResult) => {
@@ -91,17 +91,25 @@ export const SendMessageArea = ({
       setUnverifiedMentions([]);
     },
     onError,
-    variables: {
-      input: {
-        type: payloadToBeSent?.type || "message-only",
-        message,
-        payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
-        pinboardId,
-        mentions: verifiedIndividualMentionEmails,
-        groupMentions: verifiedGroupMentionShorthands,
-      },
-    },
   });
+  const sendItem = () =>
+    _sendItem({
+      variables: {
+        input: {
+          type: payloadToBeSent?.type || "message-only",
+          message,
+          payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
+          pinboardId,
+          mentions: verifiedIndividualMentionEmails,
+          groupMentions: verifiedGroupMentionShorthands,
+          claimable:
+            verifiedGroupMentionShorthands?.length > 0 &&
+            window.confirm(
+              "It looks like you're mentioning a group. If this is a request to the team, would you like to be claimable?"
+            ),
+        },
+      },
+    });
 
   return (
     <div
@@ -145,7 +153,7 @@ export const SendMessageArea = ({
             cursor: default;
           }
         `}
-        onClick={() => sendItem()}
+        onClick={sendItem}
         disabled={isItemSending || !(message || payloadToBeSent)}
       >
         {isItemSending ? (

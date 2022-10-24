@@ -219,6 +219,7 @@ export const ScrollableItems = ({
             maybePreviousItem={items[index - 1]}
             scrollToBottomIfApplicable={scrollToBottomIfApplicable}
             claimItem={() => claimItem({ variables: { itemId: item.id } })}
+            userEmail={userEmail}
             maybeClaimedItem={
               item.type === "claim" &&
               !!item.payload &&

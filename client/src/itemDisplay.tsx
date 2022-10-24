@@ -4,7 +4,7 @@ import {
   LastItemSeenByUser,
   MentionHandle,
 } from "../../shared/graphql/graphql";
-import React, { Fragment, useState } from "react";
+import React, { Fragment } from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
@@ -21,8 +21,8 @@ import {
 import { FormattedDateTime } from "./formattedDateTime";
 import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
-import { FetchResult, useMutation } from "@apollo/client";
-import { SvgSpinner } from "@guardian/source-react-components";
+import { FetchResult } from "@apollo/client";
+import { ClaimableItem } from "./claimableItem";
 
 const meMentionedCSS = (unread: boolean | undefined) => css`
   color: white;
@@ -121,6 +121,7 @@ interface ItemDisplayProps {
   scrollToBottomIfApplicable: () => void;
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
   maybeClaimedItem: Item | false | undefined;
+  userEmail: string;
 }
 
 export const ItemDisplay = ({
@@ -131,6 +132,7 @@ export const ItemDisplay = ({
   scrollToBottomIfApplicable,
   claimItem,
   maybeClaimedItem,
+  userEmail,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
@@ -148,12 +150,6 @@ export const ItemDisplay = ({
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
-
-  const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];
-
-  const isMentionApplicableToMe = item.groupMentions?.find(({ isMe }) => isMe);
-
-  const [isClaiming, setIsClaiming] = useState(false);
 
   return (
     <div
@@ -197,15 +193,17 @@ export const ItemDisplay = ({
           margin-left: ${space[9] - 4}px;
         `}
       >
-        <div
-          css={css`
-            color: ${palette.neutral["20"]};
-            ${agateSans.xxsmall({ lineHeight: "tight" })};
-            margin-bottom: 2px;
-          `}
-        >
-          <FormattedDateTime timestamp={dateInMillisecs} />
-        </div>
+        {item.type !== "claim" && ( // FIXME - Should we show claims as an item?
+          <div
+            css={css`
+              color: ${palette.neutral["20"]};
+              ${agateSans.xxsmall({ lineHeight: "tight" })};
+              margin-bottom: 2px;
+            `}
+          >
+            <FormattedDateTime timestamp={dateInMillisecs} />
+          </div>
+        )}
         <div>{formattedMessage}</div>
         {payloadAndType && (
           <PayloadDisplay
@@ -214,92 +212,16 @@ export const ItemDisplay = ({
             scrollToBottomIfApplicable={scrollToBottomIfApplicable}
           />
         )}
-        {maybeClaimedItem && (
-          /* FIXME refactor into its own component*/
-          <div>
-            <em>claimed</em>
-            <q
-              css={css`
-                display: block;
-                background-color: ${palette.neutral["86"]};
-                border: 1px solid ${palette.neutral["60"]};
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                cursor: pointer;
-                &:hover {
-                  background-color: ${palette.neutral["60"]};
-                }
-              `}
-              onClick={() => {
-                console.log("jump to item with ID", maybeClaimedItem.id);
-                // FIXME actually implement jumping, will require some Map of 'ref's for each item (which would also enable one of the notification related query params to work)
-              }}
-            >
-              {maybeClaimedItem.message}
-            </q>
-          </div>
-        )}
       </div>
       {item.claimable && (
-        <div
-          css={css`
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: ${space[1]}px;
-            margin: ${space[2]}px 0;
-            ${agateSans.xxsmall({ lineHeight: "tight" })};
-          `}
-        >
-          {maybeClaimedBy ? (
-            <React.Fragment>
-              Claimed by
-              <AvatarRoundel
-                maybeUserOrGroup={maybeClaimedBy}
-                size={16}
-                fallback={maybeClaimedBy.email}
-              />
-              <strong>
-                {maybeClaimedBy.firstName} {maybeClaimedBy.lastName}
-              </strong>
-            </React.Fragment>
-          ) : isMentionApplicableToMe ? (
-            isClaiming ? (
-              <React.Fragment>
-                <SvgSpinner size="xsmall" />
-                claiming
-              </React.Fragment>
-            ) : (
-              <button
-                css={css`
-                  cursor: pointer;
-                `}
-                onClick={() => {
-                  if (
-                    confirm(
-                      "Are you sure you want to claim this on behalf of the group?"
-                    )
-                  ) {
-                    setIsClaiming(true);
-                    claimItem()
-                      .catch((error) => {
-                        console.error(error);
-                        // TODO display error to user
-                      })
-                      .finally(() => setIsClaiming(false));
-                  }
-                }}
-              >
-                CLAIM
-              </button>
-            )
-          ) : (
-            <em>awaiting claim</em>
-          )}
-        </div>
+        <ClaimableItem
+          item={item}
+          userEmail={userEmail}
+          userLookup={userLookup}
+          claimItem={claimItem}
+          maybeClaimedItem={maybeClaimedItem}
+        />
       )}
-
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );

@@ -210,23 +210,28 @@ export const ScrollableItems = ({
       onScroll={onScrollThrottled}
     >
       {!isRepositioning &&
-        items.map((item, index) => (
-          <ItemDisplay
-            key={item.id}
-            item={item}
-            userLookup={userLookup}
-            seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-            maybePreviousItem={items[index - 1]}
-            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-            claimItem={() => claimItem({ variables: { itemId: item.id } })}
-            userEmail={userEmail}
-            maybeClaimedItem={
-              item.type === "claim" &&
-              !!item.payload &&
-              itemsMap[JSON.parse(item.payload).itemId]
-            }
-          />
-        ))}
+        items
+          .filter(
+            (item, index) =>
+              item.type !== "claim" ||
+              !item.relatedItemId ||
+              items[index - 1]?.id !== item.relatedItemId
+          )
+          .map((item, index) => (
+            <ItemDisplay
+              key={item.id}
+              item={item}
+              userLookup={userLookup}
+              seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+              maybePreviousItem={items[index - 1]}
+              scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+              claimItem={() => claimItem({ variables: { itemId: item.id } })}
+              userEmail={userEmail}
+              maybeRelatedItem={
+                !!item.relatedItemId && itemsMap[item.relatedItemId]
+              }
+            />
+          ))}
       {hasUnread && (
         <div
           css={css`

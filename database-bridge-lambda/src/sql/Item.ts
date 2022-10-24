@@ -83,12 +83,11 @@ export const claimItem = (
     if (!updatedItem) {
       throw new Error("Item already claimed or item not found");
     }
-    const payload = {
-      itemId: args.itemId,
-    };
     const [newItem] = await sql`
-        INSERT INTO "Item" ("type", "userEmail", "pinboardId", "payload")
-        VALUES ('claim', ${userEmail}, ${updatedItem.pinboardId}, ${payload})
+        INSERT INTO "Item" ("type", "userEmail", "pinboardId", "relatedItemId")
+        VALUES ('claim', ${userEmail}, ${updatedItem.pinboardId}, ${
+      args.itemId
+    })
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `;
     return {

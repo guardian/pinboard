@@ -11,7 +11,6 @@ import { FetchResult } from "@apollo/client";
 interface ClaimableItemProps {
   item: Item | PendingItem;
   userLookup: UserLookup;
-  maybeClaimedItem: Item | false | undefined;
   userEmail: string;
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
 }
@@ -29,7 +28,6 @@ export const ClaimableItem = ({
   item,
   claimItem,
   userLookup,
-  maybeClaimedItem, // TODO - think about whether we should be showing this at all
   userEmail,
 }: ClaimableItemProps) => {
   const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];

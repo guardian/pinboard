@@ -23,6 +23,7 @@ import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
 import { FetchResult } from "@apollo/client";
 import { ClaimableItem } from "./claimableItem";
+import { NestedItemDisplay } from "./nestedItemDisplay";
 
 const meMentionedCSS = (unread: boolean | undefined) => css`
   color: white;
@@ -120,7 +121,7 @@ interface ItemDisplayProps {
   maybePreviousItem: Item | PendingItem | undefined;
   scrollToBottomIfApplicable: () => void;
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
-  maybeClaimedItem: Item | false | undefined;
+  maybeRelatedItem: Item | false | undefined;
   userEmail: string;
 }
 
@@ -131,7 +132,7 @@ export const ItemDisplay = ({
   maybePreviousItem,
   scrollToBottomIfApplicable,
   claimItem,
-  maybeClaimedItem,
+  maybeRelatedItem,
   userEmail,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
@@ -193,18 +194,31 @@ export const ItemDisplay = ({
           margin-left: ${space[9] - 4}px;
         `}
       >
-        {item.type !== "claim" && ( // FIXME - Should we show claims as an item?
-          <div
-            css={css`
-              color: ${palette.neutral["20"]};
-              ${agateSans.xxsmall({ lineHeight: "tight" })};
-              margin-bottom: 2px;
-            `}
-          >
-            <FormattedDateTime timestamp={dateInMillisecs} />
-          </div>
+        <div
+          css={css`
+            color: ${palette.neutral["20"]};
+            ${agateSans.xxsmall({ lineHeight: "tight" })};
+            margin-bottom: 2px;
+          `}
+        >
+          <FormattedDateTime timestamp={dateInMillisecs} />
+        </div>
+        <div>
+          {item.type === "claim" ? (
+            <em>...claimed request :</em>
+          ) : (
+            formattedMessage
+          )}
+        </div>
+        {maybeRelatedItem && (
+          <NestedItemDisplay
+            item={{ ...maybeRelatedItem, claimable: false }}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+            claimItem={claimItem}
+            userLookup={userLookup}
+            userEmail={userEmail}
+          />
         )}
-        <div>{formattedMessage}</div>
         {payloadAndType && (
           <PayloadDisplay
             payloadAndType={payloadAndType}
@@ -219,7 +233,6 @@ export const ItemDisplay = ({
           userEmail={userEmail}
           userLookup={userLookup}
           claimItem={claimItem}
-          maybeClaimedItem={maybeClaimedItem}
         />
       )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}

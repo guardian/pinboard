@@ -58,6 +58,7 @@ type Item {
   groupMentions: [MentionHandle!]
   claimedByEmail: String
   claimable: Boolean!
+  relatedItemId: String
 }
 
 type LastItemSeenByUser {

@@ -36,6 +36,7 @@ import { getYourEmail } from "../shared/local/yourEmail";
       timestamp: new Date(1630517452000).toISOString(),
       claimable: false,
       claimedByEmail: null,
+      relatedItemId: null,
     },
     users: [yourUser as UserWithWebPushSubscription],
   });

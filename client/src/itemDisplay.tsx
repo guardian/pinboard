@@ -136,6 +136,9 @@ export const ItemDisplay = ({
   userEmail,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
+  const userDisplayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : item.userEmail;
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
   const isPendingSend = "pending" in item && item.pending;
 
@@ -151,6 +154,8 @@ export const ItemDisplay = ({
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
+
+  const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];
 
   return (
     <div
@@ -184,7 +189,7 @@ export const ItemDisplay = ({
                 color: ${palette.neutral[20]};
               `}
             >
-              {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
+              {userDisplayName}
             </span>
           </React.Fragment>
         )}
@@ -230,9 +235,14 @@ export const ItemDisplay = ({
       {item.claimable && (
         <ClaimableItem
           item={item}
-          userEmail={userEmail}
-          userLookup={userLookup}
+          userDisplayName={userDisplayName}
           claimItem={claimItem}
+          maybeClaimedByName={
+            maybeClaimedBy &&
+            (userEmail === item.claimedByEmail
+              ? "you"
+              : `${maybeClaimedBy.firstName} ${maybeClaimedBy.lastName}`)
+          }
         />
       )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}

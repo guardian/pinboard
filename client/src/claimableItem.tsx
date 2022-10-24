@@ -3,35 +3,33 @@ import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { UserLookup } from "./types/UserLookup";
-import { Claimed, Item } from "../../shared/graphql/graphql";
+import { Claimed, Item, MentionHandle } from "../../shared/graphql/graphql";
 import { PendingItem } from "./types/PendingItem";
 import { FetchResult } from "@apollo/client";
 
-interface ClaimableItemProps {
-  item: Item | PendingItem;
-  userLookup: UserLookup;
-  userEmail: string;
-  claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
-}
-
-const getUserDisplayName = (userLookup: UserLookup, userId: string) => {
-  return userLookup[userId]
-    ? `${userLookup[userId].firstName} ${userLookup[userId].lastName}`
-    : userId; // TODO - We can format this better later
+const formatMentionHandles = (mentionHandles: MentionHandle[]): string => {
+  const mentions = mentionHandles.map((mentionHandle) => mentionHandle.label);
+  const lastMention = mentions[mentions.length - 1];
+  if (!lastMention) return "unknown";
+  const otherMentions = mentions.slice(0, -1);
+  return otherMentions.length > 0
+    ? `${otherMentions.join(", ")} and ${lastMention}`
+    : lastMention;
 };
 
-const getGroupMentionLabel = (item: Item | PendingItem): string =>
-  item.groupMentions?.[0]?.label || "unknown"; // FIXME - there could be loads in here - how do we determine which one to show? (Perhaps all?)
+interface ClaimableItemProps {
+  item: Item | PendingItem;
+  claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
+  userDisplayName: string;
+  maybeClaimedByName: string | null;
+}
 
 export const ClaimableItem = ({
   item,
   claimItem,
-  userLookup,
-  userEmail,
+  userDisplayName,
+  maybeClaimedByName,
 }: ClaimableItemProps) => {
-  const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];
-
   const isMentionApplicableToMe = item.groupMentions?.find(({ isMe }) => isMe);
 
   const [isClaiming, setIsClaiming] = useState(false);
@@ -74,10 +72,10 @@ export const ClaimableItem = ({
                 padding: 5px 2px 0;
                 justify-content: center;
               `}
-            >{`${getUserDisplayName(
-              userLookup,
-              item.userEmail
-            )} has made a request to ${getGroupMentionLabel(item)}`}</div>
+            >
+              {userDisplayName} has made a request to{" "}
+              {formatMentionHandles(item.groupMentions || [])}
+            </div>
             <div
               css={css`
                 display: flex;
@@ -87,17 +85,13 @@ export const ClaimableItem = ({
             >
               {" "}
               <strong>
-                {maybeClaimedBy
-                  ? `Claimed by ${
-                      userEmail === maybeClaimedBy.email
-                        ? "you"
-                        : `${maybeClaimedBy.firstName} ${maybeClaimedBy.lastName}`
-                    }`
+                {maybeClaimedByName
+                  ? `Claimed by ${maybeClaimedByName}`
                   : "This request has not been claimed yet"}
               </strong>
             </div>
 
-            {!maybeClaimedBy && isMentionApplicableToMe && (
+            {!maybeClaimedByName && isMentionApplicableToMe && (
               <div
                 css={css`
                   display: flex;

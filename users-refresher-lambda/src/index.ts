@@ -8,23 +8,11 @@ import {
 } from "../../shared/awsIntegration";
 import { getPinboardPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
-
-const MAX_USERS_TO_LOOKUP_IN_ONE_RUN = 1000;
-
-interface BasicUser {
-  email: string;
-  isMentionable: boolean;
-}
-
-interface UserFromGoogle extends BasicUser {
-  resourceName: string;
-  firstName: string;
-  lastName: string;
-}
-
-const isUserFromGoogle = (
-  user: BasicUser | UserFromGoogle
-): user is UserFromGoogle => "resourceName" in user;
+import { buildPhotoUrlLookup } from "./google/buildPhotoUrlLookup";
+import { buildUserLookupFromGoogle } from "./google/buildUserLookupFromGoogle";
+import { extractNamesWithFallback, handleUpsertError } from "./util";
+import { buildUserLookupFromDatabase } from "./google/buildUserLookupFromDatabase";
+import { isDefinitelyDifferentAvatar } from "./google/isDefinitelyDifferentAvatar";
 
 const S3 = new AWS.S3(standardAwsConfig);
 
@@ -33,73 +21,62 @@ export const handler = async ({
 }: {
   isProcessPermissionChangesOnly?: boolean;
 }) => {
+  const emailsOfUsersWithPinboardPermission = (
+    await getPinboardPermissionOverrides(S3)
+  )?.reduce<string[]>(
+    (acc, { userId, active }) =>
+      active ? [...acc, userId.toLowerCase()] : acc,
+    []
+  );
+  if (!emailsOfUsersWithPinboardPermission) {
+    throw Error("Could not get list of users with 'pinboard' permission.");
+  }
+
   const sql = await getDatabaseConnection();
+
   try {
-    const getStoredUsers = async (): Promise<BasicUser[]> =>
-      (
-        await sql`SELECT "email", "isMentionable"
-                 FROM "User"`
-      ).map((user) => user as BasicUser) || [];
+    const usersFromDatabaseLookup = await buildUserLookupFromDatabase(sql);
 
-    const emailsOfUsersWithPinboardPermission = (
-      await getPinboardPermissionOverrides(S3)
-    )?.reduce<string[]>(
-      (acc, { userId, active }) => (active ? [...acc, userId] : acc),
-      []
-    );
-
-    if (!emailsOfUsersWithPinboardPermission) {
-      throw Error("Could not get list of users with 'pinboard' permission.");
+    for (const user of Object.values(usersFromDatabaseLookup)) {
+      if (
+        user.isMentionable &&
+        !emailsOfUsersWithPinboardPermission.includes(user.email)
+      ) {
+        console.log(
+          `Permission removed for ${user.email}, so marking as not mentionable`
+        );
+        await sql`
+          UPDATE "User" 
+          SET "isMentionable" = false 
+          WHERE "email" = ${user.email}
+        `.catch(handleUpsertError(user));
+      }
     }
 
-    const storedUsers = await getStoredUsers();
-    const storedUsersEmails = storedUsers.map(({ email }) => email);
-
-    const basicUsersWherePinboardPermissionRemoved = storedUsers.reduce<
-      BasicUser[]
-    >(
-      (acc, { email, isMentionable }) =>
-        isMentionable && !emailsOfUsersWithPinboardPermission.includes(email)
-          ? [
-              ...acc,
-              {
+    if (
+      isProcessPermissionChangesOnly &&
+      emailsOfUsersWithPinboardPermission.every((email) => {
+        const maybeUserFromDatabase = usersFromDatabaseLookup[email];
+        const isStoredInCorrectState =
+          maybeUserFromDatabase &&
+          (maybeUserFromDatabase.isMentionable ||
+            !maybeUserFromDatabase.googleID);
+        if (!isStoredInCorrectState) {
+          maybeUserFromDatabase
+            ? console.log(
+                "Found user with permission, but user needs updating in DB",
                 email,
-                isMentionable: false,
-              },
-            ]
-          : acc,
-      []
-    );
-    if (basicUsersWherePinboardPermissionRemoved.length > 0) {
-      console.log(
-        "DETECTED PINBOARD PERMISSIONS REMOVED FOR ",
-        basicUsersWherePinboardPermissionRemoved.map(({ email }) => email)
-      );
-    }
-
-    const allEmailsToLookup = isProcessPermissionChangesOnly
-      ? emailsOfUsersWithPinboardPermission.filter(
-          (email) => !storedUsersEmails.includes(email)
-        )
-      : emailsOfUsersWithPinboardPermission;
-
-    const emailsToLookup = allEmailsToLookup.slice(
-      0,
-      MAX_USERS_TO_LOOKUP_IN_ONE_RUN
-    );
-
-    if (allEmailsToLookup.length > emailsToLookup.length) {
-      console.log(
-        `WARNING: there are ${allEmailsToLookup.length} emails to lookup/process which is too many for one run. Only processing ${MAX_USERS_TO_LOOKUP_IN_ONE_RUN} in this run.`
-      );
-    }
-
-    if (!isProcessPermissionChangesOnly) {
-      console.log("FULL RUN");
-    } else if (emailsToLookup.length > 0) {
-      console.log("DETECTED PINBOARD PERMISSIONS ADDED FOR ", emailsToLookup);
-    } else if (basicUsersWherePinboardPermissionRemoved.length === 0) {
-      console.log("NO CHANGE TO PINBOARD PERMISSIONS, exiting early");
+                maybeUserFromDatabase
+              )
+            : console.log(
+                "Found user with permission, but user not in DB",
+                email
+              );
+        }
+        return isStoredInCorrectState;
+      })
+    ) {
+      console.log("NO PINBOARD PERMISSIONS CHANGED, exiting early");
       return;
     }
 
@@ -130,135 +107,85 @@ export const handler = async ({
       auth,
     });
 
-    // noinspection TypeScriptValidateJSTypes
-    const usersWithPinboardPermission: Array<
-      BasicUser | UserFromGoogle
-    > = await Promise.all(
-      emailsToLookup.map(async (emailFromPermission: string) => {
-        const userResult = await directoryService.users
-          .get({
-            userKey: emailFromPermission,
-          })
-          .catch((_) => _.response);
-
-        const namePartOfEmail = emailFromPermission.split("@")?.[0];
-        const namePartsFromEmail = namePartOfEmail?.split(".");
-        const firstNameFallback = namePartsFromEmail[0] || namePartOfEmail;
-        const lastNameFallback = namePartsFromEmail[1] || namePartOfEmail;
-
-        if (userResult.status === 404) {
-          return {
-            email: emailFromPermission,
-            firstName: firstNameFallback,
-            lastName: lastNameFallback,
-            isMentionable: false,
-          };
-        }
-        if (userResult.data?.error?.message?.startsWith("Type not supported")) {
-          return {
-            email: emailFromPermission,
-            isMentionable: false,
-          };
-        }
-        if (!userResult.data || userResult.data.error) {
-          console.log(emailFromPermission, userResult.data?.error);
-          throw Error("Invalid response from Google Directory API");
-        }
-        const { id, ...user } = userResult.data;
-        return {
-          resourceName: `people/${id}`,
-          email: emailFromPermission,
-          firstName: user.name?.givenName || firstNameFallback,
-          lastName: user.name?.familyName || lastNameFallback,
-          isMentionable: true,
-        };
-      })
+    const usersFromGoogleLookup = await buildUserLookupFromGoogle(
+      directoryService,
+      emailsOfUsersWithPinboardPermission
     );
 
-    interface PhotoUrlLookup {
-      [resourceName: string]: string;
-    }
-
-    const buildPhotoUrlLookup = async (
-      resourceNames: string[]
-    ): Promise<PhotoUrlLookup> => {
-      if (resourceNames.length === 0) {
-        return {};
-      }
-      const hasMoreThan50Remaining = resourceNames.length > 50;
-      const usersToRequestInThisBatch = hasMoreThan50Remaining
-        ? resourceNames.slice(0, 50)
-        : resourceNames;
-
-      const thisBatchLookup = (
-        await peopleService.people.getBatchGet({
-          personFields: "photos",
-          resourceNames: usersToRequestInThisBatch,
-        })
-      ).data.responses?.reduce((acc, { person, requestedResourceName }) => {
-        const maybePhotoUrl = person?.photos?.find(({ url }) => url)?.url;
-        return requestedResourceName && maybePhotoUrl
-          ? {
-              ...acc,
-              [requestedResourceName]: maybePhotoUrl,
-            }
-          : acc;
-      }, {} as PhotoUrlLookup);
-
-      if (!thisBatchLookup) {
-        throw Error();
-      }
-
-      return hasMoreThan50Remaining
-        ? {
-            ...thisBatchLookup,
-            ...(await buildPhotoUrlLookup(
-              resourceNames.slice(50, resourceNames.length)
-            )),
-          }
-        : thisBatchLookup;
-    };
     const photoUrlLookup = await buildPhotoUrlLookup(
-      usersWithPinboardPermission
-        .filter(isUserFromGoogle)
-        .map(({ resourceName }) => resourceName)
+      peopleService,
+      Object.values(usersFromGoogleLookup).map(
+        ({ googleID }) => `people/${googleID}`
+      )
     );
 
-    const usersToUpsert: Array<BasicUser | UserFromGoogle> = [
-      ...usersWithPinboardPermission,
-      ...basicUsersWherePinboardPermissionRemoved,
-    ];
+    for (const email of emailsOfUsersWithPinboardPermission) {
+      const maybeUserFromGoogle = usersFromGoogleLookup[email];
+      const maybeUserFromDatabase = usersFromDatabaseLookup[email];
 
-    for (const user of usersToUpsert) {
-      console.log(`Upserting details for user ${user.email}`);
-
-      const handleError = (error: Error) => {
-        console.error(`Error upserting user ${user.email}\n`, error);
-        console.error(user);
-      };
-
-      if (isUserFromGoogle(user) || "firstName" in user) {
-        const { resourceName, ...userToUpsert } = user;
-        const maybeAvatarUrl = photoUrlLookup[resourceName];
+      if (maybeUserFromGoogle) {
+        const maybeAvatarUrl =
+          photoUrlLookup[`people/${maybeUserFromGoogle.googleID}`] || null;
+        if (!maybeUserFromDatabase) {
+          console.log(`Inserting details for user ${email}`);
+          const user = { ...maybeUserFromGoogle, avatarUrl: maybeAvatarUrl };
+          await sql`
+            INSERT INTO "User" ${sql(user)}
+          `.catch(handleUpsertError(user));
+        } else if (
+          maybeUserFromDatabase.isMentionable !==
+            maybeUserFromGoogle.isMentionable ||
+          maybeUserFromDatabase.firstName !== maybeUserFromGoogle.firstName ||
+          maybeUserFromDatabase.lastName !== maybeUserFromGoogle.lastName ||
+          maybeUserFromDatabase.googleID !== maybeUserFromGoogle.googleID ||
+          (await isDefinitelyDifferentAvatar(
+            email,
+            maybeUserFromDatabase.avatarUrl,
+            maybeAvatarUrl
+          ))
+        ) {
+          console.log(`Updating details for user ${email}`);
+          await sql`
+            UPDATE "User" 
+            SET "avatarUrl" = ${maybeAvatarUrl},
+                "isMentionable" = ${maybeUserFromGoogle.isMentionable},
+                "firstName" = ${maybeUserFromGoogle.firstName},
+                "lastName" = ${maybeUserFromGoogle.lastName},
+                "googleID" = ${maybeUserFromGoogle.googleID}
+            WHERE "email" = ${email}
+          `.catch(handleUpsertError(maybeUserFromDatabase));
+        }
+      } else if (maybeUserFromDatabase?.isMentionable) {
+        console.log(
+          `User ${email} has been removed from Google, so marking as not mentionable and removing Google ID`
+        );
         await sql`
-            INSERT INTO "User" ${sql(
-              maybeAvatarUrl
-                ? { ...userToUpsert, avatarUrl: maybeAvatarUrl }
-                : userToUpsert
-            )}
-            ON CONFLICT ("email")
-            DO UPDATE SET
-            "firstName"=${user.firstName},
-            "lastName"=${user.lastName},
-            "isMentionable"=${user.isMentionable},
-            "avatarUrl"=${maybeAvatarUrl || null}
-        `.catch(handleError);
-      } else {
+                    UPDATE "User"
+                    SET "isMentionable" = false, "googleID" = null
+                    WHERE "email" = ${email}
+                `.catch(handleUpsertError(maybeUserFromDatabase));
+      } else if (maybeUserFromDatabase?.googleID) {
+        console.log(
+          `User ${email} has been removed from Google, so removing Google ID`
+        );
         await sql`
-            UPDATE "User"
-            SET "isMentionable"=${user.isMentionable}
-            WHERE "email" = ${user.email}
-        `.catch(handleError);
+                    UPDATE "User"
+                    SET "googleID" = null
+                    WHERE "email" = ${email}
+                `.catch(handleUpsertError(maybeUserFromDatabase));
+      } else if (!maybeUserFromDatabase) {
+        console.log(`Inserting details for user ${email}`);
+        const names = extractNamesWithFallback(email);
+        const user = {
+          googleID: null,
+          avatarUrl: null,
+          email,
+          ...names,
+          isMentionable: false,
+        };
+        await sql`
+            INSERT INTO "User" ${sql(user)}
+          `.catch(handleUpsertError(user));
       }
     }
   } catch (e) {

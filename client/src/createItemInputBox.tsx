@@ -214,7 +214,6 @@ export const CreateItemInputBox = ({
           resize: none;
           ${scrollbarsCss(palette.neutral[86])}
         `}
-        autoFocus
         boundariesElement={panelElement || undefined}
       />
       {payloadToBeSent && (

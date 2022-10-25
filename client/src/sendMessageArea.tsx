@@ -13,6 +13,7 @@ import { buttonBackground } from "./styling";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
+import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 
 interface SendMessageAreaProps {
@@ -92,24 +93,43 @@ export const SendMessageArea = ({
     },
     onError,
   });
+
+  const [claimableConfirmModalElement, confirmClaimable] = useConfirmModal(
+    <React.Fragment>
+      <div
+        css={css`
+          font-weight: bold;
+        `}
+      >
+        You are mentioning a group.
+        <br />
+        Would you like to make this a request?
+      </div>
+      <div>
+        They will be able to confirm who in the team is responsible for your
+        request.
+      </div>
+    </React.Fragment>
+  );
+
   const sendItem = () =>
-    _sendItem({
-      variables: {
-        input: {
-          type: payloadToBeSent?.type || "message-only",
-          message,
-          payload: payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
-          pinboardId,
-          mentions: verifiedIndividualMentionEmails,
-          groupMentions: verifiedGroupMentionShorthands,
-          claimable:
-            verifiedGroupMentionShorthands?.length > 0 &&
-            window.confirm(
-              "It looks like you're mentioning a group. If this is a request to the team, would you like to be claimable?"
-            ),
-        },
-      },
-    });
+    confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
+      (claimable) =>
+        _sendItem({
+          variables: {
+            input: {
+              type: payloadToBeSent?.type || "message-only",
+              message,
+              payload:
+                payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
+              pinboardId,
+              mentions: verifiedIndividualMentionEmails,
+              groupMentions: verifiedGroupMentionShorthands,
+              claimable,
+            },
+          },
+        })
+    );
 
   return (
     <div
@@ -122,6 +142,7 @@ export const SendMessageArea = ({
         padding: ${space[2]}px;
       `}
     >
+      {claimableConfirmModalElement}
       <CreateItemInputBox
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}

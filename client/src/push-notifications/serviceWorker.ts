@@ -1,5 +1,8 @@
 import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
-import { OPEN_PINBOARD_QUERY_PARAM } from "../../../shared/constants";
+import {
+  EXPAND_PINBOARD_QUERY_PARAM,
+  OPEN_PINBOARD_QUERY_PARAM,
+} from "../../../shared/constants";
 
 const toolsDomain = self.location.hostname.replace("pinboard.", "");
 
@@ -77,7 +80,7 @@ self.addEventListener("notificationclick", (event: any) => {
   const item = event.notification.data;
 
   // TODO add `&pinboardItemId=${item.id}` make pinboard actually scroll to that item
-  const openToItemQueryParam = `${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`;
+  const openToPinboardQueryParam = `${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`;
 
   event.waitUntil(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -99,7 +102,7 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            `https://media.${toolsDomain}/search?${openToItemQueryParam}`.replace(
+            `https://media.${toolsDomain}/search?${openToPinboardQueryParam}`.replace(
               ".code.",
               ".test."
             )
@@ -112,8 +115,7 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            //FIXME somehow find out the composer ID (perhaps workflow has a nice redirect service from pinboard ID i.e. workflow stub ID)
-            `https://composer.${toolsDomain}?${openToItemQueryParam}`
+            `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true`
           );
         }
       })

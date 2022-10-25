@@ -2,7 +2,13 @@ import "preact/debug";
 import React from "react";
 import { render } from "react-dom";
 import { ClientConfig } from "../../shared/clientConfig";
-import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client";
+import {
+  ApolloClient,
+  ApolloLink,
+  createHttpLink,
+  HttpLink,
+  InMemoryCache,
+} from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
@@ -135,12 +141,28 @@ export function mount({
     }
   });
 
+  const exposeOperationAsQueryParam = createHttpLink({
+    uri: (operation) => {
+      const operationNames = operation?.query?.definitions?.flatMap((_) =>
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        _.selectionSet?.selections.map((_) => _.name?.value)
+      );
+      return operationNames?.length > 0
+        ? `${apolloUrlInfo.url}?_${operationNames}`
+        : apolloUrlInfo.url;
+    },
+  });
+
   const apolloClient = new ApolloClient({
     link: ApolloLink.from([
       new DebounceLink(DEFAULT_APOLLO_DEBOUNCE_DELAY), // order is important
       apolloErrorLink,
       createAuthLink(apolloUrlInfo),
-      createSubscriptionHandshakeLink(apolloUrlInfo),
+      createSubscriptionHandshakeLink(
+        apolloUrlInfo,
+        exposeOperationAsQueryParam
+      ),
     ]),
     cache: new InMemoryCache(),
     defaultOptions: {

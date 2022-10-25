@@ -5,7 +5,6 @@ import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { Group, User } from "../../shared/graphql/graphql";
-import { groupToMentionHandle, userToMentionHandle } from "./util";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
@@ -14,6 +13,7 @@ import { useApolloClient } from "@apollo/client";
 import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
+import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 
 interface WithEntity<E> {
   entity: E & {

@@ -1,4 +1,3 @@
-import { Group, User } from "../../shared/graphql/graphql";
 import { PinboardData } from "../../shared/graphql/extraTypes";
 import isThisYear from "date-fns/isThisYear";
 import isToday from "date-fns/isToday";
@@ -8,11 +7,6 @@ import differenceInHours from "date-fns/differenceInHours";
 import format from "date-fns/format";
 import isYesterday from "date-fns/isYesterday";
 import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
-
-export const userToMentionHandle = (user: User) =>
-  `@${user.firstName} ${user.lastName}`;
-
-export const groupToMentionHandle = (group: Group) => `@${group.shorthand}`;
 
 export const getTooltipText = (pinboardData: PinboardData) =>
   `WT: ${pinboardData.title}` +

@@ -2,9 +2,8 @@ import {
   Claimed,
   Item,
   LastItemSeenByUser,
-  MentionHandle,
 } from "../../shared/graphql/graphql";
-import React, { Fragment } from "react";
+import React from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
@@ -12,7 +11,6 @@ import { palette, space } from "@guardian/source-foundations";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
-import { composer } from "../colours";
 import {
   buildPayloadAndType,
   isPayloadType,
@@ -24,76 +22,7 @@ import { UserLookup } from "./types/UserLookup";
 import { FetchResult } from "@apollo/client";
 import { ClaimableItem } from "./claimableItem";
 import { NestedItemDisplay } from "./nestedItemDisplay";
-
-const meMentionedCSS = (unread: boolean | undefined) => css`
-  color: white;
-  padding: 2px 4px;
-  border-radius: 50px;
-  background-color: ${unread ? composer.warning[300] : composer.primary[300]};
-`;
-
-const otherUserMentioned = css`
-  color: ${composer.primary[300]};
-`;
-
-const formattedText = (text: string) =>
-  text.split(" ").reduce((acc, word) => {
-    const formattedWord = word.startsWith("https://") ? (
-      <a
-        target="_blank"
-        rel="noreferrer"
-        href={word}
-        css={css`
-          color: ${composer.primary[300]};
-          text-decoration: none;
-          &:hover {
-            text-decoration: underline;
-          }
-        `}
-      >
-        {word}
-      </a>
-    ) : (
-      word
-    );
-    return (
-      <>
-        {acc} {formattedWord}
-      </>
-    );
-  }, <></>);
-
-const formatMentionHandlesInText = (
-  mentionHandles: MentionHandle[],
-  text: string
-): JSX.Element => {
-  const [maybeMentionHandle, ...remainingMentions] = mentionHandles;
-  if (maybeMentionHandle) {
-    const formattedMentionHandle = (
-      <strong
-        css={
-          maybeMentionHandle.isMe ? meMentionedCSS(false) : otherUserMentioned
-        }
-      >
-        {maybeMentionHandle.label}
-      </strong>
-    );
-    const partsBetweenMentionHandles = text.split(maybeMentionHandle.label);
-    const formattedPartsBetweenMentionHandles = partsBetweenMentionHandles.map(
-      (part) => formatMentionHandlesInText(remainingMentions, part)
-    );
-    return formattedPartsBetweenMentionHandles.reduce(
-      (result, formattedPart) => (
-        <Fragment>
-          {result}
-          {formattedMentionHandle}
-          {formattedPart}
-        </Fragment>
-      )
-    );
-  }
-  return <Fragment>{formattedText(text)}</Fragment>;
-};
+import { formatMentionHandlesInText } from "./mentionsUtil";
 
 const maybeConstructPayloadAndType = (
   type: string,

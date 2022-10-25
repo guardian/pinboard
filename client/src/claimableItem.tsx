@@ -6,15 +6,21 @@ import { SvgSpinner } from "@guardian/source-react-components";
 import { Claimed, Item, MentionHandle } from "../../shared/graphql/graphql";
 import { PendingItem } from "./types/PendingItem";
 import { FetchResult } from "@apollo/client";
+import { formatMentionHandlesInText } from "./mentionsUtil";
 
-const formatMentionHandles = (mentionHandles: MentionHandle[]): string => {
+const formatMentionHandles = (
+  mentionHandles: MentionHandle[]
+): JSX.Element | string => {
   const mentions = mentionHandles.map((mentionHandle) => mentionHandle.label);
   const lastMention = mentions[mentions.length - 1];
   if (!lastMention) return "unknown";
   const otherMentions = mentions.slice(0, -1);
-  return otherMentions.length > 0
-    ? `${otherMentions.join(", ")} and ${lastMention}`
-    : lastMention;
+  return formatMentionHandlesInText(
+    mentionHandles,
+    otherMentions.length > 0
+      ? `${otherMentions.join(", ")} and ${lastMention}`
+      : lastMention
+  );
 };
 
 interface ClaimableItemProps {
@@ -52,82 +58,55 @@ export const ClaimableItem = ({
       ) : (
         <div
           css={css`
+            border: 1px solid;
+            padding: 8px;
             display: flex;
-            width: 100%;
+            flex-direction: column;
+            gap: ${space[2]}px;
           `}
         >
-          <div
-            css={css`
-              display: flex;
-              flex-wrap: wrap;
-              width: 100%;
-              justify-content: center;
-              border: 1px solid;
-            `}
-          >
-            <div
-              css={css`
-                display: flex;
-                width: 100%;
-                padding: 5px 2px 0;
-                justify-content: center;
-              `}
-            >
-              {userDisplayName} has made a request to{" "}
-              {formatMentionHandles(item.groupMentions || [])}
-            </div>
-            <div
-              css={css`
-                display: flex;
-                padding: 8px 8px;
-                width: 100%;
-              `}
-            >
-              {" "}
-              <strong>
-                {maybeClaimedByName
-                  ? `Claimed by ${maybeClaimedByName}`
-                  : "This request has not been claimed yet"}
-              </strong>
-            </div>
-
-            {!maybeClaimedByName && isMentionApplicableToMe && (
-              <div
-                css={css`
-                  display: flex;
-                  padding: 5px;
-                  width: 100%;
-                `}
-              >
-                <button
-                  css={css`
-                    cursor: pointer;
-                    width: 100%;
-                    border-radius: 2px;
-                    border: 1px solid ${palette.neutral["60"]};
-                    color: ${palette.neutral["10"]};
-                  `}
-                  onClick={() => {
-                    if (
-                      confirm(
-                        "Are you sure you want to claim this on behalf of the group?"
-                      )
-                    ) {
-                      setIsClaiming(true);
-                      claimItem()
-                        .catch((error) => {
-                          console.error(error);
-                          // TODO display error to user
-                        })
-                        .finally(() => setIsClaiming(false));
-                    }
-                  }}
-                >
-                  Claim
-                </button>
-              </div>
-            )}
+          <div>
+            {userDisplayName} has made a request to{" "}
+            {formatMentionHandles(item.groupMentions || [])}
           </div>
+          <div>
+            <strong>
+              {maybeClaimedByName
+                ? `Claimed by ${maybeClaimedByName}`
+                : "This request has not been claimed yet"}
+            </strong>
+          </div>
+
+          {!maybeClaimedByName && isMentionApplicableToMe && (
+            <div>
+              <button
+                css={css`
+                  cursor: pointer;
+                  width: 100%;
+                  border-radius: 2px;
+                  border: 1px solid ${palette.neutral["60"]};
+                  color: ${palette.neutral["10"]};
+                `}
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Are you sure you want to claim this on behalf of the group?"
+                    )
+                  ) {
+                    setIsClaiming(true);
+                    claimItem()
+                      .catch((error) => {
+                        console.error(error);
+                        // TODO display error to user
+                      })
+                      .finally(() => setIsClaiming(false));
+                  }
+                }}
+              >
+                Claim
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

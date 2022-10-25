@@ -7,13 +7,13 @@ import { gqlCreateItem } from "../gql";
 import { CreateItemInputBox } from "./createItemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { PendingItem } from "./types/PendingItem";
-import { groupToMentionHandle, userToMentionHandle } from "./util";
 import { composer } from "../colours";
 import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
+import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;

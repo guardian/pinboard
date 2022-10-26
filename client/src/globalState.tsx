@@ -4,7 +4,6 @@ import {
   useLazyQuery,
   useMutation,
   useQuery,
-  useSubscription,
 } from "@apollo/client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Item, MyUser } from "../../shared/graphql/graphql";
@@ -12,7 +11,6 @@ import {
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
   gqlGetPinboardsByIds,
-  gqlOnCreateItem,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
 import type { PayloadAndType } from "./types/PayloadAndType";
@@ -374,20 +372,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     setUnreadFlag(pinboardIdToClose)(undefined);
     setError(pinboardIdToClose, undefined);
   };
-
-  useSubscription(gqlOnCreateItem(), {
-    onSubscriptionData: ({ subscriptionData }) => {
-      const { pinboardId, mentions } = subscriptionData.data.onCreateItem;
-
-      const isMentioned = mentions.includes(userEmail); // TODO also check group membership here (once added)
-
-      const pinboardIsOpen = isExpanded && selectedPinboardId === pinboardId;
-
-      if (isMentioned && !pinboardIsOpen) {
-        setUnreadFlag(pinboardId)(true);
-      }
-    },
-  });
 
   useEffect(() => {
     window.addEventListener("message", (event) => {

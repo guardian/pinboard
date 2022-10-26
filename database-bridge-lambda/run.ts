@@ -2,18 +2,21 @@ import { handler } from "./src";
 import { AppSyncResolverEvent } from "aws-lambda/trigger/appsync-resolver";
 import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
 import prompts from "prompts";
-
-const baseInput = {
-  identity: { resolverContext: { userEmail: "foo@bar.com" } },
-};
-
-const sampleInputs = {
-  listItems: { pinboardId: "63206" },
-  searchMentionableUsers: { prefix: "a" },
-  claimItem: { itemId: "1667" },
-};
+import { DatabaseOperation } from "../shared/graphql/operations";
+import { getYourEmail } from "../shared/local/yourEmail";
 
 (async () => {
+  const baseInput = {
+    identity: { resolverContext: { userEmail: await getYourEmail() } },
+  };
+
+  const sampleInputs: Partial<Record<DatabaseOperation, unknown>> = {
+    listItems: { pinboardId: "63206" },
+    searchMentionableUsers: { prefix: "a" },
+    claimItem: { itemId: "1667" },
+    getPinboardIdsContainingYourClaimableItems: {},
+  };
+
   await createDatabaseTunnel();
 
   // noinspection InfiniteLoopJS

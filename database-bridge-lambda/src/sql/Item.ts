@@ -1,5 +1,10 @@
-import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
+import {
+  CreateItemInput,
+  Item,
+  PinboardIdWithClaimCounts,
+} from "../../../shared/graphql/graphql";
 import { Sql } from "../../../shared/database/types";
+import { is } from "tsafe";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -103,3 +108,43 @@ export const claimItem = (
       newItem,
     };
   });
+
+export const getPinboardIdsContainingYourClaimableItems = async (
+  sql: Sql,
+  userEmail: string
+): Promise<PinboardIdWithClaimCounts[]> =>
+  sql`
+      SELECT "pinboardId", (CASE
+          WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
+          WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
+          ELSE 'othersClaimedCount'
+        END) as "countType", count(*) as "count", MAX("id") as "latestItemId"
+      FROM "Item"
+      WHERE "claimable" = true
+        AND EXISTS(
+          SELECT 1
+          FROM "User" INNER JOIN "GroupMember" ON "GroupMember"."userGoogleID" = "User"."googleID"
+          WHERE "GroupMember"."groupShorthand" = ANY ("groupMentions")
+            AND "User"."email" = ${userEmail}
+        )
+      GROUP BY "pinboardId", "countType"
+  `.then((rows) =>
+    Object.values(
+      rows.reduce(
+        (acc, row) => ({
+          ...acc,
+          [row.pinboardId]: {
+            ...(acc[row.pinboardId] || {
+              pinboardId: row.pinboardId,
+              latestItemId: row.latestItemId,
+              unclaimedCount: 0,
+              yourClaimedCount: 0,
+              othersClaimedCount: 0,
+            }),
+            [row.countType]: row.count,
+          },
+        }),
+        {} as Record<string, PinboardIdWithClaimCounts>
+      )
+    )
+  );

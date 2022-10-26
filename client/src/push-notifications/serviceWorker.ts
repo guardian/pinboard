@@ -3,26 +3,24 @@ import {
   EXPAND_PINBOARD_QUERY_PARAM,
   OPEN_PINBOARD_QUERY_PARAM,
 } from "../../../shared/constants";
+import { extractNameFromEmail } from "../../../shared/util";
 
 const toolsDomain = self.location.hostname.replace("pinboard.", "");
 
 const showNotification = (
   item: ItemWithParsedPayload & {
     clientId?: string;
-    firstName?: string;
-    lastName?: string;
   }
 ) => {
-  const user =
-    item.firstName && item.lastName
-      ? `${item.firstName} ${item.lastName}`
-      : item.userEmail.substring(0, item.userEmail.indexOf("@"));
-
   // TODO check for existing notification first (to preserve the `clientId` field)
+
+  const user = extractNameFromEmail(item.userEmail);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   self.registration.showNotification(
-    `📌 ${user} at ${new Date(item.timestamp).toLocaleTimeString()}`,
+    `📌 ${user.firstName} ${user.lastName} at ${new Date(
+      item.timestamp
+    ).toLocaleTimeString()}`,
     {
       tag: item.id,
       data: item,

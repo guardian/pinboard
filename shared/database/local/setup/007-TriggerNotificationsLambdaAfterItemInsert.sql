@@ -8,7 +8,7 @@ BEGIN
     SELECT json_agg(users_to_notify)
     INTO result
     FROM (
-             SELECT "email", "firstName", "lastName", to_json("webPushSubscription") as "webPushSubscription"
+             SELECT "email", to_json("webPushSubscription") as "webPushSubscription"
              FROM "User"
              WHERE "webPushSubscription" IS NOT NULL
                AND (

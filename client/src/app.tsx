@@ -10,7 +10,6 @@ import {
   useSubscription,
 } from "@apollo/client";
 import {
-  gqlGetAllUsers,
   gqlGetMyUser,
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
@@ -32,11 +31,15 @@ import {
   IPinboardEventTags,
 } from "./types/Telemetry";
 import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
+import {
+  EXPAND_PINBOARD_QUERY_PARAM,
+  OPEN_PINBOARD_QUERY_PARAM,
+} from "../../shared/constants";
+import { UserLookup } from "./types/UserLookup";
+import { gqlGetUsers } from "../gql";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
-const PRESELECT_PINBOARD_QUERY_PARAM = "pinboardComposerID";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
-export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
 
 interface PinBoardAppProps {
   apolloClient: ApolloClient<Record<string, unknown>>;
@@ -53,19 +56,19 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
-  // and lose the query param but we don't want to lose the preselection
-  const [preSelectedComposerIdFromQueryParam] = useState(
-    queryParams.get(PRESELECT_PINBOARD_QUERY_PARAM)
+  // and lose the query param, but we don't want to lose the preselection
+  const [openPinboardIdBasedOnQueryParam] = useState(
+    queryParams.get(OPEN_PINBOARD_QUERY_PARAM)
   );
 
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
     string | null | undefined
-  >(preSelectedComposerIdFromQueryParam);
+  >(null);
 
   const [composerSection, setComposerSection] = useState<string | undefined>();
 
   const [isExpanded, setIsExpanded] = useState<boolean>(
-    !!preSelectedComposerIdFromQueryParam || // expand by default when preselected via url query param
+    !!openPinboardIdBasedOnQueryParam || // expand by default when preselected via url query param
       queryParams.get(EXPAND_PINBOARD_QUERY_PARAM)?.toLowerCase() === "true"
   );
   const expandFloaty = () => setIsExpanded(true);
@@ -76,24 +79,17 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     );
 
   const refreshPreselectedPinboard = () => {
-    if (
-      preSelectedComposerIdFromQueryParam &&
-      preSelectedComposerIdFromQueryParam != preSelectedComposerId
-    ) {
-      setPreselectedComposerId(preSelectedComposerIdFromQueryParam);
-    } else {
-      const preselectPinboardHTMLElement: HTMLElement | null = document.querySelector(
-        PRESELECT_PINBOARD_HTML_TAG
-      );
-      const newComposerId = preselectPinboardHTMLElement?.dataset?.composerId;
-      newComposerId !== preSelectedComposerId &&
-        setPreselectedComposerId(newComposerId);
+    const preselectPinboardHTMLElement: HTMLElement | null = document.querySelector(
+      PRESELECT_PINBOARD_HTML_TAG
+    );
+    const newComposerId = preselectPinboardHTMLElement?.dataset?.composerId;
+    newComposerId !== preSelectedComposerId &&
+      setPreselectedComposerId(newComposerId);
 
-      const newComposerSection =
-        preselectPinboardHTMLElement?.dataset?.composerSection;
-      newComposerSection !== composerSection &&
-        setComposerSection(newComposerSection);
-    }
+    const newComposerSection =
+      preselectPinboardHTMLElement?.dataset?.composerSection;
+    newComposerSection !== composerSection &&
+      setComposerSection(newComposerSection);
   };
 
   const [
@@ -136,8 +132,44 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     });
   }, []);
 
+  const [userLookup, setUserLookup] = useState<UserLookup>({});
+  const [userEmailsToLookup, setEmailsToLookup] = useState<Set<string>>(
+    new Set()
+  );
+
+  useEffect(() => {
+    const newUsersToLookup = Array.from(userEmailsToLookup).filter(
+      (email) => !userLookup[email]
+    );
+    if (newUsersToLookup.length > 0) {
+      apolloClient
+        .query({
+          query: gqlGetUsers,
+          variables: { emails: newUsersToLookup },
+        })
+        .then(({ data }) => {
+          setUserLookup((existingUserLookup) =>
+            data.getUsers.reduce(
+              (acc: UserLookup, user: User) => ({
+                ...acc,
+                [user.email]: user,
+              }),
+              existingUserLookup
+            )
+          );
+        });
+    }
+  }, [userEmailsToLookup]);
+
+  const addEmailsToLookup = (emails: string[]) => {
+    setEmailsToLookup(
+      (existingEmails) => new Set([...existingEmails, ...emails])
+    );
+  };
+
   const meQuery = useQuery<{ getMyUser: MyUser }>(gqlGetMyUser, {
     client: apolloClient,
+    onCompleted: ({ getMyUser }) => addEmailsToLookup([getMyUser.email]),
   });
 
   const me = meQuery.data?.getMyUser;
@@ -169,19 +201,6 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   useEffect(() => {
     setHasWebPushSubscription(rawHasWebPushSubscription);
   }, [rawHasWebPushSubscription]);
-
-  const usersQuery = useQuery(gqlGetAllUsers, { client: apolloClient });
-  //TODO: make use of usersQuery.error and usersQuery.loading
-
-  const allUsers: User[] | undefined = usersQuery.data?.listUsers.items;
-
-  const userLookup = allUsers?.reduce(
-    (lookup, user) => ({
-      ...lookup,
-      [user.email]: user,
-    }),
-    {} as { [email: string]: User }
-  );
 
   const [setWebPushSubscriptionForUser] = useMutation<{
     setWebPushSubscriptionForUser: MyUser;
@@ -221,6 +240,8 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           item: {
             ...item,
             payload: item.payload && JSON.parse(item.payload),
+            firstName: me?.firstName,
+            lastName: me?.lastName,
           } as ItemWithParsedPayload,
         },
         desktopNotificationsPreferencesUrl
@@ -314,12 +335,14 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           <GlobalStateProvider
             presetUnreadNotificationCount={presetUnreadNotificationCount}
             userEmail={userEmail}
+            openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
             preselectedComposerId={preSelectedComposerId}
             payloadToBeSent={payloadToBeSent}
             clearPayloadToBeSent={clearPayloadToBeSent}
             isExpanded={isExpanded}
             setIsExpanded={setIsExpanded}
             userLookup={userLookup}
+            addEmailsToLookup={addEmailsToLookup}
             hasWebPushSubscription={hasWebPushSubscription}
             manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
             setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}

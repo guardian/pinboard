@@ -43,6 +43,7 @@ export const AvatarRoundel = ({
         width: ${size}px;
         height: ${size}px;
         border-radius: 50%;
+        border: 1px solid ${neutral[93]};
         background-color: ${composer.primary[300]};
         color: ${neutral[100]};
         display: flex;
@@ -51,7 +52,7 @@ export const AvatarRoundel = ({
         justify-content: center;
         align-items: center;
         ${size < 20 // arbitrary breakpoint
-          ? agateSans.xxsmall()
+          ? `${agateSans.xxsmall()} font-size: 10px;`
           : agateSans.small()}
       `}
     >

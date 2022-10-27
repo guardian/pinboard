@@ -1,16 +1,15 @@
-import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
+import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
 import React, {
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { ItemDisplay } from "./itemDisplay";
-import { PendingItem } from "./types/PendingItem";
 import { useMutation } from "@apollo/client";
 import { gqlSeenItem } from "../gql";
 import { LastItemSeenByUserLookup } from "./pinboard";
@@ -19,44 +18,29 @@ import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
-
-const JUMP_TO_BOTTOM_HEIGHT = 32;
+import { PendingItem } from "./types/PendingItem";
+import { UserLookup } from "./types/UserLookup";
 
 interface ScrollableItemsProps {
-  initialItems: Item[];
+  items: Item[];
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
-  setUnreadFlag: (hasUnread: boolean) => void;
+  maybeLastItem: Item | undefined;
+  hasUnread: boolean | undefined;
   isExpanded: boolean;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
   userEmail: string;
   pinboardId: string;
   lastItemSeenByUserLookup: LastItemSeenByUserLookup;
   showNotification: (item: Item) => void;
 }
 
-const isScrollbarVisible = (scrollableArea: HTMLDivElement) =>
-  scrollableArea.scrollHeight > scrollableArea.clientHeight;
-
-const isScrolledToBottom = (
-  { scrollTop, scrollHeight, offsetHeight }: HTMLDivElement,
-  hasUnread: boolean
-) => {
-  const maxScrollTop =
-    scrollHeight - offsetHeight - (hasUnread ? JUMP_TO_BOTTOM_HEIGHT : 0);
-  const scrollTopThreshold = maxScrollTop - 10;
-  return scrollTop > scrollTopThreshold;
-};
-
-interface ItemsMap {
-  [id: string]: Item | PendingItem;
-}
-
 export const ScrollableItems = ({
-  initialItems,
+  items,
   successfulSends,
   subscriptionItems,
-  setUnreadFlag,
+  maybeLastItem,
+  hasUnread,
   isExpanded,
   userLookup,
   userEmail,
@@ -66,21 +50,7 @@ export const ScrollableItems = ({
 }: ScrollableItemsProps) => {
   const { isRepositioning } = useGlobalStateContext();
 
-  const itemsMap = [
-    ...initialItems,
-    ...successfulSends,
-    ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
-  ].reduce(
-    (accumulator, item) => ({
-      ...accumulator,
-      [item.id]: item,
-    }),
-    {} as ItemsMap
-  );
-
-  const items = Object.values(itemsMap).sort(
-    (a, b) => a.timestamp - b.timestamp
-  );
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
   const lastItemSeenByUsersForItemIDLookup = Object.values(
     lastItemSeenByUserLookup
@@ -98,8 +68,27 @@ export const ScrollableItems = ({
       };
     }, {} as { [itemID: string]: LastItemSeenByUser[] });
 
-  const scrollableAreaRef = useRef<HTMLDivElement>(null);
-  const scrollableArea = scrollableAreaRef.current;
+  const [
+    hasPinboardNeverBeenExpanded,
+    setHasPinboardNeverBeenExpanded,
+  ] = useState(true);
+
+  const [scrollableArea, setScrollableArea] = useState<HTMLDivElement | null>(
+    null
+  );
+  const setScrollableAreaRef = useCallback(
+    (node) => node && setScrollableArea(node),
+    []
+  );
+  useLayoutEffect(() => {
+    if (hasPinboardNeverBeenExpanded && scrollableArea && isExpanded) {
+      scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
+      setTimeout(() => {
+        scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
+      }, 100);
+      setHasPinboardNeverBeenExpanded(false);
+    }
+  }, [scrollableArea, isExpanded]);
 
   const [
     scrollTopBeforeReposition,
@@ -119,37 +108,13 @@ export const ScrollableItems = ({
     }
   }, [isRepositioning]);
 
-  const lastItemIndex = items.length - 1;
-
   const scrollToLastItem = () => {
-    onScroll();
     scrollableArea?.scroll({
       top: Number.MAX_SAFE_INTEGER,
       behavior: "smooth",
     });
+    onScroll();
   };
-
-  const [
-    hasThisPinboardEverBeenExpanded,
-    setHasThisPinboardEverBeenExpanded,
-  ] = useState(false);
-
-  useEffect(() => {
-    scrollableArea &&
-      scrollableArea.scrollHeight > 0 &&
-      !hasThisPinboardEverBeenExpanded &&
-      setHasThisPinboardEverBeenExpanded(true);
-  });
-
-  useLayoutEffect(scrollToLastItem, [hasThisPinboardEverBeenExpanded]);
-
-  const shouldBeScrolledToLastItem = () =>
-    document.hasFocus() &&
-    (!scrollableArea ||
-      !isScrollbarVisible(scrollableArea) ||
-      isScrolledToBottom(scrollableArea, hasUnread));
-
-  const lastItemID = items[lastItemIndex]?.id;
 
   const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
     gqlSeenItem,
@@ -164,12 +129,15 @@ export const ScrollableItems = ({
 
   const seenLastItem = () => {
     // don't keep sending mutations if everyone already knows we've seen it
-    if (lastItemID !== lastItemSeenByUserLookup[userEmail]?.itemID) {
+    if (
+      maybeLastItem &&
+      maybeLastItem.id !== lastItemSeenByUserLookup[userEmail]?.itemID
+    ) {
       seenItem({
         variables: {
           input: {
             pinboardId,
-            itemID: lastItemID,
+            itemID: maybeLastItem.id,
           },
         },
       });
@@ -179,42 +147,49 @@ export const ScrollableItems = ({
     }
   };
 
-  const hasUnread =
-    lastItemSeenByUserLookup &&
-    lastItemSeenByUserLookup[userEmail]?.itemID !== lastItemID;
-
   useEffect(() => {
-    setUnreadFlag(hasUnread);
-  }, [hasUnread]);
-
-  useEffect(() => {
-    if (shouldBeScrolledToLastItem()) {
+    if (isScrolledToBottom) {
       scrollToLastItem();
       isExpanded && seenLastItem();
     }
-    if (successfulSends?.length > 0 && subscriptionItems?.length > 0) {
+    if (
+      maybeLastItem &&
+      successfulSends?.length > 0 &&
+      subscriptionItems?.length > 0
+    ) {
       // guard against first mount where these arrays are empty
-      showNotification(items[lastItemIndex]);
+      showNotification(maybeLastItem);
     }
   }, [successfulSends, subscriptionItems]); // runs after render when the list of sends or subscription items has changed (i.e. new message sent or received)
 
   useEffect(() => {
-    if (isExpanded && shouldBeScrolledToLastItem() && lastItemID) {
+    if (isExpanded && isScrolledToBottom && maybeLastItem) {
       seenLastItem();
     }
   }, [isExpanded]); // runs when expanded/closed
 
   const onScroll = () => {
-    if (shouldBeScrolledToLastItem() && lastItemID) {
+    if (!scrollableArea) {
+      return;
+    }
+    const { scrollHeight, offsetHeight, scrollTop } = scrollableArea;
+    const maxScrollTop = scrollHeight - offsetHeight - 10; // 10 is for padding
+    const scrollTopThreshold = maxScrollTop - 10; // in case not exactly scrolled to bottom
+    const newIsScrolledToBottom = scrollTop > scrollTopThreshold;
+    setIsScrolledToBottom(newIsScrolledToBottom);
+    if (newIsScrolledToBottom && maybeLastItem && isExpanded) {
       seenLastItem();
     }
   };
 
   const onScrollThrottled = useThrottle(onScroll, 250);
 
+  const scrollToBottomIfApplicable = () =>
+    isScrolledToBottom && scrollToLastItem();
+
   return (
     <div
-      ref={scrollableAreaRef}
+      ref={setScrollableAreaRef}
       css={css`
         overflow-y: auto;
         ${scrollbarsCss(palette.neutral[60])}
@@ -232,6 +207,7 @@ export const ScrollableItems = ({
             userEmail={userEmail}
             seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
             maybePreviousItem={items[index - 1]}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
           />
         ))}
       {hasUnread && (
@@ -244,17 +220,13 @@ export const ScrollableItems = ({
           `}
         >
           <button
-            onClick={() =>
-              scrollableArea && isScrollbarVisible(scrollableArea)
-                ? scrollToLastItem()
-                : seenLastItem()
-            }
+            onClick={scrollToLastItem}
             css={css`
               fill: white;
               background-color: ${palette.neutral[20]};
               font-weight: bold;
-              height: ${JUMP_TO_BOTTOM_HEIGHT}px;
-              width: ${JUMP_TO_BOTTOM_HEIGHT}px;
+              height: 32px;
+              width: 32px;
               border-radius: 999px;
               display: flex;
               justify-content: center;

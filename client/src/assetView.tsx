@@ -3,28 +3,17 @@ import { palette, space } from "@guardian/source-foundations";
 import React from "react";
 import { scrollbarsCss } from "./styling";
 import type { Item } from "../../shared/graphql/graphql";
-import type { PendingItem } from "./types/PendingItem";
 import { PayloadDisplay } from "./payloadDisplay";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import * as Sentry from "@sentry/react";
 
 interface AssetView {
-  initialItems: (Item | PendingItem)[];
-  successfulSends: PendingItem[];
-  subscriptionItems: Item[];
+  items: Item[];
 }
 
-export const AssetView: React.FC<AssetView> = ({
-  initialItems,
-  successfulSends,
-  subscriptionItems,
-}) => {
-  const payloadsMap: PayloadAndType[] = [
-    ...initialItems,
-    ...successfulSends,
-    ...subscriptionItems,
-  ]
-    .sort((a, b) => a.timestamp - b.timestamp)
+export const AssetView: React.FC<AssetView> = ({ items }) => {
+  const payloadsMap: PayloadAndType[] = items
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     .reduce<PayloadAndType[]>((accumulator, item) => {
       if (!item.payload) {
         return accumulator;

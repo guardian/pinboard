@@ -1,18 +1,28 @@
 import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
+import {
+  EXPAND_PINBOARD_QUERY_PARAM,
+  OPEN_PINBOARD_QUERY_PARAM,
+} from "../../../shared/constants";
+
+const toolsDomain = self.location.hostname.replace("pinboard.", "");
 
 const showNotification = (
   item: ItemWithParsedPayload & {
     clientId?: string;
+    firstName?: string;
+    lastName?: string;
   }
 ) => {
+  const user =
+    item.firstName && item.lastName
+      ? `${item.firstName} ${item.lastName}`
+      : item.userEmail.substring(0, item.userEmail.indexOf("@"));
+
   // TODO check for existing notification first (to preserve the `clientId` field)
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   self.registration.showNotification(
-    `📌 ${item.userEmail.substring(
-      0,
-      item.userEmail.indexOf("@")
-    )} at ${new Date(item.timestamp * 1000).toLocaleTimeString()}`,
+    `📌 ${user} at ${new Date(item.timestamp).toLocaleTimeString()}`,
     {
       tag: item.id,
       data: item,
@@ -69,8 +79,8 @@ self.addEventListener("notificationclick", (event: any) => {
 
   const item = event.notification.data;
 
-  // TODO make pinboard actually use these (a bit like we have for PRESELECT_PINBOARD_QUERY_PARAM)
-  const openToItemQueryParam = `pinboardId=${item.pinboardId}&pinboardItemId=${item.id}`;
+  // TODO add `&pinboardItemId=${item.id}` make pinboard actually scroll to that item
+  const openToPinboardQueryParam = `${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`;
 
   event.waitUntil(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -92,7 +102,10 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            `https://media.gutools.co.uk/search?${openToItemQueryParam}`
+            `https://media.${toolsDomain}/search?${openToPinboardQueryParam}`.replace(
+              ".code.",
+              ".test."
+            )
           );
         } else if (
           event.action === "composer" ||
@@ -102,8 +115,7 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            //TODO somehow find out the composer ID (perhaps workflow has a nice redirect service from pinboard ID i.e. workflow stub ID)
-            `https://composer.gutools.co.uk?${openToItemQueryParam}`
+            `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true`
           );
         }
       })

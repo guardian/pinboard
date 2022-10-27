@@ -7,7 +7,7 @@ import {
   useSubscription,
 } from "@apollo/client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { Item, MyUser, User } from "../../shared/graphql/graphql";
+import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
@@ -15,7 +15,6 @@ import {
   gqlOnCreateItem,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
-import { EXPAND_PINBOARD_QUERY_PARAM } from "./app";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
@@ -24,16 +23,20 @@ import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
+import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
+import { UserLookup } from "./types/UserLookup";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
 interface GlobalStateContextShape {
   userEmail: string;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
+  addEmailsToLookup: (emails: string[]) => void;
 
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
 
+  isLoadingActivePinboardList: boolean;
   activePinboardIds: string[];
   activePinboards: PinboardData[];
 
@@ -93,12 +96,14 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 
 interface GlobalStateProviderProps {
   userEmail: string;
+  openPinboardIdBasedOnQueryParam: string | null;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
+  addEmailsToLookup: (emails: string[]) => void;
   hasWebPushSubscription: boolean | null | undefined;
   manuallyOpenedPinboardIds: string[];
   setManuallyOpenedPinboardIds: (newMyUser: MyUser) => void;
@@ -108,6 +113,7 @@ interface GlobalStateProviderProps {
 }
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   userEmail,
+  openPinboardIdBasedOnQueryParam,
   preselectedComposerId,
   presetUnreadNotificationCount,
   payloadToBeSent,
@@ -115,6 +121,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   isExpanded,
   setIsExpanded,
   userLookup,
+  addEmailsToLookup,
   hasWebPushSubscription,
   manuallyOpenedPinboardIds,
   setManuallyOpenedPinboardIds,
@@ -148,14 +155,19 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     return "notTrackedInWorkflow";
   })();
 
-  const activePinboardIds = isPinboardData(preselectedPinboard)
-    ? [
-        preselectedPinboard.id,
-        ...manuallyOpenedPinboardIds?.filter(
-          (_) => _ !== preselectedPinboard.id
-        ),
-      ]
-    : manuallyOpenedPinboardIds;
+  const preselectedPinboardId =
+    isPinboardData(preselectedPinboard) && preselectedPinboard.id;
+
+  const activePinboardIds = [
+    ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+    ...(openPinboardIdBasedOnQueryParam
+      ? [openPinboardIdBasedOnQueryParam]
+      : []),
+    ...manuallyOpenedPinboardIds?.filter(
+      (_) =>
+        _ !== preselectedPinboardId && _ !== openPinboardIdBasedOnQueryParam
+    ),
+  ];
 
   const activePinboardsQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -177,15 +189,18 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ...activePinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
+  const isLoadingActivePinboardList = activePinboardsQuery.loading;
+
   const activePinboards: PinboardData[] =
     activePinboardsQuery.data?.getPinboardsByIds || [];
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
-    null
+    openPinboardIdBasedOnQueryParam
   );
 
   useEffect(
     () =>
+      preselectedPinboard &&
       setSelectedPinboardId(
         isPinboardData(preselectedPinboard) ? preselectedPinboard.id : null
       ),
@@ -212,10 +227,35 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   ) =>
     addManuallyOpenedPinboardIds({
       variables: {
-        ids: [pinboardId],
+        pinboardId,
         maybeEmailOverride,
       },
     });
+
+  const [interTabChannel] = useState<BroadcastChannel>(
+    new BroadcastChannel("pinboard-inter-tab-communication")
+  );
+
+  useEffect(() => {
+    interTabChannel.onmessage = (event) => {
+      if (
+        event.data.composerId &&
+        window.parent.location.href?.includes(
+          `content/${event.data.composerId}`
+        )
+      ) {
+        // unfortunately we cannot bring this tab to the fore as browsers prevent it, so we alert to make it easier to find
+        alert(
+          `This is the composer file you wanted to open from pinboard in tab '${event.data.composerTabTitle}'`
+        );
+        // reply with acknowledgement
+        interTabChannel.postMessage({
+          composerIdFocused: event.data.composerId,
+          composerTabTitle: window.document.title,
+        });
+      }
+    };
+  }, []);
 
   const openPinboard = (
     pinboardData: PinboardData,
@@ -234,21 +274,42 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       );
     }
 
-    if (isOpenInNewTab) {
-      const hostname = window.location.hostname;
-      const composerDomain =
-        hostname.includes(".local.") ||
-        hostname.includes(".code.") ||
-        hostname.includes(".test.")
-          ? "code.dev-gutools.co.uk"
-          : "gutools.co.uk";
-      const composerUrl = `https://composer.${composerDomain}/content/${
-        pinboardData.composerId || ".."
-      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-
-      window?.open(composerUrl, "_blank")?.focus();
-    } else {
+    if (!isOpenInNewTab) {
       setSelectedPinboardId(pinboardData.id);
+    } else {
+      const openInNewTabTimeoutId = setTimeout(() => {
+        const hostname = window.location.hostname;
+        const composerDomain =
+          hostname.includes(".local.") ||
+          hostname.includes(".code.") ||
+          hostname.includes(".test.")
+            ? "code.dev-gutools.co.uk"
+            : "gutools.co.uk";
+        const composerUrl = `https://composer.${composerDomain}/content/${
+          pinboardData.composerId || ".."
+        }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+        window?.open(composerUrl, "_blank")?.focus();
+      }, 500);
+
+      interTabChannel.addEventListener(
+        "message",
+        (event) => {
+          if (event.data.composerIdFocused === pinboardData.composerId) {
+            clearTimeout(openInNewTabTimeoutId);
+            alert(
+              "The composer file you want to see is already open in another tab.\n\n" +
+                "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
+            );
+          }
+        },
+        { once: true }
+      );
+
+      interTabChannel.postMessage({
+        composerId: pinboardData.composerId,
+        composerTabTitle: window.document.title,
+      });
     }
   };
 
@@ -297,7 +358,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const closePinboard = (pinboardIdToClose: string) => {
     if (activePinboardIds.includes(pinboardIdToClose)) {
       removeManuallyOpenedPinboardIds({
-        variables: { ids: [pinboardIdToClose] },
+        variables: { pinboardIdToClose },
       }).then(
         (result) =>
           result.data
@@ -415,10 +476,12 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
+    addEmailsToLookup,
 
     activeTab,
     setActiveTab,
 
+    isLoadingActivePinboardList,
     activePinboards,
     activePinboardIds,
 

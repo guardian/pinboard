@@ -16,6 +16,7 @@ import {
 } from "./types/PayloadAndType";
 import { FormattedDateTime } from "./formattedDateTime";
 import * as Sentry from "@sentry/react";
+import { UserLookup } from "./types/UserLookup";
 
 const userMentioned = (unread: boolean | undefined) => css`
   color: white;
@@ -112,10 +113,11 @@ const maybeConstructPayloadAndType = (
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
-  userLookup: { [email: string]: User } | undefined;
+  userLookup: UserLookup;
   userEmail: string;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
+  scrollToBottomIfApplicable: () => void;
 }
 
 export const ItemDisplay = ({
@@ -124,6 +126,7 @@ export const ItemDisplay = ({
   userEmail,
   seenBy,
   maybePreviousItem,
+  scrollToBottomIfApplicable,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
@@ -137,7 +140,7 @@ export const ItemDisplay = ({
       ? item.message
       : formatMentionHandlesInText(userEmail, mentions, item.message);
 
-  const dateInMillisecs = new Date(item.timestamp * 1000).valueOf(); // the AWS timestamp is in seconds
+  const dateInMillisecs = new Date(item.timestamp).valueOf();
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
@@ -195,7 +198,11 @@ export const ItemDisplay = ({
         </div>
         <div>{formattedMessage}</div>
         {payloadAndType && (
-          <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
+          <PayloadDisplay
+            payloadAndType={payloadAndType}
+            tab="chat"
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+          />
         )}
       </div>
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}

@@ -7,7 +7,10 @@ generates:
   shared/graphql/graphql.ts:
     plugins:
       - "typescript"
-      - "typescript-resolvers"
+    config:
+      avoidOptionals: true
 config:
   scalars:
     AWSJSON: string
+    AWSTimestamp: number
+    AWSDateTime: string

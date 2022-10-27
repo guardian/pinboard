@@ -5,7 +5,7 @@ import {
   GridSearchSummary,
 } from "../../../shared/graphql/graphql";
 import { gqlGetGridSearchSummary } from "../../gql";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { useGlobalStateContext } from "../globalState";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
@@ -14,7 +14,9 @@ import { FormattedDateTime } from "../formattedDateTime";
 import { GridBadge } from "./gridBadges";
 import { SvgReload } from "@guardian/source-react-components";
 
-type GridDynamicSearchDisplayProps = Pick<DynamicGridPayload, "payload">;
+type GridDynamicSearchDisplayProps = Pick<DynamicGridPayload, "payload"> & {
+  scrollToBottomIfApplicable: undefined | (() => void);
+};
 
 const formatChip = (chip: GridBadgeData) => {
   if (chip.text.match(/^[+-]/i)) {
@@ -26,6 +28,7 @@ const formatChip = (chip: GridBadgeData) => {
 
 export const GridDynamicSearchDisplay = ({
   payload,
+  scrollToBottomIfApplicable,
 }: GridDynamicSearchDisplayProps) => {
   const [
     gridSearchSummaryLastChecked,
@@ -71,6 +74,8 @@ export const GridDynamicSearchDisplay = ({
 
   const maybeQueryBreakdown = maybeGridSearchSummary?.queryBreakdown;
 
+  useLayoutEffect(() => scrollToBottomIfApplicable?.(), [maybeQueryBreakdown]);
+
   return (
     <React.Fragment>
       <div
@@ -91,6 +96,7 @@ export const GridDynamicSearchDisplay = ({
               height: "100%",
             }}
             draggable={false}
+            onLoad={scrollToBottomIfApplicable}
           />
         ))}
       </div>

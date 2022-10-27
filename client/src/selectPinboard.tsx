@@ -18,6 +18,7 @@ import {
   SvgCross,
   SvgExternal,
   SvgMagnifyingGlass,
+  SvgSpinner,
   TextInput,
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
@@ -36,6 +37,7 @@ const SectionHeading: React.FC = ({ children }) => (
 
 export const SelectPinboard: React.FC = () => {
   const {
+    isLoadingActivePinboardList,
     activePinboards,
     activePinboardIds,
     payloadToBeSent,
@@ -304,10 +306,12 @@ export const SelectPinboard: React.FC = () => {
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}
-        {activePinboardsWithoutPreselected?.length > 0 && (
+        {(activePinboardsWithoutPreselected?.length > 0 ||
+          isLoadingActivePinboardList) && (
           <React.Fragment>
             <SectionHeading>MY PINBOARDS</SectionHeading>
             {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
+            {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}

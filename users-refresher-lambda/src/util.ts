@@ -1,9 +1,6 @@
 import { admin_directory_v1 } from "@googleapis/admin";
-
-export interface WithNames {
-  firstName: string;
-  lastName: string;
-}
+import { WithNames } from "../../shared/types/withNames";
+import { extractNameFromEmail } from "../../shared/util";
 
 export interface User extends WithNames {
   email: string;
@@ -26,12 +23,7 @@ export const extractNamesWithFallback = (
       lastName: names.familyName,
     };
   }
-  const namePartOfEmail = email.split("@")?.[0];
-  const namePartsFromEmail = namePartOfEmail?.split(".");
-  return {
-    firstName: namePartsFromEmail[0] || namePartOfEmail,
-    lastName: namePartsFromEmail[1] || namePartOfEmail,
-  };
+  return extractNameFromEmail(email);
 };
 
 export const handleUpsertError = (user: User) => (error: Error) => {

@@ -6,8 +6,6 @@ import { PushSubscription } from "web-push";
 
 export interface UserWithWebPushSubscription {
   email: string;
-  firstName: string;
-  lastName: string;
   webPushSubscription: PushSubscription;
 }
 
@@ -24,27 +22,19 @@ export const handler = async ({
   );
 
   await Promise.allSettled(
-    users.map(({ email, firstName, lastName, webPushSubscription }) =>
+    users.map((user) =>
       webPush
-        .sendNotification(
-          webPushSubscription,
-          JSON.stringify({
-            ...item,
-            firstName,
-            lastName,
-          }),
-          {
-            vapidDetails: {
-              subject: "mailto:digitalcms.bugs@guardian.co.uk",
-              publicKey: publicVapidKey,
-              privateKey: privateVapidKey,
-            },
-          }
-        )
+        .sendNotification(user.webPushSubscription, JSON.stringify(item), {
+          vapidDetails: {
+            subject: "mailto:digitalcms.bugs@guardian.co.uk",
+            publicKey: publicVapidKey,
+            privateKey: privateVapidKey,
+          },
+        })
         .then((result) => {
           if (result.statusCode < 300) {
             console.log(
-              `Sent web push to ${email} with message ${item.message}`,
+              `Sent web push to ${user.email} with message ${item.message}`,
               result.body
             );
           } else {
@@ -53,7 +43,7 @@ export const handler = async ({
         })
         .catch((errorPushing) => {
           console.error(
-            `Failed to push to ${email} with message ${item.message}`,
+            `Failed to push to ${user.email} with message ${item.message}`,
             errorPushing
           );
         })

@@ -240,8 +240,6 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           item: {
             ...item,
             payload: item.payload && JSON.parse(item.payload),
-            firstName: me?.firstName,
-            lastName: me?.lastName,
           } as ItemWithParsedPayload,
         },
         desktopNotificationsPreferencesUrl

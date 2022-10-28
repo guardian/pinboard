@@ -52,6 +52,8 @@ interface ItemDisplayProps {
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
   maybeRelatedItem: Item | false | undefined;
   userEmail: string;
+  setRef?: (node: HTMLDivElement) => void;
+  scrollToItem: (itemID: string) => void;
 }
 
 export const ItemDisplay = ({
@@ -63,6 +65,8 @@ export const ItemDisplay = ({
   claimItem,
   maybeRelatedItem,
   userEmail,
+  setRef,
+  scrollToItem,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -88,6 +92,7 @@ export const ItemDisplay = ({
 
   return (
     <div
+      ref={setRef}
       css={css`
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;
@@ -151,6 +156,7 @@ export const ItemDisplay = ({
             claimItem={claimItem}
             userLookup={userLookup}
             userEmail={userEmail}
+            scrollToItem={scrollToItem}
           />
         )}
         {payloadAndType && (

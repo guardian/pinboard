@@ -12,6 +12,7 @@ interface NestedItemDisplayProps {
   scrollToBottomIfApplicable: () => void;
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
   userEmail: string;
+  scrollToItem: (itemID: string) => void;
 }
 
 export const NestedItemDisplay = (props: NestedItemDisplayProps) => {
@@ -34,7 +35,12 @@ export const NestedItemDisplay = (props: NestedItemDisplayProps) => {
           opacity: 0.8;
           max-height: 75px;
           overflow: hidden;
+          cursor: pointer;
+          &:hover {
+            opacity: 1;
+          }
         `}
+        onClick={() => props.scrollToItem(props.item.id)}
       >
         <ItemDisplay
           {...props}

@@ -1,9 +1,9 @@
-import { css } from "@emotion/react";
+import { css, Global } from "@emotion/react";
 import React, { useEffect, useRef } from "react";
 import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
-import { neutral, space } from "@guardian/source-foundations";
+import { neutral, palette, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
@@ -125,6 +125,22 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       </Navigation>
 
       {!selectedPinboardId && <SelectPinboard />}
+
+      <Global
+        styles={{
+          "@keyframes highlight-item": {
+            "0%": {
+              background: "initial",
+            },
+            "50%": {
+              background: palette.neutral[86],
+            },
+            "100%": {
+              background: "initial",
+            },
+          },
+        }}
+      />
 
       {
         // The active pinboards are always mounted, so that we receive new item notifications

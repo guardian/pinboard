@@ -222,6 +222,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   // FIXME add a GraphQL subscription to hear about claims performed by other people (reusing handleClaimed)
 
+  const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
+
   return !isSelected ? null : (
     <React.Fragment>
       {initialItemsQuery.loading && "Loading..."}
@@ -304,6 +306,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
           pinboardId={pinboardId}
           lastItemSeenByUserLookup={lastItemSeenByUserLookup}
           claimItem={claimItem}
+          hasProcessedItemIdInURL={hasProcessedItemIdInURL}
+          setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (

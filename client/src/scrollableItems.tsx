@@ -10,6 +10,7 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { css } from "@emotion/react";
@@ -25,6 +26,7 @@ import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
+import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
 
 interface ScrollableItemsProps {
   items: Item[];
@@ -42,6 +44,8 @@ interface ScrollableItemsProps {
   claimItem: (options: {
     variables: MutationClaimItemArgs;
   }) => Promise<FetchResult<{ claimItem: Claimed }>>;
+  hasProcessedItemIdInURL: boolean;
+  setHasProcessedItemIdInURL: (newValue: boolean) => void;
 }
 
 export const ScrollableItems = ({
@@ -58,6 +62,8 @@ export const ScrollableItems = ({
   lastItemSeenByUserLookup,
   showNotification,
   claimItem,
+  hasProcessedItemIdInURL,
+  setHasProcessedItemIdInURL,
 }: ScrollableItemsProps) => {
   const { isRepositioning } = useGlobalStateContext();
 
@@ -198,6 +204,33 @@ export const ScrollableItems = ({
   const scrollToBottomIfApplicable = () =>
     isScrolledToBottom && scrollToLastItem();
 
+  const refMap = useRef<{ [itemID: string]: HTMLDivElement }>({});
+  const setRef = (itemID: string) => (node: HTMLDivElement) => {
+    refMap.current[itemID] = node;
+  };
+  const scrollToItem = (itemID: string) => {
+    const targetElement = refMap.current[itemID];
+    targetElement?.scrollIntoView({ behavior: "smooth" });
+    targetElement.style.animation = "highlight-item 0.5s linear infinite"; // see panel.tsx for definition of 'highlight-item' animation
+    setTimeout(() => (targetElement.style.animation = ""), 2500);
+  };
+
+  useLayoutEffect(() => {
+    if (
+      !hasProcessedItemIdInURL &&
+      window.location.search.includes(PINBOARD_ITEM_ID_QUERY_PARAM)
+    ) {
+      const queryParams = new URLSearchParams(window.location.search);
+      const itemIdToScrollTo = queryParams.get(PINBOARD_ITEM_ID_QUERY_PARAM);
+      if (itemIdToScrollTo && refMap.current[itemIdToScrollTo]) {
+        setTimeout(() => scrollToItem(itemIdToScrollTo), 250);
+        setHasProcessedItemIdInURL(true);
+      }
+    } else {
+      setHasProcessedItemIdInURL(true);
+    }
+  });
+
   return (
     <div
       ref={setScrollableAreaRef}
@@ -230,6 +263,8 @@ export const ScrollableItems = ({
               maybeRelatedItem={
                 !!item.relatedItemId && itemsMap[item.relatedItemId]
               }
+              setRef={setRef(item.id)}
+              scrollToItem={scrollToItem}
             />
           ))}
       {hasUnread && (

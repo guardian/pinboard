@@ -60,7 +60,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
     addManuallyOpenedPinboardId,
   } = useGlobalStateContext();
 
-  // TODO: extract to floaty level?
   const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const itemFromSubscription: Item = subscriptionData.data.onCreateItem;

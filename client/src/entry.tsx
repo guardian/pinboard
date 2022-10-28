@@ -136,7 +136,7 @@ export function mount({
     });
 
     if (networkError) {
-      console.error(`[Apollo - Network error]: ${networkError}`);
+      console.error(`[Apollo - Network error]`, networkError);
       pinboardSpecificSentryClient.captureException(networkError);
     }
   });

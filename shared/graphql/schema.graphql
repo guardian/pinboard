@@ -32,6 +32,10 @@ type Subscription {
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
 
+  onClaimItem(
+    pinboardId: String
+  ): Claimed @aws_subscribe(mutations: ["claimItem"])
+
   onSeenItem(
     pinboardId: String!
   ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
@@ -139,6 +143,7 @@ input LastItemSeenByUserInput {
 }
 
 type Claimed {
+  pinboardId: String!
   updatedItem: Item!
   newItem: Item!
 }

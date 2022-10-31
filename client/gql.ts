@@ -176,17 +176,28 @@ export const gqlSeenItem = gql`
   }
 `;
 
+const claimedReturnFields = `
+  pinboardId
+  updatedItem {
+    ${itemReturnFields}
+  }
+  newItem {
+    ${itemReturnFields}
+  }
+`;
+
 export const gqlClaimItem = gql`
   mutation ClaimItem($itemId: String!) {
     claimItem(itemId: $itemId) {
-      updatedItem {
-        ${itemReturnFields}
-      }
-      newItem {
-        ${itemReturnFields}
-      }
+      ${claimedReturnFields}
     }
   }
+`;
+
+export const gqlOnClaimItem = (pinboardId: string) => gql`
+    subscription OnClaimItem {
+        onClaimItem(pinboardId: "${pinboardId}") { ${claimedReturnFields} }
+    }
 `;
 
 const gridBadgeFields = `

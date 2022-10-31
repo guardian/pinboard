@@ -98,6 +98,7 @@ export const claimItem = (
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `;
     return {
+      pinboardId: updatedItem.pinboardId,
       updatedItem,
       newItem,
     };

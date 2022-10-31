@@ -11,6 +11,7 @@ import {
   gqlClaimItem,
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
+  gqlOnClaimItem,
   gqlOnCreateItem,
   gqlOnSeenItem,
 } from "../gql";
@@ -72,6 +73,21 @@ export const Pinboard: React.FC<PinboardProps> = ({
       setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
       if (!isExpanded) {
         showNotification(itemFromSubscription);
+        setUnreadFlag(pinboardId)(true);
+      }
+    },
+  });
+
+  const claimSubscription = useSubscription(gqlOnClaimItem(pinboardId), {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const {
+        updatedItem,
+        newItem,
+      }: Claimed = subscriptionData.data.onClaimItem;
+      addEmailsToLookup([newItem.userEmail]);
+      setClaimItems((prevState) => [...prevState, updatedItem, newItem]);
+      if (!isExpanded) {
+        showNotification(newItem);
         setUnreadFlag(pinboardId)(true);
       }
     },
@@ -197,8 +213,13 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   useEffect(
     () =>
-      setError(pinboardId, initialItemsQuery.error || itemSubscription.error),
-    [initialItemsQuery.error, itemSubscription.error]
+      setError(
+        pinboardId,
+        initialItemsQuery.error ||
+          itemSubscription.error ||
+          claimSubscription.error
+      ),
+    [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
   );
   const hasError = !!errors[pinboardId];
 

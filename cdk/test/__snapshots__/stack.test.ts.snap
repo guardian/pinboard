@@ -1092,6 +1092,10 @@ type Subscription {
     pinboardId: String
   ): Item @aws_subscribe(mutations: [\\"createItem\\"])
 
+  onClaimItem(
+    pinboardId: String
+  ): Claimed @aws_subscribe(mutations: [\\"claimItem\\"])
+
   onSeenItem(
     pinboardId: String!
   ): LastItemSeenByUser @aws_subscribe(mutations: [\\"seenItem\\"])
@@ -1199,6 +1203,7 @@ input LastItemSeenByUserInput {
 }
 
 type Claimed {
+  pinboardId: String!
   updatedItem: Item!
   newItem: Item!
 }",
@@ -1247,7 +1252,7 @@ type Claimed {
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1268,7 +1273,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "claimItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1289,7 +1294,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1310,7 +1315,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1331,7 +1336,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1352,7 +1357,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -1373,7 +1378,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1394,7 +1399,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1415,7 +1420,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1436,7 +1441,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1457,7 +1462,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "searchMentionableUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1582,7 +1587,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1707,7 +1712,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1728,7 +1733,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -1749,7 +1754,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : 1a21e84b8f5564568c150a8acd8910cd
+        "ResponseMappingTemplate": "## schema checksum : 4d252d22ea27c450b733fd55adb1d65a
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },

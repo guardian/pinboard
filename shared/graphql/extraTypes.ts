@@ -1,6 +1,14 @@
-import type { Group, User, WorkflowStub } from "./graphql";
+import type {
+  Group,
+  PinboardIdWithClaimCounts,
+  User,
+  WorkflowStub,
+} from "./graphql";
 
 export type PinboardData = WorkflowStub;
+
+export type PinboardDataWithClaimCounts = Omit<PinboardData, "__typename"> &
+  Omit<PinboardIdWithClaimCounts, "__typename">;
 
 export type PreselectedPinboard =
   | PinboardData
@@ -14,6 +22,11 @@ export const isPinboardData = (
   !!maybePinboardData &&
   maybePinboardData !== "loading" &&
   maybePinboardData !== "notTrackedInWorkflow";
+
+export const isPinboardDataWithClaimCounts = (
+  pinboardData: PinboardData | PinboardDataWithClaimCounts
+): pinboardData is PinboardDataWithClaimCounts =>
+  "unclaimedCount" in pinboardData;
 
 export const isGroup = (userOrGroup: User | Group): userOrGroup is Group =>
   "shorthand" in userOrGroup;

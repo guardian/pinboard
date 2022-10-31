@@ -9,7 +9,12 @@ import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 import { useGlobalStateContext } from "./globalState";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
-import { isPinboardData, PinboardData } from "../../shared/graphql/extraTypes";
+import {
+  isPinboardData,
+  isPinboardDataWithClaimCounts,
+  PinboardData,
+  PinboardDataWithClaimCounts,
+} from "../../shared/graphql/extraTypes";
 import { getTooltipText } from "./util";
 import { agateSans } from "../fontNormaliser";
 import {
@@ -48,6 +53,8 @@ export const SelectPinboard: React.FC = () => {
     openPinboard,
     closePinboard,
     preselectedPinboard,
+
+    pinboardsWithClaimCounts,
 
     hasWebPushSubscription,
 
@@ -109,7 +116,9 @@ export const SelectPinboard: React.FC = () => {
     );
   };
 
-  const OpenPinboardButton = (pinboardData: PinboardData) => {
+  const OpenPinboardButton = (
+    pinboardData: PinboardData | PinboardDataWithClaimCounts
+  ) => {
     const highlightedWorkingTitle =
       pinboardData.title && markWithSearchText(pinboardData.title);
     const highlightedHeadline =
@@ -125,6 +134,31 @@ export const SelectPinboard: React.FC = () => {
       preselectedPinboard === "notTrackedInWorkflow" ||
       (isPinboardData(preselectedPinboard) &&
         pinboardData.id !== preselectedPinboard.id);
+
+    const secondaryInformation = isPinboardDataWithClaimCounts(
+      pinboardData
+    ) && (
+      <ul>
+        {pinboardData.unclaimedCount && (
+          <li>
+            {pinboardData.unclaimedCount} unclaimed item
+            {pinboardData.unclaimedCount === 1 ? "" : "s"}
+          </li>
+        )}
+        {pinboardData.yourClaimedCount && (
+          <li>
+            {pinboardData.yourClaimedCount} item
+            {pinboardData.yourClaimedCount === 1 ? "" : "s"} claimed by you
+          </li>
+        )}
+        {pinboardData.othersClaimedCount && (
+          <li>
+            {pinboardData.othersClaimedCount} item
+            {pinboardData.othersClaimedCount === 1 ? "" : "s"} claimed by others
+          </li>
+        )}
+      </ul>
+    );
 
     return (
       <div
@@ -158,38 +192,41 @@ export const SelectPinboard: React.FC = () => {
           onClick={() => openPinboard(pinboardData, isOpenInNewTab)}
           title={getTooltipText(pinboardData)}
         >
-          <div
-            css={{
-              flexGrow: 1,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            <span
+          <div>
+            <div
               css={{
-                color: palette.neutral["46"],
-                display: "inline-block",
-                width: "20px",
+                flexGrow: 1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
-              {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
-            </span>{" "}
-            <span
-              css={{
-                textDecoration: pinboardData?.trashed
-                  ? "line-through"
-                  : undefined,
-                fontStyle: pinboardData?.isNotFound ? "italic" : undefined,
-              }}
-            >
-              {isActivePinboard
-                ? pinboardData.title || "NOT FOUND"
-                : highlightedHeadline ||
-                  highlightedWorkingTitle ||
-                  pinboardData.title ||
-                  "NOT FOUND"}
-            </span>
+              <span
+                css={{
+                  color: palette.neutral["46"],
+                  display: "inline-block",
+                  width: "20px",
+                }}
+              >
+                {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
+              </span>{" "}
+              <span
+                css={{
+                  textDecoration: pinboardData?.trashed
+                    ? "line-through"
+                    : undefined,
+                  fontStyle: pinboardData?.isNotFound ? "italic" : undefined,
+                }}
+              >
+                {isActivePinboard
+                  ? pinboardData.title || "NOT FOUND"
+                  : highlightedHeadline ||
+                    highlightedWorkingTitle ||
+                    pinboardData.title ||
+                    "NOT FOUND"}
+              </span>
+            </div>
+            {secondaryInformation && <div>{secondaryInformation}</div>}
           </div>
           {isActivePinboard && errors[pinboardData.id] && (
             <div
@@ -288,7 +325,7 @@ export const SelectPinboard: React.FC = () => {
               margin: ${space[1]}px;
               border-radius: ${space[1]}px;
               color: ${palette.neutral["100"]};
-              font-family: ${agateSans.small({ fontWeight: "bold" })};
+              ${agateSans.small({ fontWeight: "bold" })};
             `}
           >
             <div>Choose the pinboard for this asset</div>
@@ -312,6 +349,13 @@ export const SelectPinboard: React.FC = () => {
             <SectionHeading>MY PINBOARDS</SectionHeading>
             {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
             {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
+            <div css={{ height: space[2] }} />
+          </React.Fragment>
+        )}
+        {pinboardsWithClaimCounts?.length > 0 && (
+          <React.Fragment>
+            <SectionHeading>{"MY TEAMS' PINBOARDS"}</SectionHeading>
+            {pinboardsWithClaimCounts.map(OpenPinboardButton)}
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}

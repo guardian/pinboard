@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import {
   Claimed,
@@ -91,21 +91,29 @@ export const Pinboard: React.FC<PinboardProps> = ({
     },
   });
 
-  const itemsMap: ItemsMap = [
-    ...(initialItemsQuery.data?.listItems || []),
-    ...successfulSends,
-    ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
-    ...claimItems,
-  ].reduce(
-    (accumulator, item) => ({
-      ...accumulator,
-      [item.id]: item,
-    }),
-    {} as ItemsMap
+  const itemsMap: ItemsMap = useMemo(
+    () =>
+      [
+        ...(initialItemsQuery.data?.listItems || []),
+        ...successfulSends,
+        ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
+        ...claimItems,
+      ].reduce(
+        (accumulator, item) => ({
+          ...accumulator,
+          [item.id]: item,
+        }),
+        {} as ItemsMap
+      ),
+    [initialItemsQuery.data, successfulSends, subscriptionItems, claimItems]
   );
 
-  const items = Object.values(itemsMap).sort((a, b) =>
-    a.timestamp.localeCompare(b.timestamp)
+  const items = useMemo(
+    () =>
+      Object.values(itemsMap).sort((a, b) =>
+        a.timestamp.localeCompare(b.timestamp)
+      ),
+    [itemsMap]
   );
 
   const lastItemIndex = items.length - 1;

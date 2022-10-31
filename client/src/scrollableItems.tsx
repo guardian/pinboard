@@ -65,25 +65,27 @@ export const ScrollableItems = ({
   hasProcessedItemIdInURL,
   setHasProcessedItemIdInURL,
 }: ScrollableItemsProps) => {
-  const { isRepositioning } = useGlobalStateContext();
-
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
-  const lastItemSeenByUsersForItemIDLookup = Object.values(
-    lastItemSeenByUserLookup
-  )
-    .filter((lastItemSeenByUser) => lastItemSeenByUser.userEmail !== userEmail)
-    .reduce((accumulator, lastItemSeenByUser) => {
-      const existingSeenBysForItemID =
-        accumulator[lastItemSeenByUser.itemID] || [];
-      return {
-        ...accumulator,
-        [lastItemSeenByUser.itemID]: [
-          ...existingSeenBysForItemID,
-          lastItemSeenByUser,
-        ],
-      };
-    }, {} as { [itemID: string]: LastItemSeenByUser[] });
+  const lastItemSeenByUsersForItemIDLookup = useMemo(
+    () =>
+      Object.values(lastItemSeenByUserLookup)
+        .filter(
+          (lastItemSeenByUser) => lastItemSeenByUser.userEmail !== userEmail
+        )
+        .reduce((accumulator, lastItemSeenByUser) => {
+          const existingSeenBysForItemID =
+            accumulator[lastItemSeenByUser.itemID] || [];
+          return {
+            ...accumulator,
+            [lastItemSeenByUser.itemID]: [
+              ...existingSeenBysForItemID,
+              lastItemSeenByUser,
+            ],
+          };
+        }, {} as { [itemID: string]: LastItemSeenByUser[] }),
+    [lastItemSeenByUserLookup]
+  );
 
   const [
     hasPinboardNeverBeenExpanded,
@@ -106,24 +108,6 @@ export const ScrollableItems = ({
       setHasPinboardNeverBeenExpanded(false);
     }
   }, [scrollableArea, isExpanded]);
-
-  const [
-    scrollTopBeforeReposition,
-    setScrollTopBeforeReposition,
-  ] = useState<number>(50);
-  useMemo(() => {
-    if (isRepositioning && scrollableArea) {
-      console.log("reposition started, capturing scrollTop");
-      setScrollTopBeforeReposition(scrollableArea.scrollTop);
-    }
-  }, [isRepositioning]);
-
-  useLayoutEffect(() => {
-    if (!isRepositioning && scrollableArea) {
-      console.log("reposition finished, restoring scrollTop");
-      scrollableArea.scrollTop = scrollTopBeforeReposition;
-    }
-  }, [isRepositioning]);
 
   const scrollToLastItem = () => {
     scrollableArea?.scroll({
@@ -201,8 +185,10 @@ export const ScrollableItems = ({
 
   const onScrollThrottled = useThrottle(onScroll, 250);
 
-  const scrollToBottomIfApplicable = () =>
-    isScrolledToBottom && scrollToLastItem();
+  const scrollToBottomIfApplicable = useCallback(
+    () => isScrolledToBottom && scrollToLastItem(),
+    [isScrolledToBottom]
+  );
 
   const refMap = useRef<{ [itemID: string]: HTMLDivElement }>({});
   const setRef = (itemID: string) => (node: HTMLDivElement) => {
@@ -242,31 +228,41 @@ export const ScrollableItems = ({
       `}
       onScroll={onScrollThrottled}
     >
-      {!isRepositioning &&
-        items
-          .filter(
-            (item, index) =>
-              item.type !== "claim" ||
-              !item.relatedItemId ||
-              items[index - 1]?.id !== item.relatedItemId
+      {items
+        .filter(
+          (item, index) =>
+            item.type !== "claim" ||
+            !item.relatedItemId ||
+            items[index - 1]?.id !== item.relatedItemId
+        )
+        .map((item, index) =>
+          useMemo(
+            () => (
+              <ItemDisplay
+                key={item.id}
+                item={item}
+                userLookup={userLookup}
+                seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+                maybePreviousItem={items[index - 1]}
+                scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+                claimItem={() => claimItem({ variables: { itemId: item.id } })}
+                userEmail={userEmail}
+                maybeRelatedItem={
+                  !!item.relatedItemId && itemsMap[item.relatedItemId]
+                }
+                setRef={setRef(item.id)}
+                scrollToItem={scrollToItem}
+              />
+            ),
+            [
+              item.id,
+              item.claimedByEmail,
+              userLookup,
+              lastItemSeenByUsersForItemIDLookup,
+              scrollToBottomIfApplicable,
+            ]
           )
-          .map((item, index) => (
-            <ItemDisplay
-              key={item.id}
-              item={item}
-              userLookup={userLookup}
-              seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-              maybePreviousItem={items[index - 1]}
-              scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-              claimItem={() => claimItem({ variables: { itemId: item.id } })}
-              userEmail={userEmail}
-              maybeRelatedItem={
-                !!item.relatedItemId && itemsMap[item.relatedItemId]
-              }
-              setRef={setRef(item.id)}
-              scrollToItem={scrollToItem}
-            />
-          ))}
+        )}
       {hasUnread && (
         <div
           css={css`

@@ -3,7 +3,7 @@ import {
   Item,
   LastItemSeenByUser,
 } from "../../shared/graphql/graphql";
-import React from "react";
+import React, { useMemo } from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
@@ -80,15 +80,21 @@ export const ItemDisplay = ({
     ...(item.groupMentions || []),
   ];
 
-  const formattedMessage =
-    item.message && formatMentionHandlesInText(mentionHandles, item.message);
+  const formattedMessage = useMemo(
+    () =>
+      item.message && formatMentionHandlesInText(mentionHandles, item.message),
+    [item.id]
+  );
 
   const dateInMillisecs = new Date(item.timestamp).valueOf();
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
-  const maybeClaimedBy = item.claimedByEmail && userLookup[item.claimedByEmail];
+  const maybeClaimedBy = useMemo(
+    () => item.claimedByEmail && userLookup[item.claimedByEmail],
+    [item.claimedByEmail, userLookup]
+  );
 
   return (
     <div
@@ -167,19 +173,23 @@ export const ItemDisplay = ({
           />
         )}
       </div>
-      {item.claimable && (
-        <ClaimableItem
-          item={item}
-          userDisplayName={userDisplayName}
-          claimItem={claimItem}
-          maybeClaimedByName={
-            maybeClaimedBy &&
-            (userEmail === item.claimedByEmail
-              ? "you"
-              : `${maybeClaimedBy.firstName} ${maybeClaimedBy.lastName}`)
-          }
-        />
-      )}
+      {item.claimable &&
+        useMemo(
+          () => (
+            <ClaimableItem
+              item={item}
+              userDisplayName={userDisplayName}
+              claimItem={claimItem}
+              maybeClaimedByName={
+                maybeClaimedBy &&
+                (userEmail === item.claimedByEmail
+                  ? "you"
+                  : `${maybeClaimedBy.firstName} ${maybeClaimedBy.lastName}`)
+              }
+            />
+          ),
+          [maybeClaimedBy]
+        )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );

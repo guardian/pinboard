@@ -6,25 +6,17 @@ import {
   useQuery,
 } from "@apollo/client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import {
-  Item,
-  MyUser,
-  PinboardIdWithClaimCounts,
-} from "../../shared/graphql/graphql";
+import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
-  gqlGetPinboardIdsContainingYourClaimableItems,
   gqlGetPinboardsByIds,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
 import type { PayloadAndType } from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
-import {
-  isPinboardData,
-  PinboardDataWithClaimCounts,
-} from "../../shared/graphql/extraTypes";
+import { isPinboardData } from "../../shared/graphql/extraTypes";
 import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
@@ -45,7 +37,6 @@ interface GlobalStateContextShape {
   isLoadingActivePinboardList: boolean;
   activePinboardIds: string[];
   activePinboards: PinboardData[];
-  pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
 
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
@@ -55,6 +46,7 @@ interface GlobalStateContextShape {
     maybeEmailOverride?: string
   ) => Promise<FetchResult<{ addManuallyOpenedPinboardIds: MyUser }>>;
   openPinboard: (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
+  openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
   selectedPinboardId: string | null | undefined;
@@ -176,28 +168,11 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ),
   ];
 
-  const pinboardIdsContainingYourClaimableItemsQuery = useQuery(
-    gqlGetPinboardIdsContainingYourClaimableItems
-  );
-
-  const yourPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
-    pinboardIdsContainingYourClaimableItemsQuery.data
-      ?.getPinboardIdsContainingYourClaimableItems || [];
-
-  const pinboardIdsWithYourClaimableItems = yourPinboardIdsWithClaimCounts.map(
-    (_) => _.pinboardId
-  );
-
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
   }>(gqlGetPinboardsByIds, {
     variables: {
-      ids: [
-        ...new Set([
-          ...activePinboardIds,
-          ...pinboardIdsWithYourClaimableItems,
-        ]),
-      ],
+      ids: activePinboardIds,
     },
   });
 
@@ -213,48 +188,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ...activePinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
-  useEffect(() => {
-    if (isExpanded) {
-      pinboardIdsContainingYourClaimableItemsQuery.refetch();
-      pinboardIdsContainingYourClaimableItemsQuery.startPolling(5000); // TODO is this the correct interval
-    } else {
-      pinboardIdsContainingYourClaimableItemsQuery.stopPolling();
-    }
-  }, [
-    isExpanded,
-    ...pinboardIdsWithYourClaimableItems, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
-  ]);
-
   const isLoadingActivePinboardList = pinboardDataQuery.loading;
 
-  type PinboardDataMap = {
-    activePinboards: PinboardData[];
-    pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
-  };
-  const { activePinboards, pinboardsWithClaimCounts } =
-    pinboardDataQuery.data?.getPinboardsByIds?.reduce<PinboardDataMap>(
-      (acc, pinboardData) => {
-        const isActivePinboard = activePinboardIds.includes(pinboardData.id);
-        const maybePinboardIdWithClaimCounts = yourPinboardIdsWithClaimCounts.find(
-          (_) => _.pinboardId === pinboardData.id
-        );
-        return {
-          activePinboards: isActivePinboard
-            ? [...acc.activePinboards, pinboardData]
-            : acc.activePinboards,
-          pinboardsWithClaimCounts: maybePinboardIdWithClaimCounts
-            ? [
-                ...acc.pinboardsWithClaimCounts,
-                { ...pinboardData, ...maybePinboardIdWithClaimCounts },
-              ]
-            : acc.pinboardsWithClaimCounts,
-        };
-      },
-      { activePinboards: [], pinboardsWithClaimCounts: [] } as PinboardDataMap
-    ) ||
-    ({ activePinboards: [], pinboardsWithClaimCounts: [] } as PinboardDataMap);
-
-  //TODO need to sort pinboardsWithClaimCounts by unclaimed, then by greatest latestItemId
+  const activePinboards: PinboardData[] =
+    pinboardDataQuery.data?.getPinboardsByIds || [];
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
     openPinboardIdBasedOnQueryParam
@@ -319,6 +256,42 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     };
   }, []);
 
+  const openPinboardInNewTab = (pinboardData: PinboardData) => {
+    const openInNewTabTimeoutId = setTimeout(() => {
+      const hostname = window.location.hostname;
+      const composerDomain =
+        hostname.includes(".local.") ||
+        hostname.includes(".code.") ||
+        hostname.includes(".test.")
+          ? "code.dev-gutools.co.uk"
+          : "gutools.co.uk";
+      const composerUrl = `https://composer.${composerDomain}/content/${
+        pinboardData.composerId || ".."
+      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+      window?.open(composerUrl, "_blank")?.focus();
+    }, 500);
+
+    interTabChannel.addEventListener(
+      "message",
+      (event) => {
+        if (event.data.composerIdFocused === pinboardData.composerId) {
+          clearTimeout(openInNewTabTimeoutId);
+          alert(
+            "The composer file you want to see is already open in another tab.\n\n" +
+              "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
+          );
+        }
+      },
+      { once: true }
+    );
+
+    interTabChannel.postMessage({
+      composerId: pinboardData.composerId,
+      composerTabTitle: window.document.title,
+    });
+  };
+
   const openPinboard = (
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
@@ -336,42 +309,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       );
     }
 
-    if (!isOpenInNewTab) {
-      setSelectedPinboardId(pinboardData.id);
+    if (isOpenInNewTab) {
+      openPinboardInNewTab(pinboardData);
     } else {
-      const openInNewTabTimeoutId = setTimeout(() => {
-        const hostname = window.location.hostname;
-        const composerDomain =
-          hostname.includes(".local.") ||
-          hostname.includes(".code.") ||
-          hostname.includes(".test.")
-            ? "code.dev-gutools.co.uk"
-            : "gutools.co.uk";
-        const composerUrl = `https://composer.${composerDomain}/content/${
-          pinboardData.composerId || ".."
-        }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-
-        window?.open(composerUrl, "_blank")?.focus();
-      }, 500);
-
-      interTabChannel.addEventListener(
-        "message",
-        (event) => {
-          if (event.data.composerIdFocused === pinboardData.composerId) {
-            clearTimeout(openInNewTabTimeoutId);
-            alert(
-              "The composer file you want to see is already open in another tab.\n\n" +
-                "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
-            );
-          }
-        },
-        { once: true }
-      );
-
-      interTabChannel.postMessage({
-        composerId: pinboardData.composerId,
-        composerTabTitle: window.document.title,
-      });
+      setSelectedPinboardId(pinboardData.id);
     }
   };
 
@@ -532,13 +473,13 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     isLoadingActivePinboardList,
     activePinboards,
     activePinboardIds,
-    pinboardsWithClaimCounts,
 
     payloadToBeSent,
     clearPayloadToBeSent,
 
     addManuallyOpenedPinboardId,
     openPinboard,
+    openPinboardInNewTab,
     closePinboard,
     preselectedPinboard,
     selectedPinboardId,

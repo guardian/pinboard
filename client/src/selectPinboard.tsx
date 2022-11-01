@@ -40,7 +40,15 @@ const SectionHeading: React.FC = ({ children }) => (
   <div css={{ ...textMarginCss, color: palette.neutral["46"] }}>{children}</div>
 );
 
-export const SelectPinboard: React.FC = () => {
+interface SelectPinboardProps {
+  pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
+  peekAtPinboard: (pinboard: PinboardData) => void;
+}
+
+export const SelectPinboard = ({
+  pinboardsWithClaimCounts,
+  peekAtPinboard,
+}: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
     activePinboards,
@@ -51,10 +59,9 @@ export const SelectPinboard: React.FC = () => {
     isExpanded,
 
     openPinboard,
+    openPinboardInNewTab,
     closePinboard,
     preselectedPinboard,
-
-    pinboardsWithClaimCounts,
 
     hasWebPushSubscription,
 
@@ -135,6 +142,13 @@ export const SelectPinboard: React.FC = () => {
       (isPinboardData(preselectedPinboard) &&
         pinboardData.id !== preselectedPinboard.id);
 
+    const onClick = () =>
+      isPinboardDataWithClaimCounts(pinboardData)
+        ? isOpenInNewTab
+          ? openPinboardInNewTab(pinboardData)
+          : peekAtPinboard(pinboardData)
+        : openPinboard(pinboardData, isOpenInNewTab);
+
     const secondaryInformation = isPinboardDataWithClaimCounts(
       pinboardData
     ) && (
@@ -194,7 +208,7 @@ export const SelectPinboard: React.FC = () => {
             flexGrow: 1,
             width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
           }}
-          onClick={() => openPinboard(pinboardData, isOpenInNewTab)}
+          onClick={onClick}
           title={getTooltipText(pinboardData)}
         >
           <div

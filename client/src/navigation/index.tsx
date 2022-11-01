@@ -28,7 +28,7 @@ export const Navigation = ({
     hasUnreadOnOtherPinboard,
     preselectedPinboard,
     activePinboards,
-    openPinboard,
+    openPinboardInNewTab,
   } = useGlobalStateContext();
   // TODO replace with notification count when we have it
   const unreadNotificationCountOnOtherPinboard =
@@ -87,7 +87,7 @@ export const Navigation = ({
         {selectedPinboard?.composerId && !preselectedPinboard && (
           <NavButton
             icon={ComposerIcon}
-            onClick={() => openPinboard(selectedPinboard, true)}
+            onClick={() => openPinboardInNewTab(selectedPinboard)}
             title="Open in Composer"
           />
         )}

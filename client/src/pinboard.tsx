@@ -238,12 +238,14 @@ export const Pinboard: React.FC<PinboardProps> = ({
     );
   };
 
-  const handleClaimed = (data: { claimItem: Claimed }) =>
+  const handleClaimed = (data: { claimItem: Claimed }) => {
     setClaimItems((prevState) => [
       ...prevState,
       data.claimItem.updatedItem,
       data.claimItem.newItem,
     ]);
+    addManuallyOpenedPinboardId(data.claimItem.pinboardId);
+  };
 
   const [claimItem] = useMutation(gqlClaimItem, {
     onCompleted: handleClaimed,

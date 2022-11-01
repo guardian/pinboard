@@ -152,31 +152,39 @@ export const SelectPinboard = ({
     const secondaryInformation = isPinboardDataWithClaimCounts(
       pinboardData
     ) && (
-      <ul
-        css={{
-          paddingLeft: `${space["6"]}px`,
-          margin: `${space["2"]}px auto`,
-        }}
-      >
+      <div>
         {!!pinboardData.unclaimedCount && (
-          <li>
-            {pinboardData.unclaimedCount} unclaimed item
-            {pinboardData.unclaimedCount === 1 ? "" : "s"}
-          </li>
+          <React.Fragment>
+            <span
+              css={css`
+                font-weight: bold;
+                color: ${composer.primary["300"]};
+              `}
+            >
+              {pinboardData.unclaimedCount} unclaimed item
+              {pinboardData.unclaimedCount === 1 ? "" : "s"}
+            </span>
+            {(!!pinboardData.yourClaimedCount ||
+              !!pinboardData.othersClaimedCount) &&
+              ", "}
+          </React.Fragment>
         )}
         {!!pinboardData.yourClaimedCount && (
-          <li>
-            {pinboardData.yourClaimedCount} item
-            {pinboardData.yourClaimedCount === 1 ? "" : "s"} claimed by you
-          </li>
+          <React.Fragment>
+            <span>
+              {pinboardData.yourClaimedCount} item
+              {pinboardData.yourClaimedCount === 1 ? "" : "s"} claimed by you
+            </span>
+            {!!pinboardData.othersClaimedCount && ", "}
+          </React.Fragment>
         )}
         {!!pinboardData.othersClaimedCount && (
-          <li>
+          <span>
             {pinboardData.othersClaimedCount} item
             {pinboardData.othersClaimedCount === 1 ? "" : "s"} claimed by others
-          </li>
+          </span>
         )}
-      </ul>
+      </div>
     );
 
     return (

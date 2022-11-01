@@ -138,20 +138,25 @@ export const SelectPinboard: React.FC = () => {
     const secondaryInformation = isPinboardDataWithClaimCounts(
       pinboardData
     ) && (
-      <ul>
-        {pinboardData.unclaimedCount && (
+      <ul
+        css={{
+          paddingLeft: `${space["6"]}px`,
+          margin: `${space["2"]}px auto`,
+        }}
+      >
+        {!!pinboardData.unclaimedCount && (
           <li>
             {pinboardData.unclaimedCount} unclaimed item
             {pinboardData.unclaimedCount === 1 ? "" : "s"}
           </li>
         )}
-        {pinboardData.yourClaimedCount && (
+        {!!pinboardData.yourClaimedCount && (
           <li>
             {pinboardData.yourClaimedCount} item
             {pinboardData.yourClaimedCount === 1 ? "" : "s"} claimed by you
           </li>
         )}
-        {pinboardData.othersClaimedCount && (
+        {!!pinboardData.othersClaimedCount && (
           <li>
             {pinboardData.othersClaimedCount} item
             {pinboardData.othersClaimedCount === 1 ? "" : "s"} claimed by others
@@ -181,7 +186,7 @@ export const SelectPinboard: React.FC = () => {
             borderRadius: `${space[1]}px`,
             padding: 0,
             paddingLeft: `${space[2]}px`,
-            height: "32px",
+            minHeight: "32px",
             cursor: "pointer",
             "&:hover": {
               backgroundColor: palette.neutral["86"],
@@ -192,7 +197,12 @@ export const SelectPinboard: React.FC = () => {
           onClick={() => openPinboard(pinboardData, isOpenInNewTab)}
           title={getTooltipText(pinboardData)}
         >
-          <div>
+          <div
+            css={{
+              display: "block",
+              minWidth: "200px", // TODO: revisit the value (need to set the width to make ellipsis work)
+            }}
+          >
             <div
               css={{
                 flexGrow: 1,

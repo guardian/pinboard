@@ -228,41 +228,34 @@ export const ScrollableItems = ({
       `}
       onScroll={onScrollThrottled}
     >
-      {items
-        .filter(
-          (item, index) =>
-            item.type !== "claim" ||
-            !item.relatedItemId ||
-            items[index - 1]?.id !== item.relatedItemId
+      {items.map((item, index) =>
+        useMemo(
+          () => (
+            <ItemDisplay
+              key={item.id}
+              item={item}
+              userLookup={userLookup}
+              seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+              maybePreviousItem={items[index - 1]}
+              scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+              claimItem={() => claimItem({ variables: { itemId: item.id } })}
+              userEmail={userEmail}
+              maybeRelatedItem={
+                !!item.relatedItemId && itemsMap[item.relatedItemId]
+              }
+              setRef={setRef(item.id)}
+              scrollToItem={scrollToItem}
+            />
+          ),
+          [
+            item.id,
+            item.claimedByEmail,
+            userLookup,
+            lastItemSeenByUsersForItemIDLookup,
+            scrollToBottomIfApplicable,
+          ]
         )
-        .map((item, index) =>
-          useMemo(
-            () => (
-              <ItemDisplay
-                key={item.id}
-                item={item}
-                userLookup={userLookup}
-                seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-                maybePreviousItem={items[index - 1]}
-                scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-                claimItem={() => claimItem({ variables: { itemId: item.id } })}
-                userEmail={userEmail}
-                maybeRelatedItem={
-                  !!item.relatedItemId && itemsMap[item.relatedItemId]
-                }
-                setRef={setRef(item.id)}
-                scrollToItem={scrollToItem}
-              />
-            ),
-            [
-              item.id,
-              item.claimedByEmail,
-              userLookup,
-              lastItemSeenByUsersForItemIDLookup,
-              scrollToBottomIfApplicable,
-            ]
-          )
-        )}
+      )}
       {hasUnread && (
         <div
           css={css`

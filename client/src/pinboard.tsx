@@ -124,11 +124,16 @@ export const Pinboard: React.FC<PinboardProps> = ({
     [initialItemsQuery.data, successfulSends, subscriptionItems, claimItems]
   );
 
-  const items = useMemo(
+  const items: Array<PendingItem | Item> = useMemo(
     () =>
-      Object.values(itemsMap).sort((a, b) =>
-        a.timestamp.localeCompare(b.timestamp)
-      ),
+      Object.values(itemsMap)
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .filter(
+          (item, index, items) =>
+            item.type !== "claim" ||
+            !item.relatedItemId ||
+            items[index - 1]?.id !== item.relatedItemId
+        ),
     [itemsMap]
   );
 

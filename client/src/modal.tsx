@@ -5,6 +5,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 
 const buttonStyle = css`
+  outline: none;
   cursor: pointer;
   ${agateSans.small({ lineHeight: "tight" })};
   border-radius: ${space[1]}px;
@@ -12,9 +13,11 @@ const buttonStyle = css`
   border: 1px solid white;
   background-color: transparent;
   color: white;
-  &:focus-visible,
+  &:focus-visible {
+    background-color: ${composer.primary[400]};
+  }
   &:hover {
-    outline: white auto 1px;
+    background-color: ${composer.primary[100]};
   }
 `; // TODO different hover state (ask Ana)
 

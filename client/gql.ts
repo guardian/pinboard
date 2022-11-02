@@ -24,14 +24,15 @@ export const gqlGetPinboardsByIds = gql`
     getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
   }
 `;
-export const gqlGetPinboardIdsContainingYourClaimableItems = gql`
+export const gqlGetGroupPinboardIds = gql`
   query MyQuery {
-    getPinboardIdsContainingYourClaimableItems {
+    getGroupPinboardIds {
       pinboardId
       unclaimedCount
       yourClaimedCount
       othersClaimedCount
-      latestClaimableItemId
+      notClaimableCount
+      latestGroupMentionItemId
     }
   }
 `;

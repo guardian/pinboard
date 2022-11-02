@@ -5,7 +5,7 @@ import type {
 import {
   claimItem,
   createItem,
-  getPinboardIdsContainingYourClaimableItems,
+  getGroupPinboardIds,
   listItems,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
@@ -50,8 +50,8 @@ const run = (
       return addManuallyOpenedPinboardIds(sql, args, userEmail);
     case "removeManuallyOpenedPinboardIds":
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
-    case "getPinboardIdsContainingYourClaimableItems":
-      return getPinboardIdsContainingYourClaimableItems(sql, userEmail);
+    case "getGroupPinboardIds":
+      return getGroupPinboardIds(sql, userEmail);
   }
 
   throw Error(

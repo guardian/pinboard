@@ -11,10 +11,7 @@ import { dropTargetCss, IsDropTargetProps } from "./drop";
 import { ChatTab } from "./types/Tab";
 import { pinboard } from "../colours";
 import { useQuery } from "@apollo/client";
-import {
-  gqlGetPinboardIdsContainingYourClaimableItems,
-  gqlGetPinboardsByIds,
-} from "../gql";
+import { gqlGetGroupPinboardIds, gqlGetPinboardsByIds } from "../gql";
 import { PinboardIdWithClaimCounts } from "../../shared/graphql/graphql";
 import {
   PinboardData,
@@ -64,15 +61,12 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
-  const pinboardIdsContainingYourClaimableItemsQuery = useQuery(
-    gqlGetPinboardIdsContainingYourClaimableItems
-  );
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
 
-  const yourPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
-    pinboardIdsContainingYourClaimableItemsQuery.data
-      ?.getPinboardIdsContainingYourClaimableItems || [];
+  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
+    groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
 
-  const pinboardIdsWithYourClaimableItems = yourPinboardIdsWithClaimCounts.map(
+  const groupPinboardIds = groupPinboardIdsWithClaimCounts.map(
     (_) => _.pinboardId
   );
 
@@ -80,14 +74,14 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     getPinboardsByIds: PinboardData[];
   }>(gqlGetPinboardsByIds, {
     variables: {
-      ids: pinboardIdsWithYourClaimableItems,
+      ids: groupPinboardIds,
     },
   });
 
   const pinboardsWithClaimCounts =
     pinboardDataQuery.data?.getPinboardsByIds
       ?.reduce((acc, pinboardData) => {
-        const maybePinboardIdWithClaimCounts = yourPinboardIdsWithClaimCounts.find(
+        const maybePinboardIdWithClaimCounts = groupPinboardIdsWithClaimCounts.find(
           (_) => _.pinboardId === pinboardData.id
         );
         return maybePinboardIdWithClaimCounts
@@ -106,20 +100,21 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           return unclaimedDiff;
         }
         return (
-          parseInt(b.latestClaimableItemId) - parseInt(a.latestClaimableItemId)
+          parseInt(b.latestGroupMentionItemId) -
+          parseInt(a.latestGroupMentionItemId)
         );
       }) || [];
 
   useEffect(() => {
     if (isExpanded) {
-      pinboardIdsContainingYourClaimableItemsQuery.refetch();
-      pinboardIdsContainingYourClaimableItemsQuery.startPolling(5000); // TODO is this the correct interval
+      groupPinboardIdsQuery.refetch();
+      groupPinboardIdsQuery.startPolling(5000); // TODO is this the correct interval
     } else {
-      pinboardIdsContainingYourClaimableItemsQuery.stopPolling();
+      groupPinboardIdsQuery.stopPolling();
     }
   }, [
     isExpanded,
-    ...pinboardIdsWithYourClaimableItems, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
+    ...groupPinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
   const peekAtPinboard = (pinboard: PinboardData) =>

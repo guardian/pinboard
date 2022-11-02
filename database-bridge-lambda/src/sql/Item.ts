@@ -109,19 +109,19 @@ export const claimItem = (
     };
   });
 
-export const getPinboardIdsContainingYourClaimableItems = async (
+export const getGroupPinboardIds = async (
   sql: Sql,
   userEmail: string
 ): Promise<PinboardIdWithClaimCounts[]> =>
   sql`
       SELECT "pinboardId", (CASE
+          WHEN "claimable" = false THEN 'notClaimableCount'
           WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
           WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
           ELSE 'othersClaimedCount'
-        END) as "countType", count(*) as "count", MAX("id") as "latestClaimableItemId"
+        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId"
       FROM "Item"
-      WHERE "claimable" = true
-        AND EXISTS(
+      WHERE EXISTS(
           SELECT 1
           FROM "User" INNER JOIN "GroupMember" ON "GroupMember"."userGoogleID" = "User"."googleID"
           WHERE "GroupMember"."groupShorthand" = ANY ("groupMentions")
@@ -136,10 +136,11 @@ export const getPinboardIdsContainingYourClaimableItems = async (
           [row.pinboardId]: {
             ...(acc[row.pinboardId] || {
               pinboardId: row.pinboardId,
-              latestClaimableItemId: row.latestClaimableItemId,
+              latestGroupMentionItemId: row.latestGroupMentionItemId,
               unclaimedCount: 0,
               yourClaimedCount: 0,
               othersClaimedCount: 0,
+              notClaimableCount: 0,
             }),
             [row.countType]: row.count,
           },

@@ -11,7 +11,7 @@ type Query {
   searchMentionableUsers(prefix: String!): UsersAndGroups
   getUsers(emails: [String!]!): [User]
 
-  getPinboardIdsContainingYourClaimableItems: [PinboardIdWithClaimCounts!]!
+  getGroupPinboardIds: [PinboardIdWithClaimCounts!]!
 
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]
@@ -155,5 +155,6 @@ type PinboardIdWithClaimCounts {
   unclaimedCount: Int!
   yourClaimedCount: Int!
   othersClaimedCount: Int!
-  latestClaimableItemId: String!
+  notClaimableCount: Int!
+  latestGroupMentionItemId: String!
 }

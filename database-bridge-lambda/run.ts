@@ -14,7 +14,7 @@ import { getYourEmail } from "../shared/local/yourEmail";
     listItems: { pinboardId: "63206" },
     searchMentionableUsers: { prefix: "a" },
     claimItem: { itemId: "1667" },
-    getPinboardIdsContainingYourClaimableItems: {},
+    getGroupPinboardIds: {},
   };
 
   await createDatabaseTunnel();

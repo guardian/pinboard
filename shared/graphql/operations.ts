@@ -8,7 +8,7 @@ export const QUERIES = {
     "getMyUser",
     "searchMentionableUsers",
     "getUsers",
-    "getPinboardIdsContainingYourClaimableItems",
+    "getGroupPinboardIds",
   ] as const,
   workflow: [
     "listPinboards",

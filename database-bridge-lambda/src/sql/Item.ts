@@ -118,7 +118,7 @@ export const getPinboardIdsContainingYourClaimableItems = async (
           WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
           WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
           ELSE 'othersClaimedCount'
-        END) as "countType", count(*) as "count", MAX("id") as "latestItemId"
+        END) as "countType", count(*) as "count", MAX("id") as "latestClaimableItemId"
       FROM "Item"
       WHERE "claimable" = true
         AND EXISTS(
@@ -136,7 +136,7 @@ export const getPinboardIdsContainingYourClaimableItems = async (
           [row.pinboardId]: {
             ...(acc[row.pinboardId] || {
               pinboardId: row.pinboardId,
-              latestItemId: row.latestItemId,
+              latestClaimableItemId: row.latestClaimableItemId,
               unclaimedCount: 0,
               yourClaimedCount: 0,
               othersClaimedCount: 0,

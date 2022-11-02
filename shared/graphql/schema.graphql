@@ -155,5 +155,5 @@ type PinboardIdWithClaimCounts {
   unclaimedCount: Int!
   yourClaimedCount: Int!
   othersClaimedCount: Int!
-  latestItemId: String!
+  latestClaimableItemId: String!
 }

@@ -142,16 +142,16 @@ export const SelectPinboard = ({
       (isPinboardData(preselectedPinboard) &&
         pinboardData.id !== preselectedPinboard.id);
 
+    const isTeamPinboard = isPinboardDataWithClaimCounts(pinboardData);
+
     const onClick = () =>
-      isPinboardDataWithClaimCounts(pinboardData)
+      isTeamPinboard
         ? isOpenInNewTab
           ? openPinboardInNewTab(pinboardData)
           : peekAtPinboard(pinboardData)
         : openPinboard(pinboardData, isOpenInNewTab);
 
-    const secondaryInformation = isPinboardDataWithClaimCounts(
-      pinboardData
-    ) && (
+    const secondaryInformation = isTeamPinboard && (
       <div>
         {!!pinboardData.unclaimedCount && (
           <React.Fragment>
@@ -201,13 +201,13 @@ export const SelectPinboard = ({
             textAlign: "left",
             backgroundColor: palette.neutral["100"],
             color: palette.neutral["20"],
-            fontFamily: agateSans.xxsmall({ fontWeight: "bold" }),
+            fontFamily: agateSans.xxsmall(), //FIXME: typography adds the font-family. so not sure these work with object styles
             display: "flex",
             alignItems: "center",
             border: `1px solid ${palette.neutral["93"]}`,
             borderRadius: `${space[1]}px`,
-            padding: 0,
-            paddingLeft: `${space[2]}px`,
+            padding: `${space[1]}px 0 ${space[1]}px ${space[2]}px`,
+            marginRight: `${space[1]}px`,
             minHeight: "32px",
             cursor: "pointer",
             "&:hover": {
@@ -221,8 +221,8 @@ export const SelectPinboard = ({
         >
           <div
             css={{
-              display: "block",
-              minWidth: "200px", // TODO: revisit the value (need to set the width to make ellipsis work)
+              flexGrow: 1,
+              width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
             }}
           >
             <div
@@ -231,6 +231,7 @@ export const SelectPinboard = ({
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                fontWeight: "bold",
               }}
             >
               <span
@@ -304,14 +305,14 @@ export const SelectPinboard = ({
           </div>
         </button>
         {activePinboardIds.includes(pinboardData.id) &&
-          !isThePreselectedPinboard && (
+          !isThePreselectedPinboard &&
+          !isTeamPinboard && (
             <button
               css={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-around",
                 cursor: "pointer",
-                marginLeft: `${space[1]}px`,
                 padding: 0,
                 border: "none",
                 height: "24px",

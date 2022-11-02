@@ -31,7 +31,7 @@ export const gqlGetPinboardIdsContainingYourClaimableItems = gql`
       unclaimedCount
       yourClaimedCount
       othersClaimedCount
-      latestItemId
+      latestClaimableItemId
     }
   }
 `;

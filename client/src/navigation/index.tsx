@@ -8,11 +8,12 @@ import type { Tab } from "../types/Tab";
 import { BackArrowIcon, ComposerIcon, CrossIcon } from "./icon";
 import { NavButton } from "./button";
 import { Tabs } from "./tabs";
+import { PinboardData } from "../../../shared/graphql/extraTypes";
 
 interface NavigationProps {
   activeTab: Tab;
   setActiveTab: (tab: Tab) => void;
-  selectedPinboardId: string | null | undefined;
+  selectedPinboard: PinboardData | null | undefined;
   clearSelectedPinboard: () => void;
   headingTooltipText: string | undefined;
   isTopHalf: boolean;
@@ -21,24 +22,20 @@ interface NavigationProps {
 export const Navigation = ({
   isTopHalf,
   isLeftHalf,
+  selectedPinboard,
   ...props
 }: PropsWithChildren<NavigationProps>) => {
   const {
     setIsExpanded,
     hasUnreadOnOtherPinboard,
     preselectedPinboard,
-    activePinboards,
     openPinboardInNewTab,
   } = useGlobalStateContext();
   // TODO replace with notification count when we have it
   const unreadNotificationCountOnOtherPinboard =
-    props.selectedPinboardId &&
-    hasUnreadOnOtherPinboard(props.selectedPinboardId)
+    selectedPinboard && hasUnreadOnOtherPinboard(selectedPinboard.id)
       ? 0
       : undefined;
-  const selectedPinboard = activePinboards.find(
-    (activePinboard) => activePinboard.id === props.selectedPinboardId
-  );
   return (
     <div
       css={css`
@@ -64,7 +61,7 @@ export const Navigation = ({
         `}
         title={props.headingTooltipText}
       >
-        {props.selectedPinboardId && (
+        {selectedPinboard && (
           <NavButton
             onClick={props.clearSelectedPinboard}
             icon={BackArrowIcon}
@@ -98,7 +95,7 @@ export const Navigation = ({
         />
       </div>
 
-      {props.selectedPinboardId && (
+      {selectedPinboard && (
         <Tabs
           activeTab={props.activeTab}
           setActiveTab={props.setActiveTab}

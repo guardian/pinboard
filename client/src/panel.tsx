@@ -37,6 +37,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
+  const [
+    maybePeekingAtPinboard,
+    setMaybePeekingAtPinboard,
+  ] = useState<PinboardData | null>(null);
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -44,6 +48,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     }
     if (selectedPinboardId) {
       return selectedPinboard?.title || "Loading pinboard...";
+    }
+    if (maybePeekingAtPinboard) {
+      return maybePeekingAtPinboard?.title || "Loading pinboard...";
     }
     return "Select a pinboard";
   })();
@@ -98,7 +105,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         if (unclaimedDiff !== 0) {
           return unclaimedDiff;
         }
-        return 0; //TODO need to sort then by greatest latestItemId (item ID is string so will need to parse to number to sort accurately)
+        return (
+          parseInt(b.latestClaimableItemId) - parseInt(a.latestClaimableItemId)
+        );
       }) || [];
 
   useEffect(() => {
@@ -112,11 +121,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     isExpanded,
     ...pinboardIdsWithYourClaimableItems, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
-
-  const [
-    maybePeekingAtPinboard,
-    setMaybePeekingAtPinboard,
-  ] = useState<PinboardData | null>(null);
 
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
@@ -178,7 +182,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        selectedPinboardId={selectedPinboardId || maybePeekingAtPinboard?.id}
+        selectedPinboard={selectedPinboard || maybePeekingAtPinboard}
         clearSelectedPinboard={() => {
           clearSelectedPinboard();
           setMaybePeekingAtPinboard(null);
@@ -194,17 +198,20 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       >
         <span
           css={{
-            textDecoration: selectedPinboard?.trashed
+            textDecoration: (selectedPinboard || maybePeekingAtPinboard)
+              ?.trashed
               ? "line-through"
               : undefined,
-            fontStyle: selectedPinboard?.isNotFound ? "italic" : undefined,
+            fontStyle: (selectedPinboard || maybePeekingAtPinboard)?.isNotFound
+              ? "italic"
+              : undefined,
           }}
         >
           {title}
         </span>
       </Navigation>
 
-      {!selectedPinboardId && (
+      {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard
           pinboardsWithClaimCounts={pinboardsWithClaimCounts}
           peekAtPinboard={peekAtPinboard}

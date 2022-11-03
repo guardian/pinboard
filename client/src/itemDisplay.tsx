@@ -23,6 +23,9 @@ import { FetchResult } from "@apollo/client";
 import { ClaimableItem } from "./claimableItem";
 import { NestedItemDisplay } from "./nestedItemDisplay";
 import { formatMentionHandlesInText } from "./mentionsUtil";
+import Tick from "../icons/tick.svg";
+import { composer } from "../colours";
+import Pencil from "../icons/pencil.svg";
 
 const maybeConstructPayloadAndType = (
   type: string,
@@ -150,21 +153,38 @@ export const ItemDisplay = ({
         </div>
         <div>
           {item.type === "claim" ? (
-            <em>...claimed request :</em>
+            <div
+              css={css`
+                padding: ${space[2]}px;
+                border: 1px solid ${composer.primary[300]};
+                border-radius: ${space[1]}px;
+                margin-left: -${space[9] - 4}px;
+              `}
+            >
+              <span
+                css={css`
+                  font-weight: bold;
+                  color: ${composer.primary[300]};
+                  ${agateSans.xxsmall({ fontWeight: "bold" })};
+                `}
+              >
+                <Pencil /> {userDisplayName} claimed a request <Tick />
+              </span>
+              {maybeRelatedItem && (
+                <NestedItemDisplay
+                  item={{ ...maybeRelatedItem, claimable: false }}
+                  scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+                  claimItem={claimItem}
+                  userLookup={userLookup}
+                  userEmail={userEmail}
+                  scrollToItem={scrollToItem}
+                />
+              )}
+            </div>
           ) : (
             formattedMessage
           )}
         </div>
-        {maybeRelatedItem && (
-          <NestedItemDisplay
-            item={{ ...maybeRelatedItem, claimable: false }}
-            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-            claimItem={claimItem}
-            userLookup={userLookup}
-            userEmail={userEmail}
-            scrollToItem={scrollToItem}
-          />
-        )}
         {payloadAndType && (
           <PayloadDisplay
             payloadAndType={payloadAndType}

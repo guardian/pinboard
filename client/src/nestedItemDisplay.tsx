@@ -22,17 +22,18 @@ export const NestedItemDisplay = (props: NestedItemDisplayProps) => {
       css={css`
         transform-origin: top left;
         scale: ${scale};
-        width: ${100 / scale}%;
+        width: ${100 / scale - 10}%;
         position: relative;
         user-select: none;
+        margin-top: ${space[2]}px;
+        margin-left: ${space[3]}px;
       `}
     >
       <div
         css={css`
           padding: ${space[1]}px;
-          border: solid ${palette.neutral["86"]};
-          border-width: 5px 1px 0 1px;
-          opacity: 0.8;
+          background-color: #f6f6f6;
+          border-radius: ${space[1]}px;
           max-height: 75px;
           overflow: hidden;
           cursor: pointer;
@@ -53,13 +54,7 @@ export const NestedItemDisplay = (props: NestedItemDisplayProps) => {
         css={css`
           height: 15px;
           width: 100%;
-          bottom: -1px;
           position: absolute;
-          background: linear-gradient(
-            transparent,
-            ${palette.neutral["93"]},
-            ${palette.neutral["93"]}
-          );
         `}
       />
     </div>

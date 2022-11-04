@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
@@ -10,6 +10,7 @@ import { formatMentionHandlesInText } from "./mentionsUtil";
 import { composer } from "../colours";
 import Tick from "../../client/icons/tick.svg";
 import Pencil from "../../client/icons/pencil.svg";
+import { ConfirmableButton } from "./confirmableButton";
 
 const formatMentionHandles = (
   mentionHandles: MentionHandle[]
@@ -115,38 +116,18 @@ export const ClaimableItem = ({
 
                 {!maybeClaimedByName && isMentionApplicableToMe && (
                   <div>
-                    <button
-                      css={css`
-                        display: flex;
-                        flex-direction: row;
-                        padding: ${space[1]}px;
-                        color: #ffffff;
-                        background-color: ${composer.primary[300]};
-                        font-weight: bold;
-                        cursor: pointer;
-                        width: 100%;
-                        border-radius: ${space[1]}px;
-                        border: 1px solid ${composer.primary[300]};
-                        width: auto;
-                      `}
+                    <ConfirmableButton
+                      label={"Claim"}
+                      backgroundColor={composer.primary[300]}
                       onClick={() => {
-                        if (
-                          confirm(
-                            "Are you sure you want to claim this on behalf of the group?"
-                          )
-                        ) {
-                          setIsClaiming(true);
-                          claimItem()
-                            .catch((error) => {
-                              console.error(error);
-                              // TODO display error to user
-                            })
-                            .finally(() => setIsClaiming(false));
-                        }
+                        setIsClaiming(true);
+                        claimItem()
+                          .catch((error) => {
+                            console.error(error); // TODO display error to user
+                          })
+                          .finally(() => setIsClaiming(false));
                       }}
-                    >
-                      Claim
-                    </button>
+                    />
                   </div>
                 )}
               </div>

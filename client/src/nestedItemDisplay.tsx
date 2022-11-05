@@ -1,62 +1,77 @@
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React from "react";
-import { ItemDisplay } from "./itemDisplay";
-import { Claimed, Item } from "../../shared/graphql/graphql";
-import { UserLookup } from "./types/UserLookup";
-import { FetchResult } from "@apollo/client";
+import { Item, User } from "../../shared/graphql/graphql";
+import { AvatarRoundel } from "./avatarRoundel";
+import { formatMentionHandlesInText } from "./mentionsUtil";
+import { FormattedDateTime } from "./formattedDateTime";
+import { agateSans } from "../fontNormaliser";
 
 interface NestedItemDisplayProps {
   item: Item;
-  userLookup: UserLookup;
-  scrollToBottomIfApplicable: () => void;
-  claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
-  userEmail: string;
+  maybeUser: User | undefined;
   scrollToItem: (itemID: string) => void;
 }
 
-export const NestedItemDisplay = (props: NestedItemDisplayProps) => {
-  const scale = 0.8;
+export const NestedItemDisplay = ({
+  item,
+  maybeUser,
+  scrollToItem,
+}: NestedItemDisplayProps) => {
+  const formattedMessage =
+    item.message &&
+    formatMentionHandlesInText(
+      [...(item.mentions || []), ...(item.groupMentions || [])],
+      item.message
+    );
   return (
     <div
       css={css`
-        transform-origin: top left;
-        scale: ${scale};
-        width: ${100 / scale - 10}%;
-        position: relative;
         user-select: none;
         margin-top: ${space[2]}px;
         margin-left: ${space[3]}px;
+        color: ${palette.neutral[46]};
+        mix-blend-mode: multiply;
+        ${agateSans.xxsmall()}
+        background-color: ${palette.neutral["97"]};
+        padding: ${space[1]}px;
+        border-radius: ${space[1]}px;
+        max-height: 75px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        &:hover {
+          background-color: ${palette.neutral["93"]};
+        }
       `}
+      onClick={() => scrollToItem(item.id)}
     >
       <div
         css={css`
-          padding: ${space[1]}px;
-          background-color: #f6f6f6;
-          border-radius: ${space[1]}px;
-          max-height: 75px;
-          overflow: hidden;
-          cursor: pointer;
-          &:hover {
-            opacity: 1;
-          }
+          display: flex;
+          align-items: center;
+          font-weight: bold;
+          gap: ${space[1]}px;
+          margin-bottom: ${space[1]}px;
         `}
-        onClick={() => props.scrollToItem(props.item.id)}
       >
-        <ItemDisplay
-          {...props}
-          seenBy={undefined}
-          maybePreviousItem={undefined}
-          maybeRelatedItem={undefined}
+        <AvatarRoundel
+          maybeUserOrGroup={maybeUser}
+          size={18}
+          fallback={item.userEmail}
         />
+        {maybeUser
+          ? `${maybeUser.firstName} ${maybeUser.lastName}`
+          : item.userEmail}
       </div>
       <div
         css={css`
-          height: 15px;
-          width: 100%;
-          position: absolute;
+          margin-left: ${10}px;
         `}
-      />
+      >
+        <FormattedDateTime timestamp={new Date(item.timestamp).valueOf()} />
+        <div>{formattedMessage}</div>
+      </div>
     </div>
   );
 };

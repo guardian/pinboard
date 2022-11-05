@@ -163,23 +163,28 @@ export const ItemDisplay = ({
             >
               <span
                 css={css`
-                  font-weight: bold;
                   color: ${composer.primary[300]};
+                  svg {
+                    path {
+                      fill: ${composer.primary[300]};
+                    }
+                  }
                   ${agateSans.xxsmall({ fontWeight: "bold" })};
                 `}
               >
                 <Pencil /> {userDisplayName} claimed a request <Tick />
               </span>
-              {maybeRelatedItem && (
-                <NestedItemDisplay
-                  item={{ ...maybeRelatedItem, claimable: false }}
-                  scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-                  claimItem={claimItem}
-                  userLookup={userLookup}
-                  userEmail={userEmail}
-                  scrollToItem={scrollToItem}
-                />
-              )}
+              {maybeRelatedItem &&
+                useMemo(
+                  () => (
+                    <NestedItemDisplay
+                      item={maybeRelatedItem}
+                      maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                      scrollToItem={scrollToItem}
+                    />
+                  ),
+                  [maybeRelatedItem.id]
+                )}
             </div>
           ) : (
             formattedMessage

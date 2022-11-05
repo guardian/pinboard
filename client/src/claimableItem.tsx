@@ -73,6 +73,12 @@ export const ClaimableItem = ({
             css={css`
               margin-top: ${space[1]};
               display: flex;
+              color: ${palette.neutral[maybeClaimedByName ? 46 : 20]};
+              svg {
+                path {
+                  fill: ${palette.neutral[maybeClaimedByName ? 46 : 20]};
+                }
+              }
             `}
           >
             <Pencil />
@@ -97,6 +103,11 @@ export const ClaimableItem = ({
                         border-radius: ${space[1]}px;
                         width: auto;
                         color: ${composer.primary[300]};
+                        svg {
+                          path {
+                            fill: ${composer.primary[300]};
+                          }
+                        }
                       `}
                     >
                       Claimed by {maybeClaimedByName} &nbsp;

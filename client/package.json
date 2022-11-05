@@ -21,7 +21,7 @@
     "@guardian/source-react-components": "^4.4.0",
     "@guardian/user-telemetry-client": "^1.1.0",
     "@sentry/react": "^6.18.1",
-    "@webscopeio/react-textarea-autocomplete": "4.9.1",
+    "@webscopeio/react-textarea-autocomplete": "4.9.2",
     "apollo-link-debounce": "^3.0.0",
     "aws-appsync-auth-link": "^3.0.7",
     "aws-appsync-subscription-link": "^3.0.9",

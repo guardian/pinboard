@@ -18,6 +18,19 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 
+const teamPinboardsSortFunction = (
+  a: PinboardIdWithClaimCounts,
+  b: PinboardIdWithClaimCounts
+) => {
+  const unclaimedDiff = b.unclaimedCount - a.unclaimedCount;
+  if (unclaimedDiff !== 0) {
+    return unclaimedDiff;
+  }
+  return (
+    parseInt(b.latestGroupMentionItemId) - parseInt(a.latestGroupMentionItemId)
+  );
+};
+
 export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const {
@@ -66,9 +79,22 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
     groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
 
-  const groupPinboardIds = groupPinboardIdsWithClaimCounts.map(
-    (_) => _.pinboardId
-  );
+  const [isShowAllTeamPinboards, setIsShowAllTeamPinboards] = useState(false);
+  const unclaimedCount = groupPinboardIdsWithClaimCounts.filter(
+    (_) => _.unclaimedCount > 0
+  ).length;
+  const noOfTeamPinboardsToShow = isShowAllTeamPinboards
+    ? groupPinboardIdsWithClaimCounts.length
+    : unclaimedCount > 5
+    ? unclaimedCount
+    : 5;
+  const noOfTeamPinboardsNotShown =
+    groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow;
+
+  const groupPinboardIds = [...groupPinboardIdsWithClaimCounts]
+    .sort(teamPinboardsSortFunction)
+    .slice(0, noOfTeamPinboardsToShow)
+    .map((_) => _.pinboardId);
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -77,6 +103,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       ids: groupPinboardIds,
     },
   });
+
+  useEffect(() => {
+    pinboardDataQuery.refetch();
+  }, [...groupPinboardIds]);
 
   const pinboardsWithClaimCounts =
     pinboardDataQuery.data?.getPinboardsByIds
@@ -94,23 +124,17 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
             ]
           : acc;
       }, [] as PinboardDataWithClaimCounts[])
-      .sort((a, b) => {
-        const unclaimedDiff = b.unclaimedCount - a.unclaimedCount;
-        if (unclaimedDiff !== 0) {
-          return unclaimedDiff;
-        }
-        return (
-          parseInt(b.latestGroupMentionItemId) -
-          parseInt(a.latestGroupMentionItemId)
-        );
-      }) || [];
+      .sort(teamPinboardsSortFunction) || [];
 
   useEffect(() => {
     if (isExpanded) {
       groupPinboardIdsQuery.refetch();
-      groupPinboardIdsQuery.startPolling(5000); // TODO is this the correct interval
+      pinboardDataQuery.refetch();
+      groupPinboardIdsQuery.startPolling(5000);
+      pinboardDataQuery.startPolling(5000);
     } else {
       groupPinboardIdsQuery.stopPolling();
+      pinboardDataQuery.stopPolling();
     }
   }, [
     isExpanded,
@@ -210,6 +234,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         <SelectPinboard
           pinboardsWithClaimCounts={pinboardsWithClaimCounts}
           peekAtPinboard={peekAtPinboard}
+          noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
+          isShowAllTeamPinboards={isShowAllTeamPinboards}
+          setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
         />
       )}
 

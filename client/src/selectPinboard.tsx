@@ -43,11 +43,17 @@ const SectionHeading: React.FC = ({ children }) => (
 interface SelectPinboardProps {
   pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
   peekAtPinboard: (pinboard: PinboardData) => void;
+  noOfTeamPinboardsNotShown: number;
+  isShowAllTeamPinboards: boolean;
+  setIsShowAllTeamPinboards: (newValue: boolean) => void;
 }
 
 export const SelectPinboard = ({
   pinboardsWithClaimCounts,
   peekAtPinboard,
+  noOfTeamPinboardsNotShown,
+  isShowAllTeamPinboards,
+  setIsShowAllTeamPinboards,
 }: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
@@ -389,6 +395,23 @@ export const SelectPinboard = ({
           <React.Fragment>
             <SectionHeading>{"MY TEAMS' PINBOARDS"}</SectionHeading>
             {pinboardsWithClaimCounts.map(OpenPinboardButton)}
+            <button
+              css={css`
+                color: ${palette.neutral["20"]};
+                border: 1px solid ${palette.neutral["93"]};
+                cursor: pointer;
+                ${agateSans.xxsmall({ fontWeight: "bold" })};
+                background-color: ${palette.neutral["100"]};
+                &:hover {
+                  background-color: ${palette.neutral["86"]};
+                }
+              `}
+              onClick={() => setIsShowAllTeamPinboards(!isShowAllTeamPinboards)}
+            >
+              {isShowAllTeamPinboards
+                ? "Show fewer"
+                : `Show ${noOfTeamPinboardsNotShown} more`}
+            </button>
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}

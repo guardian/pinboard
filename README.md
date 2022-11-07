@@ -10,6 +10,7 @@ We use [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) to bre
 
 - [`bootstrapping-lambda`](bootstrapping-lambda)
 - [`client`](client)
+- [`auth-lambda`](auth-lambda)
 - [`notifications-lambda`](notifications-lambda)
 - [`users-refresher-lambda`](users-refresher-lambda)
 - [`workflow-bridge-lambda`](workflow-bridge-lambda)

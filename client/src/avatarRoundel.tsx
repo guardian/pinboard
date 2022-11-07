@@ -1,44 +1,35 @@
 import { css } from "@emotion/react";
 import { neutral } from "@guardian/source-foundations";
 import React from "react";
-import { User } from "../../shared/graphql/graphql";
+import { Group, User } from "../../shared/graphql/graphql";
 import { composer } from "../colours";
 import { agateSans } from "../fontNormaliser";
+import { isUser } from "../../shared/graphql/extraTypes";
 
 interface AvatarRoundelProps {
-  maybeUser: User | undefined;
+  maybeUserOrGroup: User | Group | undefined;
   size: number;
-  userEmail: string;
-  shouldHideTooltip?: true;
+  fallback: string;
 }
 
 export const AvatarRoundel = ({
-  maybeUser,
+  maybeUserOrGroup,
   size,
-  userEmail,
-  shouldHideTooltip,
-}: AvatarRoundelProps) => {
-  const tooltip = shouldHideTooltip
-    ? undefined
-    : `${
-        maybeUser ? `${maybeUser.firstName} ${maybeUser.lastName}` : userEmail
-      }`;
-
-  return maybeUser?.avatarUrl ? (
+  fallback,
+}: AvatarRoundelProps) =>
+  maybeUserOrGroup && isUser(maybeUserOrGroup) && maybeUserOrGroup.avatarUrl ? (
     <img
-      key={userEmail}
+      key={fallback}
       css={css`
         border-radius: 50%;
         width: ${size}px;
         height: ${size}px;
       `}
-      title={tooltip}
-      src={maybeUser?.avatarUrl}
+      src={maybeUserOrGroup.avatarUrl}
       draggable={false}
     />
   ) : (
     <span
-      title={tooltip}
       css={css`
         width: ${size}px;
         height: ${size}px;
@@ -50,14 +41,23 @@ export const AvatarRoundel = ({
         flex-shrink: 0;
         user-select: none;
         justify-content: center;
-        align-items: center;
         ${size < 20 // arbitrary breakpoint
           ? `${agateSans.xxsmall()} font-size: 10px;`
           : agateSans.small()}
+        line-height: ${size}px;
       `}
     >
-      {(maybeUser?.firstName || userEmail).charAt(0).toUpperCase()}
-      {maybeUser?.lastName?.charAt(0).toUpperCase()}
+      {maybeUserOrGroup ? (
+        isUser(maybeUserOrGroup) ? (
+          <React.Fragment>
+            {maybeUserOrGroup.firstName.charAt(0).toUpperCase()}
+            {maybeUserOrGroup.lastName?.charAt(0).toUpperCase()}
+          </React.Fragment>
+        ) : (
+          maybeUserOrGroup.memberEmails?.length
+        )
+      ) : (
+        fallback.charAt(0).toUpperCase()
+      )}
     </span>
   );
-};

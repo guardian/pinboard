@@ -12,12 +12,16 @@ BEGIN
              FROM "User"
              WHERE "webPushSubscription" IS NOT NULL
                AND (
-                         "email" != NEW."userEmail" -- don't notify the user who created the item
-                     OR "email" = ANY(NEW."mentions") -- unless they mention themselves (mainly for testing purposes)
-                 )
-               AND (
-                         "email" = ANY(NEW."mentions") -- the user is mentioned
-                     OR NEW."pinboardId" = ANY("manuallyOpenedPinboardIds") -- the user has the pinboard on their list of open pinboards
+                    (
+                        NEW."pinboardId" = ANY("manuallyOpenedPinboardIds") -- the user has the pinboard on their list of open pinboards
+                        AND "email" != NEW."userEmail" -- don't notify the user who created the item (unless mentioned themselves)
+                    )
+                 OR "email" = ANY(NEW."mentions") -- the user is mentioned
+                 OR "googleID" IN ( -- the user is group mentioned
+                        SELECT "userGoogleID"
+                        FROM "GroupMember"
+                        WHERE "GroupMember"."groupShorthand" = ANY(NEW."groupMentions")
+                    )
                  )
          ) as users_to_notify;
     RETURN result;

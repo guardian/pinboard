@@ -33,7 +33,14 @@ const itemReturnFields = `
   pinboardId
   message
   payload
-  mentions
+  mentions {
+    label
+    isMe
+  }
+  groupMentions {
+    label
+    isMe
+  }
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
@@ -73,8 +80,15 @@ const myUserReturnFields = `${userReturnFields}
 export const gqlSearchMentionableUsers = (prefix: string) => gql`
     query MyQuery {
         searchMentionableUsers(prefix: "${prefix}") {
+          users {
             ${userReturnFields}
-            isMentionable
+            isMentionable 
+          }
+          groups {
+            shorthand
+            name
+            memberEmails
+          }
         }
     }
 `;

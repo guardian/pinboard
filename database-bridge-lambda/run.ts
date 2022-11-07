@@ -1,17 +1,39 @@
 import { handler } from "./src";
 import { AppSyncResolverEvent } from "aws-lambda/trigger/appsync-resolver";
 import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
+import prompts from "prompts";
+
+const baseInput = {
+  identity: { resolverContext: { userEmail: "foo@bar.com" } },
+};
+
+const sampleInputs = {
+  listItems: { pinboardId: "63206" },
+  searchMentionableUsers: { prefix: "a" },
+};
 
 (async () => {
   await createDatabaseTunnel();
-  console.log(
-    "Testing tunnel with 'listItems' Query...\n",
-    await handler({
-      identity: { resolverContext: { userEmail: "foo@bar.com" } },
-      arguments: { pinboardId: "123" },
-      info: {
-        fieldName: "listItems",
-      },
-    } as AppSyncResolverEvent<unknown, unknown>)
-  );
+
+  // noinspection InfiniteLoopJS
+  while (
+    // eslint-disable-next-line no-constant-condition
+    true
+  ) {
+    const { inputPayload } = await prompts({
+      type: "select",
+      name: "inputPayload",
+      message: "Operation?",
+      choices: Object.entries(sampleInputs).map(([operation, sampleInput]) => ({
+        title: operation,
+        value: {
+          ...baseInput,
+          arguments: sampleInput,
+          info: { fieldName: operation },
+        } as AppSyncResolverEvent<unknown, unknown>,
+      })),
+    });
+
+    console.log(JSON.stringify(await handler(inputPayload), null, 2));
+  }
 })();

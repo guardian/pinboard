@@ -10,7 +10,7 @@ import { formatDateTime } from "./util";
 import { UserLookup } from "./types/UserLookup";
 
 const maxSeenByIcons = 2;
-const roundelHeightPx = 15;
+const roundelHeightPx = 16;
 const roundelOverlapPct = 25;
 
 interface SeenByProps {
@@ -44,6 +44,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
           color: ${palette.neutral[20]};
           margin-right: 5px;
           ${agateSans.xxsmall({ lineHeight: "tight" })}
+          line-height: ${roundelHeightPx}px;
         `}
       >
         Seen by
@@ -53,15 +54,14 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
           key={userEmail}
           css={css`
             transform: translateX(-${i * roundelOverlapPct}%);
-            z-index: ${99999 - i};
+            z-index: ${maxSeenByIcons + 1 - i};
             height: ${roundelHeightPx}px;
           `}
         >
           <AvatarRoundel
-            maybeUser={userLookup?.[userEmail]}
+            maybeUserOrGroup={userLookup?.[userEmail]}
             size={roundelHeightPx}
-            userEmail={userEmail}
-            shouldHideTooltip
+            fallback={userEmail}
           />
         </div>
       ))}

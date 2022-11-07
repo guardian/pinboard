@@ -1,4 +1,4 @@
-import type { WorkflowStub } from "./graphql";
+import type { Group, User, WorkflowStub } from "./graphql";
 
 export type PinboardData = WorkflowStub;
 
@@ -14,3 +14,9 @@ export const isPinboardData = (
   !!maybePinboardData &&
   maybePinboardData !== "loading" &&
   maybePinboardData !== "notTrackedInWorkflow";
+
+export const isGroup = (userOrGroup: User | Group): userOrGroup is Group =>
+  "shorthand" in userOrGroup;
+
+export const isUser = (userOrGroup: User | Group): userOrGroup is User =>
+  !isGroup(userOrGroup);

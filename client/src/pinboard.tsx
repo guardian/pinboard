@@ -186,14 +186,17 @@ export const Pinboard: React.FC<PinboardProps> = ({
   );
   const hasError = !!errors[pinboardId];
 
-  const onSuccessfulSend = (pendingItem: PendingItem) => {
+  const onSuccessfulSend = (
+    pendingItem: PendingItem,
+    mentionEmails: string[]
+  ) => {
     setSuccessfulSends((previousSends) => [...previousSends, pendingItem]);
 
     // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
     addManuallyOpenedPinboardId(pendingItem.pinboardId);
 
     // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
-    pendingItem.mentions?.map((mentionEmail) =>
+    mentionEmails.map((mentionEmail) =>
       addManuallyOpenedPinboardId(pendingItem.pinboardId, mentionEmail)
     );
   };

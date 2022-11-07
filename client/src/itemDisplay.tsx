@@ -1,10 +1,13 @@
-import { Item, LastItemSeenByUser, User } from "../../shared/graphql/graphql";
+import {
+  Item,
+  LastItemSeenByUser,
+  MentionHandle,
+} from "../../shared/graphql/graphql";
 import React, { Fragment } from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
 import { palette, space } from "@guardian/source-foundations";
-import { userToMentionHandle } from "./util";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
@@ -18,7 +21,7 @@ import { FormattedDateTime } from "./formattedDateTime";
 import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
 
-const userMentioned = (unread: boolean | undefined) => css`
+const meMentionedCSS = (unread: boolean | undefined) => css`
   color: white;
   padding: 2px 4px;
   border-radius: 50px;
@@ -57,27 +60,23 @@ const formattedText = (text: string) =>
   }, <></>);
 
 const formatMentionHandlesInText = (
-  userEmail: string,
-  mentions: User[],
+  mentionHandles: MentionHandle[],
   text: string
 ): JSX.Element => {
-  const [mentionUser, ...remainingMentions] = mentions;
-  if (mentionUser) {
-    const mentionHandle = userToMentionHandle(mentionUser);
+  const [maybeMentionHandle, ...remainingMentions] = mentionHandles;
+  if (maybeMentionHandle) {
     const formattedMentionHandle = (
       <strong
         css={
-          userEmail === mentionUser.email
-            ? userMentioned(false)
-            : otherUserMentioned
+          maybeMentionHandle.isMe ? meMentionedCSS(false) : otherUserMentioned
         }
       >
-        {mentionHandle}
+        {maybeMentionHandle.label}
       </strong>
     );
-    const partsBetweenMentionHandles = text.split(mentionHandle);
+    const partsBetweenMentionHandles = text.split(maybeMentionHandle.label);
     const formattedPartsBetweenMentionHandles = partsBetweenMentionHandles.map(
-      (part) => formatMentionHandlesInText(userEmail, remainingMentions, part)
+      (part) => formatMentionHandlesInText(remainingMentions, part)
     );
     return formattedPartsBetweenMentionHandles.reduce(
       (result, formattedPart) => (
@@ -114,7 +113,6 @@ const maybeConstructPayloadAndType = (
 interface ItemDisplayProps {
   item: Item | PendingItem;
   userLookup: UserLookup;
-  userEmail: string;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
   scrollToBottomIfApplicable: () => void;
@@ -123,7 +121,6 @@ interface ItemDisplayProps {
 export const ItemDisplay = ({
   item,
   userLookup,
-  userEmail,
   seenBy,
   maybePreviousItem,
   scrollToBottomIfApplicable,
@@ -131,14 +128,14 @@ export const ItemDisplay = ({
   const user = userLookup?.[item.userEmail];
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
   const isPendingSend = "pending" in item && item.pending;
-  const mentions = item.mentions
-    ?.map((mentionEmail) => userLookup?.[mentionEmail])
-    .filter((mentionUser): mentionUser is User => !!mentionUser);
+
+  const mentionHandles = [
+    ...(item.mentions || []),
+    ...(item.groupMentions || []),
+  ];
 
   const formattedMessage =
-    !item.message || !mentions
-      ? item.message
-      : formatMentionHandlesInText(userEmail, mentions, item.message);
+    item.message && formatMentionHandlesInText(mentionHandles, item.message);
 
   const dateInMillisecs = new Date(item.timestamp).valueOf();
 
@@ -165,9 +162,9 @@ export const ItemDisplay = ({
         {isDifferentUserFromPreviousItem && (
           <React.Fragment>
             <AvatarRoundel
-              maybeUser={user}
+              maybeUserOrGroup={user}
               size={28}
-              userEmail={item.userEmail}
+              fallback={item.userEmail}
             />
             <span
               css={css`

@@ -204,7 +204,6 @@ export const ScrollableItems = ({
             key={item.id}
             item={item}
             userLookup={userLookup}
-            userEmail={userEmail}
             seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
             maybePreviousItem={items[index - 1]}
             scrollToBottomIfApplicable={scrollToBottomIfApplicable}

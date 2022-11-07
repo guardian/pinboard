@@ -3,18 +3,41 @@ import { Sql } from "../../../shared/database/types";
 const fragmentUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
   sql`"email", "firstName", "lastName", "avatarUrl", "isMentionable"`;
 
-export const searchMentionableUsers = (sql: Sql, args: { prefix: string }) =>
-  sql`
-    SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
-    FROM "User"
-    WHERE "isMentionable" = true AND (
-      "firstName" ILIKE ${args.prefix + "%"}
-        OR "lastName" ILIKE ${args.prefix + "%"}
-        OR CONCAT("firstName", ' ', "lastName") ILIKE ${args.prefix + "%"}
+export const searchMentionableUsers = async (
+  sql: Sql,
+  args: { prefix: string }
+) => ({
+  users: await sql`
+        SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
+        FROM "User"
+        WHERE "isMentionable" = true AND (
+          "firstName" ILIKE ${args.prefix + "%"}
+            OR "lastName" ILIKE ${args.prefix + "%"}
+            OR CONCAT("firstName", ' ', "lastName") ILIKE ${args.prefix + "%"}
+        )
+        ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
+        LIMIT 5
+    `,
+  groups: await sql`
+    SELECT "shorthand", "name", (
+        SELECT json_agg("email")
+        FROM "User", "GroupMember"
+        WHERE "shorthand" = "GroupMember"."groupShorthand"
+        AND "GroupMember"."userGoogleID" = "User"."googleID"
+        ) AS "memberEmails"
+    FROM "Group"
+    WHERE "shorthand" ILIKE ${args.prefix + "%"}
+    OR "name" ILIKE ${"%" + args.prefix + "%"}
+    OR "primaryEmail" ILIKE ${"%" + args.prefix + "%"}
+    OR EXISTS(
+        SELECT 1 
+        FROM unnest("otherEmails") as "otherEmail"
+        WHERE "otherEmail" ILIKE ${"%" + args.prefix + "%"}
     )
-    ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
-    LIMIT 5
-`;
+    ORDER BY "name"
+    LIMIT 3
+  `,
+});
 
 export const getUsers = (sql: Sql, args: { emails: string[] }) =>
   sql`

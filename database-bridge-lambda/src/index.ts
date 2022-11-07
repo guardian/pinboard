@@ -26,7 +26,7 @@ const run = (
     case "createItem":
       return createItem(sql, args, userEmail);
     case "listItems":
-      return listItems(sql, args);
+      return listItems(sql, args, userEmail);
     case "seenItem":
       return seenItem(sql, args, userEmail);
     case "listLastItemSeenByUsers":

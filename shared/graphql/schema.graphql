@@ -8,7 +8,7 @@ type Query {
   listItems(pinboardId: String!): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
-  searchMentionableUsers(prefix: String!): [User]
+  searchMentionableUsers(prefix: String!): UsersAndGroups
   getUsers(emails: [String!]!): [User]
 
   listPinboards(searchText: String): [WorkflowStub]
@@ -40,6 +40,11 @@ type Subscription {
   ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
 }
 
+type MentionHandle {
+  label: String!
+  isMe: Boolean!
+}
+
 type Item {
   id: ID!
   message: String
@@ -48,7 +53,8 @@ type Item {
   type: String!
   userEmail: String!
   pinboardId: String!
-  mentions: [String!]
+  mentions: [MentionHandle!]
+  groupMentions: [MentionHandle!]
 }
 
 type LastItemSeenByUser {
@@ -72,6 +78,17 @@ type MyUser {
   avatarUrl: String
   hasWebPushSubscription: Boolean
   manuallyOpenedPinboardIds: [String!]
+}
+
+type Group {
+  shorthand: String!
+  name: String!
+  memberEmails: [String!]!
+}
+
+type UsersAndGroups {
+  users: [User!]!
+  groups: [Group!]!
 }
 
 type WorkflowStub {
@@ -108,6 +125,7 @@ input CreateItemInput {
   type: String!
   pinboardId: String!
   mentions: [String!]
+  groupMentions: [String!]
 }
 
 input LastItemSeenByUserInput {

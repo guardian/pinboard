@@ -12,3 +12,5 @@ It stores all these into the `User` table. Based on the input event it will eith
 If people no longer have Pinboard permission, it sets the `isMentionable` property to `false` in the `User` table.
 
 This User information serves various purposes, such as populating the list of people available to 'mention', as well as acting as a lookup for resolving people's names and avatars in the display of each item (meaning we only need to store `userEmail` against each row in the `Item` table, rather than repeating all that metadata for every single message).
+
+On the daily 'full run' we also load the map of groups (_key_: a 'shorthand' for the group, _value_: any email address associated with the group) from the AWS Param Store, then for each we lookup the group details (via `groups.get` call) and the group members (via `members.list` call) and write to the `Group` and `GroupMember` tables respectively.

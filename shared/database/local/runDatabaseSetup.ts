@@ -44,6 +44,11 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       ),
     "add googleID column to User table": () =>
       runSetupSqlFile(sql, "008-AddGoogleIDToUserTable.sql"),
+    "create Group table": () => runSetupSqlFile(sql, "009-GroupTable.sql"),
+    "create GroupMember table": () =>
+      runSetupSqlFile(sql, "010-GroupMemberTable.sql"),
+    "add groupMentions column to Item table": () =>
+      runSetupSqlFile(sql, "011-AddGroupMentionsToItemTable.sql"),
   };
 
   const allSteps = async () => {

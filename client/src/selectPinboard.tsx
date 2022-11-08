@@ -16,7 +16,7 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { getTooltipText } from "./util";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import {
   SvgAlertTriangle,
   SvgChevronRightSingle,
@@ -208,7 +208,7 @@ export const SelectPinboard = ({
             textAlign: "left",
             backgroundColor: palette.neutral["100"],
             color: palette.neutral["20"],
-            fontFamily: agateSans.xxsmall(), //FIXME: typography adds the font-family. so not sure these work with object styles
+            fontFamily: openSans.xxsmall(), //FIXME: typography adds the font-family. so not sure these work with object styles
             display: "flex",
             alignItems: "center",
             border: `1px solid ${palette.neutral["93"]}`,
@@ -343,7 +343,7 @@ export const SelectPinboard = ({
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          fontFamily: agateSans.xxsmall({ fontWeight: "bold" }),
+          fontFamily: openSans.xxsmall({ fontWeight: "bold" }),
           color: palette.neutral["20"],
           mark: {
             backgroundColor: pinboard["500"],
@@ -363,7 +363,7 @@ export const SelectPinboard = ({
               margin: ${space[1]}px;
               border-radius: ${space[1]}px;
               color: ${palette.neutral["100"]};
-              ${agateSans.small({ fontWeight: "bold" })};
+              ${openSans.small({ fontWeight: "bold" })};
             `}
           >
             <div>Choose the pinboard for this asset</div>
@@ -399,7 +399,7 @@ export const SelectPinboard = ({
                 color: ${palette.neutral["20"]};
                 border: 1px solid ${palette.neutral["93"]};
                 cursor: pointer;
-                ${agateSans.xxsmall({ fontWeight: "bold" })};
+                ${openSans.xxsmall({ fontWeight: "bold" })};
                 background-color: ${palette.neutral["100"]};
                 &:hover {
                   background-color: ${palette.neutral["86"]};
@@ -430,7 +430,7 @@ export const SelectPinboard = ({
               borderRadius: "16px",
               borderWidth: "1px",
               height: "32px",
-              fontFamily: agateSans.small(),
+              fontFamily: openSans.small(),
               lineHeight: "32px",
               paddingRight: "30px", // to allow for icon
             }}

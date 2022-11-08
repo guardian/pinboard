@@ -37,6 +37,8 @@ import {
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { gqlGetUsers } from "../gql";
+import { Global } from "@emotion/react";
+import { fontFaceOpenSansCSS } from "../fontNormaliser";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -303,6 +305,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
         <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
+        <Global styles={fontFaceOpenSansCSS} />
         <root.div
           onDragOver={(event) =>
             isGridDragEvent(event) && event.preventDefault()

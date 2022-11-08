@@ -8,13 +8,13 @@ import React, {
 import { css } from "@emotion/react";
 import { composer } from "../colours";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import CloseIcon from "../icons/close.svg";
 
 const buttonStyle = css`
   outline: none;
   cursor: pointer;
-  ${agateSans.small({ lineHeight: "tight" })};
+  ${openSans.small({ lineHeight: "tight" })};
   border-radius: ${space[1]}px;
   flex-grow: 1;
   border: 1px solid white;
@@ -82,7 +82,7 @@ export const useConfirmModal = (
           background-color: ${composer.primary["300"]};
           color: white;
           padding: ${space[2]}px;
-          ${agateSans.small({ lineHeight: "tight" })};
+          ${openSans.small({ lineHeight: "tight" })};
           border-radius: ${space[2]}px;
           z-index: 9999;
         `}

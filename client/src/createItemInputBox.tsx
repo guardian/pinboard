@@ -6,7 +6,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { Group, User } from "../../shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useApolloClient } from "@apollo/client";
@@ -29,7 +29,7 @@ const LoadingSuggestions = () => (
       gap: ${space["2"]}px;
       background: ${palette.neutral["100"]};
       padding: ${space["2"]}px;
-      font-family: ${agateSans.small({ lineHeight: "tight" })};
+      font-family: ${openSans.small({ lineHeight: "tight" })};
     `}
   >
     <SvgSpinner size="xsmall" />
@@ -47,7 +47,7 @@ const Suggestion = ({
           cursor: default;
           padding: ${space[1]}px;
           background: ${palette.neutral["93"]};
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          font-family: ${openSans.xxsmall({ fontWeight: "bold" })};
           color: ${palette.neutral["46"]};
           user-select: none;
         `}
@@ -76,7 +76,7 @@ const Suggestion = ({
       <div>
         <div
           css={{
-            fontFamily: agateSans.xsmall({
+            fontFamily: openSans.xsmall({
               lineHeight: "tight",
               fontWeight: "bold",
             }),
@@ -88,7 +88,7 @@ const Suggestion = ({
         </div>
         <div
           css={{
-            fontFamily: agateSans.xxsmall({ lineHeight: "tight" }),
+            fontFamily: openSans.xxsmall({ lineHeight: "tight" }),
           }}
         >
           {isUser(userOrGroup) ? userOrGroup.email : userOrGroup.name}
@@ -210,7 +210,7 @@ export const CreateItemInputBox = ({
            Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
           height: 21.1px;
           max-height: 74px;
-          ${agateSans.small({ lineHeight: "tight" })};
+          ${openSans.small({ lineHeight: "tight" })};
           resize: none;
           ${scrollbarsCss(palette.neutral[86])}
         `}

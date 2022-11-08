@@ -2,7 +2,7 @@ import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
 import React, { useState } from "react";
 import { composer } from "../colours";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 
 interface ConfirmableButtonProps {
   label: string;
@@ -39,7 +39,7 @@ export const ConfirmableButton = ({
           border: 1px solid ${buttonColor};
           width: auto;
           background-color: ${buttonColor};
-          ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${openSans.xxsmall({ fontWeight: "bold" })};
         `}
         onClick={() =>
           isConfirmingMode ? onClick() : setIsConfirmingMode(true)
@@ -58,7 +58,7 @@ export const ConfirmableButton = ({
             border-radius: ${space[1]}px;
             border: 1px solid;
             width: auto;
-            ${agateSans.xxsmall({ fontWeight: "bold" })};
+            ${openSans.xxsmall({ fontWeight: "bold" })};
           `}
           onClick={() => setIsConfirmingMode(false)}
         >

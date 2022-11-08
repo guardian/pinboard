@@ -5,7 +5,7 @@ import { css } from "@emotion/react";
 import { pinboard, pinMetal } from "../colours";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
-import { textSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
@@ -42,7 +42,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${openSans.small()}
       `}
     >
       <button
@@ -57,7 +57,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           display: flex;
           align-items: center;
           background-color: ${pinboard[500]};
-          ${textSans.xsmall()};
+          ${openSans.xsmall()};
           border: none;
           border-radius: 100px;
           padding: 0 ${space[2]}px 0 ${space[3]}px;

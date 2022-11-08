@@ -10,7 +10,7 @@ import { PendingItem } from "./types/PendingItem";
 import { palette, space } from "@guardian/source-foundations";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import {
   buildPayloadAndType,
   isPayloadType,
@@ -106,7 +106,7 @@ export const ItemDisplay = ({
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;
         font-style: ${isPendingSend ? "italic" : "normal"};
-        ${agateSans.small({ lineHeight: "tight" })};
+        ${openSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
       `}
@@ -128,7 +128,7 @@ export const ItemDisplay = ({
               css={css`
                 flex-grow: 1;
                 margin-left: ${space[1]}px;
-                ${agateSans.small({ fontWeight: "bold", lineHeight: "tight" })};
+                ${openSans.small({ fontWeight: "bold", lineHeight: "tight" })};
                 color: ${palette.neutral[20]};
               `}
             >
@@ -145,7 +145,7 @@ export const ItemDisplay = ({
         <div
           css={css`
             color: ${palette.neutral["20"]};
-            ${agateSans.xxsmall({ lineHeight: "tight" })};
+            ${openSans.xxsmall({ lineHeight: "tight" })};
             margin-bottom: 2px;
           `}
         >
@@ -169,7 +169,7 @@ export const ItemDisplay = ({
                       fill: ${composer.primary[300]};
                     }
                   }
-                  ${agateSans.xxsmall({ fontWeight: "bold" })};
+                  ${openSans.xxsmall({ fontWeight: "bold" })};
                 `}
               >
                 <Pencil /> {userDisplayName} claimed a request <Tick />

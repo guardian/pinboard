@@ -2,7 +2,7 @@ import React, { PropsWithChildren } from "react";
 import { css } from "@emotion/react";
 import { pinboard } from "../../colours";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../../fontNormaliser";
+import { openSans } from "../../fontNormaliser";
 import { useGlobalStateContext } from "../globalState";
 import type { Tab } from "../types/Tab";
 import { BackArrowIcon, ComposerIcon, CrossIcon } from "./icon";
@@ -52,7 +52,7 @@ export const Navigation = ({
     >
       <div
         css={css`
-          ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${openSans.xxsmall({ fontWeight: "bold" })};
           margin: ${space[1]}px;
           display: flex;
           gap: ${space[1]}px;

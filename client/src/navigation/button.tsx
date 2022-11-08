@@ -2,7 +2,7 @@ import React from "react";
 import { css } from "@emotion/react";
 import { pinboard } from "../../colours";
 import { neutral, palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../../fontNormaliser";
+import { openSans } from "../../fontNormaliser";
 
 const numberedBubble = css`
   top: -4px;
@@ -60,7 +60,7 @@ export const NavButton: React.FC<NavButtonProps> = ({
           border: 2px solid ${pinboard[500]};
           user-select: none;
           background-color: ${palette.neutral[20]};
-          ${agateSans.xxsmall({ lineHeight: "regular" })}
+          ${openSans.xxsmall({ lineHeight: "regular" })}
           color: ${palette.neutral[100]};
           text-align: center;
           ${hoverParent ? "*:hover > * > &" : "*:hover > &"} {

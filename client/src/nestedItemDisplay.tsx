@@ -5,7 +5,7 @@ import { Item, User } from "../../shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
 import { formatMentionHandlesInText } from "./mentionsUtil";
 import { FormattedDateTime } from "./formattedDateTime";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 
 interface NestedItemDisplayProps {
   item: Item;
@@ -32,7 +32,7 @@ export const NestedItemDisplay = ({
         margin-left: ${space[3]}px;
         color: ${palette.neutral[46]};
         mix-blend-mode: multiply;
-        ${agateSans.xxsmall()}
+        ${openSans.xxsmall()}
         background-color: ${palette.neutral["97"]};
         padding: ${space[1]}px;
         border-radius: ${space[1]}px;

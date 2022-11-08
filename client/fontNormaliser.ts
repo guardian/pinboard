@@ -5,19 +5,18 @@ import type {
 
 // eslint-disable-next-line no-restricted-imports -- suppress our own lint rule as this is the one legit place to import the fonts
 import * as sourceFoundations from "@guardian/source-foundations";
+import { css } from "@emotion/react";
 
 type FontOverride = (
   originalFunc: FontScaleFunctionStr
 ) => (options?: FontScaleArgs | undefined) => string;
 
-// source foundations will give us Guardian Text Sans, but we usually want Guardian Agate Sans, so as to fit in with
-// the tools hosting pinboard.
-// different tools provide Agate Sans either with or without the Web suffix, so use fallbacks to try both.
-const overrideToAgateSans: FontOverride = (
+// source foundations will give us Guardian Text Sans, but we usually want Open Sans, to fit in with the tools hosting pinboard.
+const overrideToOpenSans: FontOverride = (
   originalFunc: FontScaleFunctionStr
 ) => (options?: FontScaleArgs) => `
   ${originalFunc(options)};
-  font-family: "Guardian Agate Sans", "Guardian Agate Sans Web", Arial, sans-serif;
+  font-family: "Open Sans", Arial, sans-serif;
 `;
 
 const defaultToPx: FontOverride = (originalFunc: FontScaleFunctionStr) => (
@@ -37,13 +36,51 @@ const applyFontOverride = <T extends FontDefinition>(
     {} as T
   );
 
-const agateSansFont = applyFontOverride(overrideToAgateSans);
+const openSansFont = applyFontOverride(overrideToOpenSans);
 const pixelSizedFont = applyFontOverride(defaultToPx);
 
-export const agateSans = agateSansFont(
+export const openSans = openSansFont(
   pixelSizedFont(sourceFoundations.textSans)
 );
-export const textSans = pixelSizedFont(sourceFoundations.textSans);
-export const headline = pixelSizedFont(sourceFoundations.headline);
-export const titlepiece = pixelSizedFont(sourceFoundations.titlepiece);
-export const body = pixelSizedFont(sourceFoundations.body);
+// export const textSans = pixelSizedFont(sourceFoundations.textSans);
+// export const headline = pixelSizedFont(sourceFoundations.headline);
+// export const titlepiece = pixelSizedFont(sourceFoundations.titlepiece);
+// export const body = pixelSizedFont(sourceFoundations.body);
+
+export const fontFaceOpenSansCSS = css`
+  @font-face {
+    font-family: open sans;
+    font-style: normal;
+    font-weight: 400;
+    font-stretch: 87.5%;
+    src: local("Open Sans"),
+      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Regular.woff)
+        format("woff");
+  }
+  @font-face {
+    font-family: open sans;
+    font-style: italic;
+    font-weight: 400;
+    font-stretch: 87.5%;
+    src: local("Open Sans"),
+      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Italic.woff)
+        format("woff");
+  }
+  @font-face {
+    font-family: open sans;
+    font-style: normal;
+    font-weight: 700;
+    font-stretch: 87.5%;
+    src: local("Open Sans"),
+      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Bold.woff) format("woff");
+  }
+  @font-face {
+    font-family: open sans;
+    font-style: italic;
+    font-weight: 700;
+    font-stretch: 87.5%;
+    src: local("Open Sans"),
+      url(https://fonts.cdnfonts.com/s/14884/OpenSans-BoldItalic.woff)
+        format("woff");
+  }
+`;

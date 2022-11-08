@@ -3,7 +3,7 @@ import { neutral } from "@guardian/source-foundations";
 import React from "react";
 import { Group, User } from "../../shared/graphql/graphql";
 import { composer } from "../colours";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { isUser } from "../../shared/graphql/extraTypes";
 
 interface AvatarRoundelProps {
@@ -42,8 +42,8 @@ export const AvatarRoundel = ({
         user-select: none;
         justify-content: center;
         ${size < 20 // arbitrary breakpoint
-          ? `${agateSans.xxsmall()} font-size: 10px;`
-          : agateSans.small()}
+          ? `${openSans.xxsmall()} font-size: 10px;`
+          : openSans.small()}
         line-height: ${size}px;
       `}
     >

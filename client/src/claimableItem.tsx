@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { Claimed, Item, MentionHandle } from "../../shared/graphql/graphql";
 import { PendingItem } from "./types/PendingItem";
@@ -49,7 +49,7 @@ export const ClaimableItem = ({
         display: flex;
         align-items: center;
         gap: ${space[1]}px;
-        ${agateSans.xxsmall({ lineHeight: "tight" })};
+        ${openSans.xxsmall({ lineHeight: "tight" })};
         margin-top: ${space[1]}px;
       `}
     >

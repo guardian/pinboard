@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import { pinMetal, pinboard, composer } from "../colours";
 import PinIcon from "../icons/pin-icon.svg";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { boxShadow, floatySize } from "./styling";
 import { useGlobalStateContext } from "./globalState";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
@@ -28,7 +28,7 @@ const FloatyNotificationsBubble = ({
       padding: 0 ${space[1]}px;
       height: ${space[4]}px;
       border-radius: ${space[2]}px;
-      ${agateSans.xxsmall({ lineHeight: "regular" })};
+      ${openSans.xxsmall({ lineHeight: "regular" })};
       color: ${palette.neutral[100]};
       text-align: center;
     `}

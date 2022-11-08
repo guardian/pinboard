@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 interface PushNotificationPreferencesOpenerProps {
   hasWebPushSubscription: boolean | null | undefined;
@@ -34,7 +34,7 @@ export const PushNotificationPreferencesOpener = ({
   return (
     <button
       css={{
-        fontFamily: agateSans.xxsmall(),
+        fontFamily: openSans.xxsmall(),
         width: "100%",
       }}
       onClick={openDesktopNotificationsPreferencesWindow}

@@ -5,7 +5,7 @@ import { palette, space } from "@guardian/source-foundations";
 import BugIcon from "../../client/icons/bug.svg";
 import DownChevron from "../icons/chevron-down.svg";
 import UpChevron from "../icons/chevron-up.svg";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 export const Feedback = () => {
@@ -19,7 +19,7 @@ export const Feedback = () => {
         background-color: ${composer.primary[400]};
         padding: ${space[2]}px;
         border-radius: 4px;
-        ${agateSans.xxsmall({ lineHeight: "regular" })};
+        ${openSans.xxsmall({ lineHeight: "regular" })};
         gap: ${space[1]}px;
         margin: ${space[1]}px;
         margin-bottom: 0;

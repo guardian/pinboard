@@ -21,7 +21,7 @@ import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { composer } from "../colours";
 import { SvgAlertTriangle } from "@guardian/source-react-components";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
@@ -303,7 +303,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
             css={css`
               background-color: ${composer.warning[100]};
               color: ${palette.neutral[100]};
-              ${agateSans.xsmall({ lineHeight: "tight", fontWeight: "bold" })}
+              ${openSans.xsmall({ lineHeight: "tight", fontWeight: "bold" })}
               padding: ${space[2]}px;
               border-radius: ${space[1]}px;
               margin: ${space[2]}px;

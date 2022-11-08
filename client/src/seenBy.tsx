@@ -3,7 +3,7 @@ import { palette } from "@guardian/source-foundations";
 import { SvgPlus } from "@guardian/source-react-components";
 import React, { useContext } from "react";
 import { LastItemSeenByUser } from "../../shared/graphql/graphql";
-import { agateSans } from "../fontNormaliser";
+import { openSans } from "../fontNormaliser";
 import { AvatarRoundel } from "./avatarRoundel";
 import { TickContext } from "./formattedDateTime";
 import { formatDateTime } from "./util";
@@ -43,7 +43,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
         css={css`
           color: ${palette.neutral[20]};
           margin-right: 5px;
-          ${agateSans.xxsmall({ lineHeight: "tight" })}
+          ${openSans.xxsmall({ lineHeight: "tight" })}
           line-height: ${roundelHeightPx}px;
         `}
       >

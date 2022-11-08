@@ -9,7 +9,7 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import { useGlobalStateContext } from "../globalState";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
-import { agateSans } from "../../fontNormaliser";
+import { openSans } from "../../fontNormaliser";
 import { FormattedDateTime } from "../formattedDateTime";
 import { GridBadge } from "./gridBadges";
 import { SvgReload } from "@guardian/source-react-components";
@@ -104,7 +104,7 @@ export const GridDynamicSearchDisplay = ({
       {!getGridSearchSummaryQuery.loading && maybeQueryBreakdown && (
         <div
           css={css`
-            font-family: ${agateSans.xsmall({ fontWeight: "bold" })};
+            font-family: ${openSans.xsmall({ fontWeight: "bold" })};
             display: flex;
             flex-wrap: wrap;
             gap: ${space["1"]}px;
@@ -121,7 +121,7 @@ export const GridDynamicSearchDisplay = ({
 
       <span
         css={css`
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          font-family: ${openSans.xxsmall({ fontWeight: "bold" })};
           line-height: 36px;
           margin-bottom: 6px;
         `}
@@ -131,7 +131,7 @@ export const GridDynamicSearchDisplay = ({
 
       <span
         css={css`
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          font-family: ${openSans.xxsmall({ fontWeight: "bold" })};
         `}
       >
         {!getGridSearchSummaryQuery.loading &&
@@ -145,7 +145,7 @@ export const GridDynamicSearchDisplay = ({
           <div>
             <span
               css={css`
-                font-family: ${agateSans.xxsmall()};
+                font-family: ${openSans.xxsmall()};
               `}
             >
               Last checked{" "}

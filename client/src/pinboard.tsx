@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import {
   Claimed,
@@ -25,6 +25,7 @@ import { agateSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -66,6 +67,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
     addManuallyOpenedPinboardId,
   } = useGlobalStateContext();
+
+  const sendTelemetryEvent = useContext(TelemetryContext);
 
   const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
@@ -251,6 +254,13 @@ export const Pinboard: React.FC<PinboardProps> = ({
       data.claimItem.newItem,
     ]);
     addManuallyOpenedPinboardId(data.claimItem.pinboardId);
+    const unclaimedDurationInMillis =
+      new Date(data.claimItem.newItem.timestamp).getTime() -
+      new Date(data.claimItem.updatedItem.timestamp).getTime();
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.CLAIMED_ITEM, {
+      pinboardId: data.claimItem.pinboardId,
+      unclaimedDurationInMillis,
+    });
   };
 
   const [claimItem] = useMutation(gqlClaimItem, {

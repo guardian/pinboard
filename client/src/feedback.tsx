@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { css } from "@emotion/react";
 import { composer } from "../colours";
 import { palette, space } from "@guardian/source-foundations";
@@ -6,8 +6,10 @@ import BugIcon from "../../client/icons/bug.svg";
 import DownChevron from "../icons/chevron-down.svg";
 import UpChevron from "../icons/chevron-up.svg";
 import { agateSans } from "../fontNormaliser";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 export const Feedback = () => {
+  const sendTelemetryEvent = useContext(TelemetryContext);
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div
@@ -45,6 +47,9 @@ export const Feedback = () => {
         >
           Have any feedback?{" "}
           <a
+            onClick={() =>
+              sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.OPEN_FEEDBACK_FORM)
+            }
             href={`https://docs.google.com/forms/d/e/1FAIpQLSc27Q4Mxl0SehQoUfOKbWlUp_xGKfIOasd9GUmLkAwpfqO0XA/viewform?usp=pp_url&entry.412999946=${encodeURIComponent(
               navigator.userAgent
             )}`}
@@ -63,7 +68,17 @@ export const Feedback = () => {
             cursor: pointer;
           `}
         >
-          <div role="button" onClick={() => setIsOpen(!isOpen)}>
+          <div
+            role="button"
+            onClick={() => {
+              if (!isOpen) {
+                sendTelemetryEvent?.(
+                  PINBOARD_TELEMETRY_TYPE.EXPAND_FEEDBACK_DETAILS
+                );
+              }
+              setIsOpen(!isOpen);
+            }}
+          >
             {isOpen ? (
               <UpChevron
                 css={css`
@@ -93,6 +108,9 @@ export const Feedback = () => {
           <span>
             ...or if you need help,{" "}
             <a
+              onClick={() =>
+                sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.OPEN_FEEDBACK_CHAT)
+              }
               href="https://chat.google.com/room/AAAAbJdy6vM?cls=7"
               rel="noreferrer"
               target="_blank"

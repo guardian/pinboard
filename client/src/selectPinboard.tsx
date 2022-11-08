@@ -343,6 +343,7 @@ export const SelectPinboard = ({
       <div
         css={{
           ...standardPanelContainerCss,
+          overflowY: "auto",
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",

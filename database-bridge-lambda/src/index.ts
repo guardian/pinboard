@@ -2,7 +2,12 @@ import type {
   AppSyncIdentityLambda,
   AppSyncResolverEvent,
 } from "aws-lambda/trigger/appsync-resolver";
-import { claimItem, createItem, listItems } from "./sql/Item";
+import {
+  claimItem,
+  createItem,
+  getGroupPinboardIds,
+  listItems,
+} from "./sql/Item";
 import { Sql } from "../../shared/database/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
 import {
@@ -45,6 +50,8 @@ const run = (
       return addManuallyOpenedPinboardIds(sql, args, userEmail);
     case "removeManuallyOpenedPinboardIds":
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
+    case "getGroupPinboardIds":
+      return getGroupPinboardIds(sql, userEmail);
   }
 
   throw Error(

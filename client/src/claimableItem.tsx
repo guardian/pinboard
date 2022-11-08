@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
@@ -7,6 +7,10 @@ import { Claimed, Item, MentionHandle } from "../../shared/graphql/graphql";
 import { PendingItem } from "./types/PendingItem";
 import { FetchResult } from "@apollo/client";
 import { formatMentionHandlesInText } from "./mentionsUtil";
+import { composer } from "../colours";
+import Tick from "../../client/icons/tick.svg";
+import Pencil from "../../client/icons/pencil.svg";
+import { ConfirmableButton } from "./confirmableButton";
 
 const formatMentionHandles = (
   mentionHandles: MentionHandle[]
@@ -44,10 +48,9 @@ export const ClaimableItem = ({
       css={css`
         display: flex;
         align-items: center;
-        justify-content: flex-end;
         gap: ${space[1]}px;
-        margin: ${space[2]}px 0;
         ${agateSans.xxsmall({ lineHeight: "tight" })};
+        margin-top: ${space[1]}px;
       `}
     >
       {isClaiming ? (
@@ -58,55 +61,89 @@ export const ClaimableItem = ({
       ) : (
         <div
           css={css`
-            border: 1px solid;
-            padding: 8px;
+            padding: ${space[2]}px;
             display: flex;
             flex-direction: column;
-            gap: ${space[2]}px;
+            border-radius: ${space[1]}px;
+            font-weight: bold;
+            border: 1px solid #dcdcdc;
           `}
         >
-          <div>
-            {userDisplayName} has made a request to{" "}
-            {formatMentionHandles(item.groupMentions || [])}
-          </div>
-          <div>
-            <strong>
-              {maybeClaimedByName
-                ? `Claimed by ${maybeClaimedByName}`
-                : "This request has not been claimed yet"}
-            </strong>
-          </div>
-
-          {!maybeClaimedByName && isMentionApplicableToMe && (
+          <div
+            css={css`
+              margin-top: ${space[1]};
+              display: flex;
+              color: ${palette.neutral[maybeClaimedByName ? 46 : 20]};
+              svg {
+                path {
+                  fill: ${palette.neutral[maybeClaimedByName ? 46 : 20]};
+                }
+              }
+            `}
+          >
+            <Pencil />
+            &nbsp;
             <div>
-              <button
+              {userDisplayName} made a request to{" "}
+              {formatMentionHandles(item.groupMentions || [])}
+              <div
                 css={css`
-                  cursor: pointer;
-                  width: 100%;
-                  border-radius: 2px;
-                  border: 1px solid ${palette.neutral["60"]};
-                  color: ${palette.neutral["10"]};
+                  display: flex;
+                  flex-direction: column;
+                  gap: ${space[1]}px;
+                  margin-top: ${space[1]}px;
                 `}
-                onClick={() => {
-                  if (
-                    confirm(
-                      "Are you sure you want to claim this on behalf of the group?"
-                    )
-                  ) {
-                    setIsClaiming(true);
-                    claimItem()
-                      .catch((error) => {
-                        console.error(error);
-                        // TODO display error to user
-                      })
-                      .finally(() => setIsClaiming(false));
-                  }
-                }}
               >
-                Claim
-              </button>
+                <div>
+                  {maybeClaimedByName ? (
+                    <strong
+                      css={css`
+                        padding: ${space[1]}px;
+                        border: 1px solid ${composer.primary[300]};
+                        border-radius: ${space[1]}px;
+                        width: auto;
+                        color: ${composer.primary[300]};
+                        svg {
+                          path {
+                            fill: ${composer.primary[300]};
+                          }
+                        }
+                      `}
+                    >
+                      Claimed by {maybeClaimedByName} &nbsp;
+                      <Tick />
+                    </strong>
+                  ) : (
+                    <span
+                      css={css`
+                        color: ${palette.neutral[20]};
+                        font-weight: 400;
+                      `}
+                    >
+                      This request has not been picked up by anyone yet
+                    </span>
+                  )}
+                </div>
+
+                {!maybeClaimedByName && isMentionApplicableToMe && (
+                  <div>
+                    <ConfirmableButton
+                      label={"Claim"}
+                      backgroundColor={composer.primary[300]}
+                      onClick={() => {
+                        setIsClaiming(true);
+                        claimItem()
+                          .catch((error) => {
+                            console.error(error); // TODO display error to user
+                          })
+                          .finally(() => setIsClaiming(false));
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

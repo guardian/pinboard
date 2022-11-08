@@ -1,8 +1,16 @@
-import React, { ReactElement, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  ReactElement,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { css } from "@emotion/react";
 import { composer } from "../colours";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
+import CloseIcon from "../icons/close.svg";
+import { CrossIcon } from "./navigation/icon";
 
 const buttonStyle = css`
   outline: none;
@@ -29,6 +37,22 @@ export const useConfirmModal = (
   >(null);
 
   const yesButtonRef = useRef() as React.MutableRefObject<HTMLButtonElement>;
+
+  useEffect(() => {
+    const onEscapeKeyPress = (event: {
+      key: string;
+      preventDefault: () => void;
+    }) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setPromiseResolveFn(null);
+      }
+    };
+    document.addEventListener("keydown", onEscapeKeyPress);
+    return () => {
+      document.removeEventListener("keydown", onEscapeKeyPress);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     if (promiseResolveFn) {
@@ -64,6 +88,21 @@ export const useConfirmModal = (
           z-index: 9999;
         `}
       >
+        <button
+          css={css`
+            position: absolute;
+            right: ${space[3]}px;
+            top: ${space[3]}px;
+            z-index: 999;
+            cursor: pointer;
+            background: none;
+            border: none;
+          `}
+          onClick={() => setPromiseResolveFn(null)}
+        >
+          <CloseIcon />
+        </button>
+
         {content}
         <div
           css={css`

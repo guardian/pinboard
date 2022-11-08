@@ -46,6 +46,7 @@ interface GlobalStateContextShape {
     maybeEmailOverride?: string
   ) => Promise<FetchResult<{ addManuallyOpenedPinboardIds: MyUser }>>;
   openPinboard: (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
+  openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
   selectedPinboardId: string | null | undefined;
@@ -167,7 +168,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ),
   ];
 
-  const activePinboardsQuery = useQuery<{
+  const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
   }>(gqlGetPinboardsByIds, {
     variables: {
@@ -177,20 +178,20 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   useEffect(() => {
     if (isExpanded) {
-      activePinboardsQuery.refetch();
-      activePinboardsQuery.startPolling(5000);
+      pinboardDataQuery.refetch();
+      pinboardDataQuery.startPolling(5000);
     } else {
-      activePinboardsQuery.stopPolling();
+      pinboardDataQuery.stopPolling();
     }
   }, [
     isExpanded,
     ...activePinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
-  const isLoadingActivePinboardList = activePinboardsQuery.loading;
+  const isLoadingActivePinboardList = pinboardDataQuery.loading;
 
   const activePinboards: PinboardData[] =
-    activePinboardsQuery.data?.getPinboardsByIds || [];
+    pinboardDataQuery.data?.getPinboardsByIds || [];
 
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
     openPinboardIdBasedOnQueryParam
@@ -255,6 +256,42 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     };
   }, []);
 
+  const openPinboardInNewTab = (pinboardData: PinboardData) => {
+    const openInNewTabTimeoutId = setTimeout(() => {
+      const hostname = window.location.hostname;
+      const composerDomain =
+        hostname.includes(".local.") ||
+        hostname.includes(".code.") ||
+        hostname.includes(".test.")
+          ? "code.dev-gutools.co.uk"
+          : "gutools.co.uk";
+      const composerUrl = `https://composer.${composerDomain}/content/${
+        pinboardData.composerId || ".."
+      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+
+      window?.open(composerUrl, "_blank")?.focus();
+    }, 500);
+
+    interTabChannel.addEventListener(
+      "message",
+      (event) => {
+        if (event.data.composerIdFocused === pinboardData.composerId) {
+          clearTimeout(openInNewTabTimeoutId);
+          alert(
+            "The composer file you want to see is already open in another tab.\n\n" +
+              "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
+          );
+        }
+      },
+      { once: true }
+    );
+
+    interTabChannel.postMessage({
+      composerId: pinboardData.composerId,
+      composerTabTitle: window.document.title,
+    });
+  };
+
   const openPinboard = (
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
@@ -272,42 +309,10 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
       );
     }
 
-    if (!isOpenInNewTab) {
-      setSelectedPinboardId(pinboardData.id);
+    if (isOpenInNewTab) {
+      openPinboardInNewTab(pinboardData);
     } else {
-      const openInNewTabTimeoutId = setTimeout(() => {
-        const hostname = window.location.hostname;
-        const composerDomain =
-          hostname.includes(".local.") ||
-          hostname.includes(".code.") ||
-          hostname.includes(".test.")
-            ? "code.dev-gutools.co.uk"
-            : "gutools.co.uk";
-        const composerUrl = `https://composer.${composerDomain}/content/${
-          pinboardData.composerId || ".."
-        }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
-
-        window?.open(composerUrl, "_blank")?.focus();
-      }, 500);
-
-      interTabChannel.addEventListener(
-        "message",
-        (event) => {
-          if (event.data.composerIdFocused === pinboardData.composerId) {
-            clearTimeout(openInNewTabTimeoutId);
-            alert(
-              "The composer file you want to see is already open in another tab.\n\n" +
-                "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
-            );
-          }
-        },
-        { once: true }
-      );
-
-      interTabChannel.postMessage({
-        composerId: pinboardData.composerId,
-        composerTabTitle: window.document.title,
-      });
+      setSelectedPinboardId(pinboardData.id);
     }
   };
 
@@ -474,6 +479,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
     addManuallyOpenedPinboardId,
     openPinboard,
+    openPinboardInNewTab,
     closePinboard,
     preselectedPinboard,
     selectedPinboardId,

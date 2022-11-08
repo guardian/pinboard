@@ -24,7 +24,18 @@ export const gqlGetPinboardsByIds = gql`
     getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
   }
 `;
-
+export const gqlGetGroupPinboardIds = gql`
+  query MyQuery {
+    getGroupPinboardIds {
+      pinboardId
+      unclaimedCount
+      yourClaimedCount
+      othersClaimedCount
+      notClaimableCount
+      latestGroupMentionItemId
+    }
+  }
+`;
 const itemReturnFields = `
   id
   type

@@ -1,5 +1,5 @@
 import { css, Global } from "@emotion/react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
@@ -10,6 +10,26 @@ import { getTooltipText } from "./util";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
 import { ChatTab } from "./types/Tab";
 import { pinboard } from "../colours";
+import { useQuery } from "@apollo/client";
+import { gqlGetGroupPinboardIds, gqlGetPinboardsByIds } from "../gql";
+import { PinboardIdWithClaimCounts } from "../../shared/graphql/graphql";
+import {
+  PinboardData,
+  PinboardDataWithClaimCounts,
+} from "../../shared/graphql/extraTypes";
+
+const teamPinboardsSortFunction = (
+  a: PinboardIdWithClaimCounts,
+  b: PinboardIdWithClaimCounts
+) => {
+  const unclaimedDiff = b.unclaimedCount - a.unclaimedCount;
+  if (unclaimedDiff !== 0) {
+    return unclaimedDiff;
+  }
+  return (
+    parseInt(b.latestGroupMentionItemId) - parseInt(a.latestGroupMentionItemId)
+  );
+};
 
 export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -27,6 +47,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
+  const [
+    maybePeekingAtPinboard,
+    setMaybePeekingAtPinboard,
+  ] = useState<PinboardData | null>(null);
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -34,6 +58,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     }
     if (selectedPinboardId) {
       return selectedPinboard?.title || "Loading pinboard...";
+    }
+    if (maybePeekingAtPinboard) {
+      return maybePeekingAtPinboard?.title || "Loading pinboard...";
     }
     return "Select a pinboard";
   })();
@@ -46,6 +73,76 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     Math.abs(boundedPositionTranslation.x) > window.innerWidth / 2;
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
+
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
+
+  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
+    groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
+
+  const [isShowAllTeamPinboards, setIsShowAllTeamPinboards] = useState(false);
+  const unclaimedCount = groupPinboardIdsWithClaimCounts.filter(
+    (_) => _.unclaimedCount > 0
+  ).length;
+  const noOfTeamPinboardsToShow = isShowAllTeamPinboards
+    ? groupPinboardIdsWithClaimCounts.length
+    : unclaimedCount > 5
+    ? unclaimedCount
+    : 5;
+  const noOfTeamPinboardsNotShown =
+    groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow;
+
+  const groupPinboardIds = [...groupPinboardIdsWithClaimCounts]
+    .sort(teamPinboardsSortFunction)
+    .slice(0, noOfTeamPinboardsToShow)
+    .map((_) => _.pinboardId);
+
+  const pinboardDataQuery = useQuery<{
+    getPinboardsByIds: PinboardData[];
+  }>(gqlGetPinboardsByIds, {
+    variables: {
+      ids: groupPinboardIds,
+    },
+  });
+
+  useEffect(() => {
+    pinboardDataQuery.refetch();
+  }, [...groupPinboardIds]);
+
+  const pinboardsWithClaimCounts =
+    pinboardDataQuery.data?.getPinboardsByIds
+      ?.reduce((acc, pinboardData) => {
+        const maybePinboardIdWithClaimCounts = groupPinboardIdsWithClaimCounts.find(
+          (_) => _.pinboardId === pinboardData.id
+        );
+        return maybePinboardIdWithClaimCounts
+          ? [
+              ...acc,
+              {
+                ...pinboardData,
+                ...maybePinboardIdWithClaimCounts,
+              },
+            ]
+          : acc;
+      }, [] as PinboardDataWithClaimCounts[])
+      .sort(teamPinboardsSortFunction) || [];
+
+  useEffect(() => {
+    if (isExpanded) {
+      groupPinboardIdsQuery.refetch();
+      pinboardDataQuery.refetch();
+      groupPinboardIdsQuery.startPolling(5000);
+      pinboardDataQuery.startPolling(5000);
+    } else {
+      groupPinboardIdsQuery.stopPolling();
+      pinboardDataQuery.stopPolling();
+    }
+  }, [
+    isExpanded,
+    ...groupPinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
+  ]);
+
+  const peekAtPinboard = (pinboard: PinboardData) =>
+    setMaybePeekingAtPinboard(pinboard);
 
   return (
     <div
@@ -104,27 +201,44 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        selectedPinboardId={selectedPinboardId}
-        clearSelectedPinboard={clearSelectedPinboard}
+        selectedPinboard={selectedPinboard || maybePeekingAtPinboard}
+        clearSelectedPinboard={() => {
+          clearSelectedPinboard();
+          setMaybePeekingAtPinboard(null);
+        }}
         headingTooltipText={
-          selectedPinboard && getTooltipText(selectedPinboard)
+          (selectedPinboard && getTooltipText(selectedPinboard)) ||
+          (maybePeekingAtPinboard
+            ? getTooltipText(maybePeekingAtPinboard)
+            : undefined)
         }
         isTopHalf={isTopHalf}
         isLeftHalf={isLeftHalf}
       >
         <span
           css={{
-            textDecoration: selectedPinboard?.trashed
+            textDecoration: (selectedPinboard || maybePeekingAtPinboard)
+              ?.trashed
               ? "line-through"
               : undefined,
-            fontStyle: selectedPinboard?.isNotFound ? "italic" : undefined,
+            fontStyle: (selectedPinboard || maybePeekingAtPinboard)?.isNotFound
+              ? "italic"
+              : undefined,
           }}
         >
           {title}
         </span>
       </Navigation>
 
-      {!selectedPinboardId && <SelectPinboard />}
+      {!selectedPinboardId && !maybePeekingAtPinboard && (
+        <SelectPinboard
+          pinboardsWithClaimCounts={pinboardsWithClaimCounts}
+          peekAtPinboard={peekAtPinboard}
+          noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
+          isShowAllTeamPinboards={isShowAllTeamPinboards}
+          setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
+        />
+      )}
 
       <Global
         styles={{
@@ -155,6 +269,15 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           />
         ))
       }
+
+      {maybePeekingAtPinboard && (
+        <Pinboard
+          pinboardId={maybePeekingAtPinboard.id}
+          isExpanded={isExpanded}
+          isSelected={true}
+          panelElement={panelRef.current}
+        />
+      )}
     </div>
   );
 };

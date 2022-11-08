@@ -9,7 +9,12 @@ import { gqlListPinboards } from "../gql";
 import { PushNotificationPreferencesOpener } from "./pushNotificationPreferences";
 import { useGlobalStateContext } from "./globalState";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
-import { isPinboardData, PinboardData } from "../../shared/graphql/extraTypes";
+import {
+  isPinboardData,
+  isPinboardDataWithClaimCounts,
+  PinboardData,
+  PinboardDataWithClaimCounts,
+} from "../../shared/graphql/extraTypes";
 import { getTooltipText } from "./util";
 import { agateSans } from "../fontNormaliser";
 import {
@@ -35,7 +40,21 @@ const SectionHeading: React.FC = ({ children }) => (
   <div css={{ ...textMarginCss, color: palette.neutral["46"] }}>{children}</div>
 );
 
-export const SelectPinboard: React.FC = () => {
+interface SelectPinboardProps {
+  pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
+  peekAtPinboard: (pinboard: PinboardData) => void;
+  noOfTeamPinboardsNotShown: number;
+  isShowAllTeamPinboards: boolean;
+  setIsShowAllTeamPinboards: (newValue: boolean) => void;
+}
+
+export const SelectPinboard = ({
+  pinboardsWithClaimCounts,
+  peekAtPinboard,
+  noOfTeamPinboardsNotShown,
+  isShowAllTeamPinboards,
+  setIsShowAllTeamPinboards,
+}: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
     activePinboards,
@@ -46,6 +65,7 @@ export const SelectPinboard: React.FC = () => {
     isExpanded,
 
     openPinboard,
+    openPinboardInNewTab,
     closePinboard,
     preselectedPinboard,
 
@@ -109,7 +129,9 @@ export const SelectPinboard: React.FC = () => {
     );
   };
 
-  const OpenPinboardButton = (pinboardData: PinboardData) => {
+  const OpenPinboardButton = (
+    pinboardData: PinboardData | PinboardDataWithClaimCounts
+  ) => {
     const highlightedWorkingTitle =
       pinboardData.title && markWithSearchText(pinboardData.title);
     const highlightedHeadline =
@@ -126,6 +148,51 @@ export const SelectPinboard: React.FC = () => {
       (isPinboardData(preselectedPinboard) &&
         pinboardData.id !== preselectedPinboard.id);
 
+    const isTeamPinboard = isPinboardDataWithClaimCounts(pinboardData);
+
+    const onClick = () =>
+      isTeamPinboard
+        ? isOpenInNewTab
+          ? openPinboardInNewTab(pinboardData)
+          : peekAtPinboard(pinboardData)
+        : openPinboard(pinboardData, isOpenInNewTab);
+
+    const secondaryInformation = isTeamPinboard && (
+      <div>
+        {!!pinboardData.unclaimedCount && (
+          <React.Fragment>
+            <span
+              css={css`
+                font-weight: bold;
+                color: ${composer.primary["300"]};
+              `}
+            >
+              {pinboardData.unclaimedCount} unclaimed item
+              {pinboardData.unclaimedCount === 1 ? "" : "s"}
+            </span>
+            {(!!pinboardData.yourClaimedCount ||
+              !!pinboardData.othersClaimedCount) &&
+              ", "}
+          </React.Fragment>
+        )}
+        {!!pinboardData.yourClaimedCount && (
+          <React.Fragment>
+            <span>
+              {pinboardData.yourClaimedCount} item
+              {pinboardData.yourClaimedCount === 1 ? "" : "s"} claimed by you
+            </span>
+            {!!pinboardData.othersClaimedCount && ", "}
+          </React.Fragment>
+        )}
+        {!!pinboardData.othersClaimedCount && (
+          <span>
+            {pinboardData.othersClaimedCount} item
+            {pinboardData.othersClaimedCount === 1 ? "" : "s"} claimed by others
+          </span>
+        )}
+      </div>
+    );
+
     return (
       <div
         key={pinboardData.id}
@@ -140,14 +207,14 @@ export const SelectPinboard: React.FC = () => {
             textAlign: "left",
             backgroundColor: palette.neutral["100"],
             color: palette.neutral["20"],
-            fontFamily: agateSans.xxsmall({ fontWeight: "bold" }),
+            fontFamily: agateSans.xxsmall(), //FIXME: typography adds the font-family. so not sure these work with object styles
             display: "flex",
             alignItems: "center",
             border: `1px solid ${palette.neutral["93"]}`,
             borderRadius: `${space[1]}px`,
-            padding: 0,
-            paddingLeft: `${space[2]}px`,
-            height: "32px",
+            padding: `${space[1]}px 0 ${space[1]}px ${space[2]}px`,
+            marginRight: `${space[1]}px`,
+            minHeight: "32px",
             cursor: "pointer",
             "&:hover": {
               backgroundColor: palette.neutral["86"],
@@ -155,41 +222,50 @@ export const SelectPinboard: React.FC = () => {
             flexGrow: 1,
             width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
           }}
-          onClick={() => openPinboard(pinboardData, isOpenInNewTab)}
+          onClick={onClick}
           title={getTooltipText(pinboardData)}
         >
           <div
             css={{
               flexGrow: 1,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
             }}
           >
-            <span
+            <div
               css={{
-                color: palette.neutral["46"],
-                display: "inline-block",
-                width: "20px",
+                flexGrow: 1,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                fontWeight: "bold",
               }}
             >
-              {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
-            </span>{" "}
-            <span
-              css={{
-                textDecoration: pinboardData?.trashed
-                  ? "line-through"
-                  : undefined,
-                fontStyle: pinboardData?.isNotFound ? "italic" : undefined,
-              }}
-            >
-              {isActivePinboard
-                ? pinboardData.title || "NOT FOUND"
-                : highlightedHeadline ||
-                  highlightedWorkingTitle ||
-                  pinboardData.title ||
-                  "NOT FOUND"}
-            </span>
+              <span
+                css={{
+                  color: palette.neutral["46"],
+                  display: "inline-block",
+                  width: "20px",
+                }}
+              >
+                {!isActivePinboard && highlightedHeadline ? "HL:" : "WT:"}
+              </span>{" "}
+              <span
+                css={{
+                  textDecoration: pinboardData?.trashed
+                    ? "line-through"
+                    : undefined,
+                  fontStyle: pinboardData?.isNotFound ? "italic" : undefined,
+                }}
+              >
+                {isActivePinboard
+                  ? pinboardData.title || "NOT FOUND"
+                  : highlightedHeadline ||
+                    highlightedWorkingTitle ||
+                    pinboardData.title ||
+                    "NOT FOUND"}
+              </span>
+            </div>
+            {secondaryInformation && <div>{secondaryInformation}</div>}
           </div>
           {isActivePinboard && errors[pinboardData.id] && (
             <div
@@ -235,14 +311,14 @@ export const SelectPinboard: React.FC = () => {
           </div>
         </button>
         {activePinboardIds.includes(pinboardData.id) &&
-          !isThePreselectedPinboard && (
+          !isThePreselectedPinboard &&
+          !isTeamPinboard && (
             <button
               css={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-around",
                 cursor: "pointer",
-                marginLeft: `${space[1]}px`,
                 padding: 0,
                 border: "none",
                 height: "24px",
@@ -288,7 +364,7 @@ export const SelectPinboard: React.FC = () => {
               margin: ${space[1]}px;
               border-radius: ${space[1]}px;
               color: ${palette.neutral["100"]};
-              font-family: ${agateSans.small({ fontWeight: "bold" })};
+              ${agateSans.small({ fontWeight: "bold" })};
             `}
           >
             <div>Choose the pinboard for this asset</div>
@@ -312,6 +388,30 @@ export const SelectPinboard: React.FC = () => {
             <SectionHeading>MY PINBOARDS</SectionHeading>
             {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
             {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
+            <div css={{ height: space[2] }} />
+          </React.Fragment>
+        )}
+        {pinboardsWithClaimCounts?.length > 0 && (
+          <React.Fragment>
+            <SectionHeading>{"MY TEAMS' PINBOARDS"}</SectionHeading>
+            {pinboardsWithClaimCounts.map(OpenPinboardButton)}
+            <button
+              css={css`
+                color: ${palette.neutral["20"]};
+                border: 1px solid ${palette.neutral["93"]};
+                cursor: pointer;
+                ${agateSans.xxsmall({ fontWeight: "bold" })};
+                background-color: ${palette.neutral["100"]};
+                &:hover {
+                  background-color: ${palette.neutral["86"]};
+                }
+              `}
+              onClick={() => setIsShowAllTeamPinboards(!isShowAllTeamPinboards)}
+            >
+              {isShowAllTeamPinboards
+                ? "Show fewer"
+                : `Show ${noOfTeamPinboardsNotShown} more`}
+            </button>
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}

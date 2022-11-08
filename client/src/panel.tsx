@@ -42,6 +42,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     activeTab,
     setActiveTab,
     boundedPositionTranslation,
+    setUnreadFlag,
   } = useGlobalStateContext();
 
   const selectedPinboard = activePinboards.find(
@@ -78,6 +79,12 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
     groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
+
+  useEffect(() => {
+    groupPinboardIdsWithClaimCounts.forEach(({ pinboardId, hasUnread }) =>
+      setUnreadFlag(pinboardId)(hasUnread)
+    );
+  }, [groupPinboardIdsWithClaimCounts]);
 
   const [isShowAllTeamPinboards, setIsShowAllTeamPinboards] = useState(false);
   const unclaimedCount = groupPinboardIdsWithClaimCounts.filter(

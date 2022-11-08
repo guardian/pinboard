@@ -33,6 +33,7 @@ export const gqlGetGroupPinboardIds = gql`
       othersClaimedCount
       notClaimableCount
       latestGroupMentionItemId
+      hasUnread
     }
   }
 `;

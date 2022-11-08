@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { useQuery, useSubscription } from "@apollo/client";
-import { Item, LastItemSeenByUser } from "../../shared/graphql/graphql";
+import React, { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useSubscription } from "@apollo/client";
+import {
+  Claimed,
+  Item,
+  LastItemSeenByUser,
+} from "../../shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { PendingItem } from "./types/PendingItem";
 import {
+  gqlClaimItem,
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
+  gqlOnClaimItem,
   gqlOnCreateItem,
   gqlOnSeenItem,
 } from "../gql";
@@ -19,7 +25,7 @@ import { agateSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 
-interface ItemsMap {
+export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
 
@@ -72,6 +78,23 @@ export const Pinboard: React.FC<PinboardProps> = ({
     },
   });
 
+  const claimSubscription = useSubscription(gqlOnClaimItem(pinboardId), {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const {
+        updatedItem,
+        newItem,
+      }: Claimed = subscriptionData.data.onClaimItem;
+      addEmailsToLookup([newItem.userEmail]);
+      setClaimItems((prevState) => [...prevState, updatedItem, newItem]);
+      if (!isExpanded) {
+        showNotification(newItem);
+        setUnreadFlag(pinboardId)(true);
+      }
+    },
+  });
+
+  const [claimItems, setClaimItems] = useState<Item[]>([]);
+
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
@@ -84,20 +107,34 @@ export const Pinboard: React.FC<PinboardProps> = ({
     },
   });
 
-  const itemsMap: ItemsMap = [
-    ...(initialItemsQuery.data?.listItems || []),
-    ...successfulSends,
-    ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
-  ].reduce(
-    (accumulator, item) => ({
-      ...accumulator,
-      [item.id]: item,
-    }),
-    {} as ItemsMap
+  const itemsMap: ItemsMap = useMemo(
+    () =>
+      [
+        ...(initialItemsQuery.data?.listItems || []),
+        ...successfulSends,
+        ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
+        ...claimItems,
+      ].reduce(
+        (accumulator, item) => ({
+          ...accumulator,
+          [item.id]: item,
+        }),
+        {} as ItemsMap
+      ),
+    [initialItemsQuery.data, successfulSends, subscriptionItems, claimItems]
   );
 
-  const items = Object.values(itemsMap).sort((a, b) =>
-    a.timestamp.localeCompare(b.timestamp)
+  const items: Array<PendingItem | Item> = useMemo(
+    () =>
+      Object.values(itemsMap)
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .filter(
+          (item, index, items) =>
+            item.type !== "claim" ||
+            !item.relatedItemId ||
+            items[index - 1]?.id !== item.relatedItemId
+        ),
+    [itemsMap]
   );
 
   const lastItemIndex = items.length - 1;
@@ -181,8 +218,13 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   useEffect(
     () =>
-      setError(pinboardId, initialItemsQuery.error || itemSubscription.error),
-    [initialItemsQuery.error, itemSubscription.error]
+      setError(
+        pinboardId,
+        initialItemsQuery.error ||
+          itemSubscription.error ||
+          claimSubscription.error
+      ),
+    [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
   );
   const hasError = !!errors[pinboardId];
 
@@ -200,6 +242,23 @@ export const Pinboard: React.FC<PinboardProps> = ({
       addManuallyOpenedPinboardId(pendingItem.pinboardId, mentionEmail)
     );
   };
+
+  const handleClaimed = (data: { claimItem: Claimed }) => {
+    setClaimItems((prevState) => [
+      ...prevState,
+      data.claimItem.updatedItem,
+      data.claimItem.newItem,
+    ]);
+    addManuallyOpenedPinboardId(data.claimItem.pinboardId);
+  };
+
+  const [claimItem] = useMutation(gqlClaimItem, {
+    onCompleted: handleClaimed,
+  });
+
+  // FIXME add a GraphQL subscription to hear about claims performed by other people (reusing handleClaimed)
+
+  const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 
   return !isSelected ? null : (
     <React.Fragment>
@@ -272,6 +331,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <ScrollableItems
           showNotification={showNotification}
           items={items}
+          itemsMap={itemsMap}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}
           maybeLastItem={lastItem}
@@ -281,6 +341,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
           userEmail={userEmail}
           pinboardId={pinboardId}
           lastItemSeenByUserLookup={lastItemSeenByUserLookup}
+          claimItem={claimItem}
+          hasProcessedItemIdInURL={hasProcessedItemIdInURL}
+          setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (

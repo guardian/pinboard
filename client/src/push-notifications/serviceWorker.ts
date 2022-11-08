@@ -2,6 +2,7 @@ import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
 import {
   EXPAND_PINBOARD_QUERY_PARAM,
   OPEN_PINBOARD_QUERY_PARAM,
+  PINBOARD_ITEM_ID_QUERY_PARAM,
 } from "../../../shared/constants";
 import { extractNameFromEmail } from "../../../shared/util";
 
@@ -24,7 +25,7 @@ const showNotification = (
     {
       tag: item.id,
       data: item,
-      body: item.message,
+      body: item.type === "claim" ? `claimed a group mention` : item.message,
       icon: item.payload?.thumbnail,
       image: item.payload?.thumbnail,
       requireInteraction: true,
@@ -77,8 +78,8 @@ self.addEventListener("notificationclick", (event: any) => {
 
   const item = event.notification.data;
 
-  // TODO add `&pinboardItemId=${item.id}` make pinboard actually scroll to that item
   const openToPinboardQueryParam = `${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`;
+  const openToPinboardItemIdQueryParam = `${PINBOARD_ITEM_ID_QUERY_PARAM}=${item.id}`;
 
   event.waitUntil(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -100,7 +101,7 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            `https://media.${toolsDomain}/search?${openToPinboardQueryParam}`.replace(
+            `https://media.${toolsDomain}/search?${openToPinboardQueryParam}&${openToPinboardItemIdQueryParam}`.replace(
               ".code.",
               ".test."
             )
@@ -113,7 +114,7 @@ self.addEventListener("notificationclick", (event: any) => {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           self.clients.openWindow(
-            `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true`
+            `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${openToPinboardItemIdQueryParam}`
           );
         }
       })

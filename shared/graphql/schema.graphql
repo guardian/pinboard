@@ -20,6 +20,7 @@ type Query {
 
 type Mutation {
   createItem(input: CreateItemInput!): Item
+  claimItem(itemId: String!): Claimed
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
   setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
   addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
@@ -30,6 +31,10 @@ type Subscription {
   onCreateItem(
     pinboardId: String
   ): Item @aws_subscribe(mutations: ["createItem"])
+
+  onClaimItem(
+    pinboardId: String
+  ): Claimed @aws_subscribe(mutations: ["claimItem"])
 
   onSeenItem(
     pinboardId: String!
@@ -55,6 +60,9 @@ type Item {
   pinboardId: String!
   mentions: [MentionHandle!]
   groupMentions: [MentionHandle!]
+  claimedByEmail: String
+  claimable: Boolean!
+  relatedItemId: String
 }
 
 type LastItemSeenByUser {
@@ -126,9 +134,16 @@ input CreateItemInput {
   pinboardId: String!
   mentions: [String!]
   groupMentions: [String!]
+  claimable: Boolean
 }
 
 input LastItemSeenByUserInput {
   pinboardId: String!
   itemID: String!
+}
+
+type Claimed {
+  pinboardId: String!
+  updatedItem: Item!
+  newItem: Item!
 }

@@ -10,6 +10,7 @@ const baseInput = {
 const sampleInputs = {
   listItems: { pinboardId: "63206" },
   searchMentionableUsers: { prefix: "a" },
+  claimItem: { itemId: "1667" },
 };
 
 (async () => {

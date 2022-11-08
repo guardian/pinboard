@@ -27,6 +27,7 @@ assert<Equals<QueriesFromCodeGen, QueriesDefinedHere>>();
 export const MUTATIONS = {
   database: [
     "createItem",
+    "claimItem",
     "seenItem",
     "setWebPushSubscriptionForUser",
     "addManuallyOpenedPinboardIds",

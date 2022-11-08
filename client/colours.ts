@@ -7,7 +7,9 @@ export const composer = {
     [300]: "#C7291C",
   } as const,
   primary: {
+    [100]: "#014880",
     [300]: "#007ABC",
+    [400]: "#239DD8",
   } as const,
 } as const;
 export const pinboard = {

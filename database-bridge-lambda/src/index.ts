@@ -2,7 +2,7 @@ import type {
   AppSyncIdentityLambda,
   AppSyncResolverEvent,
 } from "aws-lambda/trigger/appsync-resolver";
-import { createItem, listItems } from "./sql/Item";
+import { claimItem, createItem, listItems } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
 import {
@@ -25,6 +25,8 @@ const run = (
   switch (databaseOperation) {
     case "createItem":
       return createItem(sql, args, userEmail);
+    case "claimItem":
+      return claimItem(sql, args, userEmail);
     case "listItems":
       return listItems(sql, args, userEmail);
     case "seenItem":

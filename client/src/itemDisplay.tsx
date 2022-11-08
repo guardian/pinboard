@@ -1,9 +1,9 @@
 import {
+  Claimed,
   Item,
   LastItemSeenByUser,
-  MentionHandle,
 } from "../../shared/graphql/graphql";
-import React, { Fragment } from "react";
+import React, { useMemo } from "react";
 import { css } from "@emotion/react";
 import { PayloadDisplay } from "./payloadDisplay";
 import { PendingItem } from "./types/PendingItem";
@@ -11,7 +11,6 @@ import { palette, space } from "@guardian/source-foundations";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
-import { composer } from "../colours";
 import {
   buildPayloadAndType,
   isPayloadType,
@@ -20,76 +19,10 @@ import {
 import { FormattedDateTime } from "./formattedDateTime";
 import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
-
-const meMentionedCSS = (unread: boolean | undefined) => css`
-  color: white;
-  padding: 2px 4px;
-  border-radius: 50px;
-  background-color: ${unread ? composer.warning[300] : composer.primary[300]};
-`;
-
-const otherUserMentioned = css`
-  color: ${composer.primary[300]};
-`;
-
-const formattedText = (text: string) =>
-  text.split(" ").reduce((acc, word) => {
-    const formattedWord = word.startsWith("https://") ? (
-      <a
-        target="_blank"
-        rel="noreferrer"
-        href={word}
-        css={css`
-          color: ${composer.primary[300]};
-          text-decoration: none;
-          &:hover {
-            text-decoration: underline;
-          }
-        `}
-      >
-        {word}
-      </a>
-    ) : (
-      word
-    );
-    return (
-      <>
-        {acc} {formattedWord}
-      </>
-    );
-  }, <></>);
-
-const formatMentionHandlesInText = (
-  mentionHandles: MentionHandle[],
-  text: string
-): JSX.Element => {
-  const [maybeMentionHandle, ...remainingMentions] = mentionHandles;
-  if (maybeMentionHandle) {
-    const formattedMentionHandle = (
-      <strong
-        css={
-          maybeMentionHandle.isMe ? meMentionedCSS(false) : otherUserMentioned
-        }
-      >
-        {maybeMentionHandle.label}
-      </strong>
-    );
-    const partsBetweenMentionHandles = text.split(maybeMentionHandle.label);
-    const formattedPartsBetweenMentionHandles = partsBetweenMentionHandles.map(
-      (part) => formatMentionHandlesInText(remainingMentions, part)
-    );
-    return formattedPartsBetweenMentionHandles.reduce(
-      (result, formattedPart) => (
-        <Fragment>
-          {result}
-          {formattedMentionHandle}
-          {formattedPart}
-        </Fragment>
-      )
-    );
-  }
-  return <Fragment>{formattedText(text)}</Fragment>;
-};
+import { FetchResult } from "@apollo/client";
+import { ClaimableItem } from "./claimableItem";
+import { NestedItemDisplay } from "./nestedItemDisplay";
+import { formatMentionHandlesInText } from "./mentionsUtil";
 
 const maybeConstructPayloadAndType = (
   type: string,
@@ -116,6 +49,11 @@ interface ItemDisplayProps {
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
   scrollToBottomIfApplicable: () => void;
+  claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
+  maybeRelatedItem: Item | false | undefined;
+  userEmail: string;
+  setRef?: (node: HTMLDivElement) => void;
+  scrollToItem: (itemID: string) => void;
 }
 
 export const ItemDisplay = ({
@@ -124,8 +62,16 @@ export const ItemDisplay = ({
   seenBy,
   maybePreviousItem,
   scrollToBottomIfApplicable,
+  claimItem,
+  maybeRelatedItem,
+  userEmail,
+  setRef,
+  scrollToItem,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
+  const userDisplayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : item.userEmail;
   const payloadAndType = maybeConstructPayloadAndType(item.type, item.payload);
   const isPendingSend = "pending" in item && item.pending;
 
@@ -134,16 +80,25 @@ export const ItemDisplay = ({
     ...(item.groupMentions || []),
   ];
 
-  const formattedMessage =
-    item.message && formatMentionHandlesInText(mentionHandles, item.message);
+  const formattedMessage = useMemo(
+    () =>
+      item.message && formatMentionHandlesInText(mentionHandles, item.message),
+    [item.id]
+  );
 
   const dateInMillisecs = new Date(item.timestamp).valueOf();
 
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
+  const maybeClaimedBy = useMemo(
+    () => item.claimedByEmail && userLookup[item.claimedByEmail],
+    [item.claimedByEmail, userLookup]
+  );
+
   return (
     <div
+      ref={setRef}
       css={css`
         padding-bottom: ${space[1]}px;
         margin-bottom: ${space[1]}px;
@@ -174,7 +129,7 @@ export const ItemDisplay = ({
                 color: ${palette.neutral[20]};
               `}
             >
-              {user ? `${user.firstName} ${user.lastName}` : item.userEmail}
+              {userDisplayName}
             </span>
           </React.Fragment>
         )}
@@ -193,7 +148,23 @@ export const ItemDisplay = ({
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
         </div>
-        <div>{formattedMessage}</div>
+        <div>
+          {item.type === "claim" ? (
+            <em>...claimed request :</em>
+          ) : (
+            formattedMessage
+          )}
+        </div>
+        {maybeRelatedItem && (
+          <NestedItemDisplay
+            item={{ ...maybeRelatedItem, claimable: false }}
+            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
+            claimItem={claimItem}
+            userLookup={userLookup}
+            userEmail={userEmail}
+            scrollToItem={scrollToItem}
+          />
+        )}
         {payloadAndType && (
           <PayloadDisplay
             payloadAndType={payloadAndType}
@@ -202,6 +173,23 @@ export const ItemDisplay = ({
           />
         )}
       </div>
+      {item.claimable &&
+        useMemo(
+          () => (
+            <ClaimableItem
+              item={item}
+              userDisplayName={userDisplayName}
+              claimItem={claimItem}
+              maybeClaimedByName={
+                maybeClaimedBy &&
+                (userEmail === item.claimedByEmail
+                  ? "you"
+                  : `${maybeClaimedBy.firstName} ${maybeClaimedBy.lastName}`)
+              }
+            />
+          ),
+          [maybeClaimedBy]
+        )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>
   );

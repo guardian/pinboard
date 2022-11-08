@@ -41,6 +41,9 @@ const itemReturnFields = `
     label
     isMe
   }
+  claimedByEmail
+  claimable
+  relatedItemId
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
@@ -171,6 +174,30 @@ export const gqlSeenItem = gql`
       ${lastItemSeenByUserReturnFields}
     }
   }
+`;
+
+const claimedReturnFields = `
+  pinboardId
+  updatedItem {
+    ${itemReturnFields}
+  }
+  newItem {
+    ${itemReturnFields}
+  }
+`;
+
+export const gqlClaimItem = gql`
+  mutation ClaimItem($itemId: String!) {
+    claimItem(itemId: $itemId) {
+      ${claimedReturnFields}
+    }
+  }
+`;
+
+export const gqlOnClaimItem = (pinboardId: string) => gql`
+    subscription OnClaimItem {
+        onClaimItem(pinboardId: "${pinboardId}") { ${claimedReturnFields} }
+    }
 `;
 
 const gridBadgeFields = `

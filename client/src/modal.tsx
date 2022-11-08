@@ -10,7 +10,6 @@ import { composer } from "../colours";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import CloseIcon from "../icons/close.svg";
-import { CrossIcon } from "./navigation/icon";
 
 const buttonStyle = css`
   outline: none;
@@ -27,7 +26,7 @@ const buttonStyle = css`
   &:hover {
     background-color: ${composer.primary[100]};
   }
-`; // TODO different hover state (ask Ana)
+`;
 
 export const useConfirmModal = (
   content: ReactElement

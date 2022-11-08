@@ -24,6 +24,7 @@ import { SvgAlertTriangle } from "@guardian/source-react-components";
 import { agateSans } from "../fontNormaliser";
 import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
+import { Feedback } from "./feedback";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -262,6 +263,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   return !isSelected ? null : (
     <React.Fragment>
+      <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       {hasError && (
         <div

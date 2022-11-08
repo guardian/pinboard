@@ -27,6 +27,7 @@ import {
   TextInput,
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
+import { Feedback } from "./feedback";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -353,6 +354,7 @@ export const SelectPinboard = ({
           },
         }}
       >
+        <Feedback />
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />
         )}

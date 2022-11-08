@@ -8,7 +8,6 @@ export const floatySize = 40;
 export const boxShadow =
   "rgba(0, 0, 0, 0.14) 0px 0px 4px, rgba(0, 0, 0, 0.28) 0px 4px 8px";
 export const standardPanelContainerCss: CSSObject = {
-  overflowY: "auto",
   margin: `${space[1]}px`,
   h4: {
     color: "black",

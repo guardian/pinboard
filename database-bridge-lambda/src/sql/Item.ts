@@ -119,7 +119,13 @@ export const getGroupPinboardIds = async (
           WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
           WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
           ELSE 'othersClaimedCount'
-        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId"
+        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId", NOT EXISTS(
+            SELECT 1
+            FROM "LastItemSeenByUser"
+            WHERE "LastItemSeenByUser"."pinboardId" = "pinboardId"
+              AND "LastItemSeenByUser"."userEmail" = ${userEmail}
+              AND "LastItemSeenByUser"."itemID" >= MAX("id")
+        ) as "hasUnread"
       FROM "Item"
       WHERE EXISTS(
           SELECT 1
@@ -136,13 +142,19 @@ export const getGroupPinboardIds = async (
           [row.pinboardId]: {
             ...(acc[row.pinboardId] || {
               pinboardId: row.pinboardId,
-              latestGroupMentionItemId: row.latestGroupMentionItemId,
               unclaimedCount: 0,
               yourClaimedCount: 0,
               othersClaimedCount: 0,
               notClaimableCount: 0,
             }),
             [row.countType]: row.count,
+            latestGroupMentionItemId: acc[row.pinboardId]
+              ? Math.max(
+                  row.latestGroupMentionItemId,
+                  acc[row.pinboardId].latestGroupMentionItemId
+                )
+              : row.latestGroupMentionItemId,
+            hasUnread: acc[row.pinboardId]?.hasUnread ? true : row.hasUnread,
           },
         }),
         {} as Record<string, PinboardIdWithClaimCounts>

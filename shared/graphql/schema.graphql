@@ -157,4 +157,5 @@ type PinboardIdWithClaimCounts {
   othersClaimedCount: Int!
   notClaimableCount: Int!
   latestGroupMentionItemId: String!
+  hasUnread: Boolean!
 }

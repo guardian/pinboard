@@ -1,5 +1,5 @@
 import { css, Global } from "@emotion/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
@@ -23,6 +23,9 @@ const teamPinboardsSortFunction = (
   b: PinboardIdWithClaimCounts
 ) => {
   const unclaimedDiff = b.unclaimedCount - a.unclaimedCount;
+  if (a.hasUnread !== b.hasUnread) {
+    return a.hasUnread ? -1 : 1;
+  }
   if (unclaimedDiff !== 0) {
     return unclaimedDiff;
   }
@@ -79,8 +82,13 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     pollInterval: 5000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
   });
 
-  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
-    groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
+  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(
+    () =>
+      [...(groupPinboardIdsQuery.data?.getGroupPinboardIds || [])].sort(
+        teamPinboardsSortFunction
+      ),
+    [groupPinboardIdsQuery.data]
+  );
 
   useEffect(() => {
     groupPinboardIdsWithClaimCounts.forEach(({ pinboardId, hasUnread }) =>
@@ -100,8 +108,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const noOfTeamPinboardsNotShown =
     groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow;
 
-  const groupPinboardIds = [...groupPinboardIdsWithClaimCounts]
-    .sort(teamPinboardsSortFunction)
+  const groupPinboardIds = groupPinboardIdsWithClaimCounts
     .slice(0, noOfTeamPinboardsToShow)
     .map((_) => _.pinboardId);
 

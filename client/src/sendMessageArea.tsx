@@ -86,6 +86,9 @@ export const SendMessageArea = ({
         hasMentions:
           !!verifiedIndividualMentionEmails.length ||
           !!verifiedGroupMentionShorthands.length,
+        hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
+        hasGroupMentions: !!verifiedGroupMentionShorthands.length,
+        isClaimable: sendMessageResult.createItem.claimable,
       });
       setMessage("");
       clearPayloadToBeSent();

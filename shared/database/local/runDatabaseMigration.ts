@@ -68,6 +68,7 @@ export async function migrateItemsAndLastItemSeenByUser(
   items.sort((a, b) => a.timestamp - b.timestamp);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- see https://github.com/eslint/eslint/issues/4880
   for (const { id, timestamp, user, seenBy, ...item } of items) {
     if (!item.userEmail) {
       continue;

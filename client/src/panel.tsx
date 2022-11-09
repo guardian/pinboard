@@ -75,7 +75,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
-  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds, {
+    pollInterval: 5000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
+  });
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
     groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
@@ -135,12 +137,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   useEffect(() => {
     if (isExpanded) {
-      groupPinboardIdsQuery.refetch();
       pinboardDataQuery.refetch();
-      groupPinboardIdsQuery.startPolling(5000);
       pinboardDataQuery.startPolling(5000);
     } else {
-      groupPinboardIdsQuery.stopPolling();
       pinboardDataQuery.stopPolling();
     }
   }, [

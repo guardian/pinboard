@@ -22,7 +22,6 @@ import { ItemsMap, LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
-import { useGlobalStateContext } from "./globalState";
 import { useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";

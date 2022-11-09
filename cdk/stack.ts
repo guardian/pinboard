@@ -58,7 +58,7 @@ export class PinBoardStack extends Stack {
     const region = context.region;
 
     // if changing should also change .nvmrc (at the root of repo)
-    const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_14_X;
+    const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
 
     const STACK = new CfnParameter(thisStack, "Stack", {
       type: "String",

@@ -1925,7 +1925,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -2094,7 +2094,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -2789,7 +2789,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -3001,7 +3001,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -3163,7 +3163,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -3390,7 +3390,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -3749,7 +3749,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs14.x",
+        "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
             "Key": "App",

@@ -1,5 +1,5 @@
 import { css, Global } from "@emotion/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
@@ -23,6 +23,9 @@ const teamPinboardsSortFunction = (
   b: PinboardIdWithClaimCounts
 ) => {
   const unclaimedDiff = b.unclaimedCount - a.unclaimedCount;
+  if (a.hasUnread !== b.hasUnread) {
+    return a.hasUnread ? -1 : 1;
+  }
   if (unclaimedDiff !== 0) {
     return unclaimedDiff;
   }
@@ -42,6 +45,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     activeTab,
     setActiveTab,
     boundedPositionTranslation,
+    setUnreadFlag,
   } = useGlobalStateContext();
 
   const selectedPinboard = activePinboards.find(
@@ -74,10 +78,23 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
-  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds, {
+    pollInterval: 5000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
+  });
 
-  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] =
-    groupPinboardIdsQuery.data?.getGroupPinboardIds || [];
+  const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(
+    () =>
+      [...(groupPinboardIdsQuery.data?.getGroupPinboardIds || [])].sort(
+        teamPinboardsSortFunction
+      ),
+    [groupPinboardIdsQuery.data]
+  );
+
+  useEffect(() => {
+    groupPinboardIdsWithClaimCounts.forEach(({ pinboardId, hasUnread }) =>
+      setUnreadFlag(pinboardId)(hasUnread)
+    );
+  }, [groupPinboardIdsWithClaimCounts]);
 
   const [isShowAllTeamPinboards, setIsShowAllTeamPinboards] = useState(false);
   const unclaimedCount = groupPinboardIdsWithClaimCounts.filter(
@@ -91,8 +108,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const noOfTeamPinboardsNotShown =
     groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow;
 
-  const groupPinboardIds = [...groupPinboardIdsWithClaimCounts]
-    .sort(teamPinboardsSortFunction)
+  const groupPinboardIds = groupPinboardIdsWithClaimCounts
     .slice(0, noOfTeamPinboardsToShow)
     .map((_) => _.pinboardId);
 
@@ -128,12 +144,9 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   useEffect(() => {
     if (isExpanded) {
-      groupPinboardIdsQuery.refetch();
       pinboardDataQuery.refetch();
-      groupPinboardIdsQuery.startPolling(5000);
       pinboardDataQuery.startPolling(5000);
     } else {
-      groupPinboardIdsQuery.stopPolling();
       pinboardDataQuery.stopPolling();
     }
   }, [

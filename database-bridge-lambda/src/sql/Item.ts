@@ -119,33 +119,52 @@ export const getGroupPinboardIds = async (
           WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
           WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
           ELSE 'othersClaimedCount'
-        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId"
+        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId", NOT EXISTS(
+            SELECT 1
+            FROM "LastItemSeenByUser"
+            WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+              AND "LastItemSeenByUser"."userEmail" = ${userEmail}
+              AND "LastItemSeenByUser"."itemID" >= MAX("Item"."id")
+        ) as "hasUnread"
       FROM "Item"
-      WHERE EXISTS(
+      WHERE "type" != 'claim'
+        AND EXISTS(
           SELECT 1
           FROM "User" INNER JOIN "GroupMember" ON "GroupMember"."userGoogleID" = "User"."googleID"
           WHERE "GroupMember"."groupShorthand" = ANY ("groupMentions")
             AND "User"."email" = ${userEmail}
         )
       GROUP BY "pinboardId", "countType"
-  `.then((rows) =>
-    Object.values(
-      rows.reduce(
-        (acc, row) => ({
+  `.then((rows) => {
+    console.table(rows);
+    return Object.values(
+      rows.reduce((acc, row) => {
+        const isRowUnclaimedOrInformational =
+          ["unclaimedCount", "notClaimableCount"].includes(row.countType) &&
+          row.count > 0;
+
+        return {
           ...acc,
           [row.pinboardId]: {
             ...(acc[row.pinboardId] || {
               pinboardId: row.pinboardId,
-              latestGroupMentionItemId: row.latestGroupMentionItemId,
               unclaimedCount: 0,
               yourClaimedCount: 0,
               othersClaimedCount: 0,
               notClaimableCount: 0,
             }),
             [row.countType]: row.count,
+            latestGroupMentionItemId: acc[row.pinboardId]
+              ? Math.max(
+                  row.latestGroupMentionItemId,
+                  acc[row.pinboardId].latestGroupMentionItemId
+                )
+              : row.latestGroupMentionItemId,
+            hasUnread: acc[row.pinboardId]?.hasUnread
+              ? true
+              : isRowUnclaimedOrInformational && row.hasUnread,
           },
-        }),
-        {} as Record<string, PinboardIdWithClaimCounts>
-      )
-    )
-  );
+        };
+      }, {} as Record<string, PinboardIdWithClaimCounts>)
+    );
+  });

@@ -281,14 +281,10 @@ export const SelectPinboard = ({
           {unreadFlags[pinboardData.id] && (
             <div
               css={{
-                height: "16px",
-                lineHeight: "16px",
-                minWidth: "8px", // doesn't include padding
-                borderRadius: "8px",
+                height: "10px",
+                width: "10px",
+                borderRadius: "5px",
                 backgroundColor: palette.neutral["20"],
-                color: palette.neutral["100"],
-                textAlign: "center",
-                padding: "0 4px",
                 marginRight: "2px",
               }}
             >

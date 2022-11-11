@@ -48,39 +48,10 @@ export const openSans = openSansFont(
 // export const body = pixelSizedFont(sourceFoundations.body);
 
 export const fontFaceOpenSansCSS = css`
+  @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap");
+
   @font-face {
-    font-family: open sans;
-    font-style: normal;
-    font-weight: 400;
+    font-family: "Open Sans";
     font-stretch: 87.5%;
-    src: local("Open Sans"),
-      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Regular.woff)
-        format("woff");
-  }
-  @font-face {
-    font-family: open sans;
-    font-style: italic;
-    font-weight: 400;
-    font-stretch: 87.5%;
-    src: local("Open Sans"),
-      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Italic.woff)
-        format("woff");
-  }
-  @font-face {
-    font-family: open sans;
-    font-style: normal;
-    font-weight: 700;
-    font-stretch: 87.5%;
-    src: local("Open Sans"),
-      url(https://fonts.cdnfonts.com/s/14884/OpenSans-Bold.woff) format("woff");
-  }
-  @font-face {
-    font-family: open sans;
-    font-style: italic;
-    font-weight: 700;
-    font-stretch: 87.5%;
-    src: local("Open Sans"),
-      url(https://fonts.cdnfonts.com/s/14884/OpenSans-BoldItalic.woff)
-        format("woff");
   }
 `;

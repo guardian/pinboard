@@ -10,7 +10,7 @@ export const groupToMentionHandle = (group: Group) => `@${group.shorthand}`;
 
 const meMentionedCSS = (unread: boolean | undefined) => css`
   color: white;
-  padding: 2px 4px;
+  padding: 1px 4px 1px;
   border-radius: 50px;
   background-color: ${unread ? composer.warning[300] : composer.primary[300]};
 `;

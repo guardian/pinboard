@@ -204,25 +204,25 @@ export const SelectPinboard = ({
         }}
       >
         <button
-          css={{
-            textAlign: "left",
-            backgroundColor: palette.neutral["100"],
-            color: palette.neutral["20"],
-            fontFamily: openSans.xxsmall(), //FIXME: typography adds the font-family. so not sure these work with object styles
-            display: "flex",
-            alignItems: "center",
-            border: `1px solid ${palette.neutral["93"]}`,
-            borderRadius: `${space[1]}px`,
-            padding: `${space[1]}px 0 ${space[1]}px ${space[2]}px`,
-            marginRight: `${space[1]}px`,
-            minHeight: "32px",
-            cursor: "pointer",
-            "&:hover": {
-              backgroundColor: palette.neutral["86"],
-            },
-            flexGrow: 1,
-            width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
-          }}
+          css={css`
+            ${openSans.xxsmall()};
+            text-align: left;
+            background-color: ${palette.neutral[100]};
+            color: ${palette.neutral[20]};
+            display: flex;
+            align-items: center;
+            border: 1px solid ${palette.neutral[93]};
+            border-radius: ${space[1]}px;
+            padding: ${space[1]}px 0 ${space[1]}px ${space[2]}px;
+            margin-right: ${space[1]}px;
+            min-height: 32px;
+            cursor: pointer;
+            &:hover {
+              background-color: ${palette.neutral[86]};
+            }
+            flex-grow: 1;
+            width: 0; // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
+          `}
           onClick={onClick}
           title={getTooltipText(pinboardData)}
         >

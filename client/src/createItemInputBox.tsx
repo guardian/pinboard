@@ -29,7 +29,7 @@ const LoadingSuggestions = () => (
       gap: ${space["2"]}px;
       background: ${palette.neutral["100"]};
       padding: ${space["2"]}px;
-      font-family: ${openSans.small({ lineHeight: "tight" })};
+      ${openSans.small({ lineHeight: "tight" })};
     `}
   >
     <SvgSpinner size="xsmall" />
@@ -44,10 +44,10 @@ const Suggestion = ({
     {heading && (
       <div
         css={css`
+          ${openSans.xxsmall({ fontWeight: "bold" })};
           cursor: default;
           padding: ${space[1]}px;
           background: ${palette.neutral["93"]};
-          font-family: ${openSans.xxsmall({ fontWeight: "bold" })};
           color: ${palette.neutral["46"]};
           user-select: none;
         `}

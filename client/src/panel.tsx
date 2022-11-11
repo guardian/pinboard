@@ -17,6 +17,7 @@ import {
   PinboardData,
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
+import { openSans } from "../fontNormaliser";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -160,6 +161,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   return (
     <div
       css={css`
+        ${openSans.small()};
         position: fixed;
         z-index: 99998;
         background: ${neutral[93]};
@@ -184,7 +186,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         right: ${Math.abs(boundedPositionTranslation.x) + floatySize / 2}px;
         display: ${isExpanded ? "flex" : "none"};
         flex-direction: column;
-        font-family: sans-serif;
         border-radius: 4px;
         border-${isTopHalf ? "top" : "bottom"}-${
         isLeftHalf ? "left" : "right"

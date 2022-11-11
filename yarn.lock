@@ -2477,10 +2477,10 @@
   resolved "https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.16.3.tgz#b776327a73e561b71e7881d0cd6d34a1424db86a"
   integrity sha512-9gtOPPkfyNoEqCQgx4qJKkuNm/x0R2hKR7fdl7zvTJyHnIisuE/LfvXOsYWL0o3qq6uiBnKZNNNzi3l0y/X+xw==
 
-"@types/webscopeio__react-textarea-autocomplete@^4.7.0":
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/@types/webscopeio__react-textarea-autocomplete/-/webscopeio__react-textarea-autocomplete-4.7.0.tgz#dd04ccdda3eb2c729de290699a003ce4c4b2f883"
-  integrity sha512-VW5iJKsEkW+XAsL+PAXPXbpgRyykGsI/N6yBFJoZ6uXvs0uduptg3lhKr4vzd+dUSz0wPzzgXY/p1u4/vgxMvg==
+"@types/webscopeio__react-textarea-autocomplete@^4.7.2":
+  version "4.7.2"
+  resolved "https://registry.yarnpkg.com/@types/webscopeio__react-textarea-autocomplete/-/webscopeio__react-textarea-autocomplete-4.7.2.tgz#605e8a6b4194fb4b6e55df8a19bc8fcd56319cfa"
+  integrity sha512-e1DZGD+eH19BnllTWCGXAdrMa2kI53wEMuhn/d+wUmnu8//ZI6BiuK/EPdw07fI4+tlyo5qdPZdXdpkoXHJVOw==
   dependencies:
     "@types/react" "*"
 
@@ -2733,10 +2733,10 @@
   resolved "https://registry.yarnpkg.com/@webpack-cli/serve/-/serve-1.6.1.tgz#0de2875ac31b46b6c5bb1ae0a7d7f0ba5678dffe"
   integrity sha512-gNGTiTrjEVQ0OcVnzsRSqTxaBSr+dmTfm+qJsCDluky8uhdLWep7Gcr62QsAKHTMxjCS/8nEITsmFAhfIx+QSw==
 
-"@webscopeio/react-textarea-autocomplete@4.9.1":
-  version "4.9.1"
-  resolved "https://registry.yarnpkg.com/@webscopeio/react-textarea-autocomplete/-/react-textarea-autocomplete-4.9.1.tgz#0f34e7f22fad8c9759b09a4c0280ec8ad5a42ac4"
-  integrity sha512-g5cnRRXQQBGH5Km/0eSq8xFlnHZeG2WVRr+uu/3PKbHcgvNUIHKEy2tjOA9m4MK8KFzbFtfnj2MqdPf9R+5/Cw==
+"@webscopeio/react-textarea-autocomplete@4.9.2":
+  version "4.9.2"
+  resolved "https://registry.yarnpkg.com/@webscopeio/react-textarea-autocomplete/-/react-textarea-autocomplete-4.9.2.tgz#b39e57d8048ad2e8790d70073afe63eafa877345"
+  integrity sha512-9l5lbyA709d5HHvI/COflSnblBJeYGxB2/0ghP3m3YViLzXRMzJwaXqnqz6oA96y7QdR3pQWYtVmkUKA0AUVAA==
   dependencies:
     custom-event "^1.0.1"
     textarea-caret "3.0.2"
@@ -3176,10 +3176,10 @@ aws-appsync-subscription-link@^3.0.9:
     debug "2.6.9"
     url "^0.11.0"
 
-aws-cdk-lib@2.38.1:
-  version "2.38.1"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.38.1.tgz#e96ee1362c86260786b3d808f593ca5edd813b29"
-  integrity sha512-vEgJBUzL1yqlSMYGjipl+eRwy900x3RmbVzTcxKdCZvhtBMQ1hqJAMgVswvoyA5EnvfELLlz9ufm+qdKGs9DxQ==
+aws-cdk-lib@^2.50.0:
+  version "2.50.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.50.0.tgz#2b3a9ba4c1c4c56fd32e3e4f57eea8bf9fa3dbba"
+  integrity sha512-deDbZTI7oyu3rqUyqjwhP6tnUO8MD70lE98yR65xiYty4yXBpsWKbeH3s1wNLpLAWS3hWJYyMtjZ4ZfC35NtVg==
   dependencies:
     "@balena/dockerignore" "^1.0.2"
     case "1.6.3"
@@ -3188,13 +3188,13 @@ aws-cdk-lib@2.38.1:
     jsonschema "^1.4.1"
     minimatch "^3.1.2"
     punycode "^2.1.1"
-    semver "^7.3.7"
+    semver "^7.3.8"
     yaml "1.10.2"
 
-aws-cdk@2.38.1:
-  version "2.38.1"
-  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.38.1.tgz#285273b5507241712bcc1e5b40eb05a21f3bebfd"
-  integrity sha512-bIHRCkmbXBmJWw1Gq5UsAUUYKABuE/ah1iAA14hXLS8+9AJlF/Ptn+NsUCt9K5v17cRqtUoeaOAMAPrZs8l+YA==
+aws-cdk@^2.50.0:
+  version "2.50.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.50.0.tgz#6c6d723ba66b24245f58c363071ce20a17eabbed"
+  integrity sha512-55vmKTf2DZRqioumVfXn+S0H9oAbpRK3HFHY8EjZ5ykR5tq2+XiMWEZkYduX2HJhVAeHJJIS6h+Okk3smZjeqw==
   optionalDependencies:
     fsevents "2.3.2"
 
@@ -4031,10 +4031,10 @@ constant-case@3.0.3, constant-case@^3.0.3:
     tslib "^1.10.0"
     upper-case "^2.0.1"
 
-constructs@10.1.83:
-  version "10.1.83"
-  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.1.83.tgz#45c6f33b20d76b5f3132cf51362a8e267a8504da"
-  integrity sha512-SXwMtiEMgM5Nmzubk2lHXVCHrSLwzNGyz7ZiV5piLUzmzbm7WQl/o5gzSJTUDPbNa/2JcY3lXYeb1AcCM+2GuQ==
+constructs@^10.1.154:
+  version "10.1.154"
+  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.1.154.tgz#9ac3ee1305c4cecc7bced3d4097fa9886f3ccc65"
+  integrity sha512-JStQT84+NhsfamESRExZoGzpq/f/gpq9xpzgtQNOzungs42Gy8kxjfU378MnVoRqwCHwk0vLN37HZjgH5tJo2A==
 
 content-disposition@0.5.3:
   version "0.5.3"
@@ -9374,10 +9374,10 @@ semver@7.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
   integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
 
-semver@7.x, semver@^7.2.1, semver@^7.3.2, semver@^7.3.7:
-  version "7.3.7"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.7.tgz#12c5b649afdbf9049707796e22a4028814ce523f"
-  integrity sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==
+semver@7.x, semver@^7.2.1, semver@^7.3.2, semver@^7.3.8:
+  version "7.3.8"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
+  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
   dependencies:
     lru-cache "^6.0.0"
 

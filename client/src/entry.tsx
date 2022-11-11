@@ -6,7 +6,6 @@ import {
   ApolloClient,
   ApolloLink,
   createHttpLink,
-  HttpLink,
   InMemoryCache,
 } from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";

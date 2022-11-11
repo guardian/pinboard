@@ -4,7 +4,6 @@ import {
   PinboardIdWithClaimCounts,
 } from "../../../shared/graphql/graphql";
 import { Sql } from "../../../shared/database/types";
-import { is } from "tsafe";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,

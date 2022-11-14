@@ -175,6 +175,7 @@ export const getItemCounts = (
 ) => sql`
     SELECT "pinboardId", COUNT(*) AS "totalCount"
     FROM "Item"
-    WHERE "pinboardId" IN ${sql(args.pinboardIds)}
+    WHERE "pinboardId" IN ${sql(args.pinboardIds)} 
     GROUP BY "pinboardId"
 `;
+// FIXME - verify index exists on pinboardId in the Items table

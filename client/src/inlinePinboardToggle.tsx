@@ -3,15 +3,22 @@ import React from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
 import { pinboard, pinMetal } from "../colours";
-import { palette, space } from "@guardian/source-foundations";
+import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
+import { SvgSpinner } from "@guardian/source-react-components";
 
 export const WORKFLOW_TITLE_QUERY_SELECTOR =
   ".content-list-item__field--working-title, .content-list-item__field--headline";
 
 interface InlinePinboardToggleProps {
   pinboardId: string;
+  counts: PinboardIdWithItemCounts | undefined;
+  isLoading: boolean;
 }
-const InlinePinboardToggle = ({ pinboardId }: InlinePinboardToggleProps) => (
+
+const InlinePinboardToggle = ({
+  counts,
+  isLoading,
+}: InlinePinboardToggleProps) => (
   <root.div style={{ float: "right" }}>
     <div
       css={css`
@@ -20,23 +27,17 @@ const InlinePinboardToggle = ({ pinboardId }: InlinePinboardToggleProps) => (
         padding: 2px;
       `}
     >
-      {pinboardId}
+      {isLoading ? <SvgSpinner size="xsmall" /> : counts?.totalCount || 0}
     </div>
   </root.div>
 );
 
-interface InlinePinboardTogglePortalProps {
+interface InlinePinboardTogglePortalProps extends InlinePinboardToggleProps {
   node: HTMLElement;
 }
 
 export const InlinePinboardTogglePortal = ({
   node,
-}: InlinePinboardTogglePortalProps) => {
-  const pinboardId = node.parentElement?.id?.replace("stub-", ""); //TODO: log undefined
-  return pinboardId
-    ? ReactDOM.createPortal(
-        <InlinePinboardToggle pinboardId={pinboardId} />,
-        node
-      )
-    : null;
-};
+  ...props
+}: InlinePinboardTogglePortalProps) =>
+  ReactDOM.createPortal(<InlinePinboardToggle {...props} />, node);

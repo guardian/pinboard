@@ -84,16 +84,16 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   );
 };
 
-interface ButtonPortalProps {
+interface AddToPinboardButtonPortalProps {
   node: HTMLElement;
   setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   expand: () => void;
 }
 
-export const ButtonPortal = ({
+export const AddToPinboardButtonPortal = ({
   node,
   ...props
-}: ButtonPortalProps): ReactPortal =>
+}: AddToPinboardButtonPortalProps): ReactPortal =>
   ReactDOM.createPortal(
     <AddToPinboardButton dataAttributes={node.dataset} {...props} />,
     node

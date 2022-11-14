@@ -13,11 +13,17 @@ import {
   useSubscription,
 } from "@apollo/client";
 import {
+  gqlGetItemCounts,
   gqlGetMyUser,
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
-import { Item, MyUser, User } from "../../shared/graphql/graphql";
+import {
+  Item,
+  MyUser,
+  PinboardIdWithItemCounts,
+  User,
+} from "../../shared/graphql/graphql";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
 import {
   desktopNotificationsPreferencesUrl,
@@ -65,6 +71,33 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const [workflowTitleElements, setWorkflowTitleElements] = useState<
     HTMLElement[]
   >([]);
+
+  const workflowTitleElementLookup = useMemo(
+    () =>
+      workflowTitleElements.reduce((acc, node) => {
+        const pinboardId = node.parentElement?.id?.replace("stub-", "");
+        return pinboardId ? { ...acc, [pinboardId]: node } : acc;
+      }, {} as Record<string, HTMLElement>),
+    [workflowTitleElements]
+  );
+
+  // FIXME: move to a dedicated component
+  const itemCountsQuery = useQuery(gqlGetItemCounts, {
+    client: apolloClient,
+    variables: { pinboardIds: Object.keys(workflowTitleElementLookup) },
+    pollInterval: 5000,
+  });
+
+  const itemCounts: PinboardIdWithItemCounts[] =
+    itemCountsQuery.data?.getItemCounts || [];
+
+  const itemCountsLookup = itemCounts.reduce(
+    (lookup, element: PinboardIdWithItemCounts) => ({
+      ...lookup,
+      [element.pinboardId]: element,
+    }),
+    {} as Record<string, PinboardIdWithItemCounts>
+  );
 
   const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
@@ -373,8 +406,16 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           >
             <TickContext.Provider value={lastTickTimestamp}>
               {workflowTitleElements.length > 0 ? (
-                workflowTitleElements.map((node, index) => (
-                  <InlinePinboardTogglePortal key={index} node={node} />
+                Object.entries(
+                  workflowTitleElementLookup
+                ).map(([pinboardId, node], index) => (
+                  <InlinePinboardTogglePortal
+                    key={index}
+                    node={node}
+                    pinboardId={pinboardId}
+                    counts={itemCountsLookup[pinboardId]}
+                    isLoading={itemCountsQuery.loading}
+                  />
                 ))
               ) : (
                 <React.Fragment>

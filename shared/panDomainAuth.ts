@@ -4,26 +4,18 @@ import { Stage } from "./types/stage";
 
 const STAGE = (process.env.STAGE as Stage) || "LOCAL";
 
-const pandaConfigFilenameLookup: { [stage in Stage]: string } = {
-  PROD: "gutools.co.uk.settings",
-  CODE: "code.dev-gutools.co.uk.settings",
-  LOCAL: "local.dev-gutools.co.uk.settings",
-} as const;
-
 export const pandaSettingsBucketName = "pan-domain-auth-settings";
 
-export const pandaPublicConfigFilename = `${
-  pandaConfigFilenameLookup[STAGE] || pandaConfigFilenameLookup["LOCAL"]
-}.public`;
+const pandaConfigFilename =
+  STAGE === "PROD"
+    ? "gutools.co.uk.settings"
+    : "code.dev-gutools.co.uk.settings";
 
-export const pandaCookieName = "gutoolsAuth-assym";
+export const pandaPublicConfigFilename = `${pandaConfigFilename}.public`;
 
 const pandaConfigLocation = {
   Bucket: pandaSettingsBucketName,
-  Key:
-    STAGE === "PROD"
-      ? pandaConfigFilenameLookup["PROD"]
-      : pandaConfigFilenameLookup["CODE"],
+  Key: pandaConfigFilename,
 };
 
 export const getPandaConfig = async <T>(s3: AWS.S3) => {

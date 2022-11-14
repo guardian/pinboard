@@ -86,7 +86,12 @@ server.get("/pinboard.loader.js", async (request, response) => {
 
   const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
 
-  if (!maybeAuthedUserEmail) {
+  if (!maybeAuthedUserEmail && IS_RUNNING_LOCALLY) {
+    // return code to perform client side redirect in the browser (thanks to https://github.com/guardian/login.gutools/pull/69)
+    response.send(
+      "window.location.replace(`https://login.code.dev-gutools.co.uk/login?returnUrl=${encodeURI(window.location.href)}`)"
+    );
+  } else if (!maybeAuthedUserEmail) {
     const message = "pan-domain auth cookie missing, invalid or expired";
     console.warn(message);
     response.send(`console.error('${message}')`);

@@ -6,6 +6,7 @@ import {
   claimItem,
   createItem,
   getGroupPinboardIds,
+  getItemCounts,
   listItems,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
@@ -52,6 +53,8 @@ const run = (
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
     case "getGroupPinboardIds":
       return getGroupPinboardIds(sql, userEmail);
+    case "getItemCounts":
+      return getItemCounts(sql, args, userEmail);
   }
 
   throw Error(

@@ -5,18 +5,19 @@ schema {
 }
 
 type Query {
+  # database-bridge-lambda queries
   listItems(pinboardId: String!): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
   searchMentionableUsers(prefix: String!): UsersAndGroups
   getUsers(emails: [String!]!): [User]
-
   getGroupPinboardIds: [PinboardIdWithClaimCounts!]!
-
+  getItemCounts(pinboardIds: [String!]!): [PinboardIdWithItemCounts!]!
+  # workflow-bridge-lambda queries
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]
   getPinboardByComposerId(composerId: String!): WorkflowStub
-
+  # grid-bridge-lambda queries
   getGridSearchSummary(apiUrl: String!): GridSearchSummary
 }
 
@@ -158,4 +159,10 @@ type PinboardIdWithClaimCounts {
   notClaimableCount: Int!
   latestGroupMentionItemId: String!
   hasUnread: Boolean!
+}
+
+type PinboardIdWithItemCounts {
+  pinboardId: String!
+#  unreadCount: Int!
+  totalCount: Int!
 }

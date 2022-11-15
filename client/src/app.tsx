@@ -40,8 +40,7 @@ import {
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { gqlGetUsers } from "../gql";
-import { WORKFLOW_TITLE_QUERY_SELECTOR } from "./inlinePinboardToggle";
-import { InlineMode } from "./inlineMode";
+import { InlineMode, WORKFLOW_TITLE_QUERY_SELECTOR } from "./inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 

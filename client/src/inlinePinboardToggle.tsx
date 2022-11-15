@@ -2,33 +2,42 @@ import ReactDOM from "react-dom";
 import React from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
-import { pinboard, pinMetal } from "../colours";
+import { composer, pinboard, pinMetal } from "../colours";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { space } from "@guardian/source-foundations";
-
-export const WORKFLOW_TITLE_QUERY_SELECTOR =
-  ".content-list-item__field--working-title, .content-list-item__field--headline";
+import { palette, space } from "@guardian/source-foundations";
 
 interface InlinePinboardToggleProps {
   pinboardId: string;
   counts: PinboardIdWithItemCounts | undefined;
   isLoading: boolean;
+  isSelected: boolean;
+  setMaybeSelectedPinboardId: (newId: string | null) => void;
 }
 
 const InlinePinboardToggle = ({
+  pinboardId,
   counts,
   isLoading,
+  isSelected,
+  setMaybeSelectedPinboardId,
 }: InlinePinboardToggleProps) => (
-  <root.div style={{ float: "right" }}>
+  <root.div
+    style={{ display: "inline-block", width: "100%" }}
+    onClickCapture={(event) => {
+      event.stopPropagation();
+      setMaybeSelectedPinboardId(isSelected ? null : pinboardId);
+    }}
+  >
     <div
       css={css`
         text-align: right;
-        min-width: ${space["5"]}px;
-        background-color: ${pinboard["500"]};
+        white-space: nowrap;
+        background-color: ${pinboard[isSelected ? "800" : "500"]};
         color: ${pinMetal};
-        padding: 2px;
+        padding: 2px 3px;
         border-radius: ${space[1]}px;
+        width: 100%;
       `}
     >
       {isLoading ? (
@@ -37,14 +46,19 @@ const InlinePinboardToggle = ({
         <span>
           {!!counts?.unreadCount && (
             <span>
-              <span
+              <div
                 css={css`
-                  background-color: red;
+                  display: inline-block;
                   border-radius: 50%;
+                  background-color: ${composer.warning[300]};
+                  padding: 1px 3px;
+                  min-width: 10px;
+                  color: ${palette.neutral[100]};
+                  text-align: center;
                 `}
               >
                 {counts.unreadCount}
-              </span>{" "}
+              </div>{" "}
               of{" "}
             </span>
           )}

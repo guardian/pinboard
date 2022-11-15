@@ -1,8 +1,15 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { InlinePinboardTogglePortal } from "./inlinePinboardToggle";
-import { useLazyQuery, useQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
+import { css } from "@emotion/react";
+import { neutral, space } from "@guardian/source-foundations";
+import { boxShadow } from "./styling";
+import { Pinboard } from "./pinboard";
+
+export const WORKFLOW_TITLE_QUERY_SELECTOR =
+  ".content-list-item__field--priority";
 
 interface InlineModeProps {
   workflowTitleElements: HTMLElement[];
@@ -40,6 +47,12 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
     {} as Record<string, PinboardIdWithItemCounts>
   );
 
+  const [maybeSelectedPinboardId, setMaybeSelectedPinboardId] = useState<
+    string | null
+  >(null);
+
+  const panelRef = useRef(null);
+
   return (
     <React.Fragment>
       {Object.entries(workflowTitleElementLookup).map(
@@ -50,8 +63,34 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
             pinboardId={pinboardId}
             counts={itemCountsLookup[pinboardId]}
             isLoading={itemCountsQuery.loading}
+            isSelected={pinboardId === maybeSelectedPinboardId}
+            setMaybeSelectedPinboardId={setMaybeSelectedPinboardId}
           />
         )
+      )}
+      {maybeSelectedPinboardId && (
+        <div
+          ref={panelRef}
+          css={css`
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            z-index: 99998;
+            top: ${space[5]}px;
+            height: calc(100vh - 400px);
+            margin-left: 250px;
+            background: ${neutral[93]};
+            box-shadow: ${boxShadow};
+            width: 260px;
+          `}
+        >
+          <Pinboard
+            pinboardId={maybeSelectedPinboardId}
+            isSelected
+            isExpanded
+            panelElement={panelRef.current}
+          />
+        </div>
       )}
     </React.Fragment>
   );

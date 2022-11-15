@@ -1,0 +1,101 @@
+Arguments: 
+  /Users/Ara_Cho/.nvm/versions/node/v12.16.1/bin/node /Users/Ara_Cho/code/pinboard/.yarn/releases/yarn-1.22.17.js
+
+PATH: 
+  /Users/Ara_Cho/.sdkman/candidates/java/current/bin:/opt/homebrew/opt/openjdk/bin:/Users/Ara_Cho/.nvm/versions/node/v12.16.1/bin:/Users/Ara_Cho/bin:/usr/local/bin:/usr/local/share/npm/bin:/Users/Ara_Cho/.sdkman/candidates/java/current/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/MacGPG2/bin:/Users/Ara_Cho/.cargo/bin:/Users/Ara_Cho/code/pinboard/node_modules/.bin:/Users/Ara_Cho/Library/Application Support/Coursier/bin
+
+Yarn version: 
+  1.22.17
+
+Node version: 
+  12.16.1
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/Ara_Cho/code/pinboard/client/package.json: Unexpected token } in JSON at position 1703
+      at JSON.parse (<anonymous>)
+      at /Users/Ara_Cho/code/pinboard/.yarn/releases/yarn-1.22.17.js:1104:57
+      at Generator.next (<anonymous>)
+      at step (/Users/Ara_Cho/code/pinboard/.yarn/releases/yarn-1.22.17.js:310:30)
+      at /Users/Ara_Cho/code/pinboard/.yarn/releases/yarn-1.22.17.js:321:13
+
+npm manifest: 
+  {
+    "name": "client",
+    "version": "1.0.0",
+    "repository": "https://github.com/guardian/editorial-tools-pinboard",
+    "scripts": {
+      "type-check": "tsc --noEmit",
+      "watch-type-check": "yarn type-check --watch",
+      "build-main-client": "webpack --mode=production",
+      "watch-main-client": "webpack serve --mode=development",
+      "analyze-main-client-bundle": "webpack --config webpack-bundle-analyzer.config.js --mode=production",
+      "build-service-worker": "webpack --config webpack.service-worker.config.js --mode=production",
+      "watch-service-worker": "webpack --config webpack.service-worker.config.js --mode=development --watch",
+      "watch": "run-p --print-label watch-type-check watch-main-client watch-service-worker",
+      "build": "run-p --print-label type-check build-main-client build-service-worker",
+      "test": "jest 2>&1",
+      "storybook": "start-storybook -p 6006",
+      "build-storybook": "build-storybook"
+    },
+    "dependencies": {
+      "@apollo/client": "^3.6.5",
+      "@emotion/react": "^11.1.4",
+      "@guardian/source-foundations": "^4.1.0",
+      "@guardian/source-react-components": "^4.4.0",
+      "@guardian/user-telemetry-client": "^1.1.0",
+      "@sentry/react": "^6.18.1",
+      "@storybook/builder-webpack5": "^7.0.0-alpha.49",
+      "@storybook/manager-webpack5": "^6.5.0-rc.1",
+      "@webscopeio/react-textarea-autocomplete": "4.9.2",
+      "apollo-link-debounce": "^3.0.0",
+      "aws-appsync-auth-link": "^3.0.7",
+      "aws-appsync-subscription-link": "^3.0.9",
+      "date-fns": "^2.19.0",
+      "graphql": "^15.4.0",
+      "install": "^0.13.0",
+      "npm": "^9.1.1",
+      "preact": "^10.5.13",
+      "react-draggable": "^4.4.5",
+      "react-shadow": "^19.0.2",
+      "ts-loader": "^9.4.1",
+    },
+    "devDependencies": {
+      "@babel/core": "^7.17.4",
+      "@babel/preset-env": "^7.16.11",
+      "@babel/preset-typescript": "^7.16.7",
+      "@emotion/babel-preset-css-prop": "^11.2.0",
+      "@prefresh/webpack": "^3.3.3",
+      "@storybook/addon-actions": "^6.5.13",
+      "@storybook/addon-essentials": "^6.5.13",
+      "@storybook/addon-interactions": "^6.5.13",
+      "@storybook/addon-links": "^6.5.13",
+      "@storybook/preact": "^6.5.13",
+      "@storybook/testing-library": "^0.0.13",
+      "@svgr/webpack": "^6.2.1",
+      "@types/react": "^16.9.56",
+      "@types/react-dom": "^16.9.9",
+      "@types/webpack-env": "^1.16.3",
+      "@types/webscopeio__react-textarea-autocomplete": "^4.7.2",
+      "babel-loader": "^8.2.3",
+      "core-js": "^3.26.1",
+      "html-webpack-plugin": "^5.5.0",
+      "jest-environment-node": "^26.6.2",
+      "ts-loader": "^9.4.1",
+      "typescript": "^4.8.4",
+      "webpack": "^5.69.0",
+      "webpack-bundle-analyzer": "^4.5.0",
+      "webpack-cli": "^4.9.2",
+      "webpack-dev-server": "^4.7.4",
+      "webpack-merge": "^5.8.0"
+    },
+    "LICENSE": "UNLICENSED"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

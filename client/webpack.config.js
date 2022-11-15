@@ -54,7 +54,10 @@ module.exports = (env, argv) => {
               ],
             },
           },
-          exclude: /node_modules/,
+          exclude: {
+            test: /node_modules/,
+            exclude: /@guardian\//,
+          },
         },
         {
           test: /\.svg$/,

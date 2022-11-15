@@ -42,6 +42,7 @@ export const gqlGetItemCounts = gql`
     getItemCounts(pinboardIds: $pinboardIds) {
       pinboardId
       totalCount
+      unreadCount
     }
   }
 `;

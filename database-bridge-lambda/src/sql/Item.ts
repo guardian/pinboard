@@ -176,7 +176,12 @@ export const getItemCounts = (
   args.pinboardIds.length === 0
     ? Promise.resolve([])
     : sql`
-    SELECT "pinboardId", COUNT(*) AS "totalCount"
+    SELECT "pinboardId", COUNT(*) AS "totalCount", COUNT(*) FILTER (WHERE "id" > COALESCE((
+        SELECT "itemID"
+        FROM "LastItemSeenByUser"
+        WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+          AND "LastItemSeenByUser"."userEmail" = ${userEmail}
+    ), 0)) AS "unreadCount"
     FROM "Item"
     WHERE "pinboardId" IN ${sql(args.pinboardIds)} 
     GROUP BY "pinboardId"

@@ -163,6 +163,6 @@ type PinboardIdWithClaimCounts {
 
 type PinboardIdWithItemCounts {
   pinboardId: String!
-#  unreadCount: Int!
+  unreadCount: Int!
   totalCount: Int!
 }

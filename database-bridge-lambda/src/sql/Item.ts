@@ -172,7 +172,10 @@ export const getItemCounts = (
   sql: Sql,
   args: { pinboardIds: string[] },
   userEmail: string
-) => sql`
+) =>
+  args.pinboardIds.length === 0
+    ? Promise.resolve([])
+    : sql`
     SELECT "pinboardId", COUNT(*) AS "totalCount"
     FROM "Item"
     WHERE "pinboardId" IN ${sql(args.pinboardIds)} 

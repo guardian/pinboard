@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { InlinePinboardTogglePortal } from "./inlinePinboardToggle";
-import { useQuery } from "@apollo/client";
+import { useLazyQuery, useQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 
@@ -18,10 +18,16 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
     [workflowTitleElements]
   );
 
-  const itemCountsQuery = useQuery(gqlGetItemCounts, {
-    variables: { pinboardIds: Object.keys(workflowTitleElementLookup) },
-    pollInterval: 5000,
-  });
+  const [fetchItemCounts, itemCountsQuery] = useLazyQuery(gqlGetItemCounts);
+
+  useEffect(() => {
+    itemCountsQuery.stopPolling();
+    const pinboardIds = Object.keys(workflowTitleElementLookup);
+    if (pinboardIds.length > 0) {
+      fetchItemCounts({ variables: { pinboardIds } });
+      itemCountsQuery.startPolling(5000);
+    }
+  }, [workflowTitleElementLookup]);
 
   const itemCounts: PinboardIdWithItemCounts[] =
     itemCountsQuery.data?.getItemCounts || [];

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { composer } from "../colours";
 import { agateSans } from "../fontNormaliser";
 
-interface ConfirmableButtonProps {
+export interface ConfirmableButtonProps {
   label: string;
   backgroundColor: string;
   onClick: () => void;

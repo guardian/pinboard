@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
@@ -37,6 +37,8 @@ import {
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { gqlGetUsers } from "../gql";
+import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
+import { Global } from "@emotion/react";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -299,9 +301,12 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     );
   }, [preSelectedComposerId, composerSection]);
 
+  const agateFontFaceIfApplicable = useMemo(getAgateFontFaceIfApplicable, []);
+
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
+        <Global styles={agateFontFaceIfApplicable} />
         <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
         <root.div
           onDragOver={(event) =>

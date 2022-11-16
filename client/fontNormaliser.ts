@@ -54,12 +54,19 @@ export const agateSans = agateSansFont(
 );
 export const textSans = pixelSizedFont(sourceFoundations.textSans);
 
+const isAgateLoaded = () => {
+  let foundAgate = false;
+  document.fonts.forEach((font) => {
+    if (agateFontNameVariants.includes(font.family)) {
+      foundAgate = true;
+    }
+  });
+  return foundAgate;
+};
 const agateFontFileBasePath =
   "https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-";
 export const getAgateFontFaceIfApplicable = () =>
-  agateFontNameVariants.find((agateVariant) =>
-    document.fonts.check(`12px "${agateVariant}"`)
-  )
+  isAgateLoaded()
     ? null
     : css`
         @font-face {

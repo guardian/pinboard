@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
+import * as ASCIIFolder from "fold-to-ascii";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
@@ -56,7 +57,7 @@ const getAllPinboards = async (searchText?: string) => {
   const fields = ["id", "title", "composerId", "headline", "trashed"].join(",");
 
   const searchQueryParamClause = searchText
-    ? `&text=${encodeURI(searchText)}`
+    ? `&text=${encodeURI(ASCIIFolder.foldMaintaining(searchText))}`
     : "";
 
   const stubsResponse = await fetch(

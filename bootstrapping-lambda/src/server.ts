@@ -16,6 +16,7 @@ import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
+import cors from "cors";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -23,7 +24,13 @@ const S3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
+server.use(cors());
+
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
+
+server.get("/", (request, response) => response.sendStatus(200));
+server.post("/search", (request, response) => response.send("search endpoint"));
+server.post("/query", (request, response) => response.send("query endpoint"));
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

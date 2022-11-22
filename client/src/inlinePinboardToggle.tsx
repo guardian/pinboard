@@ -29,7 +29,7 @@ const InlinePinboardToggle = ({
   offsetTop,
 }: InlinePinboardToggleProps) => (
   <root.div
-    onClickCapture={(event) => {
+    onClick={(event) => {
       event.stopPropagation();
       setMaybeSelectedPinboardId(isSelected ? null : pinboardId);
     }}

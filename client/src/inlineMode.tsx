@@ -100,6 +100,7 @@ export const InlineModePanel = ({
   );
   return (
     <div
+      onClick={(e) => e.stopPropagation()}
       ref={panelRef}
       css={css`
         position: absolute;

@@ -61,6 +61,12 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
     string | null
   >(null);
 
+  useEffect(() => {
+    document
+      .getElementById("scrollable-area")
+      ?.addEventListener("scroll", () => setMaybeSelectedPinboardId(null));
+  }, []);
+
   return (
     <React.Fragment>
       {Object.entries(workflowTitleElementLookup).map(
@@ -73,7 +79,6 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
             isLoading={itemCountsQuery.loading}
             isSelected={pinboardId === maybeSelectedPinboardId}
             setMaybeSelectedPinboardId={setMaybeSelectedPinboardId}
-            offsetTop={node.offsetTop}
           />
         )
       )}
@@ -83,32 +88,22 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
 
 interface InlineModePanelProps {
   pinboardId: string;
-  offsetTop: number;
 }
 
-export const InlineModePanel = ({
-  pinboardId,
-  offsetTop,
-}: InlineModePanelProps) => {
+export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
   const panelRef = useRef(null);
-  const marginTop = useMemo(
-    () =>
-      50 +
-      (document.getElementById("scrollable-area")?.scrollTop || 0) -
-      offsetTop,
-    []
-  );
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       ref={panelRef}
       css={css`
-        position: absolute;
+        position: fixed;
         display: flex;
         flex-direction: column;
         z-index: 3;
-        margin-top: ${marginTop}px;
-        height: calc(100vh - 200px);
+        top: 100px;
+        bottom: 5px;
         margin-left: ${INLINE_TOGGLE_WIDTH + 25}px;
         background: ${neutral[93]};
         box-shadow: ${boxShadow};

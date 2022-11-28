@@ -97,6 +97,9 @@ export const ItemDisplay = ({
     [item.claimedByEmail, userLookup]
   );
 
+  const isImmediatelyFollowingRelatedItem =
+    maybeRelatedItem && maybePreviousItem?.id === maybeRelatedItem.id;
+
   return (
     <div
       ref={setRef}
@@ -157,32 +160,44 @@ export const ItemDisplay = ({
                 border: 1px solid ${composer.primary[300]};
                 border-radius: ${space[1]}px;
                 margin-left: -${space[9] - 4}px;
+                display: flex;
+                gap: ${space[1]}px;
+                color: ${composer.primary[300]};
+                ${agateSans.xxsmall({ fontWeight: "bold" })};
+                svg {
+                  path {
+                    fill: ${composer.primary[300]};
+                  }
+                }
               `}
             >
-              <span
+              <Pencil />
+              <div
                 css={css`
-                  color: ${composer.primary[300]};
-                  svg {
-                    path {
-                      fill: ${composer.primary[300]};
-                    }
-                  }
-                  ${agateSans.xxsmall({ fontWeight: "bold" })};
+                  flex-grow: 1;
+                  margin-top: -1px;
                 `}
               >
-                <Pencil /> {userDisplayName} claimed a request <Tick />
-              </span>
-              {maybeRelatedItem &&
-                useMemo(
-                  () => (
-                    <NestedItemDisplay
-                      item={maybeRelatedItem}
-                      maybeUser={userLookup[maybeRelatedItem.userEmail]}
-                      scrollToItem={scrollToItem}
-                    />
-                  ),
-                  [maybeRelatedItem.id]
-                )}
+                <span>
+                  {item.userEmail === userEmail ? "You" : userDisplayName}{" "}
+                  claimed{" "}
+                  {isImmediatelyFollowingRelatedItem ? "the above" : "a"}{" "}
+                  request&nbsp;
+                  <Tick />
+                </span>
+                {maybeRelatedItem &&
+                  !isImmediatelyFollowingRelatedItem &&
+                  useMemo(
+                    () => (
+                      <NestedItemDisplay
+                        item={maybeRelatedItem}
+                        maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                        scrollToItem={scrollToItem}
+                      />
+                    ),
+                    [maybeRelatedItem.id]
+                  )}
+              </div>
             </div>
           ) : (
             formattedMessage

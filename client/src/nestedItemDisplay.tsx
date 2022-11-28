@@ -29,7 +29,6 @@ export const NestedItemDisplay = ({
       css={css`
         user-select: none;
         margin-top: ${space[2]}px;
-        margin-left: ${space[3]}px;
         color: ${palette.neutral[46]};
         mix-blend-mode: multiply;
         ${agateSans.xxsmall()}

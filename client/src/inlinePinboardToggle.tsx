@@ -17,7 +17,6 @@ interface InlinePinboardToggleProps {
   isLoading: boolean;
   isSelected: boolean;
   setMaybeSelectedPinboardId: (newId: string | null) => void;
-  offsetTop: number;
 }
 
 const InlinePinboardToggle = ({
@@ -26,7 +25,6 @@ const InlinePinboardToggle = ({
   isLoading,
   isSelected,
   setMaybeSelectedPinboardId,
-  offsetTop,
 }: InlinePinboardToggleProps) => (
   <root.div
     onClick={(event) => {
@@ -34,9 +32,7 @@ const InlinePinboardToggle = ({
       setMaybeSelectedPinboardId(isSelected ? null : pinboardId);
     }}
   >
-    {isSelected && (
-      <InlineModePanel pinboardId={pinboardId} offsetTop={offsetTop} />
-    )}
+    {isSelected && <InlineModePanel pinboardId={pinboardId} />}
     <div
       css={css`
         ${agateSans.xxsmall()};

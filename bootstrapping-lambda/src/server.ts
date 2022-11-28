@@ -1,6 +1,7 @@
 import { createServer, proxy } from "aws-serverless-express";
 import * as lambda from "aws-lambda";
 import { default as express } from "express";
+import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
 import { standardAwsConfig } from "../../shared/awsIntegration";
@@ -23,7 +24,47 @@ const S3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
+server.use(express.json());
+server.use(cors());
+
+const getDataPointTuple = (
+  key: string,
+  numberOfDataPoints: number,
+  range: number
+) => {
+  const currentTimeInMilliseconds = Date.now();
+  const datapoints = [];
+  for (let i = 0; i < numberOfDataPoints; i++) {
+    datapoints.push([
+      Math.floor(Math.random() * range),
+      currentTimeInMilliseconds - i * 3600000,
+    ]);
+  }
+  return [{ target: key, datapoints }];
+};
+
+interface Target {
+  target: string;
+  type: string;
+}
+
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
+server.post("/search", (_, response) =>
+  response.json(["uniqueUsers", "claimableMessages", "fish", "chips"])
+);
+server.post("/query", async (request, response) => {
+  console.log("request.body", request.body);
+  const {
+    body: { targets },
+  }: { body: { targets: Target[] } } = request;
+  if (targets.length < 1) {
+    return response.json([]);
+  }
+  const results = [
+    ...targets.map(({ target }) => getDataPointTuple(target, 24, 1000)),
+  ].flat();
+  response.json(results);
+});
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

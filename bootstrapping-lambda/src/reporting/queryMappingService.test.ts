@@ -13,7 +13,7 @@ describe("queryMappingService", () => {
         },
         metric: "uniqueUsers",
       },
-      operationName: "MyQuery",
+      operation: "MyQuery",
     };
     const request: GrafanaRequest = {
       range: {

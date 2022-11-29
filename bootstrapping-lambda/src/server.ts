@@ -17,6 +17,7 @@ import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
+import { getAppSyncClient } from "./appSyncClient";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -42,6 +43,85 @@ const getDataPointTuple = (
   }
   return [{ target: key, datapoints }];
 };
+const testQueryPayload = {
+  operationName: "MyQuery",
+  variables: {
+    pinboardIds: [
+      "5667",
+      "8693",
+      "8757",
+      "9338",
+      "9340",
+      "9346",
+      "9348",
+      "9349",
+      "9637",
+      "10215",
+      "10317",
+      "10993",
+      "12209",
+      "12232",
+      "12670",
+      "12935",
+      "14457",
+      "14466",
+      "14748",
+      "14862",
+      "56519",
+      "61428",
+      "61735",
+      "61736",
+      "61751",
+      "61879",
+      "63879",
+      "63948",
+      "65036",
+      "65168",
+      "65169",
+      "65170",
+      "65172",
+      "65173",
+      "65174",
+      "65175",
+      "65176",
+      "65177",
+      "65178",
+      "65179",
+      "65181",
+      "65182",
+      "65183",
+      "65184",
+      "65185",
+      "65186",
+      "65187",
+      "65188",
+      "65189",
+      "65190",
+    ],
+  },
+  query:
+    "query MyQuery($pinboardIds: [String!]!) {\n  getItemCounts(pinboardIds: $pinboardIds) {\n    pinboardId\n    totalCount\n    unreadCount\n    __typename\n  }\n}\n",
+};
+
+server.get("/testAppSync", async (request, response) => {
+  // FIXME - move all this to middleware and exlude _prout
+  const maybeCookieHeader = request.header("Cookie");
+
+  const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
+
+  if (!maybeAuthedUserEmail) {
+    const message = "pan-domain auth cookie missing, invalid or expired";
+    console.warn(message);
+    response.send(`console.error('${message}')`);
+  } else if (await userHasPermission(maybeAuthedUserEmail)) {
+    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+    const appSyncClient = getAppSyncClient(appSyncConfig);
+    const data = await appSyncClient(testQueryPayload.query);
+    response.json(data);
+  } else {
+    response.send("console.log('You do not have permission to use PinBoard')");
+  }
+});
 
 interface Target {
   target: string;

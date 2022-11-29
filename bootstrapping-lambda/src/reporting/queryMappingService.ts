@@ -1,5 +1,6 @@
 import { GrafanaRequest } from "./grafanaType";
+import { AppSyncQuery } from "../appSyncClient";
 
-const queryMappingService = (request: GrafanaRequest) => {
-  return;
+export const mapQuery = (request: GrafanaRequest): AppSyncQuery => {
+  return {} as AppSyncQuery;
 };

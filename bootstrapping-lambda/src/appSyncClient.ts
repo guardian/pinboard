@@ -2,14 +2,16 @@ import axios from "axios";
 // FIXME - figure out how to use node-fetch here
 import { AppSyncConfig } from "../../shared/appSyncConfig";
 
+export interface AppSyncQuery {
+  query: string;
+  variables: Record<string, unknown>;
+  operation: string;
+}
+
 export const getAppSyncClient = (appSyncConfig: AppSyncConfig) => {
   const { graphqlEndpoint, authToken } = appSyncConfig;
 
-  return async (
-    operation: string,
-    query: string,
-    variables?: Record<string, unknown>
-  ) => {
+  return async ({ query, variables, operation }: AppSyncQuery) => {
     const response = await axios({
       method: "post",
       url: graphqlEndpoint,
@@ -18,7 +20,7 @@ export const getAppSyncClient = (appSyncConfig: AppSyncConfig) => {
         Authorization: authToken,
         accept: "text/plain",
       },
-      data: { query, variables },
+      data: { query, variables, operation },
     });
 
     // @ts-ignore

@@ -21,7 +21,7 @@
     "@guardian/pan-domain-node": "^0.4.2",
     "@types/cors": "^2.8.12",
     "aws-serverless-express": "^3.4.0",
-    "axios": "^1.2.0",
+    "axios": "1.1.x",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jose": "^4.3.7",

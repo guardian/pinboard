@@ -116,7 +116,11 @@ server.get("/testAppSync", async (request, response) => {
   } else if (await userHasPermission(maybeAuthedUserEmail)) {
     const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
     const appSyncClient = getAppSyncClient(appSyncConfig);
-    const data = await appSyncClient(testQueryPayload.query);
+    const data = await appSyncClient(
+      "MyQuery",
+      testQueryPayload.query,
+      testQueryPayload.variables
+    );
     response.json(data);
   } else {
     response.send("console.log('You do not have permission to use PinBoard')");
@@ -133,6 +137,7 @@ server.post("/search", (_, response) =>
   response.json(["uniqueUsers", "claimableMessages", "fish", "chips"])
 );
 server.post("/query", async (request, response) => {
+  // TODO - put behind auth middleware
   console.log("request.body", request.body);
   const {
     body: { targets },

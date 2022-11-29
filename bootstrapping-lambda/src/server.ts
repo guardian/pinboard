@@ -18,6 +18,7 @@ import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
 import { getAppSyncClient } from "./appSyncClient";
+import { GrafanaRequest } from "./reporting/grafanaType";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -25,8 +26,14 @@ const S3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
+const allowList = ["https://grafana.local.dev-gutools.co.uk"];
+const corsOptions: cors.CorsOptions = {
+  origin: allowList,
+  credentials: true,
+};
+
 server.use(express.json());
-server.use(cors());
+server.use(cors(corsOptions));
 
 const getDataPointTuple = (
   key: string,
@@ -43,6 +50,7 @@ const getDataPointTuple = (
   }
   return [{ target: key, datapoints }];
 };
+
 const testQueryPayload = {
   operationName: "MyQuery",
   variables: {
@@ -103,11 +111,11 @@ const testQueryPayload = {
     "query MyQuery($pinboardIds: [String!]!) {\n  getItemCounts(pinboardIds: $pinboardIds) {\n    pinboardId\n    totalCount\n    unreadCount\n    __typename\n  }\n}\n",
 };
 
-server.get("/testAppSync", async (request, response) => {
+server.post("/query", async (request, response) => {
   // FIXME - move all this to middleware and exlude _prout
   const maybeCookieHeader = request.header("Cookie");
-
   const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
+  const { body: metricsQuery }: { body: GrafanaRequest } = request;
 
   if (!maybeAuthedUserEmail) {
     const message = "pan-domain auth cookie missing, invalid or expired";
@@ -127,29 +135,29 @@ server.get("/testAppSync", async (request, response) => {
   }
 });
 
-interface Target {
-  target: string;
-  type: string;
-}
+// interface Target {
+//   target: string;
+//   type: string;
+// }
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 server.post("/search", (_, response) =>
   response.json(["uniqueUsers", "claimableMessages", "fish", "chips"])
 );
-server.post("/query", async (request, response) => {
-  // TODO - put behind auth middleware
-  console.log("request.body", request.body);
-  const {
-    body: { targets },
-  }: { body: { targets: Target[] } } = request;
-  if (targets.length < 1) {
-    return response.json([]);
-  }
-  const results = [
-    ...targets.map(({ target }) => getDataPointTuple(target, 24, 1000)),
-  ].flat();
-  response.json(results);
-});
+// server.post("/query", async (request, response) => {
+//   // TODO - put behind auth middleware
+//   console.log("request.body", request.body);
+//   const {
+//     body: { targets },
+//   }: { body: { targets: Target[] } } = request;
+//   if (targets.length < 1) {
+//     return response.json([]);
+//   }
+//   const results = [
+//     ...targets.map(({ target }) => getDataPointTuple(target, 24, 1000)),
+//   ].flat();
+//   response.json(results);
+// });
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

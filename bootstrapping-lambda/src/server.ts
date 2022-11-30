@@ -1,6 +1,6 @@
 import { createServer, proxy } from "aws-serverless-express";
 import * as lambda from "aws-lambda";
-import { default as express } from "express";
+import { default as express, query } from "express";
 import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
@@ -19,6 +19,10 @@ import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables
 import { Stage } from "../../shared/types/stage";
 import { getAppSyncClient } from "./appSyncClient";
 import { GrafanaRequest } from "./reporting/grafanaType";
+import {
+  AuthenticatedRequest,
+  authMiddleware,
+} from "./middleware/auth-middleware";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -111,34 +115,25 @@ const testQueryPayload = {
     "query MyQuery($pinboardIds: [String!]!) {\n  getItemCounts(pinboardIds: $pinboardIds) {\n    pinboardId\n    totalCount\n    unreadCount\n    __typename\n  }\n}\n",
 };
 
-server.post("/query", async (request, response) => {
-  // FIXME - move all this to middleware and exlude _prout
-  const maybeCookieHeader = request.header("Cookie");
-  const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
-  const { body: metricsQuery }: { body: GrafanaRequest } = request;
-
-  if (!maybeAuthedUserEmail) {
-    const message = "pan-domain auth cookie missing, invalid or expired";
-    console.warn(message);
-    response.send(`console.error('${message}')`);
-  } else if (await userHasPermission(maybeAuthedUserEmail)) {
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+server.post(
+  "/query",
+  authMiddleware,
+  async (request: AuthenticatedRequest, response) => {
+    const { userEmail } = request;
+    if (!userEmail) return response.status(401).send("Unauthorized");
+    const { body: metricsQuery }: { body: GrafanaRequest } = request;
+    const appSyncConfig = await generateAppSyncConfig(userEmail, S3);
     const appSyncClient = getAppSyncClient(appSyncConfig);
-    const data = await appSyncClient(
-      "MyQuery",
-      testQueryPayload.query,
-      testQueryPayload.variables
-    );
-    response.json(data);
-  } else {
-    response.send("console.log('You do not have permission to use PinBoard')");
-  }
-});
 
-// interface Target {
-//   target: string;
-//   type: string;
-// }
+    const data = await appSyncClient({
+      operation: "MyQuery",
+      query: testQueryPayload.query,
+      variables: testQueryPayload.variables,
+    });
+
+    response.json(data);
+  }
+);
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 server.post("/search", (_, response) =>
@@ -187,7 +182,7 @@ interface FileWithLastModified {
   lastModified: Date;
 }
 
-server.get("/pinboard.loader.js", async (request, response) => {
+server.get("/pinboard.loader.js", authMiddleware, async (request, response) => {
   applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
 
   applyJavascriptContentType(response);

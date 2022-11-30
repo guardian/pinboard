@@ -186,3 +186,21 @@ export const getItemCounts = (
     WHERE "pinboardId" IN ${sql(args.pinboardIds)} 
     GROUP BY "pinboardId"
 `;
+
+interface Range {
+    from: string;
+    to: string;
+}
+
+export const getUniqueUsersPerHourInRange = async (
+    sql: Sql,
+    args: { range: Range }
+) => sql`
+    SELECT
+        DATE_TRUNC('hour', "timestamp") as "hour",
+        COUNT(DISTINCT "userEmail") as "uniqueUsers"
+    FROM "Item"
+    WHERE
+        "timestamp" >= ${args.range.from} AND "timestamp" < ${args.range.to}
+    GROUP BY "hour"
+`;

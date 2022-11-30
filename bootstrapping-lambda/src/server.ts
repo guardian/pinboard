@@ -31,7 +31,11 @@ const S3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
-const allowList = ["https://grafana.local.dev-gutools.co.uk"];
+const allowList = [
+  "https://grafana.local.dev-gutools.co.uk",
+  "https://metrics.gutools.co.uk",
+];
+
 const corsOptions: cors.CorsOptions = {
   origin: allowList,
   credentials: true,
@@ -54,8 +58,9 @@ server.post(
     const mappedRequest = mapQuery(metricsQuery);
     console.log("mappedRequest", mappedRequest);
     const data = await appSyncClient(mappedRequest);
+    console.log("data", data);
 
-    response.json(data);
+    response.json({ foo: "bar" });
   }
 );
 

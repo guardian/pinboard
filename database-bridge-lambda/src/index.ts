@@ -7,6 +7,7 @@ import {
   createItem,
   getGroupPinboardIds,
   getItemCounts,
+  getUniqueUsersPerHourInRange,
   listItems,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
@@ -55,6 +56,8 @@ const run = (
       return getGroupPinboardIds(sql, userEmail);
     case "getItemCounts":
       return getItemCounts(sql, args, userEmail);
+    case "getUniqueUsersPerHourInRange":
+      return getUniqueUsersPerHourInRange(sql, args);
   }
 
   throw Error(

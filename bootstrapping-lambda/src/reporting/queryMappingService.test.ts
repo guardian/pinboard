@@ -4,14 +4,12 @@ import { mapQuery } from "./queryMappingService";
 describe("queryMappingService", () => {
   test("should map a valid request an app sync query", () => {
     const expectedQuery = {
-      query:
-        "query MyQuery($range: Range, $metric: String) {getMetricsForRange(range: $range, metric: $metric) {}}",
+      query: "query MyQuery($range: Range) {getUniqueUsers(range: $range) {}}",
       variables: {
         range: {
           from: "2020-10-01T00:00:00.000Z",
           to: "2020-10-02T00:00:00.000Z",
         },
-        metric: "uniqueUsers",
       },
       operation: "MyQuery",
     };

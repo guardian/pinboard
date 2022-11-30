@@ -4,7 +4,6 @@ import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
 import { composer, pinboard, pinMetal } from "../colours";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
-import { SvgSpinner } from "@guardian/source-react-components";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { INLINE_PANEL_WIDTH, InlineModePanel } from "./inlineMode";
@@ -47,20 +46,19 @@ const InlinePinboardToggle = ({
           background-color: ${pinboard["500"]};
           color: ${pinMetal};
           border-radius: ${space[1]}px;
-
-          &:hover {
-            background-color: ${pinboard[isSelected ? "500" : "800"]};
-          }
-
           min-width: ${INLINE_TOGGLE_WIDTH}px;
+          min-height: 18px;
           padding: 2px ${isSelected ? 25 : 3}px 2px 3px;
           margin-right: ${isSelected ? INLINE_PANEL_WIDTH + 15 : 0}px;
           position: relative;
           ${isSelected ? "z-index: 3" : ""}
+          &:hover {
+            background-color: ${pinboard[isSelected ? "500" : "800"]};
+          }
         `}
       >
         {isLoading ? (
-          <SvgSpinner size="xsmall" />
+          <em>loading...</em>
         ) : (
           <span>
             {counts?.unreadCount && unreadFlags?.[pinboardId] !== false ? (

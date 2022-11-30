@@ -104,7 +104,11 @@ export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
         z-index: 3;
         top: 100px;
         bottom: 5px;
-        margin-left: ${INLINE_TOGGLE_WIDTH + 25}px;
+        left: ${(document
+          .querySelector(".content-list-head__heading--pinboard")
+          ?.getBoundingClientRect()?.left || 0) +
+        INLINE_TOGGLE_WIDTH +
+        25}px;
         background: ${neutral[93]};
         box-shadow: ${boxShadow};
         width: ${INLINE_PANEL_WIDTH}px;

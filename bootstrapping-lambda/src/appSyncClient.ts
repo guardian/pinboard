@@ -18,7 +18,7 @@ export const getAppSyncClient = (appSyncConfig: AppSyncConfig) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: authToken,
-        accept: "text/plain",
+        accept: "application/json",
       },
       data: { query, variables, operation },
     });

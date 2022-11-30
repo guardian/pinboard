@@ -1,6 +1,6 @@
 import { createServer, proxy } from "aws-serverless-express";
 import * as lambda from "aws-lambda";
-import { default as express, query } from "express";
+import { default as express } from "express";
 import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
@@ -23,6 +23,7 @@ import {
   AuthenticatedRequest,
   authMiddleware,
 } from "./middleware/auth-middleware";
+import { mapQuery } from "./reporting/queryMappingService";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -39,82 +40,6 @@ const corsOptions: cors.CorsOptions = {
 server.use(express.json());
 server.use(cors(corsOptions));
 
-const getDataPointTuple = (
-  key: string,
-  numberOfDataPoints: number,
-  range: number
-) => {
-  const currentTimeInMilliseconds = Date.now();
-  const datapoints = [];
-  for (let i = 0; i < numberOfDataPoints; i++) {
-    datapoints.push([
-      Math.floor(Math.random() * range),
-      currentTimeInMilliseconds - i * 3600000,
-    ]);
-  }
-  return [{ target: key, datapoints }];
-};
-
-const testQueryPayload = {
-  operationName: "MyQuery",
-  variables: {
-    pinboardIds: [
-      "5667",
-      "8693",
-      "8757",
-      "9338",
-      "9340",
-      "9346",
-      "9348",
-      "9349",
-      "9637",
-      "10215",
-      "10317",
-      "10993",
-      "12209",
-      "12232",
-      "12670",
-      "12935",
-      "14457",
-      "14466",
-      "14748",
-      "14862",
-      "56519",
-      "61428",
-      "61735",
-      "61736",
-      "61751",
-      "61879",
-      "63879",
-      "63948",
-      "65036",
-      "65168",
-      "65169",
-      "65170",
-      "65172",
-      "65173",
-      "65174",
-      "65175",
-      "65176",
-      "65177",
-      "65178",
-      "65179",
-      "65181",
-      "65182",
-      "65183",
-      "65184",
-      "65185",
-      "65186",
-      "65187",
-      "65188",
-      "65189",
-      "65190",
-    ],
-  },
-  query:
-    "query MyQuery($pinboardIds: [String!]!) {\n  getItemCounts(pinboardIds: $pinboardIds) {\n    pinboardId\n    totalCount\n    unreadCount\n    __typename\n  }\n}\n",
-};
-
 server.post(
   "/query",
   authMiddleware,
@@ -122,37 +47,22 @@ server.post(
     const { userEmail } = request;
     if (!userEmail) return response.status(401).send("Unauthorized");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
+
     const appSyncConfig = await generateAppSyncConfig(userEmail, S3);
     const appSyncClient = getAppSyncClient(appSyncConfig);
 
-    const data = await appSyncClient({
-      operation: "MyQuery",
-      query: testQueryPayload.query,
-      variables: testQueryPayload.variables,
-    });
+    const mappedRequest = mapQuery(metricsQuery);
+    console.log("mappedRequest", mappedRequest);
+    const data = await appSyncClient(mappedRequest);
 
     response.json(data);
   }
 );
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
-server.post("/search", (_, response) =>
+server.post("/search", authMiddleware, (_, response) =>
   response.json(["uniqueUsers", "claimableMessages", "fish", "chips"])
 );
-// server.post("/query", async (request, response) => {
-//   // TODO - put behind auth middleware
-//   console.log("request.body", request.body);
-//   const {
-//     body: { targets },
-//   }: { body: { targets: Target[] } } = request;
-//   if (targets.length < 1) {
-//     return response.json([]);
-//   }
-//   const results = [
-//     ...targets.map(({ target }) => getDataPointTuple(target, 24, 1000)),
-//   ].flat();
-//   response.json(results);
-// });
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

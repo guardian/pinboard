@@ -33,6 +33,7 @@ describe("auth-middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(401);
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
+
   test("should return a 403 response where user does not have permission", async () => {
     const mockRequest = ({
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
@@ -57,6 +58,7 @@ describe("auth-middleware", () => {
     expect(mockNextFunction).not.toHaveBeenCalled();
     expect(mockRequest.userEmail).toBeUndefined();
   });
+
   test("call next where user authenticated", async () => {
     const mockRequest = ({
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),

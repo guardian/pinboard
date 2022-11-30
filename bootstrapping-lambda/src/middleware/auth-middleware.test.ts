@@ -1,4 +1,8 @@
 import { AuthenticatedRequest, authMiddleware } from "./auth-middleware";
+
+jest.mock("../permissionCheck");
+jest.mock("../panDomainAuth");
+
 import { Response } from "express";
 import { userHasPermission } from "../permissionCheck";
 import { getVerifiedUserEmail } from "../panDomainAuth";

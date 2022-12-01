@@ -6,8 +6,8 @@ import { composer, pinboard, pinMetal } from "../colours";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
-import { INLINE_PANEL_WIDTH, InlineModePanel } from "./inlineMode";
 import { useGlobalStateContext } from "./globalState";
+import { INLINE_PANEL_WIDTH, InlineModePanel } from "./inlineModePanel";
 
 export const INLINE_TOGGLE_WIDTH = 50;
 

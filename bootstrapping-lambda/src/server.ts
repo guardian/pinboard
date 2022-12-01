@@ -61,11 +61,7 @@ server.post(
 
     const mappedRequest = mapGrafanaRequestToAppSyncQuery(metricsQuery);
 
-    const {
-      data: {
-        data: { getUniqueUsersPerHourInRange },
-      },
-    } = await appSyncClient(mappedRequest);
+    const { getUniqueUsersPerHourInRange } = await appSyncClient(mappedRequest);
 
     response.json(
       mapAppSyncResponseToGrafanaFormat(getUniqueUsersPerHourInRange)

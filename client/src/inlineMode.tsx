@@ -6,9 +6,9 @@ import {
 import { useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
-import { css } from "@emotion/react";
+import { css, Global } from "@emotion/react";
 import { neutral } from "@guardian/source-foundations";
-import { boxShadow } from "./styling";
+import { boxShadow, highlightItemsKeyFramesCSS } from "./styling";
 import { pinboard } from "../colours";
 import { Pinboard } from "./pinboard";
 
@@ -116,6 +116,8 @@ export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
         border-radius: 5px;
       `}
     >
+      <Global styles={highlightItemsKeyFramesCSS} />
+
       <Pinboard
         pinboardId={pinboardId}
         isSelected

@@ -53,14 +53,33 @@ server.post(
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
 
     const appSyncConfig = await generateAppSyncConfig(userEmail, S3);
+    console.log("appSyncConfig", appSyncConfig);
     const appSyncClient = getAppSyncClient(appSyncConfig);
 
     const mappedRequest = mapQuery(metricsQuery);
-    console.log("mappedRequest", mappedRequest);
-    const data = await appSyncClient(mappedRequest);
-    console.log("data", data);
 
-    response.json({ foo: "bar" });
+    // TODO - move all the mapping to a service
+    const {
+      data: {
+        data: { getUniqueUsersPerHourInRange },
+      },
+    } = await appSyncClient(mappedRequest);
+
+    interface databaseUniqueUserResponse {
+      hour: string;
+      uniqueUsers: number;
+    }
+
+    const dataPoints = JSON.parse(getUniqueUsersPerHourInRange);
+
+    const datapoints = dataPoints.map((item: databaseUniqueUserResponse) => [
+      item.uniqueUsers,
+      Date.parse(item.hour),
+    ]);
+
+    console.log("formattedResponse", datapoints);
+
+    response.json([{ target: "uniqueUsers", datapoints }]);
   }
 );
 

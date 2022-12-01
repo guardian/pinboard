@@ -2,12 +2,18 @@ import { GrafanaRequest } from "./grafanaType";
 import { AppSyncQuery } from "../appSyncClient";
 
 export const mapQuery = (request: GrafanaRequest): AppSyncQuery => {
-  const { range } = request;
+  const {
+    range: { from, to },
+  } = request;
 
   return {
-    query: "query MyQuery($range: Range) {getUniqueUsers(range: $range) {}}",
+    query:
+      "query MyQuery($range: Range!) {getUniqueUsersPerHourInRange(range: $range)}",
     variables: {
-      range: range,
+      range: {
+        from,
+        to,
+      },
     },
     operation: "MyQuery",
   } as AppSyncQuery;

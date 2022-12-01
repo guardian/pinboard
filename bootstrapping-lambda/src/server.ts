@@ -75,7 +75,7 @@ server.post(
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 server.post("/search", authMiddleware, (_, response) =>
-  response.json(["uniqueUsers", "claimableMessages", "fish", "chips"])
+  response.json(["uniqueUsers"])
 );
 
 // generic error handler to catch errors in the various async functions
@@ -177,12 +177,7 @@ server.get(
   }
 );
 
-server.use((request, response, next) => {
-  if (IS_RUNNING_LOCALLY) {
-    response.setHeader("Access-Control-Allow-Origin", "*");
-  }
-  next();
-}, express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
+server.use(express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
 
 if (IS_RUNNING_LOCALLY) {
   // if local then don't wrap in serverless

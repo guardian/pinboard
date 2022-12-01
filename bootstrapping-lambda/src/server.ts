@@ -97,7 +97,7 @@ interface FileWithLastModified {
   lastModified: Date;
 }
 
-server.get("/pinboard.loader.js", authMiddleware, async (request, response) => {
+server.get("/pinboard.loader.js", async (request, response) => {
   applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
 
   applyJavascriptContentType(response);

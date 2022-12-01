@@ -16,7 +16,7 @@
     "@types/aws-serverless-express": "^3.3.3",
     "@types/express": "^4.17.8",
     "@types/jest": "^29.2.3",
-    "@types/node-fetch": "^3.0.3",
+    "@types/node-fetch": "2",
     "aws-sdk": "^2.840.0",
     "jest": "^29.3.1",
     "ts-jest": "^29.0.3",
@@ -27,10 +27,9 @@
     "@guardian/pan-domain-node": "^0.4.2",
     "@types/cors": "^2.8.12",
     "aws-serverless-express": "^3.4.0",
-    "axios": "1.1.x",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jose": "^4.3.7",
-    "node-fetch": "^3.2.0"
+    "node-fetch": "2"
   }
 }

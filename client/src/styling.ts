@@ -1,5 +1,5 @@
 import { css, CSSObject } from "@emotion/react";
-import { space } from "@guardian/source-foundations";
+import { palette, space } from "@guardian/source-foundations";
 
 export const top = 95; // to account for important toolbars/buttons in grid and composer
 export const bottom = 108; // to account for Teleporter
@@ -47,3 +47,17 @@ export const scrollbarsCss = (fg: string) => css`
 `;
 
 export const panelCornerSize = 24;
+
+export const highlightItemsKeyFramesCSS = {
+  "@keyframes highlight-item": {
+    "0%": {
+      background: "initial",
+    },
+    "50%": {
+      background: palette.neutral[86],
+    },
+    "100%": {
+      background: "initial",
+    },
+  },
+};

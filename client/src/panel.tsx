@@ -1,6 +1,13 @@
 import { css, Global } from "@emotion/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { bottom, boxShadow, floatySize, panelCornerSize, top } from "./styling";
+import {
+  bottom,
+  boxShadow,
+  floatySize,
+  highlightItemsKeyFramesCSS,
+  panelCornerSize,
+  top,
+} from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
 import { neutral, palette, space } from "@guardian/source-foundations";
@@ -253,21 +260,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         />
       )}
 
-      <Global
-        styles={{
-          "@keyframes highlight-item": {
-            "0%": {
-              background: "initial",
-            },
-            "50%": {
-              background: palette.neutral[86],
-            },
-            "100%": {
-              background: "initial",
-            },
-          },
-        }}
-      />
+      <Global styles={highlightItemsKeyFramesCSS} />
 
       {
         // The active pinboards are always mounted, so that we receive new item notifications

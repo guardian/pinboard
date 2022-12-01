@@ -42,13 +42,15 @@ describe("mappingService", () => {
       ];
       expect(
         mapAppSyncResponseToGrafanaFormat(JSON.stringify(mockAppSyncResponse))
-      ).toEqual({
-        target: "uniqueUsers",
-        datapoints: [
-          [1, 1679992000000],
-          [3, 1680384000000],
-        ],
-      });
+      ).toEqual([
+        {
+          target: "uniqueUsers",
+          datapoints: [
+            [1, 1669291200000],
+            [3, 1669629600000],
+          ],
+        },
+      ]);
     });
   });
 });

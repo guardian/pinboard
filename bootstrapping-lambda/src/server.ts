@@ -71,7 +71,7 @@ server.post(
     }
 
     const dataPoints = JSON.parse(getUniqueUsersPerHourInRange);
-    console.log(getUniqueUsersPerHourInRange);
+
     const datapoints = dataPoints.map((item: databaseUniqueUserResponse) => [
       item.uniqueUsers,
       Date.parse(item.hour),

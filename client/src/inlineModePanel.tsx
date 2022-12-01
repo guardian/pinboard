@@ -5,14 +5,27 @@ import { neutral } from "@guardian/source-foundations";
 import { boxShadow, highlightItemsKeyFramesCSS } from "./styling";
 import { pinboard } from "../colours";
 import { Pinboard } from "./pinboard";
+import { Navigation } from "./navigation";
+import { useGlobalStateContext } from "./globalState";
+import { getTooltipText } from "./util";
 
 export const INLINE_PANEL_WIDTH = 260;
 
 interface InlineModePanelProps {
   pinboardId: string;
+  closePanel: () => void;
+  workingTitle: string | null;
+  headline: string | null;
 }
 
-export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
+export const InlineModePanel = ({
+  pinboardId,
+  closePanel,
+  workingTitle,
+  headline,
+}: InlineModePanelProps) => {
+  const { activeTab, setActiveTab } = useGlobalStateContext();
+
   const panelRef = useRef(null);
 
   const viewportLeft = useMemo(
@@ -26,6 +39,8 @@ export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
   return (
     <div
       onClick={(e) => e.stopPropagation()}
+      tabIndex={-1} // to ensure the below keypress handler fires
+      onKeyDown={(e) => e.key === "Escape" && closePanel()} // escape never fires onKeyPress
       ref={panelRef}
       css={css`
         position: fixed;
@@ -39,11 +54,24 @@ export const InlineModePanel = ({ pinboardId }: InlineModePanelProps) => {
         box-shadow: ${boxShadow};
         width: ${INLINE_PANEL_WIDTH}px;
         border: 3px solid ${pinboard["500"]};
+        border-top: none;
         border-radius: 5px;
       `}
     >
       <Global styles={highlightItemsKeyFramesCSS} />
-
+      <Navigation
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedPinboard={null}
+        clearSelectedPinboard={closePanel}
+        headingTooltipText={getTooltipText(workingTitle, headline)}
+        isTopHalf={false}
+        isLeftHalf={false}
+        closeButtonOverride={closePanel}
+        forceTabDisplay
+      >
+        {workingTitle}
+      </Navigation>
       <Pinboard
         pinboardId={pinboardId}
         isSelected

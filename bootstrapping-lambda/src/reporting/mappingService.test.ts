@@ -52,5 +52,14 @@ describe("mappingService", () => {
         },
       ]);
     });
+
+    test("should return an empty response to an empty response", () => {
+      expect(mapAppSyncResponseToGrafanaFormat(JSON.stringify([]))).toEqual([
+        {
+          target: "uniqueUsers",
+          datapoints: [],
+        },
+      ]);
+    });
   });
 });

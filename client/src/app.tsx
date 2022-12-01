@@ -144,12 +144,18 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
     }).observe(document.body, {
-      attributes: false,
       characterData: false,
       childList: true,
       subtree: true,
-      attributeOldValue: false,
       characterDataOldValue: false,
+      attributes: true,
+      attributeOldValue: false,
+      attributeFilter: [
+        "data-composer-id",
+        "data-composer-section",
+        "data-working-title",
+        "data-headline",
+      ],
     });
   }, []);
 

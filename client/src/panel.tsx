@@ -10,7 +10,7 @@ import {
 } from "./styling";
 import { Pinboard } from "./pinboard";
 import { SelectPinboard } from "./selectPinboard";
-import { neutral, palette, space } from "@guardian/source-foundations";
+import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
@@ -227,9 +227,16 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           setMaybePeekingAtPinboard(null);
         }}
         headingTooltipText={
-          (selectedPinboard && getTooltipText(selectedPinboard)) ||
+          (selectedPinboard &&
+            getTooltipText(
+              selectedPinboard.title,
+              selectedPinboard.headline
+            )) ||
           (maybePeekingAtPinboard
-            ? getTooltipText(maybePeekingAtPinboard)
+            ? getTooltipText(
+                maybePeekingAtPinboard.title,
+                maybePeekingAtPinboard.headline
+              )
             : undefined)
         }
         isTopHalf={isTopHalf}

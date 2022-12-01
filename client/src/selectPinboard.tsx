@@ -224,7 +224,7 @@ export const SelectPinboard = ({
             width: 0, // this value is actually ignored, but is need to stop the flexGrow from bursting the container - weird
           }}
           onClick={onClick}
-          title={getTooltipText(pinboardData)}
+          title={getTooltipText(pinboardData.title, pinboardData.headline)}
         >
           <div
             css={{

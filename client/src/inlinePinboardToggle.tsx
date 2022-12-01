@@ -13,6 +13,8 @@ export const INLINE_TOGGLE_WIDTH = 50;
 
 interface InlinePinboardToggleProps {
   pinboardId: string;
+  workingTitle: string | null;
+  headline: string | null;
   counts: PinboardIdWithItemCounts | undefined;
   isLoading: boolean;
   isSelected: boolean;
@@ -21,6 +23,8 @@ interface InlinePinboardToggleProps {
 
 const InlinePinboardToggle = ({
   pinboardId,
+  workingTitle,
+  headline,
   counts,
   isLoading,
   isSelected,
@@ -28,14 +32,20 @@ const InlinePinboardToggle = ({
 }: InlinePinboardToggleProps) => {
   const { unreadFlags } = useGlobalStateContext();
   return (
-    <root.div
-      onClick={(event) => {
-        event.stopPropagation();
-        setMaybeSelectedPinboardId(isSelected ? null : pinboardId);
-      }}
-    >
-      {isSelected && <InlineModePanel pinboardId={pinboardId} />}
+    <root.div>
+      {isSelected && (
+        <InlineModePanel
+          pinboardId={pinboardId}
+          workingTitle={workingTitle}
+          headline={headline}
+          closePanel={() => setMaybeSelectedPinboardId(null)}
+        />
+      )}
       <div
+        onClick={(event) => {
+          event.stopPropagation();
+          setMaybeSelectedPinboardId(isSelected ? null : pinboardId);
+        }}
         css={css`
           ${agateSans.xxsmall()};
           font-size: 11px;

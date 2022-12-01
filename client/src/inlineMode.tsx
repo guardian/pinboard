@@ -65,6 +65,8 @@ export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
             key={index}
             node={node}
             pinboardId={pinboardId}
+            workingTitle={node.dataset.workingTitle || null}
+            headline={node.dataset.headline || null}
             counts={itemCountsLookup[pinboardId]}
             isLoading={itemCountsQuery.loading}
             isSelected={pinboardId === maybeSelectedPinboardId}

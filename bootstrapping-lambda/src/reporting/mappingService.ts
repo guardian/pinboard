@@ -1,7 +1,9 @@
 import { GrafanaRequest } from "./grafanaType";
 import { AppSyncQuery } from "../appSyncClient";
 
-export const mapQuery = (request: GrafanaRequest): AppSyncQuery => {
+export const mapGrafanaRequestToAppSyncQuery = (
+  request: GrafanaRequest
+): AppSyncQuery => {
   const {
     range: { from, to },
   } = request;
@@ -17,4 +19,15 @@ export const mapQuery = (request: GrafanaRequest): AppSyncQuery => {
     },
     operation: "MyQuery",
   } as AppSyncQuery;
+};
+
+export interface GrafanaResponseFormat {
+  target: string;
+  datapoints: [number, number][];
+}
+
+export const mapAppSyncResponseToGrafanaFormat = (
+  appSyncJsonResponse: string
+): GrafanaResponseFormat[] => {
+  return [{ target: "uniqueUsers", datapoints: [] }];
 };

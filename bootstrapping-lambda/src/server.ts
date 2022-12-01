@@ -23,7 +23,7 @@ import {
   AuthenticatedRequest,
   authMiddleware,
 } from "./middleware/auth-middleware";
-import { mapQuery } from "./reporting/queryMappingService";
+import { mapGrafanaRequestToAppSyncQuery } from "./reporting/mappingService";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -56,7 +56,7 @@ server.post(
     console.log("appSyncConfig", appSyncConfig);
     const appSyncClient = getAppSyncClient(appSyncConfig);
 
-    const mappedRequest = mapQuery(metricsQuery);
+    const mappedRequest = mapGrafanaRequestToAppSyncQuery(metricsQuery);
 
     // TODO - move all the mapping to a service
     const {
@@ -71,7 +71,7 @@ server.post(
     }
 
     const dataPoints = JSON.parse(getUniqueUsersPerHourInRange);
-
+    console.log(getUniqueUsersPerHourInRange);
     const datapoints = dataPoints.map((item: databaseUniqueUserResponse) => [
       item.uniqueUsers,
       Date.parse(item.hour),

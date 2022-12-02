@@ -40,7 +40,10 @@ import {
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { gqlGetUsers } from "../gql";
-import { InlineMode, WORKFLOW_TITLE_QUERY_SELECTOR } from "./inlineMode";
+import {
+  InlineMode,
+  WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
+} from "./inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 
@@ -64,7 +67,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   const clearPayloadToBeSent = () => setPayloadToBeSent(null);
 
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
-  const [workflowTitleElements, setWorkflowTitleElements] = useState<
+  const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
   >([]);
 
@@ -92,9 +95,11 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
       Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
     );
 
-  const refreshWorkflowTitleElements = () =>
-    setWorkflowTitleElements(
-      Array.from(document.querySelectorAll(WORKFLOW_TITLE_QUERY_SELECTOR))
+  const refreshWorkflowPinboardElements = () =>
+    setWorkflowPinboardElements(
+      Array.from(
+        document.querySelectorAll(WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR)
+      )
     );
 
   const refreshPreselectedPinboard = () => {
@@ -131,7 +136,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   useEffect(() => {
     // Add nodes that already exist at time React app is instantiated
     refreshAssetHandleNodes();
-    refreshWorkflowTitleElements();
+    refreshWorkflowPinboardElements();
 
     refreshPreselectedPinboard();
 
@@ -140,7 +145,7 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
     // begin watching for any DOM changes
     new MutationObserver(() => {
       refreshAssetHandleNodes();
-      refreshWorkflowTitleElements();
+      refreshWorkflowPinboardElements();
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
     }).observe(document.body, {
@@ -381,7 +386,9 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
           >
             <TickContext.Provider value={lastTickTimestamp}>
               {isInlineMode ? (
-                <InlineMode workflowTitleElements={workflowTitleElements} />
+                <InlineMode
+                  workflowPinboardElements={workflowPinboardElements}
+                />
               ) : (
                 <React.Fragment>
                   <Floaty isDropTarget={isDropTarget} />

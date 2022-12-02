@@ -26,7 +26,7 @@ export interface GrafanaResponseFormat {
   datapoints: [number, number][];
 }
 
-interface databaseUniqueUserResponse {
+interface DatabaseUniqueUserResponse {
   hour: string;
   uniqueUsers: string;
 }
@@ -36,7 +36,7 @@ export const mapAppSyncResponseToGrafanaFormat = (
 ): GrafanaResponseFormat[] => {
   const responseArray = JSON.parse(appSyncJsonResponse);
   const mappedResponseObjects = responseArray.map(
-    (item: databaseUniqueUserResponse) => [
+    (item: DatabaseUniqueUserResponse) => [
       parseInt(item.uniqueUsers),
       Date.parse(item.hour),
     ]

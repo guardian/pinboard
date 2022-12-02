@@ -1,16 +1,11 @@
 import { AuthenticatedRequest, authMiddleware } from "./auth-middleware";
-
-jest.mock("../permissionCheck");
-jest.mock("../panDomainAuth");
-
 import { Response } from "express";
 import { userHasPermission } from "../permissionCheck";
 import { getVerifiedUserEmail } from "../panDomainAuth";
+import { mocked } from "ts-jest/utils";
 
 jest.mock("../permissionCheck");
 jest.mock("../panDomainAuth");
-
-import { mocked } from "ts-jest/utils";
 
 const mockedGetVerifiedUserEmail = mocked(getVerifiedUserEmail, true);
 const mockedUserHasPermission = mocked(userHasPermission, true);
@@ -63,7 +58,7 @@ describe("auth-middleware", () => {
     expect(mockRequest.userEmail).toBeUndefined();
   });
 
-  test("call next where user authenticated", async () => {
+  test("calls next where user authenticated & authorised", async () => {
     const mockRequest = ({
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
       userEmail: undefined,

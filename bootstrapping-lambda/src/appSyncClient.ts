@@ -1,5 +1,9 @@
 import fetch from "node-fetch";
 import { AppSyncConfig } from "../../shared/appSyncConfig";
+import {
+  REST_VERBS,
+  HTTP_CONTENT_TYPES,
+} from "../../shared/http/httpClientValues";
 
 export interface AppSyncQuery {
   query: string;
@@ -12,11 +16,11 @@ export const getAppSyncClient = (appSyncConfig: AppSyncConfig) => {
 
   return async ({ query, variables, operation }: AppSyncQuery) => {
     const fetchResponse = await fetch(graphqlEndpoint, {
-      method: "POST",
+      method: REST_VERBS.POST,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": HTTP_CONTENT_TYPES.APPLICATION_JSON,
         Authorization: authToken,
-        accept: "application/json",
+        accept: HTTP_CONTENT_TYPES.APPLICATION_JSON,
       },
       body: JSON.stringify({ query, variables, operation }),
     });

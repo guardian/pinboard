@@ -4,21 +4,21 @@ import { useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 
-export const WORKFLOW_TITLE_QUERY_SELECTOR =
+export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
 
 interface InlineModeProps {
-  workflowTitleElements: HTMLElement[];
+  workflowPinboardElements: HTMLElement[];
 }
 
-export const InlineMode = ({ workflowTitleElements }: InlineModeProps) => {
+export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
   const workflowTitleElementLookup = useMemo(
     () =>
-      workflowTitleElements.reduce((acc, node) => {
+      workflowPinboardElements.reduce((acc, node) => {
         const { pinboardId } = node.dataset;
         return pinboardId ? { ...acc, [pinboardId]: node } : acc;
       }, {} as Record<string, HTMLElement>),
-    [workflowTitleElements]
+    [workflowPinboardElements]
   );
 
   const [fetchItemCounts, itemCountsQuery] = useLazyQuery(gqlGetItemCounts);

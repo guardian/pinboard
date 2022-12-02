@@ -18,12 +18,13 @@ export const authMiddleware = async (
   const maybeAuthenticatedEmail = await getVerifiedUserEmail(maybeCookieHeader);
 
   if (!maybeAuthenticatedEmail) {
-    console.warn(MISSING_AUTH_COOKIE_MESSAGE);
-    response.status(401).send(MISSING_AUTH_COOKIE_MESSAGE);
-  } else if (await userHasPermission(maybeAuthenticatedEmail)) {
-    request.userEmail = maybeAuthenticatedEmail;
-    next();
-  } else {
-    response.status(403).send("You do not have permission to use PinBoard");
+    return response.status(401).send(MISSING_AUTH_COOKIE_MESSAGE);
   }
+
+  if (await userHasPermission(maybeAuthenticatedEmail)) {
+    request.userEmail = maybeAuthenticatedEmail;
+    return next();
+  }
+
+  response.status(403).send("You do not have permission to use PinBoard");
 };

@@ -61,7 +61,7 @@ const InlinePinboardToggle = ({
           padding: 2px ${isSelected ? 25 : 3}px 2px 3px;
           margin-right: ${isSelected ? INLINE_PANEL_WIDTH + 15 : 0}px;
           position: relative;
-          ${isSelected ? "z-index: 3" : ""}
+          ${isSelected ? "z-index: 3;" : ""}
           &:hover {
             background-color: ${pinboard[isSelected ? "500" : "800"]};
           }

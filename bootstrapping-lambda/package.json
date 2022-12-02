@@ -30,6 +30,6 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jose": "^4.3.7",
-    "node-fetch": "2"
+    "node-fetch": "2.6.7"
   }
 }

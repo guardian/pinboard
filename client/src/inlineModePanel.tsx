@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { css, Global } from "@emotion/react";
 import { INLINE_TOGGLE_WIDTH } from "./inlinePinboardToggle";
 import { neutral } from "@guardian/source-foundations";
@@ -10,6 +10,11 @@ import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
 
 export const INLINE_PANEL_WIDTH = 260;
+
+const getViewportLeftPosition = () =>
+  document
+    .querySelector(".content-list-head__heading--pinboard")
+    ?.getBoundingClientRect()?.left || 0;
 
 interface InlineModePanelProps {
   pinboardId: string;
@@ -24,17 +29,20 @@ export const InlineModePanel = ({
   workingTitle,
   headline,
 }: InlineModePanelProps) => {
+  const { hasBrowserFocus } = useGlobalStateContext();
   const { activeTab, setActiveTab } = useGlobalStateContext();
 
   const panelRef = useRef(null);
 
-  const viewportLeft = useMemo(
-    () =>
-      document
-        .querySelector(".content-list-head__heading--pinboard")
-        ?.getBoundingClientRect()?.left || 0,
-    []
+  const [viewportLeft, setViewportLeft] = useState<number>(
+    getViewportLeftPosition()
   );
+
+  useLayoutEffect(() => {
+    // since the InlineToggleButton expands its width when 'selected', we need to
+    // allow a little time for Angular to resize the column before we can calculate left position
+    setTimeout(() => setViewportLeft(getViewportLeftPosition()), 100);
+  }, []);
 
   return (
     <div
@@ -54,7 +62,7 @@ export const InlineModePanel = ({
         box-shadow: ${boxShadow};
         width: ${INLINE_PANEL_WIDTH}px;
         border: 3px solid ${pinboard["500"]};
-        border-top: none;
+        ${hasBrowserFocus ? "border-top: none;" : ""}
         border-radius: 5px;
       `}
     >

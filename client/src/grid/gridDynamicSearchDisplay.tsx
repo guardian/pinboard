@@ -14,10 +14,6 @@ import { FormattedDateTime } from "../formattedDateTime";
 import { GridBadge } from "./gridBadges";
 import { SvgReload } from "@guardian/source-react-components";
 
-type GridDynamicSearchDisplayProps = Pick<DynamicGridPayload, "payload"> & {
-  scrollToBottomIfApplicable: undefined | (() => void);
-};
-
 const formatChip = (chip: GridBadgeData) => {
   if (chip.text.match(/^[+-]/i)) {
     return chip;
@@ -28,8 +24,7 @@ const formatChip = (chip: GridBadgeData) => {
 
 export const GridDynamicSearchDisplay = ({
   payload,
-  scrollToBottomIfApplicable,
-}: GridDynamicSearchDisplayProps) => {
+}: Pick<DynamicGridPayload, "payload">) => {
   const [
     gridSearchSummaryLastChecked,
     setGridSearchSummaryLastChecked,
@@ -74,8 +69,6 @@ export const GridDynamicSearchDisplay = ({
 
   const maybeQueryBreakdown = maybeGridSearchSummary?.queryBreakdown;
 
-  useLayoutEffect(() => scrollToBottomIfApplicable?.(), [maybeQueryBreakdown]);
-
   return (
     <React.Fragment>
       <div
@@ -96,7 +89,6 @@ export const GridDynamicSearchDisplay = ({
               height: "100%",
             }}
             draggable={false}
-            onLoad={scrollToBottomIfApplicable}
           />
         ))}
       </div>

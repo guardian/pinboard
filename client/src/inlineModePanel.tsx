@@ -1,20 +1,16 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { css, Global } from "@emotion/react";
 import { INLINE_TOGGLE_WIDTH } from "./inlinePinboardToggle";
-import { neutral } from "@guardian/source-foundations";
 import { boxShadow, highlightItemsKeyFramesCSS } from "./styling";
 import { pinboard } from "../colours";
 import { Pinboard } from "./pinboard";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
 import { getTooltipText } from "./util";
+import root from "react-shadow/emotion";
+import { neutral } from "@guardian/source-foundations";
 
 export const INLINE_PANEL_WIDTH = 260;
-
-const getViewportLeftPosition = () =>
-  document
-    .querySelector(".content-list-head__heading--pinboard")
-    ?.getBoundingClientRect()?.left || 0;
 
 interface InlineModePanelProps {
   pinboardId: string;
@@ -29,63 +25,69 @@ export const InlineModePanel = ({
   workingTitle,
   headline,
 }: InlineModePanelProps) => {
-  const { hasBrowserFocus } = useGlobalStateContext();
   const { activeTab, setActiveTab } = useGlobalStateContext();
 
   const panelRef = useRef(null);
 
-  const [viewportLeft, setViewportLeft] = useState<number>(
-    getViewportLeftPosition()
-  );
-
-  useLayoutEffect(() => {
-    // since the InlineToggleButton expands its width when 'selected', we need to
-    // allow a little time for Angular to resize the column before we can calculate left position
-    setTimeout(() => setViewportLeft(getViewportLeftPosition()), 100);
+  useEffect(() => {
+    const result = document.getElementById("scrollable-area");
+    if (result) {
+      const borderLeft = result.style.borderLeft;
+      result.style.borderLeft = "none";
+      return () => {
+        result.style.borderLeft = borderLeft;
+      };
+    }
   }, []);
 
   return (
-    <div
-      onClick={(e) => e.stopPropagation()}
-      tabIndex={-1} // to ensure the below keypress handler fires
-      onKeyDown={(e) => e.key === "Escape" && closePanel()} // escape never fires onKeyPress
-      ref={panelRef}
-      css={css`
-        position: fixed;
-        display: flex;
-        flex-direction: column;
-        z-index: 3;
-        top: 100px;
-        bottom: 5px;
-        left: ${viewportLeft + INLINE_TOGGLE_WIDTH + 25}px;
-        background: ${neutral[93]};
-        box-shadow: ${boxShadow};
-        width: ${INLINE_PANEL_WIDTH}px;
-        border: 3px solid ${pinboard["500"]};
-        ${hasBrowserFocus ? "border-top: none;" : ""}
-        border-radius: 5px;
-      `}
+    <root.div
+      style={{
+        display: "flex",
+        minHeight: "100%",
+        maxHeight: "100%",
+        background: pinboard[500],
+      }}
     >
-      <Global styles={highlightItemsKeyFramesCSS} />
-      <Navigation
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        selectedPinboard={null}
-        clearSelectedPinboard={closePanel}
-        headingTooltipText={getTooltipText(workingTitle, headline)}
-        isTopHalf={false}
-        isLeftHalf={false}
-        closeButtonOverride={closePanel}
-        forceTabDisplay
+      <div
+        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1} // to ensure the below keypress handler fires
+        onKeyDown={(e) => e.key === "Escape" && closePanel()} // escape never fires onKeyPress
+        ref={panelRef}
+        css={css`
+          display: flex;
+          flex-direction: column;
+          background: ${neutral[93]};
+          min-width: ${INLINE_PANEL_WIDTH}px;
+          max-width: ${INLINE_PANEL_WIDTH}px;
+          border: solid ${pinboard["500"]};
+          border-width: 0 3px;
+          min-height: 100%;
+          max-height: 100%;
+          border-radius: 6px;
+        `}
       >
-        {workingTitle}
-      </Navigation>
-      <Pinboard
-        pinboardId={pinboardId}
-        isSelected
-        isExpanded
-        panelElement={panelRef.current}
-      />
-    </div>
+        <Global styles={highlightItemsKeyFramesCSS} />
+        <Navigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          selectedPinboard={null}
+          clearSelectedPinboard={closePanel}
+          headingTooltipText={getTooltipText(workingTitle, headline)}
+          isTopHalf={false}
+          isLeftHalf={false}
+          closeButtonOverride={closePanel}
+          forceTabDisplay
+        >
+          {workingTitle}
+        </Navigation>
+        <Pinboard
+          pinboardId={pinboardId}
+          isSelected
+          isExpanded
+          panelElement={panelRef.current}
+        />
+      </div>
+    </root.div>
   );
 };

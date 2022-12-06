@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom";
-import React from "react";
+import React, { useEffect } from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
 import { composer, pinboard, pinMetal } from "../colours";
@@ -7,40 +7,43 @@ import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { useGlobalStateContext } from "./globalState";
-import { INLINE_PANEL_WIDTH, InlineModePanel } from "./inlineModePanel";
 
 export const INLINE_TOGGLE_WIDTH = 50;
 
 interface InlinePinboardToggleProps {
+  node: HTMLElement;
   pinboardId: string;
-  workingTitle: string | null;
-  headline: string | null;
   counts: PinboardIdWithItemCounts | undefined;
   isLoading: boolean;
   isSelected: boolean;
   setMaybeSelectedPinboardId: (newId: string | null) => void;
 }
 
+const rowHighlightBoxShadowStyle = `inset 0px -6px 0px -3px ${pinboard[500]}, inset 0px 6px 0px -3px ${pinboard[500]}`;
+
 const InlinePinboardToggle = ({
+  node,
   pinboardId,
-  workingTitle,
-  headline,
   counts,
   isLoading,
   isSelected,
   setMaybeSelectedPinboardId,
 }: InlinePinboardToggleProps) => {
   const { unreadFlags } = useGlobalStateContext();
+
+  useEffect(() => {
+    if (isSelected && node.parentElement) {
+      node.parentElement.style.boxShadow = rowHighlightBoxShadowStyle;
+    }
+    return () => {
+      if (node.parentElement) {
+        node.parentElement.style.boxShadow = "none";
+      }
+    };
+  }, [isSelected]);
+
   return (
     <root.div>
-      {isSelected && (
-        <InlineModePanel
-          pinboardId={pinboardId}
-          workingTitle={workingTitle}
-          headline={headline}
-          closePanel={() => setMaybeSelectedPinboardId(null)}
-        />
-      )}
       <div
         onClick={(event) => {
           event.stopPropagation();
@@ -58,10 +61,7 @@ const InlinePinboardToggle = ({
           border-radius: ${space[1]}px;
           min-width: ${INLINE_TOGGLE_WIDTH}px;
           min-height: 18px;
-          padding: 2px ${isSelected ? 25 : 3}px 2px 3px;
-          margin-right: ${isSelected ? INLINE_PANEL_WIDTH + 15 : 0}px;
-          position: relative;
-          ${isSelected ? "z-index: 3;" : ""}
+          padding: 2px 3px;
           &:hover {
             background-color: ${pinboard[isSelected ? "500" : "800"]};
           }
@@ -107,12 +107,5 @@ const InlinePinboardToggle = ({
   );
 };
 
-interface InlinePinboardTogglePortalProps extends InlinePinboardToggleProps {
-  node: HTMLElement;
-}
-
-export const InlinePinboardTogglePortal = ({
-  node,
-  ...props
-}: InlinePinboardTogglePortalProps) =>
-  ReactDOM.createPortal(<InlinePinboardToggle {...props} />, node);
+export const InlinePinboardTogglePortal = (props: InlinePinboardToggleProps) =>
+  ReactDOM.createPortal(<InlinePinboardToggle {...props} />, props.node);

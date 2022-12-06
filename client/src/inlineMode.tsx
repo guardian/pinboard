@@ -3,6 +3,9 @@ import { InlinePinboardTogglePortal } from "./inlinePinboardToggle";
 import { useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
+import { InlineModePanel } from "./inlineModePanel";
+import ReactDOM from "react-dom";
+import { useThrottle } from "./util";
 
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
@@ -11,7 +14,29 @@ interface InlineModeProps {
   workflowPinboardElements: HTMLElement[];
 }
 
+const isElementFullyVisibleVerticallyInContainer = (
+  element: HTMLElement,
+  container: HTMLElement,
+  containerTopOffset: number
+) => {
+  const { bottom, top } = element.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  return (
+    top > containerRect.top + containerTopOffset &&
+    bottom < containerRect.bottom
+  );
+};
+
 export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
+  const scrollableArea = useMemo(
+    () => document.getElementById("scrollable-area"),
+    []
+  );
+  const pinboardArea = useMemo(
+    () => document.getElementById("pinboard-area"),
+    []
+  );
   const workflowTitleElementLookup = useMemo(
     () =>
       workflowPinboardElements.reduce((acc, node) => {
@@ -51,22 +76,53 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     string | null
   >(null);
 
+  const maybeSelectedNode =
+    maybeSelectedPinboardId &&
+    workflowTitleElementLookup[maybeSelectedPinboardId];
+
   useEffect(() => {
-    document
-      .getElementById("scrollable-area")
-      ?.addEventListener("scroll", () => setMaybeSelectedPinboardId(null));
-  }, []);
+    const containerScrollHandler = useThrottle(() => {
+      // allow scrolling left to right, but if the user scrolls the row out of the container then dismiss the panel
+      if (
+        maybeSelectedNode &&
+        maybeSelectedNode.parentElement &&
+        scrollableArea &&
+        !isElementFullyVisibleVerticallyInContainer(
+          maybeSelectedNode.parentElement,
+          scrollableArea,
+          68
+        )
+      ) {
+        setMaybeSelectedPinboardId(null);
+      }
+    }, 100);
+
+    maybeSelectedNode &&
+      scrollableArea?.addEventListener("scroll", containerScrollHandler);
+    return () => {
+      scrollableArea?.removeEventListener("scroll", containerScrollHandler);
+    };
+  }, [maybeSelectedNode, scrollableArea]);
 
   return (
     <React.Fragment>
+      {maybeSelectedNode &&
+        pinboardArea &&
+        ReactDOM.createPortal(
+          <InlineModePanel
+            pinboardId={maybeSelectedPinboardId}
+            closePanel={() => setMaybeSelectedPinboardId(null)}
+            workingTitle={maybeSelectedNode.dataset.workingTitle || null}
+            headline={maybeSelectedNode.dataset.headline || null}
+          />,
+          pinboardArea
+        )}
       {Object.entries(workflowTitleElementLookup).map(
         ([pinboardId, node], index) => (
           <InlinePinboardTogglePortal
             key={index}
             node={node}
             pinboardId={pinboardId}
-            workingTitle={node.dataset.workingTitle || null}
-            headline={node.dataset.headline || null}
             counts={itemCountsLookup[pinboardId]}
             isLoading={itemCountsQuery.loading}
             isSelected={pinboardId === maybeSelectedPinboardId}

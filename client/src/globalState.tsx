@@ -26,6 +26,9 @@ import { UserLookup } from "./types/UserLookup";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
+const getHasBrowserFocus = () =>
+  document.visibilityState === "visible" && document.hasFocus();
+
 interface GlobalStateContextShape {
   userEmail: string;
   userLookup: UserLookup;
@@ -60,6 +63,7 @@ interface GlobalStateContextShape {
   setError: (pinboardId: string, error: ApolloError | undefined) => void;
   hasErrorOnOtherPinboard: (pinboardId: string) => boolean;
 
+  hasBrowserFocus: boolean;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
 
@@ -462,6 +466,23 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     return () => window.removeEventListener("resize", resizeCompleteHandler);
   }, [resizeCompleteHandler]);
 
+  const [hasBrowserFocus, setHasBrowserFocus] = useState<boolean>(
+    getHasBrowserFocus()
+  );
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setHasBrowserFocus(getHasBrowserFocus());
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleVisibilityChange);
+    window.addEventListener("focus", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
+  }, []);
+
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
@@ -493,6 +514,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     setError,
     hasErrorOnOtherPinboard,
 
+    hasBrowserFocus,
     isExpanded,
     setIsExpanded,
 

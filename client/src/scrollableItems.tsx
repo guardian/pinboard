@@ -34,6 +34,7 @@ interface ScrollableItemsProps {
   subscriptionItems: Item[];
   maybeLastItem: Item | undefined;
   hasUnread: boolean | undefined;
+  hasBrowserFocus: boolean;
   isExpanded: boolean;
   userLookup: UserLookup;
   userEmail: string;
@@ -54,6 +55,7 @@ export const ScrollableItems = ({
   subscriptionItems,
   maybeLastItem,
   hasUnread,
+  hasBrowserFocus,
   isExpanded,
   userLookup,
   userEmail,
@@ -148,7 +150,7 @@ export const ScrollableItems = ({
   };
 
   useEffect(() => {
-    if (isScrolledToBottom) {
+    if (isScrolledToBottom && hasBrowserFocus) {
       scrollToLastItem();
       isExpanded && seenLastItem();
     }
@@ -194,11 +196,11 @@ export const ScrollableItems = ({
   );
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
-      isScrolledToBottom && scrollToLastItem();
+      isScrolledToBottom && hasBrowserFocus && scrollToLastItem();
     });
     itemDisplayContainer && resizeObserver.observe(itemDisplayContainer);
     return () => resizeObserver.disconnect();
-  }, [itemDisplayContainer, isScrolledToBottom]);
+  }, [itemDisplayContainer, isScrolledToBottom, hasBrowserFocus]);
 
   const refMap = useRef<{ [itemID: string]: HTMLDivElement }>({});
   const setRef = (itemID: string) => (node: HTMLDivElement) => {

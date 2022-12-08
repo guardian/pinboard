@@ -184,10 +184,21 @@ export const ScrollableItems = ({
 
   const onScrollThrottled = useThrottle(onScroll, 250);
 
-  const scrollToBottomIfApplicable = useCallback(
-    () => isScrolledToBottom && scrollToLastItem(),
-    [isScrolledToBottom]
+  const [
+    itemDisplayContainer,
+    setItemDisplayContainer,
+  ] = useState<HTMLDivElement | null>(null);
+  const setItemDisplayContainerRef = useCallback(
+    (node) => node && setItemDisplayContainer(node),
+    []
   );
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      isScrolledToBottom && scrollToLastItem();
+    });
+    itemDisplayContainer && resizeObserver.observe(itemDisplayContainer);
+    return () => resizeObserver.disconnect();
+  }, [itemDisplayContainer, isScrolledToBottom]);
 
   const refMap = useRef<{ [itemID: string]: HTMLDivElement }>({});
   const setRef = (itemID: string) => (node: HTMLDivElement) => {
@@ -227,34 +238,34 @@ export const ScrollableItems = ({
       `}
       onScroll={onScrollThrottled}
     >
-      {items.map((item, index) =>
-        useMemo(
-          () => (
-            <ItemDisplay
-              key={item.id}
-              item={item}
-              userLookup={userLookup}
-              seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
-              maybePreviousItem={items[index - 1]}
-              scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-              claimItem={() => claimItem({ variables: { itemId: item.id } })}
-              userEmail={userEmail}
-              maybeRelatedItem={
-                !!item.relatedItemId && itemsMap[item.relatedItemId]
-              }
-              setRef={setRef(item.id)}
-              scrollToItem={scrollToItem}
-            />
-          ),
-          [
-            item.id,
-            item.claimedByEmail,
-            userLookup,
-            lastItemSeenByUsersForItemIDLookup,
-            scrollToBottomIfApplicable,
-          ]
-        )
-      )}
+      <div ref={setItemDisplayContainerRef}>
+        {items.map((item, index) =>
+          useMemo(
+            () => (
+              <ItemDisplay
+                key={item.id}
+                item={item}
+                userLookup={userLookup}
+                seenBy={lastItemSeenByUsersForItemIDLookup[item.id]}
+                maybePreviousItem={items[index - 1]}
+                claimItem={() => claimItem({ variables: { itemId: item.id } })}
+                userEmail={userEmail}
+                maybeRelatedItem={
+                  !!item.relatedItemId && itemsMap[item.relatedItemId]
+                }
+                setRef={setRef(item.id)}
+                scrollToItem={scrollToItem}
+              />
+            ),
+            [
+              item.id,
+              item.claimedByEmail,
+              userLookup,
+              lastItemSeenByUsersForItemIDLookup,
+            ]
+          )
+        )}
+      </div>
       {hasUnread && (
         <div
           css={css`

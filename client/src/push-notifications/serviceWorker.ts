@@ -94,13 +94,14 @@ self.addEventListener("notificationclick", (event: any) => {
           const client =
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             clients.find((_: any) => _.id === item.clientId) || clients[0];
-          client.postMessage({
-            item,
-          });
+          console.log(
+            "Pinboard push notification click, attempting to focus client"
+          );
+          return client.focus();
         } else if (event.action === "grid") {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          self.clients.openWindow(
+          return self.clients.openWindow(
             `https://media.${toolsDomain}/search?${openToPinboardQueryParam}&${openToPinboardItemIdQueryParam}`.replace(
               ".code.",
               ".test."
@@ -113,10 +114,11 @@ self.addEventListener("notificationclick", (event: any) => {
         ) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          self.clients.openWindow(
+          return self.clients.openWindow(
             `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${openToPinboardItemIdQueryParam}`
           );
         }
+        return Promise.resolve();
       })
   );
 });

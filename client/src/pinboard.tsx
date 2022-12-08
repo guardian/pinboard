@@ -49,6 +49,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
   panelElement,
 }) => {
   const {
+    hasBrowserFocus,
+
     activeTab,
     userEmail,
     userLookup,
@@ -348,6 +350,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           subscriptionItems={subscriptionItems}
           maybeLastItem={lastItem}
           hasUnread={hasUnread}
+          hasBrowserFocus={hasBrowserFocus}
           isExpanded={isExpanded}
           userLookup={userLookup}
           userEmail={userEmail}

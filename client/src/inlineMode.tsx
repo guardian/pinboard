@@ -5,7 +5,7 @@ import { gqlGetItemCounts } from "../gql";
 import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
 import { InlineModePanel } from "./inlineModePanel";
 import ReactDOM from "react-dom";
-import { useThrottle } from "./util";
+import { throttled } from "./util";
 
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
@@ -81,7 +81,7 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     workflowTitleElementLookup[maybeSelectedPinboardId];
 
   useEffect(() => {
-    const containerScrollHandler = useThrottle(() => {
+    const containerScrollHandler = throttled(() => {
       // allow scrolling left to right, but if the user scrolls the row out of the container then dismiss the panel
       if (
         maybeSelectedNode &&
@@ -126,7 +126,10 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
             counts={itemCountsLookup[pinboardId]}
             isLoading={itemCountsQuery.loading}
             isSelected={pinboardId === maybeSelectedPinboardId}
-            setMaybeSelectedPinboardId={setMaybeSelectedPinboardId}
+            setMaybeSelectedPinboardId={(pinboardId: string | null) => {
+              setMaybeSelectedPinboardId(null); // trigger unmount first
+              setTimeout(() => setMaybeSelectedPinboardId(pinboardId), 1);
+            }}
           />
         )
       )}

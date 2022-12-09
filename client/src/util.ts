@@ -50,7 +50,7 @@ export const formatDateTime = (
   }
 };
 
-export const useThrottle = <E>(
+export const throttled = <E>(
   callback: (event: E) => void,
   milliseconds?: number
 ) => {
@@ -75,3 +75,5 @@ export const useThrottle = <E>(
     }, time);
   };
 };
+
+export const useThrottle = throttled;

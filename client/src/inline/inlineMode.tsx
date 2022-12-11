@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { InlinePinboardTogglePortal } from "./inlinePinboardToggle";
+import { InlineModePinboardTogglePortal } from "./inlineModePinboardToggle";
 import { useLazyQuery } from "@apollo/client";
-import { gqlGetItemCounts } from "../gql";
-import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
+import { gqlGetItemCounts } from "../../gql";
+import { PinboardIdWithItemCounts } from "../../../shared/graphql/graphql";
 import { InlineModePanel } from "./inlineModePanel";
 import ReactDOM from "react-dom";
-import { throttled } from "./util";
+import { throttled } from "../util";
+import { InlineModeWorkflowColumnHeading } from "./inlineModeWorkflowColumnHeading";
 
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
@@ -37,6 +38,11 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     () => document.getElementById("pinboard-area"),
     []
   );
+  const pinboardColumnHeadingElement = useMemo(
+    () => document.querySelector(".content-list-head__heading--pinboard"),
+    []
+  );
+
   const workflowTitleElementLookup = useMemo(
     () =>
       workflowPinboardElements.reduce((acc, node) => {
@@ -106,6 +112,11 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
 
   return (
     <React.Fragment>
+      {pinboardColumnHeadingElement &&
+        ReactDOM.createPortal(
+          <InlineModeWorkflowColumnHeading />,
+          pinboardColumnHeadingElement
+        )}
       {maybeSelectedNode &&
         pinboardArea &&
         ReactDOM.createPortal(
@@ -119,7 +130,7 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
         )}
       {Object.entries(workflowTitleElementLookup).map(
         ([pinboardId, node], index) => (
-          <InlinePinboardTogglePortal
+          <InlineModePinboardTogglePortal
             key={index}
             node={node}
             pinboardId={pinboardId}

@@ -1,16 +1,16 @@
 import ReactDOM from "react-dom";
-import React, { useEffect } from "react";
+import React, { Fragment, useEffect } from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
-import { composer, pinboard, pinMetal } from "../colours";
-import { PinboardIdWithItemCounts } from "../../shared/graphql/graphql";
+import { composer, pinboard, pinMetal } from "../../colours";
+import { PinboardIdWithItemCounts } from "../../../shared/graphql/graphql";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
-import { useGlobalStateContext } from "./globalState";
+import { agateSans } from "../../fontNormaliser";
+import { useGlobalStateContext } from "../globalState";
 
-export const INLINE_TOGGLE_WIDTH = 50;
+export const COUNT_COLUMNS_MIN_WIDTH = 25;
 
-interface InlinePinboardToggleProps {
+interface InlineModePinboardToggleProps {
   node: HTMLElement;
   pinboardId: string;
   counts: PinboardIdWithItemCounts | undefined;
@@ -21,14 +21,14 @@ interface InlinePinboardToggleProps {
 
 const rowHighlightBoxShadowStyle = `inset 0px -6px 0px -3px ${pinboard[500]}, inset 0px 6px 0px -3px ${pinboard[500]}`;
 
-const InlinePinboardToggle = ({
+const InlineModePinboardToggle = ({
   node,
   pinboardId,
   counts,
   isLoading,
   isSelected,
   setMaybeSelectedPinboardId,
-}: InlinePinboardToggleProps) => {
+}: InlineModePinboardToggleProps) => {
   const { unreadFlags } = useGlobalStateContext();
 
   useEffect(() => {
@@ -52,32 +52,38 @@ const InlinePinboardToggle = ({
         css={css`
           ${agateSans.xxsmall()};
           font-size: 11px;
-          display: inline-flex;
+          text-align: right;
+          display: flex;
           align-items: center;
           justify-content: flex-end;
           white-space: nowrap;
-          background-color: ${pinboard["500"]};
           color: ${pinMetal};
           border-radius: ${space[1]}px;
-          min-width: ${INLINE_TOGGLE_WIDTH}px;
           min-height: 18px;
-          padding: 2px 3px;
+          padding: 2px 12px 2px 3px;
+          margin: 0 3px;
+          background-color: ${isSelected ? pinboard["500"] : "none"};
           &:hover {
-            background-color: ${pinboard[isSelected ? "500" : "800"]};
+            background-color: ${pinboard[isSelected ? "800" : "500"]};
           }
         `}
       >
         {isLoading ? (
           <em>loading...</em>
         ) : (
-          <span>
-            {counts?.unreadCount && unreadFlags?.[pinboardId] !== false ? (
-              <span>
-                <div
+          <Fragment>
+            {!!counts?.unreadCount && unreadFlags?.[pinboardId] !== false && (
+              <span
+                css={css`
+                  text-align: right;
+                  min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
+                `}
+              >
+                <span
                   css={css`
                     display: inline-block;
                     border-radius: 10px;
-                    background-color: ${composer.warning[300]};
+                    background-color: ${composer.primary[400]};
                     padding: 0 2px;
                     margin: 1px;
                     min-width: 14px;
@@ -87,25 +93,26 @@ const InlinePinboardToggle = ({
                   `}
                 >
                   {counts.unreadCount}
-                </div>{" "}
-                of
+                </span>
               </span>
-            ) : (
-              "total"
-            )}{" "}
+            )}
             <span
               css={css`
+                display: inline-block;
+                min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
                 font-weight: bold;
+                text-align: right;
               `}
             >
               {counts?.totalCount || 0}
             </span>
-          </span>
+          </Fragment>
         )}
       </div>
     </root.div>
   );
 };
 
-export const InlinePinboardTogglePortal = (props: InlinePinboardToggleProps) =>
-  ReactDOM.createPortal(<InlinePinboardToggle {...props} />, props.node);
+export const InlineModePinboardTogglePortal = (
+  props: InlineModePinboardToggleProps
+) => ReactDOM.createPortal(<InlineModePinboardToggle {...props} />, props.node);

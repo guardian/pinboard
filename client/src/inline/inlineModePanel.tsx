@@ -1,12 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { css, Global } from "@emotion/react";
-import { INLINE_TOGGLE_WIDTH } from "./inlinePinboardToggle";
-import { boxShadow, highlightItemsKeyFramesCSS } from "./styling";
-import { pinboard } from "../colours";
-import { Pinboard } from "./pinboard";
-import { Navigation } from "./navigation";
-import { useGlobalStateContext } from "./globalState";
-import { getTooltipText } from "./util";
+import { highlightItemsKeyFramesCSS } from "../styling";
+import { pinboard } from "../../colours";
+import { Pinboard } from "../pinboard";
+import { Navigation } from "../navigation";
+import { useGlobalStateContext } from "../globalState";
+import { getTooltipText } from "../util";
 import root from "react-shadow/emotion";
 import { neutral } from "@guardian/source-foundations";
 

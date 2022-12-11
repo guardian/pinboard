@@ -43,7 +43,7 @@ import { gqlGetUsers } from "../gql";
 import {
   InlineMode,
   WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
-} from "./inlineMode";
+} from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 

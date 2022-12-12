@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom";
-import React, { Fragment, useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
 import { composer, pinboard, pinMetal } from "../../colours";
@@ -14,7 +14,6 @@ interface InlineModePinboardToggleProps {
   node: HTMLElement;
   pinboardId: string;
   counts: PinboardIdWithItemCounts | undefined;
-  isLoading: boolean;
   isSelected: boolean;
   setMaybeSelectedPinboardId: (newId: string | null) => void;
 }
@@ -25,7 +24,6 @@ const InlineModePinboardToggle = ({
   node,
   pinboardId,
   counts,
-  isLoading,
   isSelected,
   setMaybeSelectedPinboardId,
 }: InlineModePinboardToggleProps) => {
@@ -68,46 +66,40 @@ const InlineModePinboardToggle = ({
           }
         `}
       >
-        {isLoading ? (
-          <em>loading...</em>
-        ) : (
-          <Fragment>
-            {!!counts?.unreadCount && unreadFlags?.[pinboardId] !== false && (
-              <span
-                css={css`
-                  text-align: right;
-                  min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
-                `}
-              >
-                <span
-                  css={css`
-                    display: inline-block;
-                    border-radius: 10px;
-                    background-color: ${composer.primary[400]};
-                    padding: 0 2px;
-                    margin: 1px;
-                    min-width: 14px;
-                    color: ${palette.neutral[100]};
-                    text-align: center;
-                    font-weight: bold;
-                  `}
-                >
-                  {counts.unreadCount}
-                </span>
-              </span>
-            )}
+        {!!counts?.unreadCount && unreadFlags?.[pinboardId] !== false && (
+          <span
+            css={css`
+              text-align: right;
+              min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
+            `}
+          >
             <span
               css={css`
                 display: inline-block;
-                min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
+                border-radius: 10px;
+                background-color: ${composer.primary[400]};
+                padding: 0 2px;
+                margin: 1px;
+                min-width: 14px;
+                color: ${palette.neutral[100]};
+                text-align: center;
                 font-weight: bold;
-                text-align: right;
               `}
             >
-              {counts?.totalCount || 0}
+              {counts.unreadCount}
             </span>
-          </Fragment>
+          </span>
         )}
+        <span
+          css={css`
+            display: inline-block;
+            min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
+            font-weight: bold;
+            text-align: right;
+          `}
+        >
+          {counts?.totalCount}
+        </span>
       </div>
     </root.div>
   );
@@ -115,4 +107,20 @@ const InlineModePinboardToggle = ({
 
 export const InlineModePinboardTogglePortal = (
   props: InlineModePinboardToggleProps
-) => ReactDOM.createPortal(<InlineModePinboardToggle {...props} />, props.node);
+) =>
+  useMemo(
+    // memo here ensures we don't call ReactDOM.createPortal for all re-renders, only meaningful prop changes
+    // otherwise performance is terrible with lots of rows
+    () =>
+      ReactDOM.createPortal(
+        <InlineModePinboardToggle {...props} />,
+        props.node
+      ),
+    [
+      props.node,
+      props.pinboardId,
+      props.counts?.unreadCount,
+      props.counts?.totalCount,
+      props.isSelected,
+    ]
+  );

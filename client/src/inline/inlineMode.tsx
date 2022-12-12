@@ -52,31 +52,39 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     [workflowPinboardElements]
   );
 
-  const [fetchItemCounts, itemCountsQuery] = useLazyQuery(gqlGetItemCounts);
+  const [itemCountsLookup, setItemCountsLookup] = useState<
+    Record<string, PinboardIdWithItemCounts>
+  >({});
+
+  const [fetchItemCounts, { stopPolling, startPolling }] = useLazyQuery(
+    gqlGetItemCounts
+  );
 
   useEffect(() => {
-    itemCountsQuery.stopPolling();
+    stopPolling();
     const pinboardIds = Object.keys(workflowTitleElementLookup);
     if (pinboardIds.length > 0) {
-      fetchItemCounts({ variables: { pinboardIds } });
-      itemCountsQuery.startPolling(5000);
+      fetchItemCounts({
+        variables: { pinboardIds },
+        onCompleted: (data) =>
+          setItemCountsLookup(
+            ((data?.getItemCounts as PinboardIdWithItemCounts[]) || []).reduce(
+              (lookup, element: PinboardIdWithItemCounts) => ({
+                ...lookup,
+                [element.pinboardId]: element,
+              }),
+              Object.fromEntries(
+                pinboardIds.map((pinboardId) => [
+                  pinboardId,
+                  { pinboardId, totalCount: 0, unreadCount: 0 },
+                ])
+              ) as Record<string, PinboardIdWithItemCounts>
+            )
+          ),
+      });
+      startPolling(5000);
     }
   }, [workflowTitleElementLookup]);
-
-  const itemCountsLookup = useMemo(
-    () =>
-      (
-        (itemCountsQuery.data?.getItemCounts as PinboardIdWithItemCounts[]) ||
-        []
-      ).reduce(
-        (lookup, element: PinboardIdWithItemCounts) => ({
-          ...lookup,
-          [element.pinboardId]: element,
-        }),
-        {} as Record<string, PinboardIdWithItemCounts>
-      ),
-    [itemCountsQuery.data]
-  );
 
   const [maybeSelectedPinboardId, setMaybeSelectedPinboardId] = useState<
     string | null
@@ -135,7 +143,6 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
             node={node}
             pinboardId={pinboardId}
             counts={itemCountsLookup[pinboardId]}
-            isLoading={itemCountsQuery.loading}
             isSelected={pinboardId === maybeSelectedPinboardId}
             setMaybeSelectedPinboardId={(pinboardId: string | null) => {
               setMaybeSelectedPinboardId(null); // trigger unmount first

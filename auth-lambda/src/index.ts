@@ -21,9 +21,9 @@ exports.handler = async ({
 
   const maybeAuthedUserEmail =
     authorizationToken &&
-    (await jwtVerify(authorizationToken, publicKey)).payload["userEmail"];
+    (await jwtVerify(authorizationToken, publicKey).catch(console.warn))
+      ?.payload["userEmail"];
 
-  // TODO is this sufficient? (does this expire after 1h or 90d)
   if (maybeAuthedUserEmail) {
     return {
       isAuthorized: true,

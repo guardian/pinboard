@@ -207,7 +207,7 @@ export const ItemDisplay = ({
               }
             />
           ),
-          [maybeClaimedBy]
+          [maybeClaimedBy, userDisplayName]
         )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>

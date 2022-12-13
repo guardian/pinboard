@@ -30,14 +30,42 @@ const InlineModePinboardToggle = ({
   const { unreadFlags } = useGlobalStateContext();
 
   useEffect(() => {
-    if (isSelected && node.parentElement) {
-      node.parentElement.style.boxShadow = rowHighlightBoxShadowStyle;
-    }
-    return () => {
-      if (node.parentElement) {
-        node.parentElement.style.boxShadow = "none";
+    const row = node.parentElement;
+    if (isSelected && row) {
+      row.style.boxShadow = rowHighlightBoxShadowStyle;
+      row.style.position = "sticky";
+      row.style.top = "68px";
+      row.style.bottom = "0px";
+      row.style.zIndex = "3";
+
+      const groupHeadingTHs = document.querySelectorAll<HTMLElement>(
+        ".content-list__group-heading"
+      );
+      let hasFoundThisNodesGroupIndex = false;
+      for (const groupHeadingTH of Array.from(groupHeadingTHs)) {
+        if (groupHeadingTH.dataset.groupTitle === node.dataset.groupTitle) {
+          groupHeadingTH.style.bottom = `${row.offsetHeight - 1}px`;
+          hasFoundThisNodesGroupIndex = true;
+        } else if (hasFoundThisNodesGroupIndex) {
+          //i.e. group headings after the row we're making sticky
+          groupHeadingTH.style.top = `${row.offsetHeight + 68 - 1}px`;
+        }
       }
-    };
+
+      return () => {
+        if (row) {
+          row.style.boxShadow = "";
+          row.style.position = "";
+          row.style.top = "";
+          row.style.bottom = "";
+          row.style.zIndex = "";
+        }
+        groupHeadingTHs.forEach((groupHeadingTH) => {
+          groupHeadingTH.style.top = "";
+          groupHeadingTH.style.bottom = "";
+        });
+      };
+    }
   }, [isSelected]);
 
   return (

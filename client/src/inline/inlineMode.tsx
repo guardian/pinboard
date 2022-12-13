@@ -5,7 +5,6 @@ import { gqlGetItemCounts } from "../../gql";
 import { PinboardIdWithItemCounts } from "../../../shared/graphql/graphql";
 import { InlineModePanel } from "./inlineModePanel";
 import ReactDOM from "react-dom";
-import { throttled } from "../util";
 import { InlineModeWorkflowColumnHeading } from "./inlineModeWorkflowColumnHeading";
 
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
@@ -15,25 +14,7 @@ interface InlineModeProps {
   workflowPinboardElements: HTMLElement[];
 }
 
-const isElementFullyVisibleVerticallyInContainer = (
-  element: HTMLElement,
-  container: HTMLElement,
-  containerTopOffset: number
-) => {
-  const { bottom, top } = element.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-
-  return (
-    top > containerRect.top + containerTopOffset &&
-    bottom < containerRect.bottom
-  );
-};
-
 export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
-  const scrollableArea = useMemo(
-    () => document.getElementById("scrollable-area"),
-    []
-  );
   const pinboardArea = useMemo(
     () => document.getElementById("pinboard-area"),
     []
@@ -93,30 +74,6 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
   const maybeSelectedNode =
     maybeSelectedPinboardId &&
     workflowTitleElementLookup[maybeSelectedPinboardId];
-
-  useEffect(() => {
-    const containerScrollHandler = throttled(() => {
-      // allow scrolling left to right, but if the user scrolls the row out of the container then dismiss the panel
-      if (
-        maybeSelectedNode &&
-        maybeSelectedNode.parentElement &&
-        scrollableArea &&
-        !isElementFullyVisibleVerticallyInContainer(
-          maybeSelectedNode.parentElement,
-          scrollableArea,
-          68
-        )
-      ) {
-        setMaybeSelectedPinboardId(null);
-      }
-    }, 100);
-
-    maybeSelectedNode &&
-      scrollableArea?.addEventListener("scroll", containerScrollHandler);
-    return () => {
-      scrollableArea?.removeEventListener("scroll", containerScrollHandler);
-    };
-  }, [maybeSelectedNode, scrollableArea]);
 
   return (
     <React.Fragment>

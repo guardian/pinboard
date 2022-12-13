@@ -119,6 +119,7 @@ export function mount({
   };
 
   const apolloErrorLink = onError(({ graphQLErrors, networkError }) => {
+    // TODO set some global state which triggers the error overlay
     graphQLErrors?.forEach(({ message, ...gqlError }) => {
       console.error(
         `[Apollo - GraphQL error]: Message: ${message}, Location: ${gqlError.locations}, Path: ${gqlError.path}`

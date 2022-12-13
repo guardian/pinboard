@@ -7,12 +7,7 @@ import { AppSyncAuthorizerEvent } from "aws-lambda";
 
 const S3 = new AWS.S3(standardAwsConfig);
 
-exports.handler = async ({
-  authorizationToken,
-  requestContext,
-}: AppSyncAuthorizerEvent) => {
-  console.log(requestContext);
-
+exports.handler = async ({ authorizationToken }: AppSyncAuthorizerEvent) => {
   const pandaConfig = await getPandaConfig<{ publicKey: string }>(S3);
 
   const publicKey = crypto.createPublicKey(
@@ -21,9 +16,9 @@ exports.handler = async ({
 
   const maybeAuthedUserEmail =
     authorizationToken &&
-    (await jwtVerify(authorizationToken, publicKey)).payload["userEmail"];
+    (await jwtVerify(authorizationToken, publicKey).catch(console.warn))
+      ?.payload["userEmail"];
 
-  // TODO is this sufficient? (does this expire after 1h or 90d)
   if (maybeAuthedUserEmail) {
     return {
       isAuthorized: true,

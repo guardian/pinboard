@@ -221,13 +221,27 @@ export const ScrollableItems = ({
       const queryParams = new URLSearchParams(window.location.search);
       const itemIdToScrollTo = queryParams.get(PINBOARD_ITEM_ID_QUERY_PARAM);
       if (itemIdToScrollTo && refMap.current[itemIdToScrollTo]) {
-        setTimeout(() => scrollToItem(itemIdToScrollTo), 250);
+        setTimeout(() => scrollToItem(itemIdToScrollTo), 350);
         setHasProcessedItemIdInURL(true);
       }
     } else {
       setHasProcessedItemIdInURL(true);
     }
   });
+
+  useEffect(() => {
+    const handleItemFromServiceWorker = (event: MessageEvent) => {
+      if (Object.prototype.hasOwnProperty.call(event.data, "item")) {
+        const item: Item = event.data.item;
+        if (pinboardId === item.pinboardId) {
+          setTimeout(() => scrollToItem(item.id), 250);
+        }
+      }
+    };
+    window.addEventListener("message", handleItemFromServiceWorker);
+    return () =>
+      window.removeEventListener("message", handleItemFromServiceWorker);
+  }, []);
 
   return (
     <div

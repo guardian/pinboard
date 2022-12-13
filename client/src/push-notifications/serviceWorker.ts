@@ -88,12 +88,17 @@ self.addEventListener("notificationclick", (event: any) => {
       .matchAll({
         includeUncontrolled: true,
       })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((clients: any[]) => {
+      .then((clients: WindowClient[]) => {
         if (!event.action && clients.length > 0) {
           const client =
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            clients.find((_: any) => _.id === item.clientId) || clients[0];
+            clients.find(
+              (client: WindowClient) =>
+                client.id === item.clientId ||
+                client.url?.includes(
+                  `?${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`
+                )
+            ) || clients[0];
+          client.postMessage({ item }); // send this item to the client, so ideally it can highlight the message from the notification
           console.log(
             "Pinboard push notification click, attempting to focus client"
           );

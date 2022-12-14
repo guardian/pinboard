@@ -3,6 +3,7 @@ export const ENVIRONMENT_VARIABLE_KEYS = {
   graphqlEndpoint: "GRAPHQL_ENDPOINT",
   sentryDSN: "SENTRY_DSN",
   databaseHostname: "DATABASE_HOSTNAME",
+  octopusApiLambdaFunctionName: "OCTOPUS_API_LAMBDA_FUNCTION_NAME",
 };
 
 export const getEnvironmentVariableOrThrow = (

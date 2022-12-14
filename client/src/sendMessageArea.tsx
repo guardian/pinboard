@@ -77,24 +77,29 @@ export const SendMessageArea = ({
   const [_sendItem, { loading: isItemSending }] = useMutation<{
     createItem: Item;
   }>(gqlCreateItem, {
-    onCompleted: (sendMessageResult) => {
+    onCompleted: ({ createItem }) => {
+      if (!createItem) {
+        return onError(
+          new ApolloError({ errorMessage: "Item creation failed" })
+        );
+      }
       onSuccessfulSend(
         {
-          ...sendMessageResult.createItem,
+          ...createItem,
           pending: true,
         },
         verifiedIndividualMentionEmails
       );
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
-        pinboardId: sendMessageResult.createItem.pinboardId,
+        pinboardId: createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
         hasMentions:
           !!verifiedIndividualMentionEmails.length ||
           !!verifiedGroupMentionShorthands.length,
         hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
         hasGroupMentions: !!verifiedGroupMentionShorthands.length,
-        isClaimable: sendMessageResult.createItem.claimable,
-        isReply: !!sendMessageResult.createItem.relatedItemId,
+        isClaimable: createItem.claimable,
+        isReply: !!createItem.relatedItemId,
         ...(composerId ? { composerId } : {}),
       });
       setMessage("");

@@ -1,10 +1,10 @@
-import { ItemWithParsedPayload } from "../types/ItemWithParsedPayload";
+import { ItemWithParsedPayload } from "shared/types/ItemWithParsedPayload";
 import {
   EXPAND_PINBOARD_QUERY_PARAM,
   OPEN_PINBOARD_QUERY_PARAM,
   PINBOARD_ITEM_ID_QUERY_PARAM,
-} from "../../../shared/constants";
-import { extractNameFromEmail } from "../../../shared/util";
+} from "shared/constants";
+import { extractNameFromEmail } from "shared/util";
 
 const toolsDomain = self.location.hostname.replace("pinboard.", "");
 

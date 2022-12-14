@@ -300,8 +300,7 @@ export const ItemInputBox = ({
                 payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE
                   ? message
                   : message?.trim() || payloadToBeSent;
-              if (!isAsGridPayloadLoading && hasSomethingToSend
-              ) {
+              if (!isAsGridPayloadLoading && hasSomethingToSend) {
                 sendItem();
               }
               event.preventDefault();

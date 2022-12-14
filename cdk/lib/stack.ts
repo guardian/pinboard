@@ -277,6 +277,12 @@ export class PinBoardStack extends GuStack {
       `Allow ${databaseSecurityGroupName} to connect to the ${databaseProxy.dbProxyName}`
     );
 
+    const octopusApiLambda = lambda.Function.fromFunctionName(
+      this,
+      "OctopusApiLambda",
+      Fn.importValue(`octopus-api-${this.stage}-function-name`)
+    );
+
     const pinboardDatabaseBridgeLambda = new lambda.Function(
       this,
       DATABASE_BRIDGE_LAMBDA_BASENAME,
@@ -290,6 +296,8 @@ export class PinBoardStack extends GuStack {
           STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
+          [ENVIRONMENT_VARIABLE_KEYS.octopusApiLambdaFunctionName]:
+            octopusApiLambda.functionName,
         },
         functionName: getDatabaseBridgeLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
@@ -302,6 +310,7 @@ export class PinBoardStack extends GuStack {
       }
     );
     databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
+    octopusApiLambda.grantInvoke(pinboardDatabaseBridgeLambda);
 
     const databaseJumpHostASGName = getDatabaseJumpHostAsgName(
       this.stage as Stage

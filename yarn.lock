@@ -9189,6 +9189,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "database-bridge-lambda@workspace:database-bridge-lambda"
   dependencies:
+    "@aws-sdk/client-lambda": "npm:^3.299.0"
     postgres: "npm:^3.2.4"
     ts-node-dev: "npm:^1.0.0"
   languageName: unknown

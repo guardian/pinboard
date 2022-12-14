@@ -9,6 +9,10 @@ import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import {
+  IMAGINE_REQUEST_TYPES,
+  IMAGING_REQUEST_ITEM_TYPE,
+} from "../../shared/octopusImaging";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -80,6 +84,52 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           `}
         />{" "}
       </button>
+      {payloadToBeSent.type === "grid-original" && (
+        <button
+          onClick={() => {
+            props.setPayloadToBeSent({
+              type: IMAGING_REQUEST_ITEM_TYPE,
+              payload: {
+                ...payloadToBeSent.payload,
+                requestType: IMAGINE_REQUEST_TYPES[0],
+              },
+            });
+            props.expand();
+            sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.IMAGING_REQUEST_VIA_BUTTON,
+              {
+                assetType: IMAGING_REQUEST_ITEM_TYPE,
+              }
+            );
+          }}
+          css={css`
+            display: flex;
+            align-items: center;
+            margin-top: ${space[1]}px;
+            background-color: ${pinboard[500]};
+            ${textSans.xsmall()};
+            border: none;
+            border-radius: 100px;
+            padding: 0 ${space[2]}px 0 ${space[3]}px;
+            line-height: 2;
+            cursor: pointer;
+            color: ${pinMetal};
+            white-space: nowrap; // TODO this is a hack to stop the button from wrapping, but we should think of wording that fits better
+          `}
+        >
+          Imaging order
+          <PinIcon
+            css={css`
+              height: 18px;
+              margin-left: ${space[1]}px;
+              path {
+                stroke: ${pinMetal};
+                stroke-width: 1px;
+              }
+            `}
+          />{" "}
+        </button>
+      )}
     </root.div>
   );
 };

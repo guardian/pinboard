@@ -51,7 +51,6 @@ interface ItemDisplayProps {
   userLookup: UserLookup;
   seenBy: LastItemSeenByUser[] | undefined;
   maybePreviousItem: Item | PendingItem | undefined;
-  scrollToBottomIfApplicable: () => void;
   claimItem: () => Promise<FetchResult<{ claimItem: Claimed }>>;
   maybeRelatedItem: Item | false | undefined;
   userEmail: string;
@@ -64,7 +63,6 @@ export const ItemDisplay = ({
   userLookup,
   seenBy,
   maybePreviousItem,
-  scrollToBottomIfApplicable,
   claimItem,
   maybeRelatedItem,
   userEmail,
@@ -191,11 +189,7 @@ export const ItemDisplay = ({
           )}
         </div>
         {payloadAndType && (
-          <PayloadDisplay
-            payloadAndType={payloadAndType}
-            tab="chat"
-            scrollToBottomIfApplicable={scrollToBottomIfApplicable}
-          />
+          <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
         )}
       </div>
       {item.claimable &&
@@ -213,7 +207,7 @@ export const ItemDisplay = ({
               }
             />
           ),
-          [maybeClaimedBy]
+          [maybeClaimedBy, userDisplayName]
         )}
       {seenBy && <SeenBy seenBy={seenBy} userLookup={userLookup} />}
     </div>

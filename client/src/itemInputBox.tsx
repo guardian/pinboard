@@ -16,6 +16,7 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { IMAGING_REQUEST_ITEM_TYPE } from "../../shared/octopusImaging";
 
 interface WithEntity<E> {
   entity: E & {
@@ -293,7 +294,11 @@ export const ItemInputBox = ({
           ((event) => {
             event.stopPropagation();
             if (isEnterKey(event)) {
-              if (!isAsGridPayloadLoading && (message || payloadToBeSent)) {
+              const hasSomethingToSend =
+                payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE
+                  ? message
+                  : message || payloadToBeSent;
+              if (!isAsGridPayloadLoading && hasSomethingToSend) {
                 sendItem();
               }
               event.preventDefault();

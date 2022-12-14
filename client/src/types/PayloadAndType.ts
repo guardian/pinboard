@@ -1,4 +1,8 @@
 import * as Sentry from "@sentry/react";
+import {
+  IMAGING_REQUEST_ITEM_TYPE,
+  ImagingRequestType,
+} from "shared/octopusImaging";
 
 export const sources = ["grid", "mam"] as const;
 export const sourceTypes = ["crop", "original", "search", "video"] as const;
@@ -10,10 +14,15 @@ export type SourceType = (typeof sourceTypes)[number];
 export const isSourceType = (sourceType: unknown): sourceType is SourceType =>
   sourceTypes.includes(sourceType as SourceType);
 
-export type PayloadType = `${Source}-${SourceType}`; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
+export type PayloadType =
+  | `${Source}-${SourceType}`
+  | typeof IMAGING_REQUEST_ITEM_TYPE; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
 export const isPayloadType = (
   payloadType: string
 ): payloadType is PayloadType => {
+  if (payloadType === IMAGING_REQUEST_ITEM_TYPE) {
+    return true;
+  }
   const parts = payloadType.split("-");
   return parts.length === 2 && isSource(parts[0]) && isSourceType(parts[1]);
 };
@@ -36,10 +45,15 @@ export interface PayloadWithApiUrl extends PayloadCommon {
   apiUrl: string;
 }
 
+export interface PayloadWithRequestType extends PayloadWithThumbnail {
+  requestType: ImagingRequestType;
+}
+
 export type Payload =
   | PayloadWithThumbnail
   | PayloadWithApiUrl
-  | PayloadWithExternalUrl;
+  | PayloadWithExternalUrl
+  | PayloadWithRequestType;
 export const isPayload = (maybePayload: unknown): maybePayload is Payload => {
   return (
     typeof maybePayload === "object" &&
@@ -64,10 +78,16 @@ export type MamVideoPayload = {
   payload: PayloadWithExternalUrl;
 };
 
+export type ImagingOrderPayload = {
+  type: typeof IMAGING_REQUEST_ITEM_TYPE;
+  payload: PayloadWithRequestType;
+};
+
 export type PayloadAndType =
   | StaticGridPayload
   | DynamicGridPayload
-  | MamVideoPayload;
+  | MamVideoPayload
+  | ImagingOrderPayload;
 
 export const buildPayloadAndType = (
   type: string,
@@ -87,6 +107,8 @@ export const buildPayloadAndType = (
     "thumbnail" in payload &&
     "externalUrl" in payload
   ) {
+    return { type, payload };
+  } else if (type === IMAGING_REQUEST_ITEM_TYPE && "requestType" in payload) {
     return { type, payload };
   }
 };

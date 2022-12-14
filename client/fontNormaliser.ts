@@ -54,7 +54,6 @@ const pixelSizedFont = applyFontOverride(defaultToPx);
 export const agateSans = agateSansFont(
   pixelSizedFont(sourceFoundations.textSans)
 );
-export const textSans = pixelSizedFont(sourceFoundations.textSans);
 
 const isAgateLoaded = () => {
   let foundAgate = false;

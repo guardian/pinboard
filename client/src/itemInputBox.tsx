@@ -16,6 +16,7 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { IMAGING_REQUEST_ITEM_TYPE } from "../../shared/octopusImaging";
 
 interface WithEntity<E> {
   entity: E & {
@@ -31,7 +32,7 @@ const LoadingSuggestions = () => (
       gap: ${space["2"]}px;
       background: ${palette.neutral["100"]};
       padding: ${space["2"]}px;
-      font-family: ${agateSans.small({ lineHeight: "tight" })};
+      ${agateSans.small({ lineHeight: "tight" })};
     `}
   >
     <SvgSpinner size="xsmall" />
@@ -49,7 +50,7 @@ const Suggestion = ({
           cursor: default;
           padding: ${space[1]}px;
           background: ${palette.neutral["93"]};
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${agateSans.xxsmall({ fontWeight: "bold" })};
           color: ${palette.neutral["46"]};
           user-select: none;
         `}
@@ -295,10 +296,11 @@ export const ItemInputBox = ({
           ((event) => {
             event.stopPropagation();
             if (isHardReturn(event)) {
-              if (
-                !isAsGridPayloadLoading &&
-                (message?.trim() || payloadToBeSent)
-              ) {
+              const hasSomethingToSend =
+                payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE
+                  ? message
+                  : message?.trim() || payloadToBeSent;
+              if (!isAsGridPayloadLoading && hasSomethingToSend) {
                 sendItem();
               }
               event.preventDefault();

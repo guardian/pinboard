@@ -238,6 +238,10 @@ export const handler = async ({
         sql`DROP TABLE "Group"`,
         sql`ALTER TABLE "Group_NEW" RENAME TO "Group"`,
         sql`ALTER TABLE "GroupMember_NEW" RENAME TO "GroupMember"`,
+        sql`ALTER TABLE "Group" ADD PRIMARY KEY ("shorthand");`,
+        sql`ALTER TABLE "GroupMember" ADD CONSTRAINT fk_group FOREIGN KEY ("groupShorthand") REFERENCES "Group"("shorthand");`,
+        sql`CREATE INDEX "GroupMemberTableGroupShorthandIndex" ON "GroupMember"("groupShorthand");`,
+        sql`CREATE INDEX "GroupMemberTableUserGoogleIdIndex" ON "GroupMember"("userGoogleID");`,
       ]);
     }
   } catch (e) {

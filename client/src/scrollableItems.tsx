@@ -241,7 +241,7 @@ export const ScrollableItems = ({
       onScroll={onScrollThrottled}
     >
       <div ref={setItemDisplayContainerRef}>
-        {items.map((item, index) =>
+        {items.map((item, index, items) =>
           useMemo(
             () => (
               <ItemDisplay

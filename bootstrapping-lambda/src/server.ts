@@ -124,7 +124,12 @@ server.get(
   }
 );
 
-server.use(express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
+server.use((request, response, next) => {
+  if (IS_RUNNING_LOCALLY) {
+    response.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  next();
+}, express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
 
 if (IS_RUNNING_LOCALLY) {
   // if local then don't wrap in serverless

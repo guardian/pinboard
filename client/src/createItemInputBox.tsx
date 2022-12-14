@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -148,6 +148,13 @@ export const CreateItemInputBox = ({
           heading: index === 0 ? "GROUPS" : undefined,
         })),
       ]);
+
+  useEffect(
+    () => /* unmount handler */ () => {
+      textAreaRef.current?.blur();
+    },
+    []
+  );
 
   return (
     <div

@@ -1,4 +1,3 @@
-import { PinboardData } from "../../shared/graphql/extraTypes";
 import isThisYear from "date-fns/isThisYear";
 import isToday from "date-fns/isToday";
 import differenceInMinutes from "date-fns/differenceInMinutes";
@@ -8,9 +7,10 @@ import format from "date-fns/format";
 import isYesterday from "date-fns/isYesterday";
 import differenceInCalendarWeeks from "date-fns/differenceInCalendarWeeks";
 
-export const getTooltipText = (pinboardData: PinboardData) =>
-  `WT: ${pinboardData.title}` +
-  (pinboardData.headline ? `\nHL: ${pinboardData.headline}` : "");
+export const getTooltipText = (
+  workingTitle: string | null,
+  headline: string | null
+) => `WT: ${workingTitle}` + (headline ? `\nHL: ${headline}` : "");
 
 export const formatDateTime = (
   timestamp: number,
@@ -50,7 +50,7 @@ export const formatDateTime = (
   }
 };
 
-export const useThrottle = <E>(
+export const throttled = <E>(
   callback: (event: E) => void,
   milliseconds?: number
 ) => {
@@ -75,3 +75,5 @@ export const useThrottle = <E>(
     }, time);
   };
 };
+
+export const useThrottle = throttled;

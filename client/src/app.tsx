@@ -1,7 +1,10 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { ASSET_HANDLE_HTML_TAG, ButtonPortal } from "./addToPinboardButton";
+import {
+  ASSET_HANDLE_HTML_TAG,
+  AddToPinboardButtonPortal,
+} from "./addToPinboardButton";
 import {
   ApolloClient,
   ApolloProvider,
@@ -37,6 +40,10 @@ import {
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { gqlGetUsers } from "../gql";
+import {
+  InlineMode,
+  WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
+} from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 
@@ -49,12 +56,20 @@ interface PinBoardAppProps {
 }
 
 export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
+  const isInlineMode = useMemo(
+    () => window.location.hostname.startsWith("workflow."),
+    []
+  );
+
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
   const clearPayloadToBeSent = () => setPayloadToBeSent(null);
 
-  const [buttonNodes, setButtonNodes] = useState<HTMLElement[]>([]);
+  const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
+  const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
+    HTMLElement[]
+  >([]);
 
   const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
@@ -75,9 +90,16 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   );
   const expandFloaty = () => setIsExpanded(true);
 
-  const refreshButtonNodes = () =>
-    setButtonNodes(
+  const refreshAssetHandleNodes = () =>
+    setAssetHandles(
       Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
+    );
+
+  const refreshWorkflowPinboardElements = () =>
+    setWorkflowPinboardElements(
+      Array.from(
+        document.querySelectorAll(WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR)
+      )
     );
 
   const refreshPreselectedPinboard = () => {
@@ -113,7 +135,8 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   useEffect(() => {
     // Add nodes that already exist at time React app is instantiated
-    refreshButtonNodes();
+    refreshAssetHandleNodes();
+    refreshWorkflowPinboardElements();
 
     refreshPreselectedPinboard();
 
@@ -121,16 +144,23 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
     // begin watching for any DOM changes
     new MutationObserver(() => {
-      refreshButtonNodes();
+      refreshAssetHandleNodes();
+      refreshWorkflowPinboardElements();
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
     }).observe(document.body, {
-      attributes: false,
       characterData: false,
       childList: true,
       subtree: true,
-      attributeOldValue: false,
       characterDataOldValue: false,
+      attributes: true,
+      attributeOldValue: false,
+      attributeFilter: [
+        "data-composer-id",
+        "data-composer-section",
+        "data-working-title",
+        "data-headline",
+      ],
     });
   }, []);
 
@@ -355,13 +385,21 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
             }
           >
             <TickContext.Provider value={lastTickTimestamp}>
-              <Floaty isDropTarget={isDropTarget} />
-              <Panel isDropTarget={isDropTarget} />
+              {isInlineMode ? (
+                <InlineMode
+                  workflowPinboardElements={workflowPinboardElements}
+                />
+              ) : (
+                <React.Fragment>
+                  <Floaty isDropTarget={isDropTarget} />
+                  <Panel isDropTarget={isDropTarget} />
+                </React.Fragment>
+              )}
             </TickContext.Provider>
           </GlobalStateProvider>
         </root.div>
-        {buttonNodes.map((node, index) => (
-          <ButtonPortal
+        {assetHandles.map((node, index) => (
+          <AddToPinboardButtonPortal
             key={index}
             node={node}
             setPayloadToBeSent={setPayloadToBeSent}

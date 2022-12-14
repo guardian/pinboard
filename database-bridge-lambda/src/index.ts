@@ -22,6 +22,7 @@ import {
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
+import { GrafanaRequest } from "bootstrapping-lambda/src/reporting/grafanaType";
 
 const run = (
   sql: Sql,
@@ -65,9 +66,23 @@ const run = (
   );
 };
 
+const isGrafanaRequest = (
+  maybeGrafanaRequest: unknown
+): maybeGrafanaRequest is GrafanaRequest => {
+  return (
+    typeof maybeGrafanaRequest === "object" &&
+    maybeGrafanaRequest !== null &&
+    "targets" in maybeGrafanaRequest
+  );
+};
+
 export const handler = async (
   payload: AppSyncResolverEvent<unknown, unknown>
 ) => {
+  if (isGrafanaRequest(payload)) {
+    return "targets";
+  }
+
   const sql = await getDatabaseConnection();
   const args = payload.arguments as never;
   const userEmail: string = (payload.identity as AppSyncIdentityLambda)

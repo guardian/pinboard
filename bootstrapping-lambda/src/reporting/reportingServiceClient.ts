@@ -18,5 +18,5 @@ export const getMetrics = async (
     })
     .promise();
 
-  return JSON.parse(response.Payload as string);
+  return JSON.parse(response.Payload as string) as DatabaseUniqueUserResponse[];
 };

@@ -1,26 +1,3 @@
-import { GrafanaRequest } from "../../../shared/types/grafanaType";
-import { AppSyncQuery } from "../appSyncClient";
-
-export const mapGrafanaRequestToAppSyncQuery = (
-  request: GrafanaRequest
-): AppSyncQuery => {
-  const {
-    range: { from, to },
-  } = request;
-
-  return {
-    query:
-      "query MyQuery($range: Range!) {getUniqueUsersPerHourInRange(range: $range)}",
-    variables: {
-      range: {
-        from,
-        to,
-      },
-    },
-    operation: "MyQuery",
-  } as AppSyncQuery;
-};
-
 export interface GrafanaResponseFormat {
   target: string;
   datapoints: [number, number][];
@@ -32,9 +9,9 @@ interface DatabaseUniqueUserResponse {
 }
 
 export const mapAppSyncResponseToGrafanaFormat = (
-  appSyncJsonResponse: string
+  databaseJsonResponse: string
 ): GrafanaResponseFormat[] => {
-  const responseArray = JSON.parse(appSyncJsonResponse);
+  const responseArray = JSON.parse(databaseJsonResponse);
   const mappedResponseObjects = responseArray.map(
     (item: DatabaseUniqueUserResponse) => [
       parseInt(item.uniqueUsers),

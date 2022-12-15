@@ -1,39 +1,6 @@
-import { GrafanaRequest } from "../../../shared/types/grafanaType";
-import {
-  mapAppSyncResponseToGrafanaFormat,
-  mapGrafanaRequestToAppSyncQuery,
-} from "./mappingService";
+import { mapAppSyncResponseToGrafanaFormat } from "./mappingService";
 
 describe("mappingService", () => {
-  describe("mapGrafanaRequestToAppSyncQuery", () => {
-    test("should map a valid request an app sync query", () => {
-      const expectedQuery = {
-        query:
-          "query MyQuery($range: Range!) {getUniqueUsersPerHourInRange(range: $range)}",
-        variables: {
-          range: {
-            from: "2020-10-01T00:00:00.000Z",
-            to: "2020-10-02T00:00:00.000Z",
-          },
-        },
-        operation: "MyQuery",
-      };
-      const request: GrafanaRequest = {
-        range: {
-          from: "2020-10-01T00:00:00.000Z",
-          to: "2020-10-02T00:00:00.000Z",
-        },
-        targets: [
-          {
-            target: "uniqueUsers",
-            type: "timeserie",
-          },
-        ],
-      };
-      expect(mapGrafanaRequestToAppSyncQuery(request)).toEqual(expectedQuery);
-    });
-  });
-
   describe("mapAppSyncResponseToGrafanaFormat", () => {
     test("should map an AppSync response to a valid Grafana format", () => {
       const mockAppSyncResponse = [

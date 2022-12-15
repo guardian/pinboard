@@ -10,7 +10,6 @@ export const QUERIES = {
     "getUsers",
     "getGroupPinboardIds",
     "getItemCounts",
-    "getUniqueUsersPerHourInRange",
   ] as const,
   workflow: [
     "listPinboards",

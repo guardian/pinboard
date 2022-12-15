@@ -13,7 +13,6 @@ type Query {
   getUsers(emails: [String!]!): [User]
   getGroupPinboardIds: [PinboardIdWithClaimCounts!]!
   getItemCounts(pinboardIds: [String!]!): [PinboardIdWithItemCounts!]!
-  getUniqueUsersPerHourInRange(range: Range!): AWSJSON
   # workflow-bridge-lambda queries
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]

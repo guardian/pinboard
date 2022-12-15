@@ -75,8 +75,6 @@ export const handler = async (
   const sql = await getDatabaseConnection();
   try {
     if (isGrafanaRequest(payload)) {
-      console.log("attempting call to getUniqueUsersPerHourInRange");
-      console.log("payload", payload);
       return await getUniqueUsersPerHourInRange(sql, payload.range);
     } else {
       const args = payload.arguments as never;

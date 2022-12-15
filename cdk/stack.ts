@@ -705,6 +705,8 @@ export class PinBoardStack extends Stack {
       basePath: "",
     });
 
+    pinboardDatabaseBridgeLambda.grantInvoke(bootstrappingLambdaFunction.role!);
+
     new CfnOutput(thisStack, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,

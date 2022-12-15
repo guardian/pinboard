@@ -1,4 +1,4 @@
-import { GrafanaRequest } from "./grafanaType";
+import { GrafanaRequest } from "../../../shared/types/grafanaType";
 import {
   mapAppSyncResponseToGrafanaFormat,
   mapGrafanaRequestToAppSyncQuery,

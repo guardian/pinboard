@@ -4,6 +4,7 @@ import {
   PinboardIdWithClaimCounts,
 } from "../../../shared/graphql/graphql";
 import { Sql } from "../../../shared/database/types";
+import { Range } from "../../../shared/types/grafanaType";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -187,20 +188,15 @@ export const getItemCounts = (
     GROUP BY "pinboardId"
 `;
 
-interface Range {
-  from: string;
-  to: string;
-}
-
 export const getUniqueUsersPerHourInRange = async (
   sql: Sql,
-  args: { range: Range }
+  range: Range
 ) => sql`
     SELECT
         DATE_TRUNC('hour', "timestamp") as "hour",
         COUNT(DISTINCT "userEmail") as "uniqueUsers"
     FROM "Item"
     WHERE
-        "timestamp" >= ${args.range.from} AND "timestamp" < ${args.range.to}
+        "timestamp" >= ${range.from} AND "timestamp" < ${range.to}
     GROUP BY "hour"
 `;

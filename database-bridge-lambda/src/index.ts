@@ -22,7 +22,7 @@ import {
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
-import { GrafanaRequest } from "bootstrapping-lambda/src/reporting/grafanaType";
+import { GrafanaRequest } from "../../shared/types/grafanaType";
 
 const run = (
   sql: Sql,
@@ -67,30 +67,24 @@ const run = (
 };
 
 const isGrafanaRequest = (
-  maybeGrafanaRequest: unknown
-): maybeGrafanaRequest is GrafanaRequest => {
-  return (
-    typeof maybeGrafanaRequest === "object" &&
-    maybeGrafanaRequest !== null &&
-    "targets" in maybeGrafanaRequest
-  );
-};
+  maybeGrafanaRequest: GrafanaRequest | AppSyncResolverEvent<unknown, unknown>
+): maybeGrafanaRequest is GrafanaRequest =>
+  (maybeGrafanaRequest as GrafanaRequest).range !== undefined;
 
 export const handler = async (
-  payload: AppSyncResolverEvent<unknown, unknown>
+  payload: GrafanaRequest | AppSyncResolverEvent<unknown, unknown>
 ) => {
-  if (isGrafanaRequest(payload)) {
-    return "targets";
-  }
-
   const sql = await getDatabaseConnection();
-  const args = payload.arguments as never;
-  const userEmail: string = (payload.identity as AppSyncIdentityLambda)
-    .resolverContext.userEmail;
-  const databaseOperation = payload.info.fieldName as DatabaseOperation;
-
   try {
-    return await run(sql, databaseOperation, args, userEmail);
+    if (isGrafanaRequest(payload)) {
+      return getUniqueUsersPerHourInRange(sql, payload.range);
+    } else {
+      const args = payload.arguments as never;
+      const userEmail: string = (payload.identity as AppSyncIdentityLambda)
+        .resolverContext.userEmail;
+      const databaseOperation = payload.info.fieldName as DatabaseOperation;
+      return await run(sql, databaseOperation, args, userEmail);
+    }
   } finally {
     await sql.end();
   }

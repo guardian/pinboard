@@ -1,4 +1,4 @@
-interface TimeRange {
+export interface Range {
   from: string;
   to: string;
 }
@@ -11,6 +11,6 @@ interface Target {
 }
 
 export interface GrafanaRequest {
-  range: TimeRange;
+  range: Range;
   targets: Target[];
 }

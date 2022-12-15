@@ -57,8 +57,6 @@ const run = (
       return getGroupPinboardIds(sql, userEmail);
     case "getItemCounts":
       return getItemCounts(sql, args, userEmail);
-    case "getUniqueUsersPerHourInRange":
-      return getUniqueUsersPerHourInRange(sql, args);
   }
 
   throw Error(
@@ -77,6 +75,8 @@ export const handler = async (
   const sql = await getDatabaseConnection();
   try {
     if (isGrafanaRequest(payload)) {
+      console.log("attempting call to getUniqueUsersPerHourInRange");
+      console.log("payload", payload);
       return getUniqueUsersPerHourInRange(sql, payload.range);
     } else {
       const args = payload.arguments as never;

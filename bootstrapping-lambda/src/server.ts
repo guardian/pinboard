@@ -49,12 +49,8 @@ server.post(
   "/query",
   authMiddleware,
   async (request: AuthenticatedRequest, response) => {
-    const { userEmail } = request;
-    if (!userEmail) return response.status(401).send("Unauthorized"); // replace with isAuthenticated request guard
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
-
     const metrics = await getMetrics(metricsQuery);
-
     response.json(mapDatabaseResponseToGrafanaFormat(metrics));
   }
 );

@@ -17,16 +17,13 @@ import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
-import { getAppSyncClient } from "./appSyncClient";
-import { GrafanaRequest } from "./reporting/grafanaType";
+import { GrafanaRequest } from "../../shared/types/grafanaType";
 import {
   AuthenticatedRequest,
   authMiddleware,
 } from "./middleware/auth-middleware";
-import {
-  mapAppSyncResponseToGrafanaFormat,
-  mapGrafanaRequestToAppSyncQuery,
-} from "./reporting/mappingService";
+
+import { getMetrics } from "./reporting/reportingServiceClient";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -55,21 +52,16 @@ server.post(
     if (!userEmail) return response.status(401).send("Unauthorized");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
 
-    const appSyncConfig = await generateAppSyncConfig(userEmail, S3);
-    console.log("appSyncConfig", appSyncConfig);
-    const appSyncClient = getAppSyncClient(appSyncConfig);
+    const metrics = await getMetrics(metricsQuery);
 
-    const mappedRequest = mapGrafanaRequestToAppSyncQuery(metricsQuery);
+    console.log("METRICS", metrics);
 
-    const { getUniqueUsersPerHourInRange } = await appSyncClient(mappedRequest);
-
-    response.json(
-      mapAppSyncResponseToGrafanaFormat(getUniqueUsersPerHourInRange)
-    );
+    response.json(metrics);
   }
 );
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
+
 server.post("/search", authMiddleware, (_, response) =>
   response.json(["uniqueUsers"])
 );

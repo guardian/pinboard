@@ -7,9 +7,7 @@ describe("mappingService", () => {
         { hour: "2022-11-24T12:00:00.000Z", uniqueUsers: "1" },
         { hour: "2022-11-28T10:00:00.000Z", uniqueUsers: "3" },
       ];
-      expect(
-        mapDatabaseResponseToGrafanaFormat(JSON.stringify(mockAppSyncResponse))
-      ).toEqual([
+      expect(mapDatabaseResponseToGrafanaFormat(mockAppSyncResponse)).toEqual([
         {
           target: "uniqueUsers",
           datapoints: [
@@ -21,7 +19,7 @@ describe("mappingService", () => {
     });
 
     test("should return an empty response to an empty response", () => {
-      expect(mapDatabaseResponseToGrafanaFormat(JSON.stringify([]))).toEqual([
+      expect(mapDatabaseResponseToGrafanaFormat([])).toEqual([
         {
           target: "uniqueUsers",
           datapoints: [],

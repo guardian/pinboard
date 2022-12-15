@@ -1,4 +1,4 @@
-import { mapAppSyncResponseToGrafanaFormat } from "./mappingService";
+import { mapDatabaseResponseToGrafanaFormat } from "./mappingService";
 
 describe("mappingService", () => {
   describe("mapAppSyncResponseToGrafanaFormat", () => {
@@ -8,7 +8,7 @@ describe("mappingService", () => {
         { hour: "2022-11-28T10:00:00.000Z", uniqueUsers: "3" },
       ];
       expect(
-        mapAppSyncResponseToGrafanaFormat(JSON.stringify(mockAppSyncResponse))
+        mapDatabaseResponseToGrafanaFormat(JSON.stringify(mockAppSyncResponse))
       ).toEqual([
         {
           target: "uniqueUsers",
@@ -21,7 +21,7 @@ describe("mappingService", () => {
     });
 
     test("should return an empty response to an empty response", () => {
-      expect(mapAppSyncResponseToGrafanaFormat(JSON.stringify([]))).toEqual([
+      expect(mapDatabaseResponseToGrafanaFormat(JSON.stringify([]))).toEqual([
         {
           target: "uniqueUsers",
           datapoints: [],

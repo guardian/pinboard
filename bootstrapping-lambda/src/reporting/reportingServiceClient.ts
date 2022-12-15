@@ -1,9 +1,14 @@
-import { GrafanaRequest } from "../../../shared/types/grafanaType";
+import {
+  DatabaseUniqueUserResponse,
+  GrafanaRequest,
+} from "../../../shared/types/grafanaType";
 import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../../shared/awsIntegration";
 import { Stage } from "../../../shared/types/stage";
 
-export const getMetrics = async (request: GrafanaRequest) => {
+export const getMetrics = async (
+  request: GrafanaRequest
+): Promise<DatabaseUniqueUserResponse[]> => {
   const stage = (process.env.STAGE as Stage) || "CODE";
   const lambda = new AWS.Lambda(standardAwsConfig);
   const response = await lambda
@@ -13,7 +18,5 @@ export const getMetrics = async (request: GrafanaRequest) => {
     })
     .promise();
 
-  const parsedResponse = JSON.parse(response.Payload as string);
-  console.log(parsedResponse);
-  return parsedResponse;
+  return JSON.parse(response.Payload as string);
 };

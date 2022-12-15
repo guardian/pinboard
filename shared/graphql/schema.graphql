@@ -129,10 +129,7 @@ type GridSearchSummary {
   thumbnails: [String!]!
   queryBreakdown: GridSearchQueryBreakdown
 }
-input Range {
-  from: AWSDateTime!
-  to: AWSDateTime!
-}
+
 input CreateItemInput {
   message: String
   payload: AWSJSON

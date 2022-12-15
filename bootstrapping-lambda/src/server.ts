@@ -24,6 +24,7 @@ import {
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
+import { mapDatabaseResponseToGrafanaFormat } from "./reporting/mappingService";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -54,9 +55,7 @@ server.post(
 
     const metrics = await getMetrics(metricsQuery);
 
-    console.log("METRICS", metrics);
-
-    response.json(metrics);
+    response.json(mapDatabaseResponseToGrafanaFormat(metrics));
   }
 );
 

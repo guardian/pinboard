@@ -1,22 +1,17 @@
+import { DatabaseUniqueUserResponse } from "../../../shared/types/grafanaType";
+
 export interface GrafanaResponseFormat {
   target: string;
   datapoints: [number, number][];
 }
 
-interface DatabaseUniqueUserResponse {
-  hour: string;
-  uniqueUsers: string;
-}
-
-export const mapAppSyncResponseToGrafanaFormat = (
-  databaseJsonResponse: string
+export const mapDatabaseResponseToGrafanaFormat = (
+  databaseResponse: DatabaseUniqueUserResponse[]
 ): GrafanaResponseFormat[] => {
-  const responseArray = JSON.parse(databaseJsonResponse);
-  const mappedResponseObjects = responseArray.map(
-    (item: DatabaseUniqueUserResponse) => [
-      parseInt(item.uniqueUsers),
-      Date.parse(item.hour),
-    ]
+  const mappedResponseObjects = databaseResponse.map(
+    (item: DatabaseUniqueUserResponse) =>
+      [parseInt(item.uniqueUsers), Date.parse(item.hour)] as [number, number]
   );
+
   return [{ target: "uniqueUsers", datapoints: mappedResponseObjects }];
 };

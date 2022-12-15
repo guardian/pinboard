@@ -14,3 +14,8 @@ export interface GrafanaRequest {
   range: Range;
   targets: Target[];
 }
+
+export interface DatabaseUniqueUserResponse {
+  hour: string;
+  uniqueUsers: string;
+}

@@ -49,6 +49,7 @@ server.post(
   "/query",
   authMiddleware,
   async (request: AuthenticatedRequest, response) => {
+    response.setHeader("Access-Control-Allow-Credentials", "true");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
     const metrics = await getMetrics(metricsQuery);
     response.json(mapDatabaseResponseToGrafanaFormat(metrics));
@@ -57,9 +58,10 @@ server.post(
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 
-server.post("/search", authMiddleware, (_, response) =>
-  response.json(Object.values(Metric))
-);
+server.post("/search", authMiddleware, (_, response) => {
+  response.setHeader("Access-Control-Allow-Credentials", "true");
+  return response.json(Object.values(Metric));
+});
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

@@ -17,7 +17,7 @@ import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
-import { GrafanaRequest } from "../../shared/types/grafanaType";
+import { GrafanaRequest, Metric } from "../../shared/types/grafanaType";
 import {
   AuthenticatedRequest,
   authMiddleware,
@@ -58,7 +58,7 @@ server.post(
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 
 server.post("/search", authMiddleware, (_, response) =>
-  response.json(["uniqueUsers"])
+  response.json(Object.values(Metric))
 );
 
 // generic error handler to catch errors in the various async functions

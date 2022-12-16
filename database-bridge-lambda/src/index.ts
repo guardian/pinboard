@@ -7,7 +7,6 @@ import {
   createItem,
   getGroupPinboardIds,
   getItemCounts,
-  getUniqueUsersPerHourInRange,
   listItems,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
@@ -23,6 +22,7 @@ import {
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
 import { GrafanaRequest } from "../../shared/types/grafanaType";
+import { getMetrics } from "./services/grafanaReportingService";
 
 const run = (
   sql: Sql,
@@ -75,7 +75,7 @@ export const handler = async (
   const sql = await getDatabaseConnection();
   try {
     if (isGrafanaRequest(payload)) {
-      return await getUniqueUsersPerHourInRange(sql, payload.range);
+      return await getMetrics(sql, payload);
     } else {
       const args = payload.arguments as never;
       const userEmail: string = (payload.identity as AppSyncIdentityLambda)

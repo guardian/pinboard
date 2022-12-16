@@ -5,8 +5,12 @@ export interface Range {
 
 type TargetType = "timeserie" | "table";
 
-interface Target {
-  target: string;
+export enum Metric {
+  UNIQUE_USERS = "uniqueUsers",
+}
+
+export interface Target {
+  target: Metric;
   type: TargetType;
 }
 

@@ -30,14 +30,11 @@ export const getMetrics = async (
         .promise();
     })
   );
-  console.log(`metricsResponse`, metricsResponse);
-  const combinedResponse = metricsResponse.map((response, index) => {
+  return metricsResponse.map((response, index) => {
     JSON.parse(response.Payload as string);
     return {
       target: targets[index].target,
       datapoints: JSON.parse(response.Payload as string),
     };
   });
-  console.log(`combinedResponse`, combinedResponse);
-  return combinedResponse;
 };

@@ -24,7 +24,6 @@ import {
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
-import { mapDatabaseResponseToGrafanaFormat } from "./reporting/mappingService";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
@@ -51,8 +50,7 @@ server.post(
   async (request: AuthenticatedRequest, response) => {
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
-    const metrics = await getMetrics(metricsQuery);
-    response.json(mapDatabaseResponseToGrafanaFormat(metrics));
+    response.json(await getMetrics(metricsQuery));
   }
 );
 

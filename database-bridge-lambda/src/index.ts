@@ -21,7 +21,7 @@ import {
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
-import { GrafanaRequest } from "../../shared/types/grafanaType";
+import { MetricRequest } from "../../shared/types/grafanaType";
 import { getMetrics } from "./services/grafanaReportingService";
 
 const run = (
@@ -64,17 +64,17 @@ const run = (
   );
 };
 
-const isGrafanaRequest = (
-  maybeGrafanaRequest: GrafanaRequest | AppSyncResolverEvent<unknown, unknown>
-): maybeGrafanaRequest is GrafanaRequest =>
-  (maybeGrafanaRequest as GrafanaRequest).range !== undefined;
+const isMetricRequest = (
+  maybeGrafanaRequest: MetricRequest | AppSyncResolverEvent<unknown, unknown>
+): maybeGrafanaRequest is MetricRequest =>
+  (maybeGrafanaRequest as MetricRequest).range !== undefined;
 
 export const handler = async (
-  payload: GrafanaRequest | AppSyncResolverEvent<unknown, unknown>
+  payload: MetricRequest | AppSyncResolverEvent<unknown, unknown>
 ) => {
   const sql = await getDatabaseConnection();
   try {
-    if (isGrafanaRequest(payload)) {
+    if (isMetricRequest(payload)) {
       return await getMetrics(sql, payload);
     } else {
       const args = payload.arguments as never;

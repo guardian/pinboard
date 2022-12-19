@@ -1,14 +1,20 @@
 import {
   GrafanaRequest,
-  Metric,
+  StageMetric,
   MetricsResponse,
+  Metric,
 } from "../../../shared/types/grafanaType";
 import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../../shared/awsIntegration";
 
 const metricEndpointMap = {
-  [Metric.UNIQUE_USERS_CODE]: "CODE",
-  [Metric.UNIQUE_USERS_PROD]: "PROD",
+  [StageMetric.UNIQUE_USERS_CODE]: "CODE",
+  [StageMetric.UNIQUE_USERS_PROD]: "PROD",
+};
+
+const stageMetricToMetric = {
+  [StageMetric.UNIQUE_USERS_CODE]: Metric.UNIQUE_USERS,
+  [StageMetric.UNIQUE_USERS_PROD]: Metric.UNIQUE_USERS,
 };
 
 export const getMetrics = async (
@@ -25,16 +31,16 @@ export const getMetrics = async (
           FunctionName: `pinboard-database-bridge-lambda-${
             metricEndpointMap[target.target]
           }`,
-          Payload: JSON.stringify({ range, target }),
+          Payload: JSON.stringify({
+            range,
+            target: stageMetricToMetric[target.target],
+          }),
         })
         .promise();
     })
   );
-  return metricsResponse.map((response, index) => {
-    JSON.parse(response.Payload as string);
-    return {
-      target: targets[index].target,
-      datapoints: JSON.parse(response.Payload as string),
-    };
-  });
+  return metricsResponse.map((response, index) => ({
+    target: targets[index].target,
+    datapoints: JSON.parse(response.Payload as string),
+  }));
 };

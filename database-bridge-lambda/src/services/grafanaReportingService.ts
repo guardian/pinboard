@@ -8,12 +8,9 @@ import { mapDatabaseResponseToGrafanaFormat } from "./mappingService";
 
 export const getMetrics = async (sql: Sql, metricRequest: MetricRequest) => {
   console.log(`processing grafana request`, metricRequest);
-  const {
-    target: { target },
-  } = metricRequest;
-  switch (target) {
-    case "uniqueUsersCode":
-    case "uniqueUsersProd": {
+  const { metric } = metricRequest;
+  switch (metric) {
+    case "uniqueUsers": {
       const databaseResponse = await getUniqueUsersPerHourInRange(
         sql,
         metricRequest.range
@@ -24,7 +21,7 @@ export const getMetrics = async (sql: Sql, metricRequest: MetricRequest) => {
     }
     default:
       throw Error(
-        `No handler for '${target}' target. @typescript-eslint/switch-exhaustiveness-check should have caught this`
+        `No handler for '${metric}' target. @typescript-eslint/switch-exhaustiveness-check should have caught this`
       );
   }
 };

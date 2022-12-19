@@ -17,7 +17,7 @@ import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
-import { GrafanaRequest, Metric } from "../../shared/types/grafanaType";
+import { GrafanaRequest, StageMetric } from "../../shared/types/grafanaType";
 import {
   AuthenticatedRequest,
   authMiddleware,
@@ -58,7 +58,7 @@ server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 
 server.post("/search", authMiddleware, (_, response) => {
   response.setHeader("Access-Control-Allow-Credentials", "true");
-  return response.json(Object.values(Metric));
+  return response.json(Object.values(StageMetric));
 });
 
 // generic error handler to catch errors in the various async functions

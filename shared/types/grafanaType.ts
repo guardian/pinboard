@@ -5,13 +5,17 @@ export interface Range {
 
 export type TargetType = "timeserie" | "table";
 
-export enum Metric {
+export enum StageMetric {
   UNIQUE_USERS_CODE = "uniqueUsersCode",
   UNIQUE_USERS_PROD = "uniqueUsersProd",
 }
 
+export enum Metric {
+  UNIQUE_USERS = "uniqueUsers",
+}
+
 export interface Target {
-  target: Metric;
+  target: StageMetric;
   type: TargetType;
 }
 
@@ -22,7 +26,7 @@ export interface GrafanaRequest {
 
 export interface MetricRequest {
   range: Range;
-  target: Target;
+  metric: Metric;
 }
 
 export interface MetricsResponse {

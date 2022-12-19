@@ -267,24 +267,32 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const showDesktopNotification = (item?: Item) => {
     if (item && item.userEmail !== userEmail) {
-      serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
-        {
-          item: {
-            ...item,
-            payload: item.payload && JSON.parse(item.payload),
-          } as ItemWithParsedPayload,
-        },
-        desktopNotificationsPreferencesUrl
+      setTimeout(
+        () =>
+          serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+            {
+              item: {
+                ...item,
+                payload: item.payload && JSON.parse(item.payload),
+              } as ItemWithParsedPayload,
+            },
+            "*"
+          ),
+        500
       );
     }
   };
 
   const clearDesktopNotificationsForPinboardId = (pinboardId: string) => {
-    serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
-      {
-        clearNotificationsForPinboardId: pinboardId,
-      },
-      desktopNotificationsPreferencesUrl
+    setTimeout(
+      () =>
+        serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+          {
+            clearNotificationsForPinboardId: pinboardId,
+          },
+          "*"
+        ),
+      1000
     );
   };
 

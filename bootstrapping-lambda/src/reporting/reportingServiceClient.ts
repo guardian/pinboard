@@ -33,7 +33,7 @@ export const getMetrics = async (
           }`,
           Payload: JSON.stringify({
             range,
-            target: stageMetricToMetric[target.target],
+            metric: stageMetricToMetric[target.target],
           }),
         })
         .promise();

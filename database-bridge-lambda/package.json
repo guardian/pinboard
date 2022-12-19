@@ -7,11 +7,15 @@
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
     "build": "run-p --print-label type-check bundle",
-    "watch": "ts-node-dev --respawn run.ts"
+    "watch": "ts-node-dev --respawn run.ts",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.102",
+    "@types/jest": "^29.2.4",
     "aws-sdk": "^2.840.0",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
     "ts-node-dev": "^1.0.0"
   },
   "dependencies": {

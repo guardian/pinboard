@@ -8,23 +8,13 @@ describe("mappingService", () => {
         { hour: "2022-11-28T10:00:00.000Z", uniqueUsers: "3" },
       ];
       expect(mapDatabaseResponseToGrafanaFormat(mockAppSyncResponse)).toEqual([
-        {
-          target: "uniqueUsers",
-          datapoints: [
-            [1, 1669291200000],
-            [3, 1669629600000],
-          ],
-        },
+        [1, 1669291200000],
+        [3, 1669629600000],
       ]);
     });
 
     test("should return an empty response to an empty response", () => {
-      expect(mapDatabaseResponseToGrafanaFormat([])).toEqual([
-        {
-          target: "uniqueUsers",
-          datapoints: [],
-        },
-      ]);
+      expect(mapDatabaseResponseToGrafanaFormat([])).toEqual([]);
     });
   });
 });

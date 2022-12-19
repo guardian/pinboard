@@ -4,15 +4,7 @@ import {
 } from "../../../shared/types/grafanaType";
 import { getUniqueUsersPerHourInRange } from "../sql/Item";
 import { Sql } from "../../../shared/database/types";
-
-export const mapDatabaseResponseToGrafanaFormat = (
-  databaseResponse: DatabaseUniqueUserResponse[]
-): [number, number][] => {
-  return databaseResponse.map(
-    (item: DatabaseUniqueUserResponse) =>
-      [parseInt(item.uniqueUsers), Date.parse(item.hour)] as [number, number]
-  );
-};
+import { mapDatabaseResponseToGrafanaFormat } from "./mappingService";
 
 export const getMetrics = async (sql: Sql, metricRequest: MetricRequest) => {
   console.log(`processing grafana request`, metricRequest);

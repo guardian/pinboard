@@ -384,15 +384,17 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      if (
-        event.source !== window &&
-        Object.prototype.hasOwnProperty.call(event.data, "item")
-      ) {
-        const item = event.data.item;
+      if (Object.prototype.hasOwnProperty.call(event.data, "item")) {
+        const item: Item = event.data.item;
         window.focus();
         setIsExpanded(true);
-        setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
-        // TODO ideally highlight the item
+        if (
+          !preselectedPinboardId ||
+          preselectedPinboardId === item.pinboardId
+        ) {
+          setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
+          // highlighting the item is handled in ScrollableItems component
+        }
       }
     });
   }, []);

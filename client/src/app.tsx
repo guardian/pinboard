@@ -267,24 +267,32 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const showDesktopNotification = (item?: Item) => {
     if (item && item.userEmail !== userEmail) {
-      serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
-        {
-          item: {
-            ...item,
-            payload: item.payload && JSON.parse(item.payload),
-          } as ItemWithParsedPayload,
-        },
-        desktopNotificationsPreferencesUrl
+      setTimeout(
+        () =>
+          serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+            {
+              item: {
+                ...item,
+                payload: item.payload && JSON.parse(item.payload),
+              } as ItemWithParsedPayload,
+            },
+            "*"
+          ),
+        500
       );
     }
   };
 
   const clearDesktopNotificationsForPinboardId = (pinboardId: string) => {
-    serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
-      {
-        clearNotificationsForPinboardId: pinboardId,
-      },
-      desktopNotificationsPreferencesUrl
+    setTimeout(
+      () =>
+        serviceWorkerIFrameRef.current?.contentWindow?.postMessage(
+          {
+            clearNotificationsForPinboardId: pinboardId,
+          },
+          "*"
+        ),
+      1000
     );
   };
 
@@ -336,53 +344,53 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
-        <Global styles={agateFontFaceIfApplicable} />
-        <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-        <root.div
-          onDragOver={(event) =>
-            isGridDragEvent(event) && event.preventDefault()
+        <GlobalStateProvider
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+          userEmail={userEmail}
+          openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
+          preselectedComposerId={preSelectedComposerId}
+          payloadToBeSent={payloadToBeSent}
+          clearPayloadToBeSent={clearPayloadToBeSent}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+          userLookup={userLookup}
+          addEmailsToLookup={addEmailsToLookup}
+          hasWebPushSubscription={hasWebPushSubscription}
+          manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
+          setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
+          showNotification={showDesktopNotification}
+          clearDesktopNotificationsForPinboardId={
+            clearDesktopNotificationsForPinboardId
           }
-          onDragEnter={(event) => {
-            if (isGridDragEvent(event)) {
-              event.preventDefault();
-              setIsDropTarget(true);
-            }
-          }}
-          onDragLeave={() => setIsDropTarget(false)}
-          onDragEnd={() => setIsDropTarget(false)}
-          onDragExit={() => setIsDropTarget(false)}
-          onDrop={(event) => {
-            if (isGridDragEvent(event)) {
-              event.preventDefault();
-              const payload = convertGridDragEventToPayload(event);
-              setPayloadToBeSent(payload);
-              setIsExpanded(true);
-              payload &&
-                sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP, {
-                  assetType: payload.type,
-                });
-            }
-            setIsDropTarget(false);
-          }}
         >
-          <GlobalStateProvider
-            presetUnreadNotificationCount={presetUnreadNotificationCount}
-            userEmail={userEmail}
-            openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
-            preselectedComposerId={preSelectedComposerId}
-            payloadToBeSent={payloadToBeSent}
-            clearPayloadToBeSent={clearPayloadToBeSent}
-            isExpanded={isExpanded}
-            setIsExpanded={setIsExpanded}
-            userLookup={userLookup}
-            addEmailsToLookup={addEmailsToLookup}
-            hasWebPushSubscription={hasWebPushSubscription}
-            manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
-            setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
-            showNotification={showDesktopNotification}
-            clearDesktopNotificationsForPinboardId={
-              clearDesktopNotificationsForPinboardId
+          <Global styles={agateFontFaceIfApplicable} />
+          <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
+          <root.div
+            onDragOver={(event) =>
+              isGridDragEvent(event) && event.preventDefault()
             }
+            onDragEnter={(event) => {
+              if (isGridDragEvent(event)) {
+                event.preventDefault();
+                setIsDropTarget(true);
+              }
+            }}
+            onDragLeave={() => setIsDropTarget(false)}
+            onDragEnd={() => setIsDropTarget(false)}
+            onDragExit={() => setIsDropTarget(false)}
+            onDrop={(event) => {
+              if (isGridDragEvent(event)) {
+                event.preventDefault();
+                const payload = convertGridDragEventToPayload(event);
+                setPayloadToBeSent(payload);
+                setIsExpanded(true);
+                payload &&
+                  sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP, {
+                    assetType: payload.type,
+                  });
+              }
+              setIsDropTarget(false);
+            }}
           >
             <TickContext.Provider value={lastTickTimestamp}>
               {isInlineMode ? (
@@ -396,16 +404,16 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
                 </React.Fragment>
               )}
             </TickContext.Provider>
-          </GlobalStateProvider>
-        </root.div>
-        {assetHandles.map((node, index) => (
-          <AddToPinboardButtonPortal
-            key={index}
-            node={node}
-            setPayloadToBeSent={setPayloadToBeSent}
-            expand={expandFloaty}
-          />
-        ))}
+          </root.div>
+          {assetHandles.map((node, index) => (
+            <AddToPinboardButtonPortal
+              key={index}
+              node={node}
+              setPayloadToBeSent={setPayloadToBeSent}
+              expand={expandFloaty}
+            />
+          ))}
+        </GlobalStateProvider>
       </ApolloProvider>
     </TelemetryContext.Provider>
   );

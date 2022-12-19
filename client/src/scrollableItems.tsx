@@ -206,12 +206,15 @@ export const ScrollableItems = ({
   const setRef = (itemID: string) => (node: HTMLDivElement) => {
     refMap.current[itemID] = node;
   };
-  const scrollToItem = (itemID: string) => {
-    const targetElement = refMap.current[itemID];
-    targetElement?.scrollIntoView({ behavior: "smooth" });
-    targetElement.style.animation = "highlight-item 0.5s linear infinite"; // see panel.tsx for definition of 'highlight-item' animation
-    setTimeout(() => (targetElement.style.animation = ""), 2500);
-  };
+  const scrollToItem = useCallback(
+    (itemID: string) => {
+      const targetElement = refMap.current[itemID];
+      targetElement?.scrollIntoView({ behavior: "smooth" });
+      targetElement.style.animation = "highlight-item 0.5s linear infinite"; // see panel.tsx for definition of 'highlight-item' animation
+      setTimeout(() => (targetElement.style.animation = ""), 2500);
+    },
+    [refMap.current]
+  );
 
   useLayoutEffect(() => {
     if (
@@ -221,13 +224,31 @@ export const ScrollableItems = ({
       const queryParams = new URLSearchParams(window.location.search);
       const itemIdToScrollTo = queryParams.get(PINBOARD_ITEM_ID_QUERY_PARAM);
       if (itemIdToScrollTo && refMap.current[itemIdToScrollTo]) {
-        setTimeout(() => scrollToItem(itemIdToScrollTo), 250);
+        setIsScrolledToBottom(false);
+        setTimeout(() => {
+          console.log("scrolling to item with id", itemIdToScrollTo);
+          scrollToItem(itemIdToScrollTo);
+        }, 1000);
+        setHasProcessedItemIdInURL(true);
+      } else if (Object.keys(refMap.current).length > 0) {
         setHasProcessedItemIdInURL(true);
       }
-    } else {
-      setHasProcessedItemIdInURL(true);
     }
   });
+
+  useEffect(() => {
+    const handleItemFromServiceWorker = (event: MessageEvent) => {
+      if (Object.prototype.hasOwnProperty.call(event.data, "item")) {
+        const item: Item = event.data.item;
+        if (pinboardId === item.pinboardId) {
+          setTimeout(() => scrollToItem(item.id), 250);
+        }
+      }
+    };
+    window.addEventListener("message", handleItemFromServiceWorker);
+    return () =>
+      window.removeEventListener("message", handleItemFromServiceWorker);
+  }, []);
 
   return (
     <div
@@ -264,6 +285,7 @@ export const ScrollableItems = ({
               item.claimedByEmail,
               userLookup,
               lastItemSeenByUsersForItemIDLookup,
+              scrollToItem,
             ]
           )
         )}

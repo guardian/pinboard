@@ -65,9 +65,9 @@ const run = (
 };
 
 const isMetricRequest = (
-  maybeGrafanaRequest: MetricRequest | AppSyncResolverEvent<unknown, unknown>
-): maybeGrafanaRequest is MetricRequest =>
-  (maybeGrafanaRequest as MetricRequest).range !== undefined;
+  maybeMetricRequest: MetricRequest | AppSyncResolverEvent<unknown, unknown>
+): maybeMetricRequest is MetricRequest =>
+  (maybeMetricRequest as MetricRequest).range !== undefined;
 
 export const handler = async (
   payload: MetricRequest | AppSyncResolverEvent<unknown, unknown>

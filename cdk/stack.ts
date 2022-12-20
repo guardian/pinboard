@@ -28,6 +28,8 @@ import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
 import {
   APP,
+  DATABASE_BRIDGE_LAMBDA_BASENAME,
+  getDatabaseBridgeLambdaFunctionName,
   getNotificationsLambdaFunctionName,
   NOTIFICATIONS_LAMBDA_BASENAME,
 } from "../shared/constants";
@@ -249,8 +251,6 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const databaseBridgeLambdaBasename = "pinboard-database-bridge-lambda";
-
     const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${STAGE}`;
     const databaseSecurityGroup = new ec2.SecurityGroup(
       thisStack,
@@ -278,7 +278,7 @@ export class PinBoardStack extends Stack {
 
     const pinboardDatabaseBridgeLambda = new lambda.Function(
       thisStack,
-      databaseBridgeLambdaBasename,
+      DATABASE_BRIDGE_LAMBDA_BASENAME,
       {
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
@@ -290,10 +290,10 @@ export class PinBoardStack extends Stack {
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: `${databaseBridgeLambdaBasename}-${STAGE}`,
+        functionName: getDatabaseBridgeLambdaFunctionName(STAGE as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${databaseBridgeLambdaBasename}/${databaseBridgeLambdaBasename}.zip`
+          `${STACK}/${STAGE}/${DATABASE_BRIDGE_LAMBDA_BASENAME}/${DATABASE_BRIDGE_LAMBDA_BASENAME}.zip`
         ),
         initialPolicy: [],
         vpc: accountVpc,
@@ -428,6 +428,7 @@ export class PinBoardStack extends Stack {
         description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
       }
     );
+
     pinboardNotificationsLambda.grantInvoke(notificationLambdaInvokeRole);
     (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
       {
@@ -501,8 +502,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardDatabaseBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${databaseBridgeLambdaBasename
-        .replace("pinboard-", "")
+      `${DATABASE_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
         .split("-")
         .join("_")}_ds`,
       pinboardDatabaseBridgeLambda
@@ -638,6 +638,15 @@ export class PinBoardStack extends Stack {
         initialPolicy: [
           pandaConfigAndKeyPolicyStatement,
           permissionsFilePolicyStatement,
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ["lambda:InvokeFunction"],
+            resources: [
+              `arn:aws:lambda:${region}:${account}:function:${DATABASE_BRIDGE_LAMBDA_BASENAME}-${
+                STAGE === "PROD" ? "*" : STAGE
+              }`,
+            ],
+          }),
         ],
       }
     );
@@ -704,8 +713,6 @@ export class PinBoardStack extends Stack {
     bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, {
       basePath: "",
     });
-
-    pinboardDatabaseBridgeLambda.grantInvoke(bootstrappingLambdaFunction.role!);
 
     new CfnOutput(thisStack, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,

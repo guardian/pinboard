@@ -2172,28 +2172,25 @@ $util.toJson($ctx.result)",
             Object {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboarddatabasebridgelambda34091516",
-                    "Arn",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:lambda:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":function:pinboard-database-bridge-lambda-",
+                    Object {
+                      "Ref": "Stage",
+                    },
                   ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "pinboarddatabasebridgelambda34091516",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",

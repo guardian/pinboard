@@ -6,8 +6,10 @@ import {
 } from "../../../shared/types/grafanaType";
 import * as AWS from "aws-sdk";
 import { standardAwsConfig } from "../../../shared/awsIntegration";
+import { getDatabaseBridgeLambdaFunctionName } from "../../../shared/constants";
+import { Stage } from "../../../shared/types/stage";
 
-const metricEndpointMap = {
+const metricEndpointMap: Record<string, Stage> = {
   [StageMetric.UNIQUE_USERS_CODE]: "CODE",
   [StageMetric.UNIQUE_USERS_PROD]: "PROD",
 };
@@ -28,9 +30,9 @@ export const getMetrics = async (
       console.log(`processing grafana request`, target.target);
       return lambda
         .invoke({
-          FunctionName: `pinboard-database-bridge-lambda-${
+          FunctionName: getDatabaseBridgeLambdaFunctionName(
             metricEndpointMap[target.target]
-          }`,
+          ),
           Payload: JSON.stringify({
             range,
             metric: stageMetricToMetric[target.target],

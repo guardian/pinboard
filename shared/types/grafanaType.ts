@@ -3,6 +3,7 @@ export interface Range {
   to: string;
 }
 
+// 'timeserie' is the expected type in Grafana (i.e. not a typo)
 export type TargetType = "timeserie" | "table";
 
 export enum StageMetric {

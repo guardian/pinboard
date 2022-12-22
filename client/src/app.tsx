@@ -2,36 +2,36 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import root from "react-shadow/emotion";
 import { PayloadAndType } from "./types/PayloadAndType";
 import {
-  ASSET_HANDLE_HTML_TAG,
   AddToPinboardButtonPortal,
+  ASSET_HANDLE_HTML_TAG,
 } from "./addToPinboardButton";
 import {
   ApolloClient,
   ApolloProvider,
+  ReactiveVar,
   useMutation,
   useQuery,
+  useReactiveVar,
   useSubscription,
 } from "@apollo/client";
 import {
   gqlGetMyUser,
+  gqlGetUsers,
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import { Item, MyUser, User } from "../../shared/graphql/graphql";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
-import {
-  desktopNotificationsPreferencesUrl,
-  HiddenIFrameForServiceWorker,
-} from "./pushNotificationPreferences";
+import { HiddenIFrameForServiceWorker } from "./pushNotificationPreferences";
 import { GlobalStateProvider } from "./globalState";
 import { Floaty } from "./floaty";
 import { Panel } from "./panel";
 import { convertGridDragEventToPayload, isGridDragEvent } from "./drop";
 import { TickContext } from "./formattedDateTime";
 import {
-  TelemetryContext,
-  PINBOARD_TELEMETRY_TYPE,
   IPinboardEventTags,
+  PINBOARD_TELEMETRY_TYPE,
+  TelemetryContext,
 } from "./types/Telemetry";
 import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
 import {
@@ -39,7 +39,6 @@ import {
   OPEN_PINBOARD_QUERY_PARAM,
 } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
-import { gqlGetUsers } from "../gql";
 import {
   InlineMode,
   WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
@@ -52,10 +51,15 @@ const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
 
 interface PinBoardAppProps {
   apolloClient: ApolloClient<Record<string, unknown>>;
+  hasApolloAuthErrorVar: ReactiveVar<boolean>;
   userEmail: string;
 }
 
-export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
+export const PinBoardApp = ({
+  apolloClient,
+  hasApolloAuthErrorVar,
+  userEmail,
+}: PinBoardAppProps) => {
   const isInlineMode = useMemo(
     () => window.location.hostname.startsWith("workflow."),
     []
@@ -341,10 +345,13 @@ export const PinBoardApp = ({ apolloClient, userEmail }: PinBoardAppProps) => {
 
   const agateFontFaceIfApplicable = useMemo(getAgateFontFaceIfApplicable, []);
 
+  const hasApolloAuthError = useReactiveVar(hasApolloAuthErrorVar);
+
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
         <GlobalStateProvider
+          hasApolloAuthError={hasApolloAuthError}
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
           openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}

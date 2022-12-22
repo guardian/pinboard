@@ -8,6 +8,7 @@ import { useGlobalStateContext } from "../globalState";
 import { getTooltipText } from "../util";
 import root from "react-shadow/emotion";
 import { neutral } from "@guardian/source-foundations";
+import { ErrorOverlay } from "../errorOverlay";
 
 export const INLINE_PANEL_WIDTH = 260;
 
@@ -24,7 +25,7 @@ export const InlineModePanel = ({
   workingTitle,
   headline,
 }: InlineModePanelProps) => {
-  const { activeTab, setActiveTab } = useGlobalStateContext();
+  const { hasError, activeTab, setActiveTab } = useGlobalStateContext();
 
   const panelRef = useRef(null);
 
@@ -64,8 +65,10 @@ export const InlineModePanel = ({
           min-height: 100%;
           max-height: 100%;
           border-radius: 6px;
+          position: relative;
         `}
       >
+        {hasError && <ErrorOverlay />}
         <Global styles={highlightItemsKeyFramesCSS} />
         <Navigation
           activeTab={activeTab}

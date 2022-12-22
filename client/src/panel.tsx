@@ -24,6 +24,7 @@ import {
   PinboardData,
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
+import { ErrorOverlay } from "./errorOverlay";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -44,6 +45,7 @@ const teamPinboardsSortFunction = (
 export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const {
+    hasError,
     isExpanded,
     activePinboards,
     activePinboardIds,
@@ -217,6 +219,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           }px, 50px, 50px, -25px); // clip off the top of the shadow FIXME make relative
       `}
       />
+      {hasError && <ErrorOverlay />}
       {isDropTarget && <div css={{ ...dropTargetCss }} />}
       <Navigation
         activeTab={activeTab}

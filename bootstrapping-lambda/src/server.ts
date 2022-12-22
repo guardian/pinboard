@@ -20,7 +20,7 @@ import { Stage } from "../../shared/types/stage";
 import { GrafanaRequest, StageMetric } from "../../shared/types/grafanaType";
 import {
   AuthenticatedRequest,
-  authMiddleware,
+  getAuthMiddleware,
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
@@ -46,7 +46,7 @@ server.use(cors(corsOptions));
 
 server.post(
   "/query",
-  authMiddleware,
+  getAuthMiddleware(),
   async (request: AuthenticatedRequest, response) => {
     response.setHeader("Access-Control-Allow-Credentials", "true");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
@@ -56,7 +56,7 @@ server.post(
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
 
-server.post("/search", authMiddleware, (_, response) => {
+server.post("/search", getAuthMiddleware(), (_, response) => {
   response.setHeader("Access-Control-Allow-Credentials", "true");
   return response.json(Object.values(StageMetric));
 });

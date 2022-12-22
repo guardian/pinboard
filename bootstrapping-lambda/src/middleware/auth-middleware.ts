@@ -10,11 +10,12 @@ export interface AuthenticatedRequest extends Request {
   userEmail?: string;
 }
 
-export const authMiddleware = async (
+export const getAuthMiddleware = (sendErrorAsOk = false) => async (
   request: AuthenticatedRequest,
   response: Response,
   next: NextFunction
 ) => {
+  console.log(sendErrorAsOk);
   const maybeCookieHeader = request.header("Cookie");
   const maybeAuthenticatedEmail = await getVerifiedUserEmail(maybeCookieHeader);
 

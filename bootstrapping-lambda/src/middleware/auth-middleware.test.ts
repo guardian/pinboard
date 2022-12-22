@@ -1,4 +1,4 @@
-import { AuthenticatedRequest, authMiddleware } from "./auth-middleware";
+import { AuthenticatedRequest, getAuthMiddleware } from "./auth-middleware";
 import { Response } from "express";
 import { userHasPermission } from "../permissionCheck";
 import { getVerifiedUserEmail } from "../panDomainAuth";
@@ -28,7 +28,7 @@ describe("auth-middleware", () => {
         send: jest.fn(),
       }),
     } as unknown) as Response;
-    await authMiddleware(mockRequest, mockResponse, mockNextFunction);
+    await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).toHaveBeenCalledWith(401);
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
@@ -49,7 +49,7 @@ describe("auth-middleware", () => {
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
 
     mockedUserHasPermission.mockResolvedValueOnce(false);
-    await authMiddleware(mockRequest, mockResponse, mockNextFunction);
+    await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).toHaveBeenCalledWith(403);
     expect(mockSendFunction).toHaveBeenCalledWith(
       "You do not have permission to use PinBoard"
@@ -71,7 +71,7 @@ describe("auth-middleware", () => {
     } as unknown) as Response;
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
     mockedUserHasPermission.mockResolvedValueOnce(true);
-    await authMiddleware(mockRequest, mockResponse, mockNextFunction);
+    await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockRequest.userEmail).toBe("foo@bar.com");
     expect(mockNextFunction).toHaveBeenCalledTimes(1);
   });

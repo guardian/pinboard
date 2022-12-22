@@ -1,23 +1,13 @@
-import {
-  DatabaseUniqueUserResponse,
-  MetricRequest,
-} from "../../../shared/types/grafanaType";
+import { MetricRequest } from "../../../shared/types/grafanaType";
 import { getUniqueUsersPerHourInRange } from "../sql/Item";
 import { Sql } from "../../../shared/database/types";
-import { mapDatabaseResponseToGrafanaFormat } from "./mappingService";
 
 export const getMetrics = async (sql: Sql, metricRequest: MetricRequest) => {
   console.log(`processing grafana request`, metricRequest);
   const { metric } = metricRequest;
   switch (metric) {
     case "uniqueUsers": {
-      const databaseResponse = await getUniqueUsersPerHourInRange(
-        sql,
-        metricRequest.range
-      );
-      return mapDatabaseResponseToGrafanaFormat(
-        (databaseResponse as unknown) as DatabaseUniqueUserResponse[]
-      );
+      return await getUniqueUsersPerHourInRange(sql, metricRequest.range);
     }
     default:
       throw Error(

@@ -191,12 +191,17 @@ export const getItemCounts = (
 export const getUniqueUsersPerHourInRange = async (
   sql: Sql,
   range: Range
-) => sql`
-    SELECT
-        DATE_TRUNC('hour', "timestamp") as "hour",
-        COUNT(DISTINCT "userEmail") as "uniqueUsers"
-    FROM "Item"
-    WHERE
-        "timestamp" >= ${range.from} AND "timestamp" < ${range.to}
-    GROUP BY "hour"
-`;
+): Promise<[number, number][]> => {
+  const result = await sql`
+        SELECT DATE_TRUNC('hour', "timestamp") as "hour",
+               COUNT(DISTINCT "userEmail")     as "uniqueUsers"
+        FROM "Item"
+        WHERE "timestamp" >= ${range.from}
+          AND "timestamp" < ${range.to}
+        GROUP BY "hour"
+    `;
+  return Array.from(result.values()).map((row) => [
+    parseInt(row.uniqueUsers),
+    row.hour.getTime(),
+  ]);
+};

@@ -12,7 +12,7 @@ import {
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
   gqlOnClaimItem,
-  gqlOnCreateItem,
+  gqlOnMutateItem,
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
@@ -67,12 +67,12 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
-  const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
+  const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
-      const itemFromSubscription: Item = subscriptionData.data.onCreateItem;
+      const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
       addEmailsToLookup([itemFromSubscription.userEmail]);
       setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
-      if (!isExpanded) {
+      if (!isExpanded && !itemFromSubscription.editHistory) {
         showNotification(itemFromSubscription);
         setUnreadFlag(pinboardId)(true);
       }

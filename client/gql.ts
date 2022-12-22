@@ -86,9 +86,25 @@ export const gqlCreateItem = gql`
         }
     }
 `;
-export const gqlOnCreateItem = (pinboardId: string) => gql`
-    subscription OnCreateItem {
-        onCreateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
+export const gqlEditItem = gql`
+    mutation EditItem($itemId: String!, $input: EditItemInput!) {
+        editItem(itemId: $itemId, input: $input) {
+            # including fields here makes them accessible in our subscription data
+            ${itemReturnFields}
+        }
+    }
+`;
+export const gqlDeleteItem = gql`
+    mutation DeleteItem($itemId: String!) {
+        deleteItem(itemId: $itemId) {
+            # including fields here makes them accessible in our subscription data
+            ${itemReturnFields}
+        }
+    }
+`;
+export const gqlOnMutateItem = (pinboardId: string) => gql`
+    subscription OnMutateItem {
+        onMutateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
     }
 `;
 

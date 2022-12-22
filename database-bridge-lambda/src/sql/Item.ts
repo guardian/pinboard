@@ -1,5 +1,6 @@
 import {
   CreateItemInput,
+  EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
 } from "../../../shared/graphql/graphql";
@@ -61,6 +62,35 @@ export const createItem = async (
   sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
+export const editItem = async (
+  sql: Sql,
+  args: { itemId: string; input: EditItemInput },
+  userEmail: string
+) =>
+  sql`
+        UPDATE "Item"
+        SET 
+            ${sql(args.input)},
+            "editHistory" = ARRAY_APPEND("editHistory", now())
+        WHERE "id" = ${args.itemId}
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
+export const deleteItem = async (
+  sql: Sql,
+  args: { itemId: string },
+  userEmail: string
+) =>
+  sql`
+      UPDATE "Item"
+      SET 
+          "message" = NULL, 
+          "payload" = NULL, 
+          "deletedAt" = now()
+      WHERE "id" = ${args.itemId}
+      RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
 export const listItems = (

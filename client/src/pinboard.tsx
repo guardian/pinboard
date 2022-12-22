@@ -263,8 +263,14 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 
+  const [
+    maybeDeleteItemModalElement,
+    setMaybeDeleteItemModalElement,
+  ] = useState<JSX.Element | null>(null);
+
   return !isSelected ? null : (
     <React.Fragment>
+      {maybeDeleteItemModalElement}
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
@@ -290,6 +296,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           claimItem={claimItem}
           hasProcessedItemIdInURL={hasProcessedItemIdInURL}
           setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
+          setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (

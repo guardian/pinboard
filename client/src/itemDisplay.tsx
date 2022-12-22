@@ -27,6 +27,8 @@ import Tick from "../icons/tick.svg";
 import { composer } from "../colours";
 import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
+import { useConfirmModal } from "./modal";
+import { scrollbarsCss } from "./styling";
 
 const maybeConstructPayloadAndType = (
   type: string,
@@ -57,6 +59,7 @@ interface ItemDisplayProps {
   userEmail: string;
   setRef?: (node: HTMLDivElement) => void;
   scrollToItem: (itemID: string) => void;
+  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
 }
 
 export const ItemDisplay = ({
@@ -69,6 +72,7 @@ export const ItemDisplay = ({
   userEmail,
   setRef,
   scrollToItem,
+  setMaybeDeleteItemModalElement,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -100,6 +104,8 @@ export const ItemDisplay = ({
 
   const isImmediatelyFollowingRelatedItem =
     maybeRelatedItem && maybePreviousItem?.id === maybeRelatedItem.id;
+
+  const isDeleted = item.deletedAt;
 
   return (
     <div
@@ -158,64 +164,82 @@ export const ItemDisplay = ({
           `}
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
-          <ItemHoverMenu />
-        </div>
-        <div>
-          {item.type === "claim" ? (
-            <div
-              css={css`
-                padding: ${space[2]}px;
-                border: 1px solid ${composer.primary[300]};
-                border-radius: ${space[1]}px;
-                margin-left: -${space[9] - 4}px;
-                display: flex;
-                gap: ${space[1]}px;
-                color: ${composer.primary[300]};
-                ${agateSans.xxsmall({ fontWeight: "bold" })};
-                svg {
-                  path {
-                    fill: ${composer.primary[300]};
-                  }
-                }
-              `}
-            >
-              <Pencil />
-              <div
-                css={css`
-                  flex-grow: 1;
-                  margin-top: -1px;
-                `}
-              >
-                <span>
-                  {item.userEmail === userEmail ? "You" : userDisplayName}{" "}
-                  claimed{" "}
-                  {isImmediatelyFollowingRelatedItem ? "the above" : "a"}{" "}
-                  request&nbsp;
-                  <Tick />
-                </span>
-                {maybeRelatedItem &&
-                  !isImmediatelyFollowingRelatedItem &&
-                  useMemo(
-                    () => (
-                      <NestedItemDisplay
-                        item={maybeRelatedItem}
-                        maybeUser={userLookup[maybeRelatedItem.userEmail]}
-                        scrollToItem={scrollToItem}
-                      />
-                    ),
-                    [maybeRelatedItem.id]
-                  )}
-              </div>
-            </div>
-          ) : (
-            formattedMessage
+          {!isDeleted && (
+            <ItemHoverMenu
+              item={item}
+              setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+            />
           )}
         </div>
+        {isDeleted ? (
+          <span
+            css={css`
+              font-style: italic;
+              color: ${palette.neutral["46"]};
+              font-size: 12px;
+            `}
+          >
+            ITEM DELETED
+          </span>
+        ) : (
+          <div>
+            {item.type === "claim" ? (
+              <div
+                css={css`
+                  padding: ${space[2]}px;
+                  border: 1px solid ${composer.primary[300]};
+                  border-radius: ${space[1]}px;
+                  margin-left: -${space[9] - 4}px;
+                  display: flex;
+                  gap: ${space[1]}px;
+                  color: ${composer.primary[300]};
+                  ${agateSans.xxsmall({ fontWeight: "bold" })};
+                  svg {
+                    path {
+                      fill: ${composer.primary[300]};
+                    }
+                  }
+                `}
+              >
+                <Pencil />
+                <div
+                  css={css`
+                    flex-grow: 1;
+                    margin-top: -1px;
+                  `}
+                >
+                  <span>
+                    {item.userEmail === userEmail ? "You" : userDisplayName}{" "}
+                    claimed{" "}
+                    {isImmediatelyFollowingRelatedItem ? "the above" : "a"}{" "}
+                    request&nbsp;
+                    <Tick />
+                  </span>
+                  {maybeRelatedItem &&
+                    !isImmediatelyFollowingRelatedItem &&
+                    useMemo(
+                      () => (
+                        <NestedItemDisplay
+                          item={maybeRelatedItem}
+                          maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                          scrollToItem={scrollToItem}
+                        />
+                      ),
+                      [maybeRelatedItem.id]
+                    )}
+                </div>
+              </div>
+            ) : (
+              formattedMessage
+            )}
+          </div>
+        )}
         {payloadAndType && (
           <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
         )}
       </div>
-      {item.claimable &&
+      {!isDeleted &&
+        item.claimable &&
         useMemo(
           () => (
             <ClaimableItem

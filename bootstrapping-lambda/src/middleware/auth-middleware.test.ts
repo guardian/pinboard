@@ -33,6 +33,25 @@ describe("auth-middleware", () => {
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
 
+  test("should return a 200 response where no cookie provided and sendErrorAsOk is true", async () => {
+    const mockRequest = ({
+      header: jest.fn().mockReturnValue(undefined),
+      userEmail: undefined,
+    } as unknown) as AuthenticatedRequest;
+
+    const mockResponse = ({
+      status: jest.fn().mockReturnValue({
+        send: jest.fn(),
+      }),
+    } as unknown) as Response;
+    await getAuthMiddleware(true)(mockRequest, mockResponse, mockNextFunction);
+    expect(mockResponse.status).not.toHaveBeenCalled();
+    expect(mockResponse.send).toHaveBeenCalledWith(
+      "console..error('pan-domain auth cookie missing, invalid or expired')"
+    );
+    expect(mockNextFunction).not.toHaveBeenCalled();
+  });
+
   test("should return a 403 response where user does not have permission", async () => {
     const mockRequest = ({
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
@@ -73,6 +92,7 @@ describe("auth-middleware", () => {
     mockedUserHasPermission.mockResolvedValueOnce(true);
     await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockRequest.userEmail).toBe("foo@bar.com");
+    expect(mockResponse.status).not.toHaveBeenCalled();
     expect(mockNextFunction).toHaveBeenCalledTimes(1);
   });
 });

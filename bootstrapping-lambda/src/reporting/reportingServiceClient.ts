@@ -25,7 +25,6 @@ export const getMetrics = async (
   const lambda = new AWS.Lambda(standardAwsConfig);
   const { range, targets } = request;
   const metricsResponse = await Promise.all(
-    //FIXME perhaps allSettled here and then log unsuccessful attempts?
     targets.map((target) => {
       console.log(`processing grafana request`, target.target);
       return lambda

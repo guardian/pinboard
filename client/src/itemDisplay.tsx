@@ -26,6 +26,7 @@ import { formatMentionHandlesInText } from "./mentionsUtil";
 import Tick from "../icons/tick.svg";
 import { composer } from "../colours";
 import Pencil from "../icons/pencil.svg";
+import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
 
 const maybeConstructPayloadAndType = (
   type: string,
@@ -110,6 +111,11 @@ export const ItemDisplay = ({
         ${agateSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
+        &:hover {
+          .${ITEM_HOVER_MENU_CLASS_NAME} {
+            display: flex;
+          }
+        }
       `}
     >
       <div
@@ -145,12 +151,14 @@ export const ItemDisplay = ({
       >
         <div
           css={css`
+            position: relative;
             color: ${palette.neutral["20"]};
             ${agateSans.xxsmall({ lineHeight: "tight" })};
             margin-bottom: 2px;
           `}
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
+          <ItemHoverMenu />
         </div>
         <div>
           {item.type === "claim" ? (

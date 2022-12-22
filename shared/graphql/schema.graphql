@@ -66,6 +66,8 @@ type Item {
   claimedByEmail: String
   claimable: Boolean!
   relatedItemId: String
+  editHistory: [AWSDateTime!]
+  deletedAt: AWSDateTime
 }
 
 type LastItemSeenByUser {

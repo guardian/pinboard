@@ -5,7 +5,6 @@ import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
 import { standardAwsConfig } from "../../shared/awsIntegration";
-import { userHasPermission } from "./permissionCheck";
 import * as AWS from "aws-sdk";
 import fs from "fs";
 import {
@@ -14,7 +13,6 @@ import {
   applyJavascriptContentType,
 } from "./util";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
-import { getVerifiedUserEmail } from "./panDomainAuth";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { Stage } from "../../shared/types/stage";
 import { GrafanaRequest, StageMetric } from "../../shared/types/grafanaType";
@@ -89,62 +87,55 @@ interface FileWithLastModified {
   lastModified: Date;
 }
 
-server.get("/pinboard.loader.js", async (request, response) => {
-  applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
+server.get(
+  "/pinboard.loader.js",
+  getAuthMiddleware(true),
+  async (request: AuthenticatedRequest, response) => {
+    applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main
 
-  applyJavascriptContentType(response);
+    applyJavascriptContentType(response);
 
-  const mainJsFilename: string | undefined = fs
-    .readdirSync(clientDirectory)
-    .filter(
-      (filename) =>
-        filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
-        filename.endsWith(JS_EXTENSION)
-    )
-    .reduce((mostRecentSoFar, filename) => {
-      const lastModified = fs.statSync(`${clientDirectory}/${filename}`).mtime;
-      if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
-        return mostRecentSoFar;
-      }
-      return {
-        filename,
-        lastModified,
-      };
-    }, undefined as FileWithLastModified | undefined)?.filename;
+    const mainJsFilename: string | undefined = fs
+      .readdirSync(clientDirectory)
+      .filter(
+        (filename) =>
+          filename.startsWith(MAIN_JS_FILENAME_PREFIX) &&
+          filename.endsWith(JS_EXTENSION)
+      )
+      .reduce((mostRecentSoFar, filename) => {
+        const lastModified = fs.statSync(`${clientDirectory}/${filename}`)
+          .mtime;
+        if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
+          return mostRecentSoFar;
+        }
+        return {
+          filename,
+          lastModified,
+        };
+      }, undefined as FileWithLastModified | undefined)?.filename;
 
-  if (!mainJsFilename) {
-    const message = "no hashed pinboard.main js file available";
-    console.error(message);
-    return response.send(`console.error('${message}')`);
-  }
+    if (!mainJsFilename) {
+      const message = "no hashed pinboard.main js file available";
+      console.error(message);
+      return response.send(`console.error('${message}')`);
+    }
 
-  const maybeCookieHeader = request.header("Cookie");
-
-  const maybeAuthedUserEmail = await getVerifiedUserEmail(maybeCookieHeader);
-
-  if (!maybeAuthedUserEmail) {
-    const message = "pan-domain auth cookie missing, invalid or expired";
-    console.warn(message);
-    response.send(`console.error('${message}')`);
-  } else if (await userHasPermission(maybeAuthedUserEmail)) {
-    const appSyncConfig = await generateAppSyncConfig(maybeAuthedUserEmail, S3);
+    const appSyncConfig = await generateAppSyncConfig(request.userEmail!, S3);
 
     response.send(
       loaderTemplate(
         {
           sentryDSN: getEnvironmentVariableOrThrow("sentryDSN"),
           appSyncConfig,
-          userEmail: maybeAuthedUserEmail,
+          userEmail: request.userEmail!,
           stage: (process.env.STAGE as Stage) || "LOCAL",
         },
         mainJsFilename,
         request.hostname
       )
     );
-  } else {
-    response.send("console.log('You do not have permission to use PinBoard')");
   }
-});
+);
 
 server.get(
   `/${MAIN_JS_FILENAME_PREFIX}*${JS_EXTENSION}`,

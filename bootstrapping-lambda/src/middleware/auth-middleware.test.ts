@@ -40,14 +40,13 @@ describe("auth-middleware", () => {
     } as unknown) as AuthenticatedRequest;
 
     const mockResponse = ({
-      status: jest.fn().mockReturnValue({
-        send: jest.fn(),
-      }),
+      status: jest.fn(),
+      send: jest.fn(),
     } as unknown) as Response;
     await getAuthMiddleware(true)(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).not.toHaveBeenCalled();
     expect(mockResponse.send).toHaveBeenCalledWith(
-      "console..error('pan-domain auth cookie missing, invalid or expired')"
+      "console.error('pan-domain auth cookie missing, invalid or expired')"
     );
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
@@ -72,6 +71,30 @@ describe("auth-middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(403);
     expect(mockSendFunction).toHaveBeenCalledWith(
       "You do not have permission to use PinBoard"
+    );
+    expect(mockNextFunction).not.toHaveBeenCalled();
+    expect(mockRequest.userEmail).toBeUndefined();
+  });
+
+  test("should return a 200 response where user does not have permission and sendErrorAsOk is true", async () => {
+    const mockRequest = ({
+      header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
+      userEmail: undefined,
+    } as unknown) as AuthenticatedRequest;
+
+    const mockSendFunction = jest.fn();
+    const mockResponse = ({
+      status: jest.fn(),
+      send: mockSendFunction,
+    } as unknown) as Response;
+
+    mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
+
+    mockedUserHasPermission.mockResolvedValueOnce(false);
+    await getAuthMiddleware(true)(mockRequest, mockResponse, mockNextFunction);
+    expect(mockResponse.status).not.toHaveBeenCalled();
+    expect(mockSendFunction).toHaveBeenCalledWith(
+      "console.log('You do not have permission to use PinBoard')"
     );
     expect(mockNextFunction).not.toHaveBeenCalled();
     expect(mockRequest.userEmail).toBeUndefined();

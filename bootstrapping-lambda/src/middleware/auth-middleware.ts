@@ -15,14 +15,15 @@ export const getAuthMiddleware = (sendErrorAsOk = false) => async (
   response: Response,
   next: NextFunction
 ) => {
-  console.log(sendErrorAsOk);
   const maybeCookieHeader = request.header("Cookie");
   const maybeAuthenticatedEmail = await getVerifiedUserEmail(maybeCookieHeader);
 
   if (!maybeAuthenticatedEmail) {
-    return response
-      .status(HTTP_STATUS_CODES.UNAUTHORIZED)
-      .send(MISSING_AUTH_COOKIE_MESSAGE);
+    return sendErrorAsOk
+      ? response.send(`console.error('${MISSING_AUTH_COOKIE_MESSAGE}')`)
+      : response
+          .status(HTTP_STATUS_CODES.UNAUTHORIZED)
+          .send(MISSING_AUTH_COOKIE_MESSAGE);
   }
 
   if (await userHasPermission(maybeAuthenticatedEmail)) {
@@ -30,7 +31,12 @@ export const getAuthMiddleware = (sendErrorAsOk = false) => async (
     return next();
   }
 
-  response
-    .status(HTTP_STATUS_CODES.FORBIDDEN)
-    .send("You do not have permission to use PinBoard");
+  const NO_PINBOARD_PERMISSION_MESSAGE =
+    "You do not have permission to use PinBoard";
+
+  return sendErrorAsOk
+    ? response.send(`console.log('${NO_PINBOARD_PERMISSION_MESSAGE}')`)
+    : response
+        .status(HTTP_STATUS_CODES.FORBIDDEN)
+        .send(NO_PINBOARD_PERMISSION_MESSAGE);
 };

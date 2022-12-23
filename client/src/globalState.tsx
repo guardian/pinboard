@@ -98,6 +98,7 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 };
 
 interface GlobalStateProviderProps {
+  hasApolloAuthError: boolean;
   userEmail: string;
   openPinboardIdBasedOnQueryParam: string | null;
   preselectedComposerId: string | null | undefined;
@@ -115,6 +116,7 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
 }
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
+  hasApolloAuthError,
   userEmail,
   openPinboardIdBasedOnQueryParam,
   preselectedComposerId,
@@ -326,6 +328,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     setErrors((prevErrors) => ({ ...prevErrors, [pinboardId]: error }));
 
   const hasError =
+    hasApolloAuthError ||
     Object.entries(errors).find(
       ([pinboardId, error]) => activePinboardIds.includes(pinboardId) && error
     ) !== undefined;

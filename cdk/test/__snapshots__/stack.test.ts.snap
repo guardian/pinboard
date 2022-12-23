@@ -2169,6 +2169,29 @@ $util.toJson($ctx.result)",
                 ],
               },
             },
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:lambda:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":function:pinboard-database-bridge-lambda-",
+                    Object {
+                      "Ref": "Stage",
+                    },
+                  ],
+                ],
+              },
+            },
           ],
           "Version": "2012-10-17",
         },

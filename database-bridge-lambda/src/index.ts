@@ -73,7 +73,6 @@ export const handler = async (
   payload: MetricRequest | AppSyncResolverEvent<unknown, unknown>
 ) => {
   const sql = await getDatabaseConnection();
-  console.log("payload", payload);
   try {
     if (isMetricRequest(payload)) {
       console.log("metric payload", payload);

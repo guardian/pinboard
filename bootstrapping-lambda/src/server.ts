@@ -42,6 +42,11 @@ const corsOptions: cors.CorsOptions = {
 server.use(express.json());
 server.use(cors(corsOptions));
 
+server.post("/search", getAuthMiddleware(), (_, response) => {
+  response.setHeader("Access-Control-Allow-Credentials", "true");
+  return response.json(Object.values(StageMetric));
+});
+
 server.post(
   "/query",
   getAuthMiddleware(),
@@ -53,11 +58,6 @@ server.post(
 );
 
 server.get("/_prout", (_, response) => response.send(GIT_COMMIT_HASH));
-
-server.post("/search", getAuthMiddleware(), (_, response) => {
-  response.setHeader("Access-Control-Allow-Credentials", "true");
-  return response.json(Object.values(StageMetric));
-});
 
 // generic error handler to catch errors in the various async functions
 server.use((request, response, next) => {

@@ -80,11 +80,12 @@ export const claimItem = (
 ) =>
   sql.begin(async (sql) => {
     const [updatedItem]: Item[] = await sql`
-        UPDATE "Item"
-        SET "claimedByEmail" = ${userEmail}
-        WHERE "id" = ${args.itemId} AND "claimedByEmail" IS NULL
-        RETURNING ${fragmentItemFields(sql, userEmail)}
-    `;
+            UPDATE "Item"
+            SET "claimedByEmail" = ${userEmail}
+            WHERE "id" = ${args.itemId}
+              AND "claimedByEmail" IS NULL
+            RETURNING ${fragmentItemFields(sql, userEmail)}
+        `;
     if (!updatedItem) {
       throw new Error("Item already claimed or item not found");
     }
@@ -99,9 +100,9 @@ export const claimItem = (
         ) || null,
     };
     const [newItem] = await sql`
-        INSERT INTO "Item" ${sql(claimItemToInsert)}
-        RETURNING ${fragmentItemFields(sql, userEmail)}
-    `;
+            INSERT INTO "Item" ${sql(claimItemToInsert)}
+                RETURNING ${fragmentItemFields(sql, userEmail)}
+        `;
     return {
       pinboardId: updatedItem.pinboardId,
       updatedItem,
@@ -114,28 +115,33 @@ export const getGroupPinboardIds = async (
   userEmail: string
 ): Promise<PinboardIdWithClaimCounts[]> =>
   sql`
-      SELECT "pinboardId", (CASE
-          WHEN "claimable" = false THEN 'notClaimableCount'
-          WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
-          WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
-          ELSE 'othersClaimedCount'
-        END) as "countType", count(*) as "count", MAX("id") as "latestGroupMentionItemId", NOT EXISTS(
-            SELECT 1
-            FROM "LastItemSeenByUser"
-            WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-              AND "LastItemSeenByUser"."userEmail" = ${userEmail}
-              AND "LastItemSeenByUser"."itemID" >= MAX("Item"."id")
-        ) as "hasUnread"
-      FROM "Item"
-      WHERE "type" != 'claim'
-        AND EXISTS(
-          SELECT 1
-          FROM "User" INNER JOIN "GroupMember" ON "GroupMember"."userGoogleID" = "User"."googleID"
-          WHERE "GroupMember"."groupShorthand" = ANY ("groupMentions")
-            AND "User"."email" = ${userEmail}
-        )
-      GROUP BY "pinboardId", "countType"
-  `.then((rows) => {
+        SELECT "pinboardId",
+               (CASE
+                    WHEN "claimable" = false THEN 'notClaimableCount'
+                    WHEN "claimedByEmail" IS NULL THEN 'unclaimedCount'
+                    WHEN "claimedByEmail" = ${userEmail} THEN 'yourClaimedCount'
+                    ELSE 'othersClaimedCount'
+                   END)  as "countType",
+               count(*)  as "count",
+               MAX("id") as "latestGroupMentionItemId",
+               NOT EXISTS(
+                       SELECT 1
+                       FROM "LastItemSeenByUser"
+                       WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+                         AND "LastItemSeenByUser"."userEmail" = ${userEmail}
+                         AND "LastItemSeenByUser"."itemID" >= MAX("Item"."id")
+                   )     as "hasUnread"
+        FROM "Item"
+        WHERE "type" != 'claim'
+          AND EXISTS(
+                SELECT 1
+                FROM "User"
+                         INNER JOIN "GroupMember" ON "GroupMember"."userGoogleID" = "User"."googleID"
+                WHERE "GroupMember"."groupShorthand" = ANY ("groupMentions")
+                  AND "User"."email" = ${userEmail}
+            )
+        GROUP BY "pinboardId", "countType"
+    `.then((rows) => {
     console.table(rows);
     return Object.values(
       rows.reduce((acc, row) => {
@@ -177,31 +183,29 @@ export const getItemCounts = (
   args.pinboardIds.length === 0
     ? Promise.resolve([])
     : sql`
-    SELECT "pinboardId", COUNT(*) AS "totalCount", COUNT(*) FILTER (WHERE "id" > COALESCE((
-        SELECT "itemID"
-        FROM "LastItemSeenByUser"
-        WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-          AND "LastItemSeenByUser"."userEmail" = ${userEmail}
-    ), 0)) AS "unreadCount"
-    FROM "Item"
-    WHERE "pinboardId" IN ${sql(args.pinboardIds)} 
-    GROUP BY "pinboardId"
-`;
+                SELECT "pinboardId",
+                       COUNT(*)                                   AS "totalCount",
+                       COUNT(*) FILTER (WHERE "id" > COALESCE((SELECT "itemID"
+                                                               FROM "LastItemSeenByUser"
+                                                               WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+                                                                 AND "LastItemSeenByUser"."userEmail" = ${userEmail}),
+                                                              0)) AS "unreadCount"
+                FROM "Item"
+                WHERE "pinboardId" IN ${sql(args.pinboardIds)}
+                GROUP BY "pinboardId"
+        `;
 
 export const getUniqueUsersPerHourInRange = async (
   sql: Sql,
   range: Range
-): Promise<[number, number][]> => {
-  const result = await sql`
+): Promise<[number, number][]> =>
+  sql`
         SELECT DATE_TRUNC('hour', "timestamp") as "hour",
                COUNT(DISTINCT "userEmail")     as "uniqueUsers"
         FROM "Item"
         WHERE "timestamp" >= ${range.from}
           AND "timestamp" < ${range.to}
         GROUP BY "hour"
-    `;
-  return Array.from(result.values()).map((row) => [
-    parseInt(row.uniqueUsers),
-    row.hour.getTime(),
-  ]);
-};
+    `.then((rows) =>
+    rows.map((row) => [parseInt(row.uniqueUsers), row.hour.getTime()])
+  );

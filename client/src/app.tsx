@@ -68,8 +68,6 @@ export const PinBoardApp = ({
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
-  const clearPayloadToBeSent = () => setPayloadToBeSent(null);
-
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
@@ -357,7 +355,7 @@ export const PinBoardApp = ({
           openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
           preselectedComposerId={preSelectedComposerId}
           payloadToBeSent={payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
+          setPayloadToBeSent={setPayloadToBeSent}
           isExpanded={isExpanded}
           setIsExpanded={setIsExpanded}
           userLookup={userLookup}

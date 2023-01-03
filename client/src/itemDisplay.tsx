@@ -11,13 +11,8 @@ import { palette, space } from "@guardian/source-foundations";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
-import {
-  buildPayloadAndType,
-  isPayloadType,
-  PayloadAndType,
-} from "./types/PayloadAndType";
+import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { FormattedDateTime } from "./formattedDateTime";
-import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
 import { FetchResult } from "@apollo/client";
 import { ClaimableItem } from "./claimableItem";
@@ -27,27 +22,7 @@ import Tick from "../icons/tick.svg";
 import { composer } from "../colours";
 import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
-import { useConfirmModal } from "./modal";
-import { scrollbarsCss } from "./styling";
-
-const maybeConstructPayloadAndType = (
-  type: string,
-  payload: string | null | undefined
-): PayloadAndType | undefined => {
-  if (!isPayloadType(type) || !payload) {
-    return;
-  }
-
-  const payloadAndType = buildPayloadAndType(type, JSON.parse(payload));
-
-  if (!payloadAndType) {
-    Sentry.captureException(
-      new Error(`Failed to parse payload with type=${type}, payload=${payload}`)
-    );
-  }
-
-  return payloadAndType;
-};
+import { EditItem } from "./editItem";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -60,6 +35,8 @@ interface ItemDisplayProps {
   setRef?: (node: HTMLDivElement) => void;
   scrollToItem: (itemID: string) => void;
   setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  maybeEditingItemId: string | null;
+  setMaybeEditingItemId: (itemId: string | null) => void;
 }
 
 export const ItemDisplay = ({
@@ -73,6 +50,8 @@ export const ItemDisplay = ({
   setRef,
   scrollToItem,
   setMaybeDeleteItemModalElement,
+  maybeEditingItemId,
+  setMaybeEditingItemId,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -89,7 +68,7 @@ export const ItemDisplay = ({
   const formattedMessage = useMemo(
     () =>
       item.message && formatMentionHandlesInText(mentionHandles, item.message),
-    [item.id]
+    [item.id, item.message]
   );
 
   const dateInMillisecs = new Date(item.timestamp).valueOf();
@@ -106,6 +85,7 @@ export const ItemDisplay = ({
     maybeRelatedItem && maybePreviousItem?.id === maybeRelatedItem.id;
 
   const isDeleted = item.deletedAt;
+  const isEdited = item.editHistory && item.editHistory.length > 0;
 
   return (
     <div
@@ -164,13 +144,20 @@ export const ItemDisplay = ({
           `}
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
-          {!isDeleted && (
+          {isEdited && (
+            <span>
+              &nbsp;-&nbsp;<em>Edited</em>
+            </span>
+          )}
+          {!isDeleted && !maybeEditingItemId && (
             <ItemHoverMenu
               item={item}
+              enterEditMode={() => setMaybeEditingItemId(item.id)}
               setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
             />
           )}
         </div>
+
         {isDeleted ? (
           <span
             css={css`
@@ -181,6 +168,8 @@ export const ItemDisplay = ({
           >
             ITEM DELETED
           </span>
+        ) : maybeEditingItemId === item.id ? (
+          <EditItem item={item} cancel={() => setMaybeEditingItemId(null)} />
         ) : (
           <div>
             {item.type === "claim" ? (
@@ -234,7 +223,7 @@ export const ItemDisplay = ({
             )}
           </div>
         )}
-        {payloadAndType && (
+        {payloadAndType && maybeEditingItemId !== item.id && (
           <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
         )}
       </div>

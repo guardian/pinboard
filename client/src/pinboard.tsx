@@ -21,6 +21,8 @@ import { css } from "@emotion/react";
 import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { ModalBackground } from "./modal";
+import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -52,6 +54,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     addEmailsToLookup,
 
     payloadToBeSent,
+    setPayloadToBeSent,
     clearPayloadToBeSent,
 
     showNotification,
@@ -263,6 +266,31 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 
+  const [maybeEditingItemId, setMaybeEditingItemId] = useState<string | null>(
+    null
+  );
+
+  const maybeEditingItem = useMemo(
+    () => maybeEditingItemId && itemsMap[maybeEditingItemId],
+    [maybeEditingItemId]
+  );
+
+  useEffect(() => {
+    if (maybeEditingItem) {
+      const previousPayloadToBeSent = payloadToBeSent;
+      //FIXME padding beneath PayloadDisplay
+      setPayloadToBeSent(
+        maybeConstructPayloadAndType(
+          maybeEditingItem.type,
+          maybeEditingItem.payload
+        ) || null
+      );
+      return () => {
+        setPayloadToBeSent(previousPayloadToBeSent);
+      };
+    }
+  }, [maybeEditingItemId]);
+
   const [
     maybeDeleteItemModalElement,
     setMaybeDeleteItemModalElement,
@@ -271,6 +299,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   return !isSelected ? null : (
     <React.Fragment>
       {maybeDeleteItemModalElement}
+      {maybeEditingItemId && <ModalBackground />}
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
@@ -297,6 +326,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
           hasProcessedItemIdInURL={hasProcessedItemIdInURL}
           setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
           setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+          maybeEditingItemId={maybeEditingItemId}
+          setMaybeEditingItemId={setMaybeEditingItemId}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
@@ -305,7 +336,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && (
         <SendMessageArea
           onSuccessfulSend={onSuccessfulSend}
-          payloadToBeSent={payloadToBeSent}
+          payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
           clearPayloadToBeSent={clearPayloadToBeSent}
           onError={(error) => setError(pinboardId, error)}
           userEmail={userEmail}

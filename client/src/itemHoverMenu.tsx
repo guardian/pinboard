@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { palette, space } from "@guardian/source-foundations";
 import Pencil from "../icons/pencil.svg";
 import { useConfirmModal } from "./modal";
@@ -8,16 +8,19 @@ import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
 import { gqlDeleteItem } from "../gql";
 import { Item } from "../../shared/graphql/graphql";
+import { EditItem } from "./editItem";
 
 export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
 interface ItemHoverMenuProps {
   item: Item;
+  enterEditMode: () => void;
   setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
 }
 
 export const ItemHoverMenu = ({
   item,
+  enterEditMode,
   setMaybeDeleteItemModalElement,
 }: ItemHoverMenuProps) => {
   const [deleteConfirmModalElement, confirmDelete] = useConfirmModal(
@@ -96,7 +99,7 @@ export const ItemHoverMenu = ({
         }
       `}
     >
-      <button>
+      <button onClick={enterEditMode}>
         <Pencil />
       </button>
       <button onClick={onClickDeleteItem}>

@@ -149,13 +149,16 @@ export const ItemDisplay = ({
               &nbsp;-&nbsp;<em>Edited</em>
             </span>
           )}
-          {!isDeleted && !maybeEditingItemId && (
-            <ItemHoverMenu
-              item={item}
-              enterEditMode={() => setMaybeEditingItemId(item.id)}
-              setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
-            />
-          )}
+          {!isDeleted &&
+            !maybeEditingItemId &&
+            item.userEmail === userEmail &&
+            item.type !== "claim" && (
+              <ItemHoverMenu
+                item={item}
+                enterEditMode={() => setMaybeEditingItemId(item.id)}
+                setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+              />
+            )}
         </div>
 
         {isDeleted ? (

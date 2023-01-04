@@ -75,6 +75,7 @@ export const editItem = async (
             ${sql(args.input)},
             "editHistory" = ARRAY_APPEND("editHistory", now())
         WHERE "id" = ${args.itemId}
+         AND "userEmail" = ${userEmail}
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
@@ -90,6 +91,7 @@ export const deleteItem = async (
           "payload" = NULL, 
           "deletedAt" = now()
       WHERE "id" = ${args.itemId}
+        AND "userEmail" = ${userEmail}
       RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 

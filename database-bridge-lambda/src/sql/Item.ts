@@ -163,6 +163,7 @@ export const getGroupPinboardIds = async (
                    )     as "hasUnread"
         FROM "Item"
         WHERE "type" != 'claim'
+          AND "deletedAt" IS NULL
           AND EXISTS(
                 SELECT 1
                 FROM "User"
@@ -222,6 +223,7 @@ export const getItemCounts = (
                                                               0)) AS "unreadCount"
                 FROM "Item"
                 WHERE "pinboardId" IN ${sql(args.pinboardIds)}
+                  AND "deletedAt" IS NULL
                 GROUP BY "pinboardId"
         `;
 

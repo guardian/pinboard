@@ -168,6 +168,7 @@ export const ItemInputBox = ({
         flex-grow: 1;
         background-color: white;
         border-radius: ${space[1]}px;
+        padding-bottom: 0.1px;
         ${rtaStyles}
       `}
     >

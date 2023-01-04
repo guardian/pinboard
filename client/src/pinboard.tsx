@@ -278,7 +278,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
   useEffect(() => {
     if (maybeEditingItem) {
       const previousPayloadToBeSent = payloadToBeSent;
-      //FIXME padding beneath PayloadDisplay
       setPayloadToBeSent(
         maybeConstructPayloadAndType(
           maybeEditingItem.type,

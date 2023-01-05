@@ -297,8 +297,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   return !isSelected ? null : (
     <React.Fragment>
-      {maybeDeleteItemModalElement}
-      {maybeEditingItemId && <ModalBackground />}
+      <div>{maybeDeleteItemModalElement}</div>
+      <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill

@@ -1,14 +1,14 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { palette, space } from "@guardian/source-foundations";
-import Pencil from "../icons/pencil.svg";
+import PencilIcon from "../icons/pencil.svg";
+import BinIcon from "../icons/bin.svg";
 import { useConfirmModal } from "./modal";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
 import { gqlDeleteItem } from "../gql";
 import { Item } from "../../shared/graphql/graphql";
-import { EditItem } from "./editItem";
 
 export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
@@ -81,10 +81,16 @@ export const ItemHoverMenu = ({
         padding: ${space[1] / 2}px;
         gap: ${space[1] / 2}px;
         button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-size: 11px;
+          line-height: 11px;
+          width: 18px;
+          height: 18px;
           border: none;
           border-radius: 50%;
-          padding: ${space[1] / 2}px ${space[1]}px;
+          padding: ${space[1] / 2}px;
           cursor: pointer;
           background: ${palette.neutral["86"]};
           &:hover {
@@ -100,10 +106,10 @@ export const ItemHoverMenu = ({
       `}
     >
       <button onClick={enterEditMode}>
-        <Pencil />
+        <PencilIcon />
       </button>
-      <button onClick={onClickDeleteItem}>
-        🗑 {/*FIXME use SVG from Ana*/}
+      <button onClick={onClickDeleteItem} css={css``}>
+        <BinIcon />
       </button>
     </div>
   );

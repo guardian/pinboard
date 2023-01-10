@@ -59,7 +59,7 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
           margin-top: ${space[1]}px;
           display: flex;
           gap: ${space[1]}px;
-          justify-content: space-between;
+          justify-content: flex-end;
           button {
             cursor: pointer;
             display: flex;
@@ -71,19 +71,6 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
           }
         `}
       >
-        <button
-          onClick={cancel}
-          css={css`
-            color: ${composer.primary[300]};
-            background-color: ${palette.neutral[100]};
-            &:hover {
-              background-color: ${palette.neutral[93]};
-            }
-          `}
-          disabled={loading}
-        >
-          Cancel
-        </button>
         <button
           onClick={() => editItem()}
           css={css`
@@ -101,6 +88,19 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
           disabled={loading || !canUpdate}
         >
           Update
+        </button>
+        <button
+          onClick={cancel}
+          css={css`
+            color: ${composer.primary[300]};
+            background-color: ${palette.neutral[100]};
+            &:hover {
+              background-color: ${palette.neutral[93]};
+            }
+          `}
+          disabled={loading}
+        >
+          Cancel
         </button>
       </div>
     </div>

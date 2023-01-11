@@ -32,6 +32,7 @@ const server = express();
 const allowList = [
   "https://grafana.local.dev-gutools.co.uk",
   "https://metrics.gutools.co.uk",
+  "https://public.metrics.gutools.co.uk",
 ];
 
 const corsOptions: cors.CorsOptions = {

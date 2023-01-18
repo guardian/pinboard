@@ -5,7 +5,7 @@ import {
   GridSearchSummary,
 } from "../../../shared/graphql/graphql";
 import { gqlGetGridSearchSummary } from "../../gql";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGlobalStateContext } from "../globalState";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";

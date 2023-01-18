@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import { Item } from "../../shared/graphql/graphql";
 import { ItemInputBox } from "./itemInputBox";
 import { useGlobalStateContext } from "./globalState";
@@ -8,6 +8,7 @@ import { gqlEditItem } from "../gql";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { composer } from "../colours";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 interface EditItemProps {
   item: Item;
@@ -16,21 +17,40 @@ interface EditItemProps {
 
 export const EditItem = ({ item, cancel }: EditItemProps) => {
   const { payloadToBeSent, clearPayloadToBeSent } = useGlobalStateContext();
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
+  const telemetryPayloadCommon = {
+    pinboardId: item.pinboardId,
+    itemId: item.id,
+  };
 
   const [message, setMessage] = useState(item.message);
+
+  const type = payloadToBeSent?.type || "message-only";
+
+  const payload = useMemo(
+    () => (payloadToBeSent ? JSON.stringify(payloadToBeSent.payload) : null),
+    [payloadToBeSent]
+  );
 
   const [editItem, { loading }] = useMutation(gqlEditItem, {
     variables: {
       itemId: item.id,
       input: {
         message: message || null,
-        payload: payloadToBeSent
-          ? JSON.stringify(payloadToBeSent.payload)
-          : null,
-        type: payloadToBeSent?.type || "message-only",
+        payload,
+        type,
       },
     },
-    onCompleted: cancel,
+    onCompleted: () => {
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.UPDATE_ITEM, {
+        ...telemetryPayloadCommon,
+        hasMessageChanged: item.message !== message,
+        hasTypeChanged: item.type !== type,
+        hasPayloadChanged: item.payload !== payload,
+      });
+      cancel();
+    },
     onError: (error) => {
       console.error(error);
       alert(`failed to update item`);
@@ -90,7 +110,13 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
           Update
         </button>
         <button
-          onClick={cancel}
+          onClick={() => {
+            sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.CANCEL_UPDATE_ITEM,
+              telemetryPayloadCommon
+            );
+            cancel();
+          }}
           css={css`
             color: ${composer.primary[300]};
             background-color: ${palette.neutral[100]};

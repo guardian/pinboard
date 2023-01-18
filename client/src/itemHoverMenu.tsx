@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { palette, space } from "@guardian/source-foundations";
 import PencilIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
@@ -9,6 +9,7 @@ import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
 import { gqlDeleteItem } from "../gql";
 import { Item } from "../../shared/graphql/graphql";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
@@ -58,12 +59,27 @@ export const ItemHoverMenu = ({
     },
   });
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   const onClickDeleteItem = () => {
     confirmDelete().then((confirmed) => {
+      const telemetryPayload = {
+        pinboardId: item.pinboardId,
+        itemId: item.id,
+      };
+
       if (confirmed) {
         // TODO show spinner whilst deleting
         deleteItem({ variables: { itemId: item.id } });
-        // FIXME prevent scroll to top/bottom when modal closes
+        sendTelemetryEvent?.(
+          PINBOARD_TELEMETRY_TYPE.DELETE_ITEM,
+          telemetryPayload
+        );
+      } else {
+        sendTelemetryEvent?.(
+          PINBOARD_TELEMETRY_TYPE.CANCEL_DELETE_ITEM,
+          telemetryPayload
+        );
       }
     });
   };

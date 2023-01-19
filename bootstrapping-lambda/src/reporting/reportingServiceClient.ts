@@ -14,27 +14,22 @@ const metricEndpointMap: Record<string, Stage> = {
   [StageMetric.UNIQUE_USERS_PROD]: "PROD",
 };
 
-const stageMetricToMetric = {
-  [StageMetric.UNIQUE_USERS_CODE]: Metric.UNIQUE_USERS,
-  [StageMetric.UNIQUE_USERS_PROD]: Metric.UNIQUE_USERS,
-};
-
 export const getMetrics = async (
   request: GrafanaRequest
 ): Promise<MetricsResponse[]> => {
   const lambda = new AWS.Lambda(standardAwsConfig);
   const { range, targets } = request;
   const metricsResponse = await Promise.all(
-    targets.map((target) => {
-      console.log(`processing grafana request`, target.target);
+    targets.map(({ target, data }) => {
+      console.log(`processing grafana request`, target);
       return lambda
         .invoke({
           FunctionName: getDatabaseBridgeLambdaFunctionName(
-            metricEndpointMap[target.target]
+            data?.stage || metricEndpointMap[target]
           ),
           Payload: JSON.stringify({
             range,
-            metric: stageMetricToMetric[target.target],
+            metric: Metric.UNIQUE_USERS,
           }),
         })
         .promise();

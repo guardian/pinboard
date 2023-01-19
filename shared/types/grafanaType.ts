@@ -1,3 +1,5 @@
+import { Stage } from "./stage";
+
 export interface Range {
   from: string;
   to: string;
@@ -9,15 +11,21 @@ export type TargetType = "timeserie" | "table";
 export enum StageMetric {
   UNIQUE_USERS_CODE = "uniqueUsersCode",
   UNIQUE_USERS_PROD = "uniqueUsersProd",
+  UNIQUE_USERS = "uniqueUsers",
 }
 
 export enum Metric {
   UNIQUE_USERS = "uniqueUsers",
 }
 
+export interface customData {
+  stage?: Stage;
+}
+
 export interface Target {
   target: StageMetric;
   type: TargetType;
+  data?: customData;
 }
 
 export interface GrafanaRequest {

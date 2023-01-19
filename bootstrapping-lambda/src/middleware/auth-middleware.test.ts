@@ -11,6 +11,7 @@ const mockedGetVerifiedUserEmail = mocked(getVerifiedUserEmail, true);
 const mockedUserHasPermission = mocked(userHasPermission, true);
 
 const mockNextFunction = jest.fn();
+const mockSetHeaderFunction = jest.fn();
 
 describe("auth-middleware", () => {
   beforeAll(() => {
@@ -27,9 +28,14 @@ describe("auth-middleware", () => {
       status: jest.fn().mockReturnValue({
         send: jest.fn(),
       }),
+      setHeader: mockSetHeaderFunction,
     } as unknown) as Response;
     await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).toHaveBeenCalledWith(401);
+    expect(mockSetHeaderFunction).toHaveBeenCalledWith(
+      "Access-Control-Allow-Credentials",
+      "true"
+    );
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
 
@@ -42,11 +48,16 @@ describe("auth-middleware", () => {
     const mockResponse = ({
       status: jest.fn(),
       send: jest.fn(),
+      setHeader: mockSetHeaderFunction,
     } as unknown) as Response;
     await getAuthMiddleware(true)(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).not.toHaveBeenCalled();
     expect(mockResponse.send).toHaveBeenCalledWith(
       "console.error('pan-domain auth cookie missing, invalid or expired')"
+    );
+    expect(mockSetHeaderFunction).toHaveBeenCalledWith(
+      "Access-Control-Allow-Credentials",
+      "true"
     );
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
@@ -62,6 +73,7 @@ describe("auth-middleware", () => {
       status: jest.fn().mockReturnValue({
         send: mockSendFunction,
       }),
+      setHeader: mockSetHeaderFunction,
     } as unknown) as Response;
 
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
@@ -71,6 +83,10 @@ describe("auth-middleware", () => {
     expect(mockResponse.status).toHaveBeenCalledWith(403);
     expect(mockSendFunction).toHaveBeenCalledWith(
       "You do not have permission to use PinBoard"
+    );
+    expect(mockSetHeaderFunction).toHaveBeenCalledWith(
+      "Access-Control-Allow-Credentials",
+      "true"
     );
     expect(mockNextFunction).not.toHaveBeenCalled();
     expect(mockRequest.userEmail).toBeUndefined();
@@ -86,6 +102,7 @@ describe("auth-middleware", () => {
     const mockResponse = ({
       status: jest.fn(),
       send: mockSendFunction,
+      setHeader: mockSetHeaderFunction,
     } as unknown) as Response;
 
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
@@ -95,6 +112,10 @@ describe("auth-middleware", () => {
     expect(mockResponse.status).not.toHaveBeenCalled();
     expect(mockSendFunction).toHaveBeenCalledWith(
       "console.log('You do not have permission to use PinBoard')"
+    );
+    expect(mockSetHeaderFunction).toHaveBeenCalledWith(
+      "Access-Control-Allow-Credentials",
+      "true"
     );
     expect(mockNextFunction).not.toHaveBeenCalled();
     expect(mockRequest.userEmail).toBeUndefined();
@@ -110,12 +131,17 @@ describe("auth-middleware", () => {
       status: jest.fn().mockReturnValue({
         send: jest.fn(),
       }),
+      setHeader: mockSetHeaderFunction,
     } as unknown) as Response;
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
     mockedUserHasPermission.mockResolvedValueOnce(true);
     await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockRequest.userEmail).toBe("foo@bar.com");
     expect(mockResponse.status).not.toHaveBeenCalled();
+    expect(mockSetHeaderFunction).toHaveBeenCalledWith(
+      "Access-Control-Allow-Credentials",
+      "true"
+    );
     expect(mockNextFunction).toHaveBeenCalledTimes(1);
   });
 });

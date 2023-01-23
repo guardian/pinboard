@@ -87,6 +87,12 @@ export const ItemDisplay = ({
   const isDeleted = item.deletedAt;
   const isEdited = item.editHistory && item.editHistory.length > 0;
 
+  const isMutable =
+    !isDeleted &&
+    !maybeEditingItemId &&
+    item.userEmail === userEmail &&
+    item.type !== "claim";
+
   return (
     <div
       ref={setRef}
@@ -149,16 +155,13 @@ export const ItemDisplay = ({
               &nbsp;-&nbsp;<em>Edited</em>
             </span>
           )}
-          {!isDeleted &&
-            !maybeEditingItemId &&
-            item.userEmail === userEmail &&
-            item.type !== "claim" && (
-              <ItemHoverMenu
-                item={item}
-                enterEditMode={() => setMaybeEditingItemId(item.id)}
-                setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
-              />
-            )}
+          {isMutable && (
+            <ItemHoverMenu
+              item={item}
+              enterEditMode={() => setMaybeEditingItemId(item.id)}
+              setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+            />
+          )}
         </div>
 
         {isDeleted ? (

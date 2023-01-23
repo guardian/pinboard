@@ -91,7 +91,8 @@ export const ItemDisplay = ({
     !isDeleted &&
     !maybeEditingItemId &&
     item.userEmail === userEmail &&
-    item.type !== "claim";
+    item.type !== "claim" &&
+    !item.claimedByEmail;
 
   return (
     <div

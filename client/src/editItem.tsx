@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { Item } from "../../shared/graphql/graphql";
 import { ItemInputBox } from "./itemInputBox";
 import { useGlobalStateContext } from "./globalState";
@@ -59,8 +59,11 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
 
   const canUpdate = message || payloadToBeSent;
 
+  const ref = useRef<HTMLDivElement | null>(null);
+
   return (
     <div
+      ref={ref}
       css={css`
         position: relative;
         z-index: 99999;
@@ -71,8 +74,8 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
         clearPayloadToBeSent={clearPayloadToBeSent}
         message={message || ""}
         setMessage={setMessage}
-        panelElement={document.body} // could we pass panelElement down from Pinboard?
         isSending={loading}
+        panelElement={ref.current}
       />
       <div
         css={css`

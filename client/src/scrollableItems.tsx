@@ -26,7 +26,6 @@ import { useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
-import { EditItem } from "./editItem";
 
 interface ScrollableItemsProps {
   items: Item[];

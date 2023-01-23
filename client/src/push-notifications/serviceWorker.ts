@@ -13,37 +13,48 @@ const showNotification = (
     clientId?: string;
   }
 ) => {
-  // TODO check for existing notification first (to preserve the `clientId` field)
-
   const user = extractNameFromEmail(item.userEmail);
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  self.registration.showNotification(
-    `📌 ${user.firstName} ${user.lastName} at ${new Date(
-      item.timestamp
-    ).toLocaleTimeString()}`,
-    {
-      tag: item.id,
-      data: item,
-      body: item.type === "claim" ? `claimed a request` : item.message,
-      icon: item.payload?.thumbnail,
-      image: item.payload?.thumbnail,
-      requireInteraction: true,
-      actions: [
+  self.registration.getNotifications().then((notifications) => {
+    const maybeExistingNotification = notifications.find(
+      (notification: Notification) => notification.data?.id === item.id
+    );
+
+    if (maybeExistingNotification && item.deletedAt) {
+      maybeExistingNotification.close();
+    } else if (!maybeExistingNotification || item.clientId)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      self.registration.showNotification(
+        `📌 ${user.firstName} ${user.lastName} at ${new Date(
+          item.timestamp
+        ).toLocaleTimeString()}`,
         {
-          action: "grid",
-          title: "Open in new Grid tab",
-          icon: "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
-        },
-        {
-          action: "composer",
-          title: "Open in new Composer tab",
-          icon:
-            "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
-        },
-      ],
-    }
-  );
+          tag: item.id,
+          data: item,
+          body: item.type === "claim" ? `claimed a request` : item.message,
+          icon: item.payload?.thumbnail,
+          image: item.payload?.thumbnail,
+          requireInteraction: true,
+          actions: [
+            {
+              action: "grid",
+              title: "Open in new Grid tab",
+              icon:
+                "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
+            },
+            {
+              action: "composer",
+              title: "Open in new Composer tab",
+              icon:
+                "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
+            },
+          ],
+        }
+      );
+  });
 };
 
 self.addEventListener("message", (event: MessageEvent) => {

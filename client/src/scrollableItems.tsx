@@ -46,6 +46,9 @@ interface ScrollableItemsProps {
   }) => Promise<FetchResult<{ claimItem: Claimed }>>;
   hasProcessedItemIdInURL: boolean;
   setHasProcessedItemIdInURL: (newValue: boolean) => void;
+  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  maybeEditingItemId: string | null;
+  setMaybeEditingItemId: (itemId: string | null) => void;
 }
 
 export const ScrollableItems = ({
@@ -65,6 +68,9 @@ export const ScrollableItems = ({
   claimItem,
   hasProcessedItemIdInURL,
   setHasProcessedItemIdInURL,
+  setMaybeDeleteItemModalElement,
+  maybeEditingItemId,
+  setMaybeEditingItemId,
 }: ScrollableItemsProps) => {
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
@@ -278,11 +284,17 @@ export const ScrollableItems = ({
                 }
                 setRef={setRef(item.id)}
                 scrollToItem={scrollToItem}
+                setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+                maybeEditingItemId={maybeEditingItemId}
+                setMaybeEditingItemId={setMaybeEditingItemId}
               />
             ),
             [
+              maybeEditingItemId,
               item.id,
               item.claimedByEmail,
+              item.editHistory,
+              item.deletedAt,
               userLookup,
               lastItemSeenByUsersForItemIDLookup,
               scrollToItem,

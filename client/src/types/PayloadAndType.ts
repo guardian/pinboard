@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/react";
+
 export const sources = ["grid"] as const;
 export const sourceTypes = ["crop", "original", "search"] as const;
 
@@ -64,4 +66,23 @@ export const buildPayloadAndType = (
   ) {
     return { type, payload };
   }
+};
+
+export const maybeConstructPayloadAndType = (
+  type: string,
+  payload: string | null | undefined
+): PayloadAndType | undefined => {
+  if (!isPayloadType(type) || !payload) {
+    return;
+  }
+
+  const payloadAndType = buildPayloadAndType(type, JSON.parse(payload));
+
+  if (!payloadAndType) {
+    Sentry.captureException(
+      new Error(`Failed to parse payload with type=${type}, payload=${payload}`)
+    );
+  }
+
+  return payloadAndType;
 };

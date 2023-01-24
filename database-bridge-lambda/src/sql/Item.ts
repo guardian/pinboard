@@ -1,5 +1,6 @@
 import {
   CreateItemInput,
+  EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
 } from "../../../shared/graphql/graphql";
@@ -61,6 +62,37 @@ export const createItem = async (
   sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
+export const editItem = async (
+  sql: Sql,
+  args: { itemId: string; input: EditItemInput },
+  userEmail: string
+) =>
+  sql`
+        UPDATE "Item"
+        SET 
+            ${sql(args.input)},
+            "editHistory" = ARRAY_APPEND("editHistory", now())
+        WHERE "id" = ${args.itemId}
+         AND "userEmail" = ${userEmail}
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
+export const deleteItem = async (
+  sql: Sql,
+  args: { itemId: string },
+  userEmail: string
+) =>
+  sql`
+      UPDATE "Item"
+      SET 
+          "message" = NULL, 
+          "payload" = NULL, 
+          "deletedAt" = now()
+      WHERE "id" = ${args.itemId}
+        AND "userEmail" = ${userEmail}
+      RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
 export const listItems = (
@@ -133,6 +165,7 @@ export const getGroupPinboardIds = async (
                    )     as "hasUnread"
         FROM "Item"
         WHERE "type" != 'claim'
+          AND "deletedAt" IS NULL
           AND EXISTS(
                 SELECT 1
                 FROM "User"
@@ -192,6 +225,7 @@ export const getItemCounts = (
                                                               0)) AS "unreadCount"
                 FROM "Item"
                 WHERE "pinboardId" IN ${sql(args.pinboardIds)}
+                  AND "deletedAt" IS NULL
                 GROUP BY "pinboardId"
         `;
 

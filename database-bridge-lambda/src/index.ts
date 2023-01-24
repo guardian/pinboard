@@ -5,6 +5,8 @@ import type {
 import {
   claimItem,
   createItem,
+  deleteItem,
+  editItem,
   getGroupPinboardIds,
   getItemCounts,
   listItems,
@@ -33,6 +35,10 @@ const run = (
   switch (databaseOperation) {
     case "createItem":
       return createItem(sql, args, userEmail);
+    case "editItem":
+      return editItem(sql, args, userEmail);
+    case "deleteItem":
+      return deleteItem(sql, args, userEmail);
     case "claimItem":
       return claimItem(sql, args, userEmail);
     case "listItems":

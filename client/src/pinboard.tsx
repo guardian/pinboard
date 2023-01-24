@@ -12,7 +12,7 @@ import {
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
   gqlOnClaimItem,
-  gqlOnCreateItem,
+  gqlOnMutateItem,
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
@@ -21,6 +21,8 @@ import { css } from "@emotion/react";
 import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { ModalBackground } from "./modal";
+import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -52,6 +54,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     addEmailsToLookup,
 
     payloadToBeSent,
+    setPayloadToBeSent,
     clearPayloadToBeSent,
 
     showNotification,
@@ -67,12 +70,12 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
-  const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
+  const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
-      const itemFromSubscription: Item = subscriptionData.data.onCreateItem;
+      const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
       addEmailsToLookup([itemFromSubscription.userEmail]);
       setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
-      if (!isExpanded) {
+      if (!isExpanded && !itemFromSubscription.editHistory) {
         showNotification(itemFromSubscription);
         setUnreadFlag(pinboardId)(true);
       }
@@ -263,8 +266,39 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 
+  const [maybeEditingItemId, setMaybeEditingItemId] = useState<string | null>(
+    null
+  );
+
+  const maybeEditingItem = useMemo(
+    () => maybeEditingItemId && itemsMap[maybeEditingItemId],
+    [maybeEditingItemId]
+  );
+
+  useEffect(() => {
+    if (maybeEditingItem) {
+      const previousPayloadToBeSent = payloadToBeSent;
+      setPayloadToBeSent(
+        maybeConstructPayloadAndType(
+          maybeEditingItem.type,
+          maybeEditingItem.payload
+        ) || null
+      );
+      return () => {
+        setPayloadToBeSent(previousPayloadToBeSent);
+      };
+    }
+  }, [maybeEditingItemId]);
+
+  const [
+    maybeDeleteItemModalElement,
+    setMaybeDeleteItemModalElement,
+  ] = useState<JSX.Element | null>(null);
+
   return !isSelected ? null : (
     <React.Fragment>
+      <div>{maybeDeleteItemModalElement}</div>
+      <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
@@ -290,6 +324,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
           claimItem={claimItem}
           hasProcessedItemIdInURL={hasProcessedItemIdInURL}
           setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
+          setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+          maybeEditingItemId={maybeEditingItemId}
+          setMaybeEditingItemId={setMaybeEditingItemId}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
@@ -298,7 +335,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && (
         <SendMessageArea
           onSuccessfulSend={onSuccessfulSend}
-          payloadToBeSent={payloadToBeSent}
+          payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
           clearPayloadToBeSent={clearPayloadToBeSent}
           onError={(error) => setError(pinboardId, error)}
           userEmail={userEmail}

@@ -42,6 +42,7 @@ interface GlobalStateContextShape {
   activePinboards: PinboardData[];
 
   payloadToBeSent: PayloadAndType | null;
+  setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
   clearPayloadToBeSent: () => void;
 
   addManuallyOpenedPinboardId: (
@@ -103,7 +104,7 @@ interface GlobalStateProviderProps {
   openPinboardIdBasedOnQueryParam: string | null;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
-  clearPayloadToBeSent: () => void;
+  setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
   userLookup: UserLookup;
@@ -122,7 +123,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   preselectedComposerId,
   presetUnreadNotificationCount,
   payloadToBeSent,
-  clearPayloadToBeSent,
+  setPayloadToBeSent,
   isExpanded,
   setIsExpanded,
   userLookup,
@@ -488,6 +489,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     };
   }, []);
 
+  const clearPayloadToBeSent = () => setPayloadToBeSent(null);
+
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
@@ -501,6 +504,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     activePinboardIds,
 
     payloadToBeSent,
+    setPayloadToBeSent,
     clearPayloadToBeSent,
 
     addManuallyOpenedPinboardId,

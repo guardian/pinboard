@@ -45,6 +45,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
           margin-right: 5px;
           ${agateSans.xxsmall({ lineHeight: "tight" })}
           line-height: ${roundelHeightPx}px;
+          user-select: none;
         `}
       >
         Seen by

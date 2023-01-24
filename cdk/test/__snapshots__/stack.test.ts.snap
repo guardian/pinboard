@@ -3871,7 +3871,7 @@ $util.toJson($ctx.result)",
             },
           },
         ],
-        "Timeout": 5,
+        "Timeout": 6,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
             Object {

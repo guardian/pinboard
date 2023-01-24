@@ -188,7 +188,7 @@ export class PinBoardStack extends Stack {
       {
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
-        timeout: Duration.seconds(5),
+        timeout: Duration.seconds(6),
         handler: "index.handler",
         environment: {
           STAGE,

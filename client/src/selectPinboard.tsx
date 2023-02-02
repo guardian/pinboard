@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { css, CSSObject } from "@emotion/react";
 import { standardPanelContainerCss } from "./styling";
@@ -28,6 +28,8 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
+import { CallBackProps, STATUS, Step } from "react-joyride";
+import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -332,6 +334,74 @@ export const SelectPinboard = ({
     );
   };
 
+  const myPinboardsRef = useRef<HTMLDivElement>(null);
+  const teamsPinboardsRef = useRef<HTMLDivElement>(null);
+  const searchbarRef = useRef<HTMLDivElement>(null);
+
+  const guideSteps: Step[] = [
+    {
+      content: (
+        <div>
+          Here you can find the list of Pinboards where you sent a message or
+          are tagged by others.
+        </div>
+      ),
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: myPinboardsRef.current!,
+      showSkipButton: false,
+      placement: "left",
+    },
+    {
+      content: (
+        <div>
+          These are the Pinboards where your team is tagged (in a message or a
+          request).
+        </div>
+      ),
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: teamsPinboardsRef.current!,
+      showSkipButton: false,
+      placement: "left",
+    },
+    {
+      content: <div>Search for other Pinboards via Workflow titles</div>,
+      placement: "left",
+      spotlightPadding: 3,
+      spotlightClicks: true,
+      styles: {
+        options: {
+          zIndex: 99999999,
+        },
+      },
+      target: searchbarRef.current!,
+    },
+  ];
+
+  const [run, setRun] = useState(false);
+
+  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = () => {
+    setRun(true);
+  };
+
+  const handleGuidedTourCallback = (data: CallBackProps) => {
+    const { action, index, status, type } = data;
+    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
+      // Need to set our running state to false, so we can restart if we click start again.
+      setRun(true);
+    }
+  };
   return (
     <>
       <div
@@ -349,6 +419,16 @@ export const SelectPinboard = ({
           },
         }}
       >
+        <GuidedTourStartButton start={handleGuidedTourStart} />
+        {myPinboardsRef.current &&
+        teamsPinboardsRef.current &&
+        searchbarRef.current ? (
+          <GuidedTour
+            run={run}
+            steps={guideSteps}
+            callback={handleGuidedTourCallback}
+          />
+        ) : null}
         <Feedback />
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />
@@ -381,16 +461,23 @@ export const SelectPinboard = ({
         )}
         {(activePinboardsWithoutPreselected?.length > 0 ||
           isLoadingActivePinboardList) && (
-          <React.Fragment>
-            <SectionHeading>MY PINBOARDS</SectionHeading>
-            {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
-            {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
-            <div css={{ height: space[2] }} />
-          </React.Fragment>
+          <div ref={myPinboardsRef}>
+            <React.Fragment>
+              <SectionHeading>
+                <span>MY PINBOARDS</span>
+              </SectionHeading>
+              {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
+              {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
+              <div css={{ height: space[2] }} />
+            </React.Fragment>
+          </div>
         )}
         {pinboardsWithClaimCounts?.length > 0 && (
           <React.Fragment>
-            <SectionHeading>{"MY TEAMS' PINBOARDS"}</SectionHeading>
+            <div ref={teamsPinboardsRef}>
+              <SectionHeading>MY TEAMS' PINBOARDS</SectionHeading>
+            </div>
+
             {pinboardsWithClaimCounts.map(OpenPinboardButton)}
             <button
               css={css`
@@ -412,29 +499,31 @@ export const SelectPinboard = ({
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}
-        <SectionHeading>SEARCH</SectionHeading>
-        <div css={{ position: "relative" }}>
-          <TextInput
-            label="Search"
-            hideLabel
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            onKeyPress={(event) => event.stopPropagation()}
-            placeholder="Search by Working Title / Headline"
-            css={{
-              marginBottom: "5px",
-              boxSizing: "border-box",
-              width: "100%",
-              borderRadius: "16px",
-              borderWidth: "1px",
-              height: "32px",
-              fontFamily: agateSans.small(),
-              lineHeight: "32px",
-              paddingRight: "30px", // to allow for icon
-            }}
-          />
-          <div css={{ position: "absolute", right: "4px", top: "6px" }}>
-            <SvgMagnifyingGlass size="small" />
+        <div ref={searchbarRef}>
+          <SectionHeading>SEARCH</SectionHeading>
+          <div css={{ position: "relative" }}>
+            <TextInput
+              label="Search"
+              hideLabel
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyPress={(event) => event.stopPropagation()}
+              placeholder="Search by Working Title / Headline"
+              css={{
+                marginBottom: "5px",
+                boxSizing: "border-box",
+                width: "100%",
+                borderRadius: "16px",
+                borderWidth: "1px",
+                height: "32px",
+                fontFamily: agateSans.small(),
+                lineHeight: "32px",
+                paddingRight: "30px", // to allow for icon
+              }}
+            />
+            <div css={{ position: "absolute", right: "4px", top: "6px" }}>
+              <SvgMagnifyingGlass size="small" />
+            </div>
           </div>
         </div>
         {loading && searchText && <Text>Searching...</Text>}

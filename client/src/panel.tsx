@@ -202,28 +202,34 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     },
   ];
 
-  const [run, setRun] = useState(false);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [mainKey, setMainKey] = useState(0);
+  const [guidedTourState, setGuidedTourState] = useState({
+    run: false,
+    stepIndex: 0,
+    mainKey: 0,
+  })
+
+  const {run, stepIndex, mainKey} = guidedTourState;
+
+  const handleGuidedTourStart = () => {
+    setGuidedTourState({...guidedTourState, run: true})
+  }
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
     const { status, type, index, action } = data;
-    console.log(data);
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (finishedStatuses.includes(status)) {
-      setRun(true);
-    }
+    // if (finishedStatuses.includes(status)) {
+    //   setGuidedTourState({...guidedTourState, run: true});
+    // }
 
     if (type === EVENTS.TOUR_END) {
-      setMainKey(mainKey + 1);
-      setRun(false);
-      setStepIndex(0);
+      setGuidedTourState({mainKey: mainKey + 1, run: false, stepIndex: 0});
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setStepIndex(nextStepIndex);
+      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex});
+
     }
   };
 
@@ -320,11 +326,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
-      <GuidedTourStartButton
-        start={() => {
-          setRun(true);
-        }}
-      />
+      <GuidedTourStartButton start={handleGuidedTourStart} />
       <GuidedTour
         run={run}
         steps={guideSteps}

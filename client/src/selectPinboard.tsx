@@ -435,7 +435,7 @@ export const SelectPinboard = ({
         }}
       >
         <Feedback />
-        {myPinboardsRef && teamsPinboardsRef && searchbarRef && (
+        {myPinboardsRef && teamsPinboardsRef && searchbarRef && notificationSubscriptionButtonRef &&(
           <GuidedTour
             steps={indexViewGuidedSteps}
             run={run}

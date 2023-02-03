@@ -24,8 +24,9 @@ import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
-import { Step } from "react-joyride";
-
+import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
+import BinIcon from "../icons/bin.svg";
+import EditIcon from "../icons/pencil.svg";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -39,6 +40,7 @@ interface PinboardProps {
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
+  guidedTourActive: boolean;
 }
 
 export const Pinboard: React.FC<PinboardProps> = ({
@@ -46,6 +48,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   isExpanded,
   isSelected,
   panelElement,
+  guidedTourActive,
 }) => {
   const {
     hasBrowserFocus,
@@ -290,99 +293,97 @@ export const Pinboard: React.FC<PinboardProps> = ({
     useState<JSX.Element | null>(null);
 
   const messageAreaRef = useRef(null);
-  const assetViewRef = useRef(null);
+  const messageDisplayRef = useRef(null);
 
-  const chatViewGuidedSteps: Step[] = [
+  const pinboardViewGuidedSteps: Step[] = [
     {
-      content: <div>Try typing messages here...</div>,
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
       target: messageAreaRef.current!,
-      placement: "left",
+      title: 'Sending messages',
+      content: <div>Try typing messages here...</div>,
+      placement: "top",
     },
     {
+      target: messageAreaRef.current!,
+      title: 'Tag someone',
       content: (
         <div>
-          You can tag someone by typing their name with @...(try it!). They will
+          You can tag someone by typing their name with @. They will
           receive a message notification alert on their browser.
         </div>
       ),
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
-      target: messageAreaRef.current!,
-      placement: "left",
+      placement: "top",
     },
     {
+      target: messageAreaRef.current!,
+      title: 'Tag a team',
       content: (
         <div>
-          You can tag a colleague by typing their names with @...(try it!). They
-          will receive a message notification alert on their browser.
+          <p>When you tag a team, everyone in the team will receive a notification (if their notification is turned on).</p>
+          <p>You can turn a message into a 'request', so that the tagged team members can track the status.</p>
         </div>
       ),
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
-      target: messageAreaRef.current!,
-      placement: "left",
+      placement: "top",
     },
     {
+      target: messageAreaRef.current!,
+      title: 'Edit or delete your messages',
       content: (
         <div>
-          You can also send a request to a team by:
-          <ol>
-            <li>tagging their name (@)</li>
-            <li>make it a request</li>
-          </ol>
+          You can also edit <EditIcon /> or delete <BinIcon /> a message by clicking on the corresponding icon next to your message.
         </div>
       ),
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
-      target: messageAreaRef.current!,
-      placement: "left",
+      placement: "top",
     },
   ];
 
-  const [run, setRun] = useState(false);
+  const [guidedTourState, setGuidedTourState] = useState({
+    run: guidedTourActive,
+    stepIndex: 0,
+    mainKey: 0,
+  });
+  const { run, stepIndex, mainKey } = guidedTourState;
 
-  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = (
-    e
-  ) => {
-    e.preventDefault();
-    setRun(true);
+  useEffect(() => {
+    setGuidedTourState({ ...guidedTourState, run: guidedTourActive });
+  }, [guidedTourActive]);
+
+  const handleGuidedTourCallback = (data: CallBackProps) => {
+    const { status, type, index, action } = data;
+
+    if (type === EVENTS.TOUR_END) {
+      setGuidedTourState({
+        ...guidedTourState,
+        mainKey: mainKey + 1,
+        run: false,
+        stepIndex: 0,
+      });
+    } else if (
+      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
+    ) {
+      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
+    }
   };
-
   return !isSelected ? null : (
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
-      {/*<GuidedTourStartButton start={handleGuidedTourStart} />*/}
       <Feedback />
+      {messageAreaRef && (
+          <GuidedTour
+            steps={pinboardViewGuidedSteps}
+            run={run}
+            stepIndex={stepIndex}
+            mainKey={mainKey}
+            handleCallback={handleGuidedTourCallback}
+          />
+        )}
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
         css={css`
           flex-grow: 1;
         `}
       />
-      {/*<GuidedTour run={run} steps={guideSteps} />*/}
       {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}

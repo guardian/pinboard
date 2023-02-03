@@ -71,6 +71,7 @@ export interface GuidedTourProps {
   steps: Step[];
   stepIndex: number;
   mainKey: number;
+  showProgress?: boolean;
 }
 
 export const GuidedTour = ({
@@ -79,6 +80,7 @@ export const GuidedTour = ({
   steps,
   stepIndex,
   mainKey,
+  showProgress = true,
 }: GuidedTourProps) => {
   return (
     <Joyride
@@ -91,11 +93,14 @@ export const GuidedTour = ({
       scrollToFirstStep
       showSkipButton={false}
       spotlightPadding={1}
+      spotlightClicks
+      showProgress={showProgress}
       styles={{
         options: {
           primaryColor: "rgb(255, 140, 0)",
           zIndex: 999999,
         },
+        
         tooltip: {
           fontFamily: "Guardian Agate Sans",
           textAlign: "left",

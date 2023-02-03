@@ -88,6 +88,7 @@ export const InlineModePanel = ({
           isSelected
           isExpanded
           panelElement={panelRef.current}
+          guidedTourActive={false}
         />
       </div>
     </root.div>

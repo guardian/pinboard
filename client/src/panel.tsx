@@ -34,6 +34,7 @@ import Joyride, {
 } from "react-joyride";
 import { agateSans } from "../fontNormaliser";
 import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
+import BeaconIcon from "../icons/beacon";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -174,6 +175,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
+  
+
   const guideSteps: Step[] = [
     {
       content: (
@@ -187,10 +190,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           The Guardian's very own chat and asset-sharing tool.
           <div style={{ display: "flex", alignItems: "center" }}>
             Let's take a tour. Follow the orange beacon.
-            <button style="background-color: transparent; border: 0px; border-radius: 0px; color: rgb(85, 85, 85); cursor: pointer; font-size: 16px; line-height: 1; padding: 8px; appearance: none; display: inline-block; height: 36px; position: relative; width: 36px; z-index: 999999;">
-              <span style="animation: 1.2s ease-in-out 0s infinite normal none running joyride-beacon-inner; background-color: rgb(255, 140, 0); border-radius: 50%; display: block; height: 50%; left: 50%; opacity: 0.7; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 50%;"></span>
-              <span style="animation: 1.2s ease-in-out 0s infinite normal none running joyride-beacon-outer; border: 2px solid rgb(255, 140, 0); border-radius: 50%; box-sizing: border-box; display: block; height: 100%; left: 0px; opacity: 0.9; position: absolute; top: 0px; transform-origin: center center; width: 100%;"></span>
-            </button>
+                <BeaconIcon />
           </div>
         </div>
       ),
@@ -223,6 +223,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   });
 
   const [indexViewTourActive, setIndexViewTourActive] = useState(false);
+  const [pinboardViewTourActive, setPinboardViewTourActive] = useState(false);
 
   const { run, stepIndex, mainKey } = guidedTourState;
 
@@ -232,11 +233,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
     const { status, type, index, action } = data;
-    // const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-
-    // if (finishedStatuses.includes(status)) {
-    //   setGuidedTourState({...guidedTourState, run: true});
-    // }
 
     if (type === EVENTS.TOUR_END) {
       setGuidedTourState({
@@ -246,6 +242,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         stepIndex: 0,
       });
       setIndexViewTourActive(true);
+      setPinboardViewTourActive(true);
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
@@ -355,6 +352,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           stepIndex={stepIndex}
           mainKey={mainKey}
           handleCallback={handleGuidedTourCallback}
+          showProgress={false}
         />
       )}
 
@@ -381,6 +379,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
             isExpanded={pinboardId === selectedPinboardId && isExpanded}
             isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
+            guidedTourActive={false}
           />
         ))
       }
@@ -391,6 +390,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           isExpanded={isExpanded}
           isSelected={true}
           panelElement={panelRef.current}
+          guidedTourActive={pinboardViewTourActive}
         />
       )}
     </div>

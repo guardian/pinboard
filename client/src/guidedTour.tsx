@@ -65,7 +65,7 @@ export const GuidedTourStartButton = ({
   );
 };
 
-interface GuidedTourProps {
+export interface GuidedTourProps {
   handleCallback?: (data: CallBackProps) => void;
   run: boolean;
   steps: Step[];
@@ -89,16 +89,43 @@ export const GuidedTour = ({
       key={mainKey}
       continuous
       scrollToFirstStep
-      showProgress
-      showSkipButton
+      showSkipButton={false}
+      spotlightPadding={1}
       styles={{
         options: {
           primaryColor: "rgb(255, 140, 0)",
+          zIndex: 999999,
         },
         tooltip: {
-          fontFamily: "arial", // not working
+          fontFamily: "Guardian Agate Sans",
+          textAlign: "left",
+          fontSize: 14,
+        },
+        tooltipContent: {
+          textAlign: "left",
+        },
+        tooltipFooter: {
+          alignItems: "center",
+          display: "flex",
+          justifyContent: "space-between",
+          padding: 0,
+          margin: 0,
+        },
+        buttonNext: {
           fontSize: "14px",
-          padding: `${space[3]}px`,
+          fontFamily: "Guardian Agate Sans",
+        },
+        buttonBack: {
+          fontSize: "14px",
+          fontFamily: "Guardian Agate Sans",
+        },
+        buttonClose: {
+          fontSize: "14px",
+          fontFamily: "Guardian Agate Sans",
+        },
+        buttonSkip: {
+          fontSize: "14px",
+          fontFamily: "Guardian Agate Sans",
         },
       }}
     />

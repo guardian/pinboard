@@ -35,8 +35,7 @@ import Joyride, {
   STATUS,
   Step,
 } from "react-joyride";
-import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
-import { useMount, useSetState } from "react-use";
+import { GuidedTour } from "./guidedTour";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -56,6 +55,7 @@ interface SelectPinboardProps {
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
+  guidedTourStatus: boolean;
 }
 
 export const SelectPinboard = ({
@@ -64,6 +64,7 @@ export const SelectPinboard = ({
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
+  guidedTourStatus,
 }: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
@@ -340,92 +341,80 @@ export const SelectPinboard = ({
       </div>
     );
   };
-  // interface State {
-  //   run: boolean;
-  //   // stepIndex: number;
-  //   steps: Step[];
-  // }
-  //
-  // const [{ run, stepIndex, steps }, setState] = useSetState<State>({
-  //   run: false,
-  //   // stepIndex: 0,
-  //   steps: [],
-  // });
 
   const myPinboardsRef = useRef<HTMLDivElement>(null);
   const teamsPinboardsRef = useRef<HTMLDivElement>(null);
   const searchbarRef = useRef<HTMLDivElement>(null);
+  const notificationSubscriptionButtonRef = useRef<HTMLDivElement>(null);
 
-  // useMount(() => {
-  //   setState({
-  //     run: true,
-  //     steps: guideSteps,
-  //   });
-  //   console.log("mounted");
-  //   console.log("running", run);
-  //   console.log("steps", steps.length > 0);
-  // });
-
-  const guideSteps: Step[] = [
+  const indexViewGuidedSteps: Step[] = [
     {
+      target: myPinboardsRef.current!,
+      title: "My Pinboards",
       content: (
         <div>
           Here you can find the list of Pinboards where you sent a message or
           are tagged by others.
         </div>
       ),
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
-      target: myPinboardsRef.current!,
-      showSkipButton: false,
       placement: "left",
     },
     {
+      target: teamsPinboardsRef.current!,
+      title: "My Teams' Pinboards",
       content: (
         <div>
           These are the Pinboards where your team is tagged (in a message or a
           request).
         </div>
       ),
-      spotlightClicks: true,
-      spotlightPadding: 1,
-      styles: {
-        options: {
-          zIndex: 999999,
-        },
-      },
-      target: teamsPinboardsRef.current!,
-      showSkipButton: false,
       placement: "left",
     },
     {
-      content: <div>Search for other Pinboards via Workflow titles</div>,
-      placement: "left",
-      spotlightPadding: 3,
-      spotlightClicks: true,
-      styles: {
-        options: {
-          zIndex: 99999999,
-        },
-      },
       target: searchbarRef.current!,
+      title: "Search",
+      content: (
+        <div>
+          You can search for other Pinboards on Workflow using this searchbar.
+        </div>
+      ),
+      placement: "left",
+    },
+    {
+      target: notificationSubscriptionButtonRef.current!,
+      title: "Subscribe/Unsubscribe to Notifications",
+      content: <div>You can set your browser notification settings here.</div>,
+      placement: "left",
     },
   ];
 
-  const [run, setRun] = useState(false);
-  // const [steps, setSteps] = useState(guideSteps);
-  // const [stepIndex, setStepIndex] = useState(0);
+  const [guidedTourState, setGuidedTourState] = useState({
+    run: guidedTourStatus,
+    stepIndex: 0,
+    mainKey: 0,
+  });
+  const { run, stepIndex, mainKey } = guidedTourState;
 
-  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = (
-    e
-  ) => {
-    e.preventDefault();
-    setRun(true);
+  useEffect(() => {
+    setGuidedTourState({ ...guidedTourState, run: guidedTourStatus });
+  }, [guidedTourStatus]);
+
+  const handleGuidedTourCallback = (data: CallBackProps) => {
+    const { status, type, index, action } = data;
+
+    if (type === EVENTS.TOUR_END) {
+      setGuidedTourState({
+        ...guidedTourState,
+        mainKey: mainKey + 1,
+        run: false,
+        stepIndex: 0,
+      });
+    } else if (
+      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
+    ) {
+      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
+    }
   };
 
   return (
@@ -445,14 +434,16 @@ export const SelectPinboard = ({
           },
         }}
       >
-        {/*<GuidedTourStartButton start={handleGuidedTourStart} />*/}
-        {myPinboardsRef.current &&
-        teamsPinboardsRef.current &&
-        searchbarRef.current ? (
-          <GuidedTour run={run} steps={guideSteps} />
-        ) : null}
-
         <Feedback />
+        {myPinboardsRef && teamsPinboardsRef && searchbarRef && (
+          <GuidedTour
+            steps={indexViewGuidedSteps}
+            run={run}
+            stepIndex={stepIndex}
+            mainKey={mainKey}
+            handleCallback={handleGuidedTourCallback}
+          />
+        )}
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />
         )}
@@ -568,9 +559,11 @@ export const SelectPinboard = ({
           }}
         >
           {/* TODO move this to some settings menu (rather than bottom of selection list) */}
-          <PushNotificationPreferencesOpener
-            hasWebPushSubscription={hasWebPushSubscription}
-          />
+          <div ref={notificationSubscriptionButtonRef}>
+            <PushNotificationPreferencesOpener
+              hasWebPushSubscription={hasWebPushSubscription}
+            />
+          </div>
         </div>
       </div>
     </>

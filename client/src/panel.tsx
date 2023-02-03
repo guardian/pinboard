@@ -180,23 +180,36 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         <div
           style={{
             textAlign: "left",
-            fontFamily: "arial",
-            margin: 0,
+            marginTop: `${space[1]}px`,
             padding: 0,
           }}
         >
-          <span>
-            Welcome to Pinboard 👋 <br /> The Guardian's very own chat and
-            asset-sharing tool. <br />
-          </span>
-          Let's take a tour.
+          The Guardian's very own chat and asset-sharing tool.
+          <div style={{ display: "flex", alignItems: "center" }}>
+            Let's take a tour. Follow the orange beacon.
+            <button style="background-color: transparent; border: 0px; border-radius: 0px; color: rgb(85, 85, 85); cursor: pointer; font-size: 16px; line-height: 1; padding: 8px; appearance: none; display: inline-block; height: 36px; position: relative; width: 36px; z-index: 999999;">
+              <span style="animation: 1.2s ease-in-out 0s infinite normal none running joyride-beacon-inner; background-color: rgb(255, 140, 0); border-radius: 50%; display: block; height: 50%; left: 50%; opacity: 0.7; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 50%;"></span>
+              <span style="animation: 1.2s ease-in-out 0s infinite normal none running joyride-beacon-outer; border: 2px solid rgb(255, 140, 0); border-radius: 50%; box-sizing: border-box; display: block; height: 100%; left: 0px; opacity: 0.9; position: absolute; top: 0px; transform-origin: center center; width: 100%;"></span>
+            </button>
+          </div>
         </div>
       ),
+      title: "Welcome to Pinboard 👋",
       target: panelRef.current!,
       placement: "left",
+      locale: { last: "Continue" },
       styles: {
         options: {
           zIndex: 999999,
+        },
+        tooltipContent: {
+          padding: `${space[1]}px ${space[2]}px`,
+          lineHeight: 2,
+        },
+
+        buttonNext: {
+          fontSize: 14,
+          borderRadius: `${space[1]}px`,
         },
       },
     },
@@ -206,30 +219,38 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     run: false,
     stepIndex: 0,
     mainKey: 0,
-  })
+    steps: [],
+  });
 
-  const {run, stepIndex, mainKey} = guidedTourState;
+  const [indexViewTourActive, setIndexViewTourActive] = useState(false);
+
+  const { run, stepIndex, mainKey } = guidedTourState;
 
   const handleGuidedTourStart = () => {
-    setGuidedTourState({...guidedTourState, run: true})
-  }
+    setGuidedTourState({ ...guidedTourState, run: true });
+  };
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
     const { status, type, index, action } = data;
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+    // const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     // if (finishedStatuses.includes(status)) {
     //   setGuidedTourState({...guidedTourState, run: true});
     // }
 
     if (type === EVENTS.TOUR_END) {
-      setGuidedTourState({mainKey: mainKey + 1, run: false, stepIndex: 0});
+      setGuidedTourState({
+        ...guidedTourState,
+        mainKey: mainKey + 1,
+        run: false,
+        stepIndex: 0,
+      });
+      setIndexViewTourActive(true);
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex});
-
+      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
     }
   };
 
@@ -327,13 +348,15 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         </span>
       </Navigation>
       <GuidedTourStartButton start={handleGuidedTourStart} />
-      <GuidedTour
-        run={run}
-        steps={guideSteps}
-        stepIndex={stepIndex}
-        mainKey={mainKey}
-        handleCallback={handleGuidedTourCallback}
-      />
+      {panelRef && (
+        <GuidedTour
+          run={run}
+          steps={guideSteps}
+          stepIndex={stepIndex}
+          mainKey={mainKey}
+          handleCallback={handleGuidedTourCallback}
+        />
+      )}
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard
@@ -342,6 +365,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
+          guidedTourStatus={indexViewTourActive}
         />
       )}
 

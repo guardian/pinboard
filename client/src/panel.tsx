@@ -25,6 +25,15 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
+import Joyride, {
+  ACTIONS,
+  CallBackProps,
+  EVENTS,
+  STATUS,
+  Step,
+} from "react-joyride";
+import { agateSans } from "../fontNormaliser";
+import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -165,6 +174,59 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
+  const guideSteps: Step[] = [
+    {
+      content: (
+        <div
+          style={{
+            textAlign: "left",
+            fontFamily: "arial",
+            margin: 0,
+            padding: 0,
+          }}
+        >
+          <span>
+            Welcome to Pinboard 👋 <br /> The Guardian's very own chat and
+            asset-sharing tool. <br />
+          </span>
+          Let's take a tour.
+        </div>
+      ),
+      target: panelRef.current!,
+      placement: "left",
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+    },
+  ];
+
+  const [run, setRun] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [mainKey, setMainKey] = useState(0);
+
+  const handleGuidedTourCallback = (data: CallBackProps) => {
+    const { status, type, index, action } = data;
+    console.log(data);
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    if (finishedStatuses.includes(status)) {
+      setRun(true);
+    }
+
+    if (type === EVENTS.TOUR_END) {
+      setMainKey(mainKey + 1);
+      setRun(false);
+      setStepIndex(0);
+    } else if (
+      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
+    ) {
+      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      setStepIndex(nextStepIndex);
+    }
+  };
+
   return (
     <div
       css={css`
@@ -258,6 +320,18 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
+      <GuidedTourStartButton
+        start={() => {
+          setRun(true);
+        }}
+      />
+      <GuidedTour
+        run={run}
+        steps={guideSteps}
+        stepIndex={stepIndex}
+        mainKey={mainKey}
+        handleCallback={handleGuidedTourCallback}
+      />
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import {
   Claimed,
@@ -23,6 +23,8 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
+import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
+import { Step } from "react-joyride";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -287,10 +289,92 @@ export const Pinboard: React.FC<PinboardProps> = ({
   const [maybeDeleteItemModalElement, setMaybeDeleteItemModalElement] =
     useState<JSX.Element | null>(null);
 
+  const messageAreaRef = useRef(null);
+  const assetViewRef = useRef(null);
+
+  const chatViewGuidedSteps: Step[] = [
+    {
+      content: <div>Try typing messages here...</div>,
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: messageAreaRef.current!,
+      placement: "left",
+    },
+    {
+      content: (
+        <div>
+          You can tag someone by typing their name with @...(try it!). They will
+          receive a message notification alert on their browser.
+        </div>
+      ),
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: messageAreaRef.current!,
+      placement: "left",
+    },
+    {
+      content: (
+        <div>
+          You can tag a colleague by typing their names with @...(try it!). They
+          will receive a message notification alert on their browser.
+        </div>
+      ),
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: messageAreaRef.current!,
+      placement: "left",
+    },
+    {
+      content: (
+        <div>
+          You can also send a request to a team by:
+          <ol>
+            <li>tagging their name (@)</li>
+            <li>make it a request</li>
+          </ol>
+        </div>
+      ),
+      spotlightClicks: true,
+      spotlightPadding: 1,
+      styles: {
+        options: {
+          zIndex: 999999,
+        },
+      },
+      target: messageAreaRef.current!,
+      placement: "left",
+    },
+  ];
+
+  const [run, setRun] = useState(false);
+
+  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = (
+    e
+  ) => {
+    e.preventDefault();
+    setRun(true);
+  };
+
   return !isSelected ? null : (
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
+      {/*<GuidedTourStartButton start={handleGuidedTourStart} />*/}
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
@@ -298,6 +382,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           flex-grow: 1;
         `}
       />
+      {/*<GuidedTour run={run} steps={guideSteps} />*/}
       {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}
@@ -325,15 +410,17 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <AssetView items={items} />
       )}
       {activeTab === "chat" && (
-        <SendMessageArea
-          onSuccessfulSend={onSuccessfulSend}
-          payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-          onError={(error) => setError(pinboardId, error)}
-          userEmail={userEmail}
-          pinboardId={pinboardId}
-          panelElement={panelElement}
-        />
+        <div ref={messageAreaRef}>
+          <SendMessageArea
+            onSuccessfulSend={onSuccessfulSend}
+            payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
+            clearPayloadToBeSent={clearPayloadToBeSent}
+            onError={(error) => setError(pinboardId, error)}
+            userEmail={userEmail}
+            pinboardId={pinboardId}
+            panelElement={panelElement}
+          />
+        </div>
       )}
     </React.Fragment>
   );

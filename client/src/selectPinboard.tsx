@@ -28,8 +28,15 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import { CallBackProps, STATUS, Step } from "react-joyride";
+import Joyride, {
+  ACTIONS,
+  CallBackProps,
+  EVENTS,
+  STATUS,
+  Step,
+} from "react-joyride";
 import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
+import { useMount, useSetState } from "react-use";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -333,10 +340,31 @@ export const SelectPinboard = ({
       </div>
     );
   };
+  // interface State {
+  //   run: boolean;
+  //   // stepIndex: number;
+  //   steps: Step[];
+  // }
+  //
+  // const [{ run, stepIndex, steps }, setState] = useSetState<State>({
+  //   run: false,
+  //   // stepIndex: 0,
+  //   steps: [],
+  // });
 
   const myPinboardsRef = useRef<HTMLDivElement>(null);
   const teamsPinboardsRef = useRef<HTMLDivElement>(null);
   const searchbarRef = useRef<HTMLDivElement>(null);
+
+  // useMount(() => {
+  //   setState({
+  //     run: true,
+  //     steps: guideSteps,
+  //   });
+  //   console.log("mounted");
+  //   console.log("running", run);
+  //   console.log("steps", steps.length > 0);
+  // });
 
   const guideSteps: Step[] = [
     {
@@ -390,18 +418,16 @@ export const SelectPinboard = ({
   ];
 
   const [run, setRun] = useState(false);
+  // const [steps, setSteps] = useState(guideSteps);
+  // const [stepIndex, setStepIndex] = useState(0);
 
-  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = () => {
+  const handleGuidedTourStart: React.MouseEventHandler<HTMLButtonElement> = (
+    e
+  ) => {
+    e.preventDefault();
     setRun(true);
   };
 
-  const handleGuidedTourCallback = (data: CallBackProps) => {
-    const { action, index, status, type } = data;
-    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
-      // Need to set our running state to false, so we can restart if we click start again.
-      setRun(true);
-    }
-  };
   return (
     <>
       <div
@@ -419,16 +445,13 @@ export const SelectPinboard = ({
           },
         }}
       >
-        <GuidedTourStartButton start={handleGuidedTourStart} />
+        {/*<GuidedTourStartButton start={handleGuidedTourStart} />*/}
         {myPinboardsRef.current &&
         teamsPinboardsRef.current &&
         searchbarRef.current ? (
-          <GuidedTour
-            run={run}
-            steps={guideSteps}
-            callback={handleGuidedTourCallback}
-          />
+          <GuidedTour run={run} steps={guideSteps} />
         ) : null}
+
         <Feedback />
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />

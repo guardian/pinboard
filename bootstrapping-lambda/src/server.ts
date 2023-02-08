@@ -44,7 +44,6 @@ server.use(express.json());
 server.use(cors(corsOptions));
 
 server.post("/search", getAuthMiddleware(), (_, response) => {
-  response.setHeader("Access-Control-Allow-Credentials", "true");
   return response.json(Object.values(StageMetric));
 });
 
@@ -52,7 +51,6 @@ server.post(
   "/query",
   getAuthMiddleware(),
   async (request: AuthenticatedRequest, response) => {
-    response.setHeader("Access-Control-Allow-Credentials", "true");
     const { body: metricsQuery }: { body: GrafanaRequest } = request;
     response.json(await getMetrics(metricsQuery));
   }

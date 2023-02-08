@@ -16,6 +16,7 @@ export const getAuthMiddleware = (sendErrorAsOk = false) => async (
   next: NextFunction
 ) => {
   const maybeCookieHeader = request.header("Cookie");
+  response.setHeader("Access-Control-Allow-Credentials", "true");
   const maybeAuthenticatedEmail = await getVerifiedUserEmail(maybeCookieHeader);
 
   if (!maybeAuthenticatedEmail) {

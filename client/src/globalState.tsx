@@ -42,6 +42,7 @@ interface GlobalStateContextShape {
   activePinboards: PinboardData[];
 
   payloadToBeSent: PayloadAndType | null;
+  setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
   clearPayloadToBeSent: () => void;
 
   addManuallyOpenedPinboardId: (
@@ -98,11 +99,12 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 };
 
 interface GlobalStateProviderProps {
+  hasApolloAuthError: boolean;
   userEmail: string;
   openPinboardIdBasedOnQueryParam: string | null;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
-  clearPayloadToBeSent: () => void;
+  setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
   isExpanded: boolean;
   setIsExpanded: (_: boolean) => void;
   userLookup: UserLookup;
@@ -115,12 +117,13 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
 }
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
+  hasApolloAuthError,
   userEmail,
   openPinboardIdBasedOnQueryParam,
   preselectedComposerId,
   presetUnreadNotificationCount,
   payloadToBeSent,
-  clearPayloadToBeSent,
+  setPayloadToBeSent,
   isExpanded,
   setIsExpanded,
   userLookup,
@@ -326,6 +329,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     setErrors((prevErrors) => ({ ...prevErrors, [pinboardId]: error }));
 
   const hasError =
+    hasApolloAuthError ||
     Object.entries(errors).find(
       ([pinboardId, error]) => activePinboardIds.includes(pinboardId) && error
     ) !== undefined;
@@ -384,15 +388,17 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      if (
-        event.source !== window &&
-        Object.prototype.hasOwnProperty.call(event.data, "item")
-      ) {
-        const item = event.data.item;
+      if (Object.prototype.hasOwnProperty.call(event.data, "item")) {
+        const item: Item = event.data.item;
         window.focus();
         setIsExpanded(true);
-        setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
-        // TODO ideally highlight the item
+        if (
+          !preselectedPinboardId ||
+          preselectedPinboardId === item.pinboardId
+        ) {
+          setSelectedPinboardId(item.pinboardId); // FIXME handle if said pinboard is not active (i.e. load data)
+          // highlighting the item is handled in ScrollableItems component
+        }
       }
     });
   }, []);
@@ -483,6 +489,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     };
   }, []);
 
+  const clearPayloadToBeSent = () => setPayloadToBeSent(null);
+
   const contextValue: GlobalStateContextShape = {
     userEmail,
     userLookup,
@@ -496,6 +504,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     activePinboardIds,
 
     payloadToBeSent,
+    setPayloadToBeSent,
     clearPayloadToBeSent,
 
     addManuallyOpenedPinboardId,

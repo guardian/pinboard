@@ -18,6 +18,8 @@ interface NavigationProps {
   headingTooltipText: string | undefined;
   isTopHalf: boolean;
   isLeftHalf: boolean;
+  closeButtonOverride?: () => void;
+  forceTabDisplay?: true;
 }
 export const Navigation = ({
   isTopHalf,
@@ -89,13 +91,17 @@ export const Navigation = ({
           />
         )}
         <NavButton
-          onClick={() => setIsExpanded(false)}
+          onClick={() =>
+            props.closeButtonOverride
+              ? props.closeButtonOverride()
+              : setIsExpanded(false)
+          }
           icon={CrossIcon}
           title="Collapse the Pinboard window"
         />
       </div>
 
-      {selectedPinboard && (
+      {(selectedPinboard || props.forceTabDisplay) && (
         <Tabs
           activeTab={props.activeTab}
           setActiveTab={props.setActiveTab}

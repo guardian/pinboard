@@ -4,6 +4,7 @@ import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
 import prompts from "prompts";
 import { DatabaseOperation } from "../shared/graphql/operations";
 import { getYourEmail } from "../shared/local/yourEmail";
+import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
 
 (async () => {
   const baseInput = {
@@ -15,6 +16,23 @@ import { getYourEmail } from "../shared/local/yourEmail";
     searchMentionableUsers: { prefix: "a" },
     claimItem: { itemId: "1667" },
     getGroupPinboardIds: {},
+    getItemCounts: { pinboardIds: ["65183"] },
+    createItem: {
+      input: {
+        type: "message-only",
+        pinboardId: "63206",
+        message: "DB testing",
+      } as CreateItemInput,
+    },
+    editItem: {
+      itemId: "2352",
+      input: {
+        message: "DB testing MODIFIED",
+        payload: JSON.stringify({ blah: "payload added" }),
+        type: "testing",
+      } as EditItemInput,
+    },
+    deleteItem: { itemId: "2352" },
   };
 
   await createDatabaseTunnel();

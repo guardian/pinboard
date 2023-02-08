@@ -4,7 +4,7 @@ import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
 import { Group, Item, User } from "../../shared/graphql/graphql";
 import { gqlCreateItem } from "../gql";
-import { CreateItemInputBox } from "./createItemInputBox";
+import { ItemInputBox } from "./itemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { PendingItem } from "./types/PendingItem";
 import { composer } from "../colours";
@@ -146,7 +146,7 @@ export const SendMessageArea = ({
       `}
     >
       {claimableConfirmModalElement}
-      <CreateItemInputBox
+      <ItemInputBox
         payloadToBeSent={payloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
         message={message}

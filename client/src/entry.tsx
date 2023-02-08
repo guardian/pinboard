@@ -7,6 +7,7 @@ import {
   ApolloLink,
   createHttpLink,
   InMemoryCache,
+  makeVar,
 } from "@apollo/client";
 import { AWS_REGION } from "../../shared/awsRegion";
 import { createAuthLink } from "aws-appsync-auth-link";
@@ -23,7 +24,7 @@ import {
   IUserTelemetryEvent,
   UserTelemetryEventSender,
 } from "@guardian/user-telemetry-client";
-import { TelemetryContext, IPinboardEventTags } from "./types/Telemetry";
+import { IPinboardEventTags, TelemetryContext } from "./types/Telemetry";
 import { APP } from "../../shared/constants";
 
 const SENTRY_REROUTED_FLAG = "rerouted";
@@ -118,26 +119,57 @@ export function mount({
     },
   };
 
+  const hasApolloAuthErrorVar = makeVar(false);
+
   const apolloErrorLink = onError(({ graphQLErrors, networkError }) => {
-    // TODO set some global state which triggers the error overlay
     graphQLErrors?.forEach(({ message, ...gqlError }) => {
       console.error(
         `[Apollo - GraphQL error]: Message: ${message}, Location: ${gqlError.locations}, Path: ${gqlError.path}`
       );
-      pinboardSpecificSentryClient.captureException(
-        Error(`Apollo GraphQL Error : ${message}`),
-        {
-          captureContext: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            extra: gqlError as Record<string, any>,
-          },
-        }
-      );
+      if (
+        ((gqlError as unknown) as Record<string, unknown>).errorType ===
+          "UnauthorizedException" ||
+        gqlError.extensions?.code === "UNAUTHENTICATED"
+      ) {
+        hasApolloAuthErrorVar(true);
+      } else {
+        pinboardSpecificSentryClient.captureException(
+          Error(`Apollo GraphQL Error : ${message}`),
+          {
+            captureContext: {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              extra: gqlError as Record<string, any>,
+            },
+          }
+        );
+      }
     });
 
     if (networkError) {
       console.error(`[Apollo - Network error]`, networkError);
-      pinboardSpecificSentryClient.captureException(networkError);
+      if (
+        [401, 403].includes(
+          ((networkError as unknown) as { statusCode: number })?.statusCode
+        ) ||
+        ((networkError as unknown) as {
+          errors: Array<{ message: string }>;
+        })?.errors?.find((error) =>
+          error.message?.includes("UnauthorizedException")
+        )
+      ) {
+        hasApolloAuthErrorVar(true);
+      } else {
+        pinboardSpecificSentryClient.captureException(networkError);
+      }
+    }
+  });
+
+  const apolloSuppressorOnAuthErrorLink = new ApolloLink((operation, next) => {
+    if (hasApolloAuthErrorVar()) {
+      console.warn("Suppressing Apollo request due to auth error", operation);
+      return null;
+    } else {
+      return next(operation);
     }
   });
 
@@ -155,15 +187,19 @@ export function mount({
   });
 
   const apolloClient = new ApolloClient({
-    link: ApolloLink.from([
-      new DebounceLink(DEFAULT_APOLLO_DEBOUNCE_DELAY), // order is important
-      apolloErrorLink,
-      createAuthLink(apolloUrlInfo),
-      createSubscriptionHandshakeLink(
-        apolloUrlInfo,
-        exposeOperationAsQueryParam
-      ),
-    ]),
+    link: ApolloLink.from(
+      /* ORDER IS IMPORTANT */
+      [
+        new DebounceLink(DEFAULT_APOLLO_DEBOUNCE_DELAY),
+        apolloErrorLink,
+        apolloSuppressorOnAuthErrorLink,
+        createAuthLink(apolloUrlInfo),
+        createSubscriptionHandshakeLink(
+          apolloUrlInfo,
+          exposeOperationAsQueryParam
+        ),
+      ]
+    ),
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
@@ -186,7 +222,11 @@ export function mount({
 
   render(
     <TelemetryContext.Provider value={sendTelemetryEvent}>
-      <PinBoardApp apolloClient={apolloClient} userEmail={userEmail} />
+      <PinBoardApp
+        apolloClient={apolloClient}
+        userEmail={userEmail}
+        hasApolloAuthErrorVar={hasApolloAuthErrorVar}
+      />
     </TelemetryContext.Provider>,
     element
   );

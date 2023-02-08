@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -101,18 +101,18 @@ const Suggestion = ({
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
-interface CreateItemInputBoxProps {
+interface ItemInputBoxProps {
   payloadToBeSent: PayloadAndType | null;
   clearPayloadToBeSent: () => void;
   message: string;
   setMessage: (newMessage: string) => void;
-  sendItem: () => void;
-  addUnverifiedMention: (userOrGroup: User | Group) => void;
-  panelElement: HTMLDivElement | null;
+  sendItem?: () => void;
+  addUnverifiedMention?: (userOrGroup: User | Group) => void;
+  panelElement: HTMLElement | null;
   isSending: boolean;
 }
 
-export const CreateItemInputBox = ({
+export const ItemInputBox = ({
   payloadToBeSent,
   clearPayloadToBeSent,
   message,
@@ -121,7 +121,7 @@ export const CreateItemInputBox = ({
   addUnverifiedMention,
   panelElement,
   isSending,
-}: CreateItemInputBoxProps) => {
+}: ItemInputBoxProps) => {
   const textAreaRef = useRef<HTMLTextAreaElement>();
 
   useLayoutEffect(() => {
@@ -149,12 +149,26 @@ export const CreateItemInputBox = ({
         })),
       ]);
 
+  useEffect(
+    () => /* unmount handler */ () => {
+      textAreaRef.current?.blur();
+    },
+    []
+  );
+
+  const resizeTextArea = (target: HTMLTextAreaElement) => {
+    target.style.height = "0";
+    // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
+    target.style.height = `${target.scrollHeight + 0.1}px`;
+  };
+
   return (
     <div
       css={css`
         flex-grow: 1;
         background-color: white;
         border-radius: ${space[1]}px;
+        padding-bottom: 0.1px;
         ${rtaStyles}
       `}
     >
@@ -163,7 +177,9 @@ export const CreateItemInputBox = ({
         disabled={isSending}
         trigger={{
           "@": {
-            dataProvider: mentionsDataProvider,
+            dataProvider: addUnverifiedMention
+              ? mentionsDataProvider
+              : () => [],
             component: Suggestion,
             output: (userOrGroup) => ({
               key: isGroup(userOrGroup)
@@ -181,22 +197,24 @@ export const CreateItemInputBox = ({
         loadingComponent={LoadingSuggestions}
         placeholder="enter message here..."
         value={message}
+        onFocus={({ target }) => resizeTextArea(target)}
         onChange={(event) => {
-          event.target.style.height = "0";
-          // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
-          event.target.style.height = `${event.target.scrollHeight + 0.1}px`;
+          resizeTextArea(event.target);
           setMessage(event.target.value);
         }}
-        onKeyPress={(event) => {
-          event.stopPropagation();
-          if (isEnterKey(event)) {
-            if (message || payloadToBeSent) {
-              sendItem();
+        onKeyPress={
+          sendItem &&
+          ((event) => {
+            event.stopPropagation();
+            if (isEnterKey(event)) {
+              if (message || payloadToBeSent) {
+                sendItem();
+              }
+              event.preventDefault();
             }
-            event.preventDefault();
-          }
-        }}
-        onItemSelected={({ item }) => addUnverifiedMention(item)}
+          })
+        }
+        onItemSelected={({ item }) => addUnverifiedMention?.(item)}
         rows={1}
         css={css`
           box-sizing: border-box;
@@ -209,7 +227,7 @@ export const CreateItemInputBox = ({
           /* Firefox needs this hint to get the correct initial height.
            Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
           height: 21.1px;
-          max-height: 74px;
+          ${addUnverifiedMention ? "max-height: 74px;" : ""}
           ${agateSans.small({ lineHeight: "tight" })};
           resize: none;
           ${scrollbarsCss(palette.neutral[86])}
@@ -219,7 +237,7 @@ export const CreateItemInputBox = ({
       {payloadToBeSent && (
         <div
           css={css`
-            margin-left: ${space[1]}px;
+            margin: 0 ${space[1]}px;
           `}
         >
           <PayloadDisplay

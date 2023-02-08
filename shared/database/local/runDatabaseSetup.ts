@@ -53,6 +53,10 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       runSetupSqlFile(sql, "012-AddClaimColumnsToItemTable.sql"),
     "add relatedItemId column to Item table": () =>
       runSetupSqlFile(sql, "013-AddRelatedItemIdColumnToItemTable.sql"),
+    "add index to User table on googleID": () =>
+      runSetupSqlFile(sql, "014-AddUserGoogleIdIndex.sql"),
+    "add editHistory and deletedAt columns to Item table": () =>
+      runSetupSqlFile(sql, "015-AddEditAndDeleteColumnsToItemTable.sql"),
   };
 
   const allSteps = async () => {

@@ -28,6 +28,21 @@ const buttonStyle = css`
   }
 `;
 
+export const ModalBackground = () => (
+  <div
+    css={css`
+      background-color: ${palette.neutral["46"]};
+      position: fixed;
+      bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      opacity: 0.5;
+    `}
+  />
+);
+
 export const useConfirmModal = (
   content: ReactElement
 ): [JSX.Element | null, (precondition?: boolean) => Promise<boolean>] => {
@@ -61,18 +76,7 @@ export const useConfirmModal = (
 
   const maybeElement = promiseResolveFn && (
     <React.Fragment>
-      <div
-        css={css`
-          background-color: ${palette.neutral["46"]};
-          position: fixed;
-          bottom: 0;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 9999;
-          opacity: 0.5;
-        `}
-      />
+      <ModalBackground />
       <div
         css={css`
           position: absolute;

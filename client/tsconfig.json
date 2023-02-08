@@ -8,6 +8,10 @@
       "@types/jest",
       "@types/webpack-env"
     ],
-    "lib": ["esnext", "dom"]
+    "lib": [
+      "esnext",
+      "dom",
+      "webworker"
+    ]
   }
 }

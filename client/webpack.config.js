@@ -21,7 +21,7 @@ module.exports = (env, argv) => {
     plugins: isDevelopment ? [new PreactRefreshPlugin()] : [],
     devServer: isDevelopment
       ? {
-          host: localPinboardHostname,
+          allowedHosts: [".local.dev-gutools.co.uk"],
           server: {
             type: "https",
             options: {
@@ -36,6 +36,7 @@ module.exports = (env, argv) => {
             writeToDisk: true, // so bootstrapping-lambda can find the main js filename
           },
           client: {
+            webSocketURL: "wss://pinboard.local.dev-gutools.co.uk:8081/ws",
             overlay: true,
           },
         }

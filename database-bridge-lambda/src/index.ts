@@ -5,7 +5,10 @@ import type {
 import {
   claimItem,
   createItem,
+  deleteItem,
+  editItem,
   getGroupPinboardIds,
+  getItemCounts,
   listItems,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
@@ -20,6 +23,8 @@ import {
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
+import { MetricRequest } from "../../shared/types/grafanaType";
+import { getMetrics } from "./services/grafanaReportingService";
 
 const run = (
   sql: Sql,
@@ -30,6 +35,10 @@ const run = (
   switch (databaseOperation) {
     case "createItem":
       return createItem(sql, args, userEmail);
+    case "editItem":
+      return editItem(sql, args, userEmail);
+    case "deleteItem":
+      return deleteItem(sql, args, userEmail);
     case "claimItem":
       return claimItem(sql, args, userEmail);
     case "listItems":
@@ -52,6 +61,8 @@ const run = (
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
     case "getGroupPinboardIds":
       return getGroupPinboardIds(sql, userEmail);
+    case "getItemCounts":
+      return getItemCounts(sql, args, userEmail);
   }
 
   throw Error(
@@ -59,17 +70,26 @@ const run = (
   );
 };
 
+const isMetricRequest = (
+  maybeMetricRequest: MetricRequest | AppSyncResolverEvent<unknown, unknown>
+): maybeMetricRequest is MetricRequest =>
+  (maybeMetricRequest as MetricRequest).range !== undefined;
+
 export const handler = async (
-  payload: AppSyncResolverEvent<unknown, unknown>
+  payload: MetricRequest | AppSyncResolverEvent<unknown, unknown>
 ) => {
   const sql = await getDatabaseConnection();
-  const args = payload.arguments as never;
-  const userEmail: string = (payload.identity as AppSyncIdentityLambda)
-    .resolverContext.userEmail;
-  const databaseOperation = payload.info.fieldName as DatabaseOperation;
-
   try {
-    return await run(sql, databaseOperation, args, userEmail);
+    if (isMetricRequest(payload)) {
+      console.log("metric payload", payload);
+      return await getMetrics(sql, payload);
+    } else {
+      const args = payload.arguments as never;
+      const userEmail: string = (payload.identity as AppSyncIdentityLambda)
+        .resolverContext.userEmail;
+      const databaseOperation = payload.info.fieldName as DatabaseOperation;
+      return await run(sql, databaseOperation, args, userEmail);
+    }
   } finally {
     await sql.end();
   }

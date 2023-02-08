@@ -12,20 +12,17 @@ import {
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
   gqlOnClaimItem,
-  gqlOnCreateItem,
+  gqlOnMutateItem,
   gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
 import { useGlobalStateContext } from "./globalState";
 import { css } from "@emotion/react";
-import { palette, space } from "@guardian/source-foundations";
-import { composer } from "../colours";
-import { SvgAlertTriangle } from "@guardian/source-react-components";
-import { agateSans } from "../fontNormaliser";
-import { bottom, floatySize, panelCornerSize, right } from "./styling";
 import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { ModalBackground } from "./modal";
+import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -57,6 +54,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     addEmailsToLookup,
 
     payloadToBeSent,
+    setPayloadToBeSent,
     clearPayloadToBeSent,
 
     showNotification,
@@ -72,12 +70,12 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
-  const itemSubscription = useSubscription(gqlOnCreateItem(pinboardId), {
+  const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
-      const itemFromSubscription: Item = subscriptionData.data.onCreateItem;
+      const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
       addEmailsToLookup([itemFromSubscription.userEmail]);
       setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
-      if (!isExpanded) {
+      if (!isExpanded && !itemFromSubscription.editHistory) {
         showNotification(itemFromSubscription);
         setUnreadFlag(pinboardId)(true);
       }
@@ -132,14 +130,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const items: Array<PendingItem | Item> = useMemo(
     () =>
-      Object.values(itemsMap)
-        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
-        .filter(
-          (item, index, items) =>
-            item.type !== "claim" ||
-            !item.relatedItemId ||
-            items[index - 1]?.id !== item.relatedItemId
-        ),
+      Object.values(itemsMap).sort((a, b) =>
+        a.timestamp.localeCompare(b.timestamp)
+      ),
     [itemsMap]
   );
 
@@ -273,69 +266,41 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 
+  const [maybeEditingItemId, setMaybeEditingItemId] = useState<string | null>(
+    null
+  );
+
+  const maybeEditingItem = useMemo(
+    () => maybeEditingItemId && itemsMap[maybeEditingItemId],
+    [maybeEditingItemId]
+  );
+
+  useEffect(() => {
+    if (maybeEditingItem) {
+      const previousPayloadToBeSent = payloadToBeSent;
+      setPayloadToBeSent(
+        maybeConstructPayloadAndType(
+          maybeEditingItem.type,
+          maybeEditingItem.payload
+        ) || null
+      );
+      return () => {
+        setPayloadToBeSent(previousPayloadToBeSent);
+      };
+    }
+  }, [maybeEditingItemId]);
+
+  const [
+    maybeDeleteItemModalElement,
+    setMaybeDeleteItemModalElement,
+  ] = useState<JSX.Element | null>(null);
+
   return !isSelected ? null : (
     <React.Fragment>
+      <div>{maybeDeleteItemModalElement}</div>
+      <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
       {initialItemsQuery.loading && "Loading..."}
-      {hasError && (
-        <div
-          css={css`
-            position: absolute;
-            top: 58px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 98;
-            border-top-left-radius: ${space[1]}px;
-            border-top-right-radius: ${space[1]}px;
-            background-color: rgba(255, 255, 255, 0.35);
-            &::after {
-              content: "";
-              position: fixed;
-              background: rgba(255, 255, 255, 0.35);
-              width: ${panelCornerSize}px;
-              height: ${panelCornerSize}px;
-              bottom: ${bottom + floatySize + space[2]}px;
-              right: ${right + floatySize / 2}px;
-              border-bottom-left-radius: ${panelCornerSize}px;
-            }
-          `}
-        >
-          <div
-            css={css`
-              background-color: ${composer.warning[100]};
-              color: ${palette.neutral[100]};
-              ${agateSans.xsmall({ lineHeight: "tight", fontWeight: "bold" })}
-              padding: ${space[2]}px;
-              border-radius: ${space[1]}px;
-              margin: ${space[2]}px;
-              position: relative;
-              top: 0;
-              z-index: 99;
-            `}
-          >
-            <div
-              css={css`
-                display: flex;
-                align-items: center;
-                column-gap: ${space[2]}px;
-              `}
-            >
-              <div
-                css={css`
-                  fill: ${palette.neutral[100]};
-                `}
-              >
-                <SvgAlertTriangle size="small" />
-              </div>
-              <div>
-                There has been an error. You may need to refresh the page to
-                allow pinboard to reconnect. Make sure to save your work first!
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       <div // push chat messages to bottom of panel if they do not fill
         css={css`
           flex-grow: 1;
@@ -359,6 +324,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
           claimItem={claimItem}
           hasProcessedItemIdInURL={hasProcessedItemIdInURL}
           setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
+          setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+          maybeEditingItemId={maybeEditingItemId}
+          setMaybeEditingItemId={setMaybeEditingItemId}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
@@ -367,7 +335,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && (
         <SendMessageArea
           onSuccessfulSend={onSuccessfulSend}
-          payloadToBeSent={payloadToBeSent}
+          payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
           clearPayloadToBeSent={clearPayloadToBeSent}
           onError={(error) => setError(pinboardId, error)}
           userEmail={userEmail}

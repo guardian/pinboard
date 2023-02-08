@@ -13,37 +13,48 @@ const showNotification = (
     clientId?: string;
   }
 ) => {
-  // TODO check for existing notification first (to preserve the `clientId` field)
-
   const user = extractNameFromEmail(item.userEmail);
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  self.registration.showNotification(
-    `📌 ${user.firstName} ${user.lastName} at ${new Date(
-      item.timestamp
-    ).toLocaleTimeString()}`,
-    {
-      tag: item.id,
-      data: item,
-      body: item.type === "claim" ? `claimed a request` : item.message,
-      icon: item.payload?.thumbnail,
-      image: item.payload?.thumbnail,
-      requireInteraction: true,
-      actions: [
+  self.registration.getNotifications().then((notifications) => {
+    const maybeExistingNotification = notifications.find(
+      (notification: Notification) => notification.data?.id === item.id
+    );
+
+    if (maybeExistingNotification && item.deletedAt) {
+      maybeExistingNotification.close();
+    } else if (!maybeExistingNotification || item.clientId)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      self.registration.showNotification(
+        `📌 ${user.firstName} ${user.lastName} at ${new Date(
+          item.timestamp
+        ).toLocaleTimeString()}`,
         {
-          action: "grid",
-          title: "Open in new Grid tab",
-          icon: "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
-        },
-        {
-          action: "composer",
-          title: "Open in new Composer tab",
-          icon:
-            "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
-        },
-      ],
-    }
-  );
+          tag: item.id,
+          data: item,
+          body: item.type === "claim" ? `claimed a request` : item.message,
+          icon: item.payload?.thumbnail,
+          image: item.payload?.thumbnail,
+          requireInteraction: true,
+          actions: [
+            {
+              action: "grid",
+              title: "Open in new Grid tab",
+              icon:
+                "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
+            },
+            {
+              action: "composer",
+              title: "Open in new Composer tab",
+              icon:
+                "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
+            },
+          ],
+        }
+      );
+  });
 };
 
 self.addEventListener("message", (event: MessageEvent) => {
@@ -88,19 +99,25 @@ self.addEventListener("notificationclick", (event: any) => {
       .matchAll({
         includeUncontrolled: true,
       })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((clients: any[]) => {
+      .then((clients: WindowClient[]) => {
         if (!event.action && clients.length > 0) {
           const client =
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            clients.find((_: any) => _.id === item.clientId) || clients[0];
-          client.postMessage({
-            item,
-          });
+            clients.find(
+              (client: WindowClient) =>
+                client.id === item.clientId ||
+                client.url?.includes(
+                  `?${OPEN_PINBOARD_QUERY_PARAM}=${item.pinboardId}`
+                )
+            ) || clients[0];
+          client.postMessage({ item }); // send this item to the client, so ideally it can highlight the message from the notification
+          console.log(
+            "Pinboard push notification click, attempting to focus client"
+          );
+          return client.focus();
         } else if (event.action === "grid") {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          self.clients.openWindow(
+          return self.clients.openWindow(
             `https://media.${toolsDomain}/search?${openToPinboardQueryParam}&${openToPinboardItemIdQueryParam}`.replace(
               ".code.",
               ".test."
@@ -113,10 +130,11 @@ self.addEventListener("notificationclick", (event: any) => {
         ) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          self.clients.openWindow(
+          return self.clients.openWindow(
             `https://workflow.${toolsDomain}/redirect/${item.pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${openToPinboardItemIdQueryParam}`
           );
         }
+        return Promise.resolve();
       })
   );
 });

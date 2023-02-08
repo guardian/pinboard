@@ -1,6 +1,9 @@
 import React, { useContext } from "react";
 import { agateSans } from "../fontNormaliser";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { useGlobalStateContext } from "./globalState";
+import { OPEN_PINBOARD_QUERY_PARAM } from "../../shared/constants";
+import { isPinboardData } from "../../shared/graphql/extraTypes";
 interface PushNotificationPreferencesOpenerProps {
   hasWebPushSubscription: boolean | null | undefined;
 }
@@ -50,10 +53,20 @@ interface HiddenIFrameForServiceWorkerProps {
 
 export const HiddenIFrameForServiceWorker = ({
   iFrameRef,
-}: HiddenIFrameForServiceWorkerProps) => (
-  <iframe
-    ref={iFrameRef}
-    src={desktopNotificationsPreferencesUrl}
-    style={{ display: "none" }}
-  />
-);
+}: HiddenIFrameForServiceWorkerProps) => {
+  const { selectedPinboardId, preselectedPinboard } = useGlobalStateContext();
+  const maybePinboardId = isPinboardData(preselectedPinboard)
+    ? preselectedPinboard.id
+    : selectedPinboardId;
+  return (
+    <iframe
+      ref={iFrameRef}
+      src={`${desktopNotificationsPreferencesUrl}${
+        maybePinboardId
+          ? `?${OPEN_PINBOARD_QUERY_PARAM}=${maybePinboardId}`
+          : ""
+      }`}
+      style={{ display: "none" }}
+    />
+  );
+};

@@ -11,13 +11,8 @@ import { palette, space } from "@guardian/source-foundations";
 import { SeenBy } from "./seenBy";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
-import {
-  buildPayloadAndType,
-  isPayloadType,
-  PayloadAndType,
-} from "./types/PayloadAndType";
+import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { FormattedDateTime } from "./formattedDateTime";
-import * as Sentry from "@sentry/react";
 import { UserLookup } from "./types/UserLookup";
 import { FetchResult } from "@apollo/client";
 import { ClaimableItem } from "./claimableItem";
@@ -26,25 +21,8 @@ import { formatMentionHandlesInText } from "./mentionsUtil";
 import Tick from "../icons/tick.svg";
 import { composer } from "../colours";
 import Pencil from "../icons/pencil.svg";
-
-const maybeConstructPayloadAndType = (
-  type: string,
-  payload: string | null | undefined
-): PayloadAndType | undefined => {
-  if (!isPayloadType(type) || !payload) {
-    return;
-  }
-
-  const payloadAndType = buildPayloadAndType(type, JSON.parse(payload));
-
-  if (!payloadAndType) {
-    Sentry.captureException(
-      new Error(`Failed to parse payload with type=${type}, payload=${payload}`)
-    );
-  }
-
-  return payloadAndType;
-};
+import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
+import { EditItem } from "./editItem";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -56,6 +34,9 @@ interface ItemDisplayProps {
   userEmail: string;
   setRef?: (node: HTMLDivElement) => void;
   scrollToItem: (itemID: string) => void;
+  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  maybeEditingItemId: string | null;
+  setMaybeEditingItemId: (itemId: string | null) => void;
 }
 
 export const ItemDisplay = ({
@@ -68,6 +49,9 @@ export const ItemDisplay = ({
   userEmail,
   setRef,
   scrollToItem,
+  setMaybeDeleteItemModalElement,
+  maybeEditingItemId,
+  setMaybeEditingItemId,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -84,7 +68,7 @@ export const ItemDisplay = ({
   const formattedMessage = useMemo(
     () =>
       item.message && formatMentionHandlesInText(mentionHandles, item.message),
-    [item.id]
+    [item.id, item.message]
   );
 
   const dateInMillisecs = new Date(item.timestamp).valueOf();
@@ -97,6 +81,19 @@ export const ItemDisplay = ({
     [item.claimedByEmail, userLookup]
   );
 
+  const isImmediatelyFollowingRelatedItem =
+    maybeRelatedItem && maybePreviousItem?.id === maybeRelatedItem.id;
+
+  const isDeleted = item.deletedAt;
+  const isEdited = item.editHistory && item.editHistory.length > 0;
+
+  const isMutable =
+    !isDeleted &&
+    !maybeEditingItemId &&
+    item.userEmail === userEmail &&
+    item.type !== "claim" &&
+    !item.claimedByEmail;
+
   return (
     <div
       ref={setRef}
@@ -107,6 +104,11 @@ export const ItemDisplay = ({
         ${agateSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
+        &:hover {
+          .${ITEM_HOVER_MENU_CLASS_NAME} {
+            display: flex;
+          }
+        }
       `}
     >
       <div
@@ -142,57 +144,98 @@ export const ItemDisplay = ({
       >
         <div
           css={css`
+            position: relative;
             color: ${palette.neutral["20"]};
             ${agateSans.xxsmall({ lineHeight: "tight" })};
             margin-bottom: 2px;
           `}
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
+          {isEdited && (
+            <span>
+              &nbsp;-&nbsp;<em>Edited</em>
+            </span>
+          )}
+          {isMutable && (
+            <ItemHoverMenu
+              item={item}
+              enterEditMode={() => setMaybeEditingItemId(item.id)}
+              setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+            />
+          )}
         </div>
-        <div>
-          {item.type === "claim" ? (
-            <div
-              css={css`
-                padding: ${space[2]}px;
-                border: 1px solid ${composer.primary[300]};
-                border-radius: ${space[1]}px;
-                margin-left: -${space[9] - 4}px;
-              `}
-            >
-              <span
+
+        {isDeleted ? (
+          <span
+            css={css`
+              font-style: italic;
+              color: ${palette.neutral["46"]};
+              font-size: 12px;
+            `}
+          >
+            ITEM DELETED
+          </span>
+        ) : maybeEditingItemId === item.id ? (
+          <EditItem item={item} cancel={() => setMaybeEditingItemId(null)} />
+        ) : (
+          <div>
+            {item.type === "claim" ? (
+              <div
                 css={css`
+                  padding: ${space[2]}px;
+                  border: 1px solid ${composer.primary[300]};
+                  border-radius: ${space[1]}px;
+                  margin-left: -${space[9] - 4}px;
+                  display: flex;
+                  gap: ${space[1]}px;
                   color: ${composer.primary[300]};
+                  ${agateSans.xxsmall({ fontWeight: "bold" })};
                   svg {
                     path {
                       fill: ${composer.primary[300]};
                     }
                   }
-                  ${agateSans.xxsmall({ fontWeight: "bold" })};
                 `}
               >
-                <Pencil /> {userDisplayName} claimed a request <Tick />
-              </span>
-              {maybeRelatedItem &&
-                useMemo(
-                  () => (
-                    <NestedItemDisplay
-                      item={maybeRelatedItem}
-                      maybeUser={userLookup[maybeRelatedItem.userEmail]}
-                      scrollToItem={scrollToItem}
-                    />
-                  ),
-                  [maybeRelatedItem.id]
-                )}
-            </div>
-          ) : (
-            formattedMessage
-          )}
-        </div>
-        {payloadAndType && (
+                <Pencil />
+                <div
+                  css={css`
+                    flex-grow: 1;
+                    margin-top: -1px;
+                  `}
+                >
+                  <span>
+                    {item.userEmail === userEmail ? "You" : userDisplayName}{" "}
+                    claimed{" "}
+                    {isImmediatelyFollowingRelatedItem ? "the above" : "a"}{" "}
+                    request&nbsp;
+                    <Tick />
+                  </span>
+                  {maybeRelatedItem &&
+                    !isImmediatelyFollowingRelatedItem &&
+                    useMemo(
+                      () => (
+                        <NestedItemDisplay
+                          item={maybeRelatedItem}
+                          maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                          scrollToItem={scrollToItem}
+                        />
+                      ),
+                      [maybeRelatedItem.id]
+                    )}
+                </div>
+              </div>
+            ) : (
+              formattedMessage
+            )}
+          </div>
+        )}
+        {payloadAndType && maybeEditingItemId !== item.id && (
           <PayloadDisplay payloadAndType={payloadAndType} tab="chat" />
         )}
       </div>
-      {item.claimable &&
+      {!isDeleted &&
+        item.claimable &&
         useMemo(
           () => (
             <ClaimableItem

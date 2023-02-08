@@ -9,6 +9,7 @@ export const QUERIES = {
     "searchMentionableUsers",
     "getUsers",
     "getGroupPinboardIds",
+    "getItemCounts",
   ] as const,
   workflow: [
     "listPinboards",
@@ -28,6 +29,8 @@ assert<Equals<QueriesFromCodeGen, QueriesDefinedHere>>();
 export const MUTATIONS = {
   database: [
     "createItem",
+    "editItem",
+    "deleteItem",
     "claimItem",
     "seenItem",
     "setWebPushSubscriptionForUser",

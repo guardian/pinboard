@@ -15,7 +15,7 @@ deployments:
       cloudFormationStackName: pinboard
       templatePath: PinBoardStack.template.json
       amiTags:
-        Recipe: editorial-tools-bionic-java8-ARM-WITH-cdk-base
+        Recipe: editorial-tools-focal-java8-ARM-WITH-cdk-base
         AmigoStage: PROD
       amiEncrypted: true
       amiParameter: DatabaseJumpHostAmiID

@@ -13,7 +13,9 @@ deployments:
       cloudFormationStackByTags: false
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: pinboard
-      templatePath: PinBoardStack.template.json
+      templateStagePaths:
+        CODE: PinBoardStack-CODE.template.json
+        PROD: PinBoardStack-PROD.template.json
       amiTags:
         Recipe: editorial-tools-focal-java8-ARM-WITH-cdk-base
         AmigoStage: PROD

@@ -2,13 +2,9 @@
 
 exports[`PinBoardStack's generated CloudFormation matches the snapshot 1`] = `
 Object {
-  "Mappings": Object {
-    "mapping": Object {
-      "DomainName": Object {
-        "CODE": "pinboard.code.dev-gutools.co.uk",
-        "PROD": "pinboard.gutools.co.uk",
-      },
-    },
+  "Metadata": Object {
+    "gu:cdk:constructs": Array [],
+    "gu:cdk:version": "49.2.1",
   },
   "Outputs": Object {
     "pinboardbootstrappinglambdaapiEndpoint4DE1E032": Object {
@@ -53,11 +49,6 @@ Object {
       "Description": "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
       "Type": "AWS::SSM::Parameter::Value<List<String>>",
     },
-    "BootstrapVersion": Object {
-      "Default": "/cdk-bootstrap/hnb659fds/version",
-      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
-      "Type": "AWS::SSM::Parameter::Value<String>",
-    },
     "DatabaseJumpHostAmiID": Object {
       "Description": "AMI ID to be used for database 'jump host'",
       "Type": "AWS::EC2::Image::Id",
@@ -69,14 +60,6 @@ Object {
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
       "Default": "/pinboard/sentryDSN",
       "Type": "AWS::SSM::Parameter::Value<String>",
-    },
-    "Stack": Object {
-      "Description": "Stack",
-      "Type": "String",
-    },
-    "Stage": Object {
-      "Description": "Stage",
-      "Type": "String",
     },
   },
   "Resources": Object {
@@ -98,17 +81,7 @@ Object {
         "AutoMinorVersionUpgrade": true,
         "CopyTagsToSnapshot": true,
         "DBInstanceClass": "db.t4g.micro",
-        "DBInstanceIdentifier": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-db-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "DBInstanceIdentifier": "pinboard-db-test",
         "DBName": "pinboard",
         "DBSubnetGroupName": Object {
           "Ref": "DatabaseSubnetGroup7D60F180",
@@ -123,7 +96,7 @@ Object {
             Array [
               "{{resolve:secretsmanager:",
               Object {
-                "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+                "Ref": "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb",
               },
               ":SecretString:password::}}",
             ],
@@ -137,20 +110,20 @@ Object {
         "StorageType": "gp2",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VPCSecurityGroups": Array [
@@ -176,17 +149,7 @@ Object {
             },
           },
         ],
-        "DBProxyName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-database-proxy-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "DBProxyName": "pinboard-database-proxy-TEST",
         "EngineFamily": "POSTGRESQL",
         "RequireTLS": true,
         "RoleArn": Object {
@@ -251,20 +214,20 @@ Object {
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -282,20 +245,20 @@ Object {
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VpcId": Object {
@@ -321,17 +284,7 @@ Object {
     },
     "DatabaseJumpHostASG7442506A": Object {
       "Properties": Object {
-        "AutoScalingGroupName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-database-jump-host-ASG-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "AutoScalingGroupName": "pinboard-database-jump-host-ASG-TEST",
         "LaunchConfigurationName": Object {
           "Ref": "DatabaseJumpHostASGLaunchConfig7E2B6251",
         },
@@ -347,28 +300,29 @@ Object {
         "MinSize": "0",
         "Tags": Array [
           Object {
-            "Key": "App",
+            "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
-            "Value": "pinboard",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "PropagateAtLaunch": true,
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Name",
             "PropagateAtLaunch": true,
-            "Value": "PinBoardStack/DatabaseJumpHostASG",
+            "Value": "PinBoardStack-TEST/DatabaseJumpHostASG",
           },
           Object {
             "Key": "Stack",
             "PropagateAtLaunch": true,
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
             "PropagateAtLaunch": true,
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VPCZoneIdentifier": Object {
@@ -432,11 +386,7 @@ do
     if [ \\"$DIFF\\" -gt 9000 ]; then #i.e. 150 mins since last active ssh tunnel
         echo \\"No active SSH tunnel in the last 5mins - so scaling down\\"
         aws autoscaling set-desired-capacity\\\\
-         --auto-scaling-group-name pinboard-database-jump-host-ASG-",
-                Object {
-                  "Ref": "Stage",
-                },
-                "\\\\
+         --auto-scaling-group-name pinboard-database-jump-host-ASG-TEST\\\\
          --desired-capacity 0\\\\
          --no-honor-cooldown\\\\
          --region ",
@@ -545,20 +495,20 @@ done & # this ampersand runs the whole loop in the background...
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -628,10 +578,7 @@ done & # this ampersand runs the whole loop in the background...
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*pinboard-database-jump-host-ASG-",
-                    Object {
-                      "Ref": "Stage",
-                    },
+                    ":*pinboard-database-jump-host-ASG-TEST",
                   ],
                 ],
               },
@@ -651,7 +598,7 @@ done & # this ampersand runs the whole loop in the background...
     "DatabaseSecretAttachmentE5D1B020": Object {
       "Properties": Object {
         "SecretId": Object {
-          "Ref": "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb",
+          "Ref": "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb",
         },
         "TargetId": Object {
           "Ref": "DatabaseB269D8BB",
@@ -672,20 +619,20 @@ done & # this ampersand runs the whole loop in the background...
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VpcId": Object {
@@ -696,18 +643,8 @@ done & # this ampersand runs the whole loop in the background...
     },
     "DatabaseSecurityGroup7319C0F6": Object {
       "Properties": Object {
-        "GroupDescription": "PinBoardStack/DatabaseSecurityGroup",
-        "GroupName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "PinboardDatabaseSecurityGroup",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "GroupDescription": "PinBoardStack-TEST/DatabaseSecurityGroup",
+        "GroupName": "PinboardDatabaseSecurityGroupTEST",
         "SecurityGroupEgress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -726,20 +663,20 @@ done & # this ampersand runs the whole loop in the background...
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VpcId": Object {
@@ -748,7 +685,7 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "DatabaseSecurityGroupfromPinBoardStackDatabaseDatabaseProxyProxySecurityGroup6ED094B9IndirectPortD6D1383E": Object {
+    "DatabaseSecurityGroupfromPinBoardStackTESTDatabaseDatabaseProxyProxySecurityGroupE5511BBEIndirectPortB75FB8BC": Object {
       "Properties": Object {
         "Description": "Allow connections to the database Instance from the Proxy",
         "FromPort": Object {
@@ -788,20 +725,20 @@ done & # this ampersand runs the whole loop in the background...
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -883,35 +820,32 @@ done & # this ampersand runs the whole loop in the background...
               Object {
                 "Ref": "pinboardnotificationslambdaC35CECF7",
               },
-              "-database-invoke-",
-              Object {
-                "Ref": "Stage",
-              },
+              "-database-invoke-TEST",
             ],
           ],
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "PinBoardStackDatabaseSecret07AA16913fdaad7efa858a3daf9490cf0a702aeb": Object {
+    "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
         "Description": Object {
@@ -933,20 +867,20 @@ done & # this ampersand runs the whole loop in the background...
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -959,11 +893,7 @@ done & # this ampersand runs the whole loop in the background...
           "Fn::Join": Array [
             "",
             Array [
-              "Allow PinboardDatabaseSecurityGroup",
-              Object {
-                "Ref": "Stage",
-              },
-              " to connect to the ",
+              "Allow PinboardDatabaseSecurityGroupTEST to connect to the ",
               Object {
                 "Ref": "DatabaseDatabaseProxy537ACFCB",
               },
@@ -1007,33 +937,23 @@ done & # this ampersand runs the whole loop in the background...
             ],
           },
         },
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-appsync-api-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "Name": "pinboard-appsync-api-TEST",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "XrayEnabled": true,
@@ -1588,20 +1508,20 @@ $util.toJson($ctx.result)",
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -1713,20 +1633,20 @@ $util.toJson($ctx.result)",
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -1880,20 +1800,20 @@ $util.toJson($ctx.result)",
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -1949,44 +1869,16 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-auth-lambda/pinboard-auth-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-auth-lambda/pinboard-auth-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-auth-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-auth-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -1998,20 +1890,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 11,
@@ -2048,20 +1940,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -2109,21 +2001,7 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-bootstrapping-lambda-api/pinboard-bootstrapping-lambda-api.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-bootstrapping-lambda-api/pinboard-bootstrapping-lambda-api.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2137,25 +2015,11 @@ $util.toJson($ctx.result)",
             "SENTRY_DSN": Object {
               "Ref": "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter",
             },
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-bootstrapping-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-bootstrapping-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -2167,20 +2031,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 5,
@@ -2199,18 +2063,7 @@ $util.toJson($ctx.result)",
             Object {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:aws:s3:::permissions-cache/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/*",
-                  ],
-                ],
-              },
+              "Resource": "arn:aws:s3:::permissions-cache/TEST/*",
             },
             Object {
               "Action": "lambda:InvokeFunction",
@@ -2227,10 +2080,7 @@ $util.toJson($ctx.result)",
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":function:pinboard-database-bridge-lambda-",
-                    Object {
-                      "Ref": "Stage",
-                    },
+                    ":function:pinboard-database-bridge-lambda-TEST",
                   ],
                 ],
               },
@@ -2277,20 +2127,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -2304,17 +2154,7 @@ $util.toJson($ctx.result)",
           ],
         },
         "MinimumCompressionSize": 0,
-        "Name": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-bootstrapping-lambda-api-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "Name": "pinboard-bootstrapping-lambda-api-TEST",
         "Policy": Object {
           "Statement": Array [
             Object {
@@ -2341,20 +2181,20 @@ $util.toJson($ctx.result)",
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -2404,7 +2244,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::ApiGateway::Method",
     },
-    "pinboardbootstrappinglambdaapiANYApiPermissionPinBoardStackpinboardbootstrappinglambdaapi6D768200ANY5FE71874": Object {
+    "pinboardbootstrappinglambdaapiANYApiPermissionPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANYBD2C8E55": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2445,7 +2285,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "pinboardbootstrappinglambdaapiANYApiPermissionTestPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYD9187E1E": Object {
+    "pinboardbootstrappinglambdaapiANYApiPermissionTestPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANY9CE19753": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2529,27 +2369,27 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfa18e3d3af308dd131f6627bd80d2597": Object {
+    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfaaac955038b6b3aa42d6e1b505902b2": Object {
       "DependsOn": Array [
         "pinboardbootstrappinglambdaapiproxyANYABDEB60B",
         "pinboardbootstrappinglambdaapiproxyE53D56AC",
@@ -2569,7 +2409,7 @@ $util.toJson($ctx.result)",
       ],
       "Properties": Object {
         "DeploymentId": Object {
-          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfa18e3d3af308dd131f6627bd80d2597",
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfaaac955038b6b3aa42d6e1b505902b2",
         },
         "RestApiId": Object {
           "Ref": "pinboardbootstrappinglambdaapi577E85F1",
@@ -2577,20 +2417,20 @@ $util.toJson($ctx.result)",
         "StageName": "api",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -2598,35 +2438,27 @@ $util.toJson($ctx.result)",
     },
     "pinboardbootstrappinglambdaapicertificate387439C8": Object {
       "Properties": Object {
-        "DomainName": Object {
-          "Fn::FindInMap": Array [
-            "mapping",
-            "DomainName",
-            Object {
-              "Ref": "Stage",
-            },
-          ],
-        },
+        "DomainName": "pinboard.test.dev-gutools.co.uk",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Name",
-            "Value": "PinBoardStack/pinboard-bootstrapping-lambda-api-certificate",
+            "Value": "PinBoardStack-TEST/pinboard-bootstrapping-lambda-api-certificate",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "ValidationMethod": "DNS",
@@ -2635,15 +2467,7 @@ $util.toJson($ctx.result)",
     },
     "pinboardbootstrappinglambdaapidomainname9CF70B03": Object {
       "Properties": Object {
-        "DomainName": Object {
-          "Fn::FindInMap": Array [
-            "mapping",
-            "DomainName",
-            Object {
-              "Ref": "Stage",
-            },
-          ],
-        },
+        "DomainName": "pinboard.test.dev-gutools.co.uk",
         "EndpointConfiguration": Object {
           "Types": Array [
             "REGIONAL",
@@ -2654,26 +2478,26 @@ $util.toJson($ctx.result)",
         },
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
       "Type": "AWS::ApiGateway::DomainName",
     },
-    "pinboardbootstrappinglambdaapidomainnameMapPinBoardStackpinboardbootstrappinglambdaapi6D768200775ECCF0": Object {
+    "pinboardbootstrappinglambdaapidomainnameMapPinBoardStackTESTpinboardbootstrappinglambdaapi004924A92F1518FA": Object {
       "Properties": Object {
         "BasePath": "",
         "DomainName": Object {
@@ -2729,7 +2553,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::ApiGateway::Method",
     },
-    "pinboardbootstrappinglambdaapiproxyANYApiPermissionPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYproxy34590CEC": Object {
+    "pinboardbootstrappinglambdaapiproxyANYApiPermissionPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANYproxyBEE3326C": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2770,7 +2594,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "pinboardbootstrappinglambdaapiproxyANYApiPermissionTestPinBoardStackpinboardbootstrappinglambdaapi6D768200ANYproxyB80C06B0": Object {
+    "pinboardbootstrappinglambdaapiproxyANYApiPermissionTestPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANYproxyBB6FDCA4": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -2830,21 +2654,7 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-database-bridge-lambda/pinboard-database-bridge-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-database-bridge-lambda/pinboard-database-bridge-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2855,25 +2665,11 @@ $util.toJson($ctx.result)",
                 "Endpoint",
               ],
             },
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-database-bridge-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-database-bridge-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -2885,20 +2681,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 30,
@@ -2960,20 +2756,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -3048,44 +2844,16 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-grid-bridge-lambda/pinboard-grid-bridge-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-grid-bridge-lambda/pinboard-grid-bridge-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-grid-bridge-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-grid-bridge-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -3097,20 +2865,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 5,
@@ -3147,20 +2915,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -3210,44 +2978,16 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-notifications-lambda/pinboard-notifications-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-notifications-lambda/pinboard-notifications-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-notifications-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-notifications-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -3259,20 +2999,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 30,
@@ -3294,7 +3034,7 @@ $util.toJson($ctx.result)",
     },
     "pinboardnotificationslambdaSecurityGroupCE2444D9": Object {
       "Properties": Object {
-        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackpinboardnotificationslambda8B273F85",
+        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackTESTpinboardnotificationslambda3B7736D5",
         "SecurityGroupEgress": Array [
           Object {
             "CidrIp": "0.0.0.0/0",
@@ -3304,20 +3044,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "VpcId": Object {
@@ -3368,20 +3108,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -3431,21 +3171,7 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-users-refresher-lambda/pinboard-users-refresher-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-users-refresher-lambda/pinboard-users-refresher-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -3456,25 +3182,11 @@ $util.toJson($ctx.result)",
                 "Endpoint",
               ],
             },
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-users-refresher-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-users-refresher-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 512,
         "Role": Object {
@@ -3486,20 +3198,20 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 900,
@@ -3561,20 +3273,20 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
@@ -3587,18 +3299,7 @@ $util.toJson($ctx.result)",
             Object {
               "Action": "s3:GetObject",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:aws:s3:::permissions-cache/",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                    "/*",
-                  ],
-                ],
-              },
+              "Resource": "arn:aws:s3:::permissions-cache/TEST/*",
             },
             Object {
               "Action": "ssm:GetParameter",
@@ -3677,7 +3378,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
-    "pinboardusersrefresherlambdascheduleFULLRUNAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4AC502C51D": Object {
+    "pinboardusersrefresherlambdascheduleFULLRUNAllowEventRulePinBoardStackTESTpinboardusersrefresherlambda67CBC85C78BB95C7": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -3757,7 +3458,7 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::Events::Rule",
     },
-    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnlyAllowEventRulePinBoardStackpinboardusersrefresherlambdaAD576B4A41C988EE": Object {
+    "pinboardusersrefresherlambdascheduleisProcessPermissionChangesOnlyAllowEventRulePinBoardStackTESTpinboardusersrefresherlambda67CBC85CC07CF6DD": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
@@ -3783,57 +3484,19 @@ $util.toJson($ctx.result)",
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "workflow-dist",
-          "S3Key": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                Object {
-                  "Ref": "Stack",
-                },
-                "/",
-                Object {
-                  "Ref": "Stage",
-                },
-                "/pinboard-workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip",
-              ],
-            ],
-          },
+          "S3Key": "workflow/TEST/pinboard-workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
-            "STACK": Object {
-              "Ref": "Stack",
-            },
-            "STAGE": Object {
-              "Ref": "Stage",
-            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
             "WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME": Object {
-              "Fn::ImportValue": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "WorkflowDatastoreLoadBalancerDNSName-",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                  ],
-                ],
-              },
+              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerDNSName-TEST",
             },
           },
         },
-        "FunctionName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-workflow-bridge-lambda-",
-              Object {
-                "Ref": "Stage",
-              },
-            ],
-          ],
-        },
+        "FunctionName": "pinboard-workflow-bridge-lambda-TEST",
         "Handler": "index.handler",
         "MemorySize": 128,
         "Role": Object {
@@ -3845,54 +3508,34 @@ $util.toJson($ctx.result)",
         "Runtime": "nodejs16.x",
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
         "Timeout": 5,
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
             Object {
-              "Fn::ImportValue": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "WorkflowDatastoreLoadBalancerSecurityGroupId-",
-                    Object {
-                      "Ref": "Stage",
-                    },
-                  ],
-                ],
-              },
+              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerSecurityGroupId-TEST",
             },
           ],
           "SubnetIds": Object {
             "Fn::Split": Array [
               ",",
               Object {
-                "Fn::ImportValue": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "WorkflowPrivateSubnetIds-",
-                      Object {
-                        "Ref": "Stage",
-                      },
-                    ],
-                  ],
-                },
+                "Fn::ImportValue": "WorkflowPrivateSubnetIds-TEST",
               },
             ],
           },
@@ -3942,51 +3585,24 @@ $util.toJson($ctx.result)",
         ],
         "Tags": Array [
           Object {
-            "Key": "App",
-            "Value": "pinboard",
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
           },
           Object {
             "Key": "Stack",
-            "Value": Object {
-              "Ref": "Stack",
-            },
+            "Value": "workflow",
           },
           Object {
             "Key": "Stage",
-            "Value": Object {
-              "Ref": "Stage",
-            },
+            "Value": "TEST",
           },
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-  },
-  "Rules": Object {
-    "CheckBootstrapVersion": Object {
-      "Assertions": Array [
-        Object {
-          "Assert": Object {
-            "Fn::Not": Array [
-              Object {
-                "Fn::Contains": Array [
-                  Array [
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                  ],
-                  Object {
-                    "Ref": "BootstrapVersion",
-                  },
-                ],
-              },
-            ],
-          },
-          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
-        },
-      ],
     },
   },
 }

@@ -14,15 +14,12 @@ import {
   aws_s3 as S3,
   aws_sns as sns,
   aws_ssm as ssm,
-  CfnMapping,
   CfnOutput,
   CfnParameter,
   Duration,
   Fn,
   RemovalPolicy,
   Stack,
-  StackProps,
-  Tags,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -47,33 +44,29 @@ import { Stage } from "../shared/types/stage";
 import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
 import * as fs from "fs";
 import { MUTATIONS, QUERIES } from "../shared/graphql/operations";
+import { GuStack, GuStackProps } from "@guardian/cdk/lib/constructs/core";
 
-export class PinBoardStack extends Stack {
-  constructor(scope: App, id: string, props?: StackProps) {
+// if changing should also change .nvmrc (at the root of repo)
+const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
+
+interface PinBoardStackProps extends GuStackProps {
+  domainName: string;
+}
+
+export class PinBoardStack extends GuStack {
+  constructor(
+    scope: App,
+    id: string,
+    { domainName, ...props }: PinBoardStackProps
+  ) {
     super(scope, id, props);
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const thisStack = this;
 
     const context = Stack.of(this);
     const account = context.account;
     const region = context.region;
 
-    // if changing should also change .nvmrc (at the root of repo)
-    const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
-
-    const STACK = new CfnParameter(thisStack, "Stack", {
-      type: "String",
-      description: "Stack",
-    }).valueAsString;
-
-    const STAGE = new CfnParameter(thisStack, "Stage", {
-      type: "String",
-      description: "Stage",
-    }).valueAsString;
-
     const DatabaseJumpHostAmiID = new CfnParameter(
-      thisStack,
+      this,
       "DatabaseJumpHostAmiID",
       {
         type: "AWS::EC2::Image::Id",
@@ -81,12 +74,8 @@ export class PinBoardStack extends Stack {
       }
     ).valueAsString;
 
-    Tags.of(thisStack).add("App", APP);
-    Tags.of(thisStack).add("Stage", STAGE);
-    Tags.of(thisStack).add("Stack", STACK);
-
     const accountVpcPrivateSubnetIds = new CfnParameter(
-      thisStack,
+      this,
       "AccountVpcPrivateSubnetIds",
       {
         type: "AWS::SSM::Parameter::Value<List<String>>",
@@ -96,9 +85,9 @@ export class PinBoardStack extends Stack {
       }
     ).valueAsList;
 
-    const accountVpc = ec2.Vpc.fromVpcAttributes(thisStack, "AccountVPC", {
+    const accountVpc = ec2.Vpc.fromVpcAttributes(this, "AccountVPC", {
       vpcId: ssm.StringParameter.valueForStringParameter(
-        thisStack,
+        this,
         "/account/vpc/primary/id"
       ),
       availabilityZones: Fn.getAzs(region),
@@ -106,7 +95,7 @@ export class PinBoardStack extends Stack {
     });
 
     const database = new rds.DatabaseInstance(this, "Database", {
-      instanceIdentifier: `${APP}-db-${STAGE}`,
+      instanceIdentifier: `${APP}-db-${this.stage}`,
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_13_7, // RDS Proxy fails to create with a Postgres 14 instance (comment on 22 Aug 2022)
       }),
@@ -129,7 +118,7 @@ export class PinBoardStack extends Stack {
     });
 
     const databaseProxy = database.addProxy("DatabaseProxy", {
-      dbProxyName: getDatabaseProxyName(STAGE as Stage),
+      dbProxyName: getDatabaseProxyName(this.stage as Stage),
       vpc: accountVpc,
       secrets: [database.secret!],
       iamAuth: true,
@@ -140,7 +129,7 @@ export class PinBoardStack extends Stack {
     const databaseHostname = databaseProxy.endpoint;
 
     const deployBucket = S3.Bucket.fromBucketName(
-      thisStack,
+      this,
       "workflow-dist",
       "workflow-dist"
     );
@@ -154,7 +143,7 @@ export class PinBoardStack extends Stack {
     const permissionsFilePolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::permissions-cache/${STAGE}/*`],
+      resources: [`arn:aws:s3:::permissions-cache/${this.stage}/*`],
     });
 
     const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
@@ -166,24 +155,24 @@ export class PinBoardStack extends Stack {
     const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const workflowDatastoreVpcId = Fn.importValue(
-      `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${STAGE}`
+      `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${this.stage}`
     );
 
     const workflowDatastoreVPC = ec2.Vpc.fromVpcAttributes(
-      thisStack,
+      this,
       "workflow-datastore-vpc",
       {
         vpcId: workflowDatastoreVpcId,
         availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
-          Fn.importValue(`WorkflowPrivateSubnetIds-${STAGE}`)
+          Fn.importValue(`WorkflowPrivateSubnetIds-${this.stage}`)
         ),
       }
     );
 
     const pinboardWorkflowBridgeLambda = new lambda.Function(
-      thisStack,
+      this,
       workflowBridgeLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -191,19 +180,19 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(5),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.workflowDnsName]: Fn.importValue(
-            `WorkflowDatastoreLoadBalancerDNSName-${STAGE}`
+            `WorkflowDatastoreLoadBalancerDNSName-${this.stage}`
           ),
         },
-        functionName: `${workflowBridgeLambdaBasename}-${STAGE}`,
+        functionName: `${workflowBridgeLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${workflowBridgeLambdaBasename}/${workflowBridgeLambdaBasename}.zip`
+          `${this.stack}/${this.stage}/${workflowBridgeLambdaBasename}/${workflowBridgeLambdaBasename}.zip`
         ),
-        role: new iam.Role(thisStack, `${workflowBridgeLambdaBasename}-role`, {
+        role: new iam.Role(this, `${workflowBridgeLambdaBasename}-role`, {
           assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
           managedPolicies: [
             iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -217,10 +206,10 @@ export class PinBoardStack extends Stack {
         vpc: workflowDatastoreVPC,
         securityGroups: [
           ec2.SecurityGroup.fromSecurityGroupId(
-            thisStack,
+            this,
             "workflow-datastore-load-balancer-security-group",
             Fn.importValue(
-              `WorkflowDatastoreLoadBalancerSecurityGroupId-${STAGE}`
+              `WorkflowDatastoreLoadBalancerSecurityGroupId-${this.stage}`
             )
           ),
         ],
@@ -230,7 +219,7 @@ export class PinBoardStack extends Stack {
     const gridBridgeLambdaBasename = "pinboard-grid-bridge-lambda";
 
     const pinboardGridBridgeLambda = new lambda.Function(
-      thisStack,
+      this,
       gridBridgeLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -238,22 +227,22 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(5),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
         },
-        functionName: `${gridBridgeLambdaBasename}-${STAGE}`,
+        functionName: `${gridBridgeLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${gridBridgeLambdaBasename}/${gridBridgeLambdaBasename}.zip`
+          `${this.stack}/${this.stage}/${gridBridgeLambdaBasename}/${gridBridgeLambdaBasename}.zip`
         ),
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
 
-    const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${STAGE}`;
+    const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${this.stage}`;
     const databaseSecurityGroup = new ec2.SecurityGroup(
-      thisStack,
+      this,
       "DatabaseSecurityGroup",
       {
         vpc: accountVpc,
@@ -267,7 +256,7 @@ export class PinBoardStack extends Stack {
       "Allow SSH for tunneling purposes when this security group is reused for database jump host."
     );
     ec2.SecurityGroup.fromSecurityGroupId(
-      thisStack,
+      this,
       "databaseProxySecurityGroup",
       Fn.select(0, cfnDatabaseProxy!.vpcSecurityGroupIds!)
     ).addIngressRule(
@@ -277,7 +266,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardDatabaseBridgeLambda = new lambda.Function(
-      thisStack,
+      this,
       DATABASE_BRIDGE_LAMBDA_BASENAME,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -285,15 +274,15 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(30),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: getDatabaseBridgeLambdaFunctionName(STAGE as Stage),
+        functionName: getDatabaseBridgeLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${DATABASE_BRIDGE_LAMBDA_BASENAME}/${DATABASE_BRIDGE_LAMBDA_BASENAME}.zip`
+          `${this.stack}/${this.stage}/${DATABASE_BRIDGE_LAMBDA_BASENAME}/${DATABASE_BRIDGE_LAMBDA_BASENAME}.zip`
         ),
         initialPolicy: [],
         vpc: accountVpc,
@@ -302,7 +291,9 @@ export class PinBoardStack extends Stack {
     );
     databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
 
-    const databaseJumpHostASGName = getDatabaseJumpHostAsgName(STAGE as Stage);
+    const databaseJumpHostASGName = getDatabaseJumpHostAsgName(
+      this.stage as Stage
+    );
 
     const selfTerminatingUserDataScript = ec2.UserData.custom(
       fs
@@ -313,7 +304,7 @@ export class PinBoardStack extends Stack {
     );
 
     const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
-      thisStack,
+      this,
       databaseJumpHostASGLogicalID,
       {
         autoScalingGroupName: databaseJumpHostASGName,
@@ -331,11 +322,11 @@ export class PinBoardStack extends Stack {
             userData: selfTerminatingUserDataScript,
           }),
         },
-        role: new iam.Role(thisStack, "DatabaseJumpHostRole", {
+        role: new iam.Role(this, "DatabaseJumpHostRole", {
           assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
           managedPolicies: [
             iam.ManagedPolicy.fromManagedPolicyArn(
-              thisStack,
+              this,
               "SSMPolicy",
               Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
             ),
@@ -371,7 +362,7 @@ export class PinBoardStack extends Stack {
     );
 
     const databaseJumpHostOverunningAlarm = new cloudwatch.Alarm(
-      thisStack,
+      this,
       "DatabaseJumpHostOverunningAlarm",
       {
         alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
@@ -398,7 +389,7 @@ export class PinBoardStack extends Stack {
     );
 
     const pinboardNotificationsLambda = new lambda.Function(
-      thisStack,
+      this,
       NOTIFICATIONS_LAMBDA_BASENAME,
       {
         vpc: accountVpc,
@@ -407,24 +398,24 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(30),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
         },
-        functionName: getNotificationsLambdaFunctionName(STAGE as Stage),
+        functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
+          `${this.stack}/${this.stage}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
         ),
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
     const notificationLambdaInvokeRole = new iam.Role(
-      thisStack,
+      this,
       "NotificationLambdaInvokeRole",
       {
         assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"),
-        roleName: `${APP}-${pinboardNotificationsLambda.functionName}-database-invoke-${STAGE}`,
+        roleName: `${APP}-${pinboardNotificationsLambda.functionName}-database-invoke-${this.stage}`,
         description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
       }
     );
@@ -440,7 +431,7 @@ export class PinBoardStack extends Stack {
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 
     const pinboardAuthLambda = new lambda.Function(
-      thisStack,
+      this,
       pinboardAuthLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -448,14 +439,14 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(11),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
         },
-        functionName: `${pinboardAuthLambdaBasename}-${STAGE}`,
+        functionName: `${pinboardAuthLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${pinboardAuthLambdaBasename}/${pinboardAuthLambdaBasename}.zip`
+          `${this.stack}/${this.stage}/${pinboardAuthLambdaBasename}/${pinboardAuthLambdaBasename}.zip`
         ),
         initialPolicy: [pandaConfigAndKeyPolicyStatement],
       }
@@ -467,10 +458,10 @@ export class PinBoardStack extends Stack {
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";
     const pinboardAppsyncApi = new appsync.GraphqlApi(
-      thisStack,
+      this,
       pinboardAppsyncApiBaseName,
       {
-        name: `${pinboardAppsyncApiBaseName}-${STAGE}`,
+        name: `${pinboardAppsyncApiBaseName}-${this.stage}`,
         schema: gqlSchema,
         authorizationConfig: {
           defaultAuthorization: {
@@ -551,7 +542,7 @@ export class PinBoardStack extends Stack {
     const usersRefresherLambdaBasename = "pinboard-users-refresher-lambda";
 
     const usersRefresherLambdaFunction = new lambda.Function(
-      thisStack,
+      this,
       usersRefresherLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -559,15 +550,15 @@ export class PinBoardStack extends Stack {
         timeout: Duration.minutes(15),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: `${usersRefresherLambdaBasename}-${STAGE}`,
+        functionName: `${usersRefresherLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${usersRefresherLambdaBasename}/${usersRefresherLambdaBasename}.zip`
+          `${this.stack}/${this.stage}/${usersRefresherLambdaBasename}/${usersRefresherLambdaBasename}.zip`
         ),
         initialPolicy: [
           permissionsFilePolicyStatement,
@@ -580,7 +571,7 @@ export class PinBoardStack extends Stack {
     databaseProxy.grantConnect(usersRefresherLambdaFunction);
 
     new events.Rule(
-      thisStack,
+      this,
       `${usersRefresherLambdaBasename}-schedule-isProcessPermissionChangesOnly`,
       {
         description: `Runs the ${usersRefresherLambdaFunction.functionName} every minute, with 'isProcessPermissionChangesOnly: true'.`,
@@ -595,24 +586,18 @@ export class PinBoardStack extends Stack {
         schedule: events.Schedule.rate(Duration.minutes(1)),
       }
     );
-    new events.Rule(
-      thisStack,
-      `${usersRefresherLambdaBasename}-schedule-FULL-RUN`,
-      {
-        description: `Runs the ${usersRefresherLambdaFunction.functionName} every 24 hours, which should be a FULL RUN.`,
-        enabled: true,
-        targets: [
-          new eventsTargets.LambdaFunction(usersRefresherLambdaFunction),
-        ],
-        schedule: events.Schedule.rate(Duration.days(1)),
-      }
-    );
+    new events.Rule(this, `${usersRefresherLambdaBasename}-schedule-FULL-RUN`, {
+      description: `Runs the ${usersRefresherLambdaFunction.functionName} every 24 hours, which should be a FULL RUN.`,
+      enabled: true,
+      targets: [new eventsTargets.LambdaFunction(usersRefresherLambdaFunction)],
+      schedule: events.Schedule.rate(Duration.days(1)),
+    });
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;
 
     const bootstrappingLambdaFunction = new lambda.Function(
-      thisStack,
+      this,
       bootstrappingLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
@@ -620,8 +605,8 @@ export class PinBoardStack extends Stack {
         timeout: Duration.seconds(5),
         handler: "index.handler",
         environment: {
-          STAGE,
-          STACK,
+          STAGE: this.stage,
+          STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint]:
             pinboardAppsyncApi.graphqlUrl,
@@ -630,10 +615,10 @@ export class PinBoardStack extends Stack {
             "/pinboard/sentryDSN"
           ),
         },
-        functionName: `${bootstrappingLambdaBasename}-${STAGE}`,
+        functionName: `${bootstrappingLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${STACK}/${STAGE}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
+          `${this.stack}/${this.stage}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
         ),
         initialPolicy: [
           pandaConfigAndKeyPolicyStatement,
@@ -643,7 +628,7 @@ export class PinBoardStack extends Stack {
             actions: ["lambda:InvokeFunction"],
             resources: [
               `arn:aws:lambda:${region}:${account}:function:${DATABASE_BRIDGE_LAMBDA_BASENAME}-${
-                STAGE === "PROD" ? "*" : STAGE
+                this.stage === "PROD" ? "*" : this.stage
               }`,
             ],
           }),
@@ -652,10 +637,10 @@ export class PinBoardStack extends Stack {
     );
 
     const bootstrappingApiGateway = new apiGateway.LambdaRestApi(
-      thisStack,
+      this,
       bootstrappingLambdaApiBaseName,
       {
-        restApiName: `${bootstrappingLambdaApiBaseName}-${STAGE}`,
+        restApiName: `${bootstrappingLambdaApiBaseName}-${this.stage}`,
         handler: bootstrappingLambdaFunction,
         endpointTypes: [apiGateway.EndpointType.REGIONAL],
         policy: new iam.PolicyDocument({
@@ -678,21 +663,8 @@ export class PinBoardStack extends Stack {
       }
     );
 
-    const MAPPING_KEY = "mapping";
-    const DOMAIN_NAME_KEY = "DomainName";
-    new CfnMapping(thisStack, MAPPING_KEY, {
-      [MAPPING_KEY]: {
-        [DOMAIN_NAME_KEY]: {
-          CODE: "pinboard.code.dev-gutools.co.uk",
-          PROD: "pinboard.gutools.co.uk",
-        },
-      },
-    });
-
-    const domainName = Fn.findInMap(MAPPING_KEY, DOMAIN_NAME_KEY, STAGE);
-
     const bootstrappingApiCertificate = new acm.Certificate(
-      thisStack,
+      this,
       `${bootstrappingLambdaApiBaseName}-certificate`,
       {
         domainName,
@@ -701,7 +673,7 @@ export class PinBoardStack extends Stack {
     );
 
     const bootstrappingApiDomainName = new apiGateway.DomainName(
-      thisStack,
+      this,
       `${bootstrappingLambdaApiBaseName}-domain-name`,
       {
         domainName,
@@ -714,7 +686,7 @@ export class PinBoardStack extends Stack {
       basePath: "",
     });
 
-    new CfnOutput(thisStack, `${bootstrappingLambdaApiBaseName}-hostname`, {
+    new CfnOutput(this, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
     });

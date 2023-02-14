@@ -1,4 +1,4 @@
-import { PinBoardStack } from "./stack";
+import { PinBoardStack } from "../lib/stack";
 import { App } from "aws-cdk-lib";
 
 const stack = "workflow";

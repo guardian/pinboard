@@ -9,7 +9,7 @@
     "jest": "jest",
     "test": "run-p --print-label type-check jest",
     "watch": "yarn test -- --watch",
-    "synth": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node cdk.ts'",
+    "synth": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node bin/cdk.ts'",
     "build": "run-p --print-label type-check synth",
     "update-snapshot": "jest -u"
   },

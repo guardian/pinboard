@@ -1,5 +1,5 @@
 import { App, assertions } from "aws-cdk-lib";
-import { PinBoardStack } from "../stack";
+import { PinBoardStack } from "./stack";
 
 describe("PinBoardStack's", () => {
   it("generated CloudFormation matches the snapshot", () => {

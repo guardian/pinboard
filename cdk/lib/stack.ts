@@ -29,9 +29,9 @@ import {
   getDatabaseBridgeLambdaFunctionName,
   getNotificationsLambdaFunctionName,
   NOTIFICATIONS_LAMBDA_BASENAME,
-} from "../shared/constants";
+} from "../../shared/constants";
 import crypto from "crypto";
-import { ENVIRONMENT_VARIABLE_KEYS } from "../shared/environmentVariables";
+import { ENVIRONMENT_VARIABLE_KEYS } from "../../shared/environmentVariables";
 import {
   DATABASE_NAME,
   DATABASE_PORT,
@@ -39,11 +39,11 @@ import {
   databaseJumpHostASGLogicalID,
   getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
-} from "../shared/database/database";
-import { Stage } from "../shared/types/stage";
+} from "../../shared/database/database";
+import { Stage } from "../../shared/types/stage";
 import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
 import * as fs from "fs";
-import { MUTATIONS, QUERIES } from "../shared/graphql/operations";
+import { MUTATIONS, QUERIES } from "../../shared/graphql/operations";
 import { GuStack, GuStackProps } from "@guardian/cdk/lib/constructs/core";
 
 // if changing should also change .nvmrc (at the root of repo)
@@ -453,7 +453,7 @@ export class PinBoardStack extends GuStack {
     );
 
     const gqlSchema = appsync.Schema.fromAsset(
-      join(__dirname, "../shared/graphql/schema.graphql")
+      join(__dirname, "../../shared/graphql/schema.graphql")
     );
 
     const pinboardAppsyncApiBaseName = "pinboard-appsync-api";

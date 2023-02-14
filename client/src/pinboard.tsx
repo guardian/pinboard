@@ -23,10 +23,8 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { GuidedTour, GuidedTourStartButton } from "./guidedTour";
+import { GuidedTour, pinboardViewDemoSteps } from "./guidedTour";
 import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
-import BinIcon from "../icons/bin.svg";
-import EditIcon from "../icons/pencil.svg";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -41,6 +39,7 @@ interface PinboardProps {
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
   guidedTourActive: boolean;
+  resetTour: () => void;
 }
 
 export const Pinboard: React.FC<PinboardProps> = ({
@@ -49,6 +48,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   isSelected,
   panelElement,
   guidedTourActive,
+  resetTour,
 }) => {
   const {
     hasBrowserFocus,
@@ -293,48 +293,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
     useState<JSX.Element | null>(null);
 
   const messageAreaRef = useRef(null);
-  const messageDisplayRef = useRef(null);
 
-  const pinboardViewGuidedSteps: Step[] = [
-    {
-      target: messageAreaRef.current!,
-      title: 'Sending messages',
-      content: <div>Try typing messages here...</div>,
-      placement: "top",
-    },
-    {
-      target: messageAreaRef.current!,
-      title: 'Tag someone',
-      content: (
-        <div>
-          You can tag someone by typing their name with @. They will
-          receive a message notification alert on their browser.
-        </div>
-      ),
-      placement: "top",
-    },
-    {
-      target: messageAreaRef.current!,
-      title: 'Tag a team',
-      content: (
-        <div>
-          <p>When you tag a team, everyone in the team will receive a notification (if their notification is turned on).</p>
-          <p>You can turn a message into a 'request', so that the tagged team members can track the status.</p>
-        </div>
-      ),
-      placement: "top",
-    },
-    {
-      target: messageAreaRef.current!,
-      title: 'Edit or delete your messages',
-      content: (
-        <div>
-          You can also edit <EditIcon /> or delete <BinIcon /> a message by clicking on the corresponding icon next to your message.
-        </div>
-      ),
-      placement: "top",
-    },
-  ];
+  const pinboardViewWalkthroughSteps: Step[] = pinboardViewDemoSteps(
+    messageAreaRef
+  );
 
   const [guidedTourState, setGuidedTourState] = useState({
     run: guidedTourActive,
@@ -348,15 +310,15 @@ export const Pinboard: React.FC<PinboardProps> = ({
   }, [guidedTourActive]);
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
-    const { status, type, index, action } = data;
+    const { type, index, action } = data;
 
     if (type === EVENTS.TOUR_END) {
       setGuidedTourState({
-        ...guidedTourState,
         mainKey: mainKey + 1,
         run: false,
         stepIndex: 0,
       });
+      resetTour();
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
@@ -364,20 +326,21 @@ export const Pinboard: React.FC<PinboardProps> = ({
       setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
     }
   };
+
   return !isSelected ? null : (
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
       {messageAreaRef && (
-          <GuidedTour
-            steps={pinboardViewGuidedSteps}
-            run={run}
-            stepIndex={stepIndex}
-            mainKey={mainKey}
-            handleCallback={handleGuidedTourCallback}
-          />
-        )}
+        <GuidedTour
+          steps={pinboardViewWalkthroughSteps}
+          run={run}
+          stepIndex={stepIndex}
+          mainKey={mainKey}
+          handleCallback={handleGuidedTourCallback}
+        />
+      )}
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
         css={css`

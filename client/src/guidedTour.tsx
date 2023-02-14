@@ -2,9 +2,12 @@ import React, { useContext, useState } from "react";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
-import Joyride, { CallBackProps, Step } from "react-joyride";
+import Joyride, { CallBackProps, Placement, Step } from "react-joyride";
 import PlayButton from "../icons/play-button.svg";
 import CloseIcon from "../icons/close.svg";
+import BeaconIcon from "../icons/beacon";
+import EditIcon from "../icons/pencil.svg";
+import BinIcon from "../icons/bin.svg";
 
 export interface DemoState {
   run: boolean;
@@ -100,7 +103,7 @@ export const GuidedTour = ({
           primaryColor: "rgb(255, 140, 0)",
           zIndex: 999999,
         },
-        
+
         tooltip: {
           fontFamily: "Guardian Agate Sans",
           textAlign: "left",
@@ -135,4 +138,134 @@ export const GuidedTour = ({
       }}
     />
   );
+};
+
+export const panelGuidedWalkthroughSteps = (
+  ref: React.RefObject<HTMLDivElement>
+) => {
+  return [
+    {
+      target: ref.current!,
+      placement: "left" as Placement,
+      title: "Welcome to Pinboard 👋",
+      content: (
+        <div
+          style={{
+            textAlign: "left",
+            marginTop: `${space[1]}px`,
+            padding: 0,
+          }}
+        >
+          The Guardian's very own discussion and asset-sharing tool developed
+          for the editorial.
+          <div style={{ display: "flex", alignItems: "center" }}>
+            Let's take a tour. Follow the orange beacon.
+            <BeaconIcon />
+          </div>
+        </div>
+      ),
+      locale: { last: "Continue" },
+      disableBeacon: true,
+    },
+  ];
+};
+
+export const indexViewWalkthroughSteps = (
+  myPinboardsRef: React.RefObject<HTMLDivElement>,
+  teamsPinboardsRef: React.RefObject<HTMLDivElement>,
+  searchbarRef: React.RefObject<HTMLDivElement>,
+  notificationSubscriptionRef: React.RefObject<HTMLDivElement>
+) => {
+  return [
+    {
+      target: myPinboardsRef.current!,
+      title: "My Pinboards",
+      content: (
+        <div>
+          Here you can find the list of Pinboards where you sent a message or
+          are tagged by others.
+        </div>
+      ),
+      placement: "left" as Placement,
+    },
+    {
+      target: teamsPinboardsRef.current!,
+      title: "My Teams' Pinboards",
+      content: (
+        <div>
+          These are the Pinboards where your team is tagged (in a message or a
+          request).
+        </div>
+      ),
+      placement: "left" as Placement,
+    },
+    {
+      target: searchbarRef.current!,
+      title: "Search",
+      content: (
+        <div>
+          You can search for other Pinboards on Workflow using this searchbar.
+        </div>
+      ),
+      placement: "left" as Placement,
+    },
+    {
+      target: notificationSubscriptionRef.current!,
+      title: "Subscribe/Unsubscribe to Notifications",
+      content: <div>You can set your browser notification settings here.</div>,
+      placement: "left" as Placement,
+    },
+  ];
+};
+
+export const pinboardViewDemoSteps = (
+  messageAreaRef: React.RefObject<HTMLDivElement>
+) => {
+  return [
+    {
+      target: messageAreaRef.current!,
+      title: "Sending messages",
+      content: <div>Try typing messages here...</div>,
+      placement: "top" as Placement,
+    },
+    {
+      target: messageAreaRef.current!,
+      title: "Tag someone",
+      content: (
+        <div>
+          You can tag someone by typing their name with @. They will receive a
+          message notification alert on their browser.
+        </div>
+      ),
+      placement: "top" as Placement,
+    },
+    {
+      target: messageAreaRef.current!,
+      title: "Tag a team",
+      content: (
+        <div>
+          <p>
+            When you tag a team, everyone in the team will receive a
+            notification (if their notification is turned on).
+          </p>
+          <p>
+            You can turn a message into a 'request', so that the tagged team
+            members can track the status.
+          </p>
+        </div>
+      ),
+      placement: "top" as Placement,
+    },
+    {
+      target: messageAreaRef.current!,
+      title: "Edit or delete your messages",
+      content: (
+        <div>
+          You can also edit <EditIcon /> or delete <BinIcon /> a message by
+          clicking on the corresponding icon next to your message.
+        </div>
+      ),
+      placement: "top" as Placement,
+    },
+  ];
 };

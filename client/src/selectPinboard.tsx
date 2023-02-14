@@ -28,14 +28,8 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import Joyride, {
-  ACTIONS,
-  CallBackProps,
-  EVENTS,
-  STATUS,
-  Step,
-} from "react-joyride";
-import { GuidedTour } from "./guidedTour";
+import Joyride, { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
+import { GuidedTour, indexViewWalkthroughSteps } from "./guidedTour";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -55,7 +49,8 @@ interface SelectPinboardProps {
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
-  guidedTourStatus: boolean;
+  guidedTourActive: boolean;
+  resetTour: () => void;
 }
 
 export const SelectPinboard = ({
@@ -64,7 +59,8 @@ export const SelectPinboard = ({
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
-  guidedTourStatus,
+  guidedTourActive,
+  resetTour,
 }: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
@@ -345,70 +341,36 @@ export const SelectPinboard = ({
   const myPinboardsRef = useRef<HTMLDivElement>(null);
   const teamsPinboardsRef = useRef<HTMLDivElement>(null);
   const searchbarRef = useRef<HTMLDivElement>(null);
-  const notificationSubscriptionButtonRef = useRef<HTMLDivElement>(null);
+  const notificationSubscriptionRef = useRef<HTMLDivElement>(null);
 
-  const indexViewGuidedSteps: Step[] = [
-    {
-      target: myPinboardsRef.current!,
-      title: "My Pinboards",
-      content: (
-        <div>
-          Here you can find the list of Pinboards where you sent a message or
-          are tagged by others.
-        </div>
-      ),
-      placement: "left",
-    },
-    {
-      target: teamsPinboardsRef.current!,
-      title: "My Teams' Pinboards",
-      content: (
-        <div>
-          These are the Pinboards where your team is tagged (in a message or a
-          request).
-        </div>
-      ),
-      placement: "left",
-    },
-    {
-      target: searchbarRef.current!,
-      title: "Search",
-      content: (
-        <div>
-          You can search for other Pinboards on Workflow using this searchbar.
-        </div>
-      ),
-      placement: "left",
-    },
-    {
-      target: notificationSubscriptionButtonRef.current!,
-      title: "Subscribe/Unsubscribe to Notifications",
-      content: <div>You can set your browser notification settings here.</div>,
-      placement: "left",
-    },
-  ];
+  const guidedWalkthroughSteps: Step[] = indexViewWalkthroughSteps(
+    myPinboardsRef,
+    teamsPinboardsRef,
+    searchbarRef,
+    notificationSubscriptionRef
+  );
 
   const [guidedTourState, setGuidedTourState] = useState({
-    run: guidedTourStatus,
+    run: guidedTourActive,
     stepIndex: 0,
     mainKey: 0,
   });
   const { run, stepIndex, mainKey } = guidedTourState;
 
   useEffect(() => {
-    setGuidedTourState({ ...guidedTourState, run: guidedTourStatus });
-  }, [guidedTourStatus]);
+    setGuidedTourState({ ...guidedTourState, run: guidedTourActive });
+  }, [guidedTourActive]);
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
-    const { status, type, index, action } = data;
+    const { type, index, action } = data;
 
     if (type === EVENTS.TOUR_END) {
       setGuidedTourState({
-        ...guidedTourState,
         mainKey: mainKey + 1,
         run: false,
         stepIndex: 0,
       });
+      resetTour();
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
@@ -435,15 +397,18 @@ export const SelectPinboard = ({
         }}
       >
         <Feedback />
-        {myPinboardsRef && teamsPinboardsRef && searchbarRef && notificationSubscriptionButtonRef &&(
-          <GuidedTour
-            steps={indexViewGuidedSteps}
-            run={run}
-            stepIndex={stepIndex}
-            mainKey={mainKey}
-            handleCallback={handleGuidedTourCallback}
-          />
-        )}
+        {myPinboardsRef &&
+          teamsPinboardsRef &&
+          searchbarRef &&
+          notificationSubscriptionRef && (
+            <GuidedTour
+              steps={guidedWalkthroughSteps}
+              run={run}
+              stepIndex={stepIndex}
+              mainKey={mainKey}
+              handleCallback={handleGuidedTourCallback}
+            />
+          )}
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />
         )}
@@ -559,7 +524,7 @@ export const SelectPinboard = ({
           }}
         >
           {/* TODO move this to some settings menu (rather than bottom of selection list) */}
-          <div ref={notificationSubscriptionButtonRef}>
+          <div ref={notificationSubscriptionRef}>
             <PushNotificationPreferencesOpener
               hasWebPushSubscription={hasWebPushSubscription}
             />

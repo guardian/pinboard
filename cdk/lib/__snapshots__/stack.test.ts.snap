@@ -362,7 +362,7 @@ Object {
         "SecurityGroups": Array [
           Object {
             "Fn::GetAtt": Array [
-              "DbSecurityGroupE9D701AD",
+              "DatabaseSecurityGroup7319C0F6",
               "GroupId",
             ],
           },
@@ -641,6 +641,50 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "DatabaseSecurityGroup7319C0F6": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack-TEST/DatabaseSecurityGroup",
+        "GroupName": "PinboardDatabaseSecurityGroupTEST",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "77.91.248.0/21",
+            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
     "DatabaseSecurityGroupfromPinBoardStackTESTDatabaseDatabaseProxyProxySecurityGroupE5511BBEIndirectPortB75FB8BC": Object {
       "Properties": Object {
         "Description": "Allow connections to the database Instance from the Proxy",
@@ -700,50 +744,6 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::RDS::DBSubnetGroup",
       "UpdateReplacePolicy": "Retain",
-    },
-    "DbSecurityGroupE9D701AD": Object {
-      "Properties": Object {
-        "GroupDescription": "PinBoardStack-TEST/DbSecurityGroup",
-        "GroupName": "PinboardDbSecurityGroupTEST",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "SecurityGroupIngress": Array [
-          Object {
-            "CidrIp": "77.91.248.0/21",
-            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
-            "FromPort": 22,
-            "IpProtocol": "tcp",
-            "ToPort": 22,
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "49.2.1",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
     },
     "NotificationLambdaInvokeRoleDefaultPolicy45F27235": Object {
       "Properties": Object {
@@ -893,7 +893,7 @@ done & # this ampersand runs the whole loop in the background...
           "Fn::Join": Array [
             "",
             Array [
-              "Allow PinboardDbSecurityGroupTEST to connect to the ",
+              "Allow PinboardDatabaseSecurityGroupTEST to connect to the ",
               Object {
                 "Ref": "DatabaseDatabaseProxy537ACFCB",
               },
@@ -917,7 +917,7 @@ done & # this ampersand runs the whole loop in the background...
         "IpProtocol": "tcp",
         "SourceSecurityGroupId": Object {
           "Fn::GetAtt": Array [
-            "DbSecurityGroupE9D701AD",
+            "DatabaseSecurityGroup7319C0F6",
             "GroupId",
           ],
         },
@@ -2497,6 +2497,21 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::ApiGateway::DomainName",
     },
+    "pinboardbootstrappinglambdaapidomainnameMapPinBoardStackTESTpinboardbootstrappinglambdaapi004924A92F1518FA": Object {
+      "Properties": Object {
+        "BasePath": "",
+        "DomainName": Object {
+          "Ref": "pinboardbootstrappinglambdaapidomainname9CF70B03",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+        "Stage": Object {
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
+        },
+      },
+      "Type": "AWS::ApiGateway::BasePathMapping",
+    },
     "pinboardbootstrappinglambdaapiproxyANYABDEB60B": Object {
       "Properties": Object {
         "ApiKeyRequired": false,
@@ -2687,7 +2702,7 @@ $util.toJson($ctx.result)",
           "SecurityGroupIds": Array [
             Object {
               "Fn::GetAtt": Array [
-                "DbSecurityGroupE9D701AD",
+                "DatabaseSecurityGroup7319C0F6",
                 "GroupId",
               ],
             },
@@ -3204,7 +3219,7 @@ $util.toJson($ctx.result)",
           "SecurityGroupIds": Array [
             Object {
               "Fn::GetAtt": Array [
-                "DbSecurityGroupE9D701AD",
+                "DatabaseSecurityGroup7319C0F6",
                 "GroupId",
               ],
             },

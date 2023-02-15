@@ -240,10 +240,10 @@ export class PinBoardStack extends GuStack {
       }
     );
 
-    const databaseSecurityGroupName = `PinboardDbSecurityGroup${this.stage}`;
+    const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${this.stage}`;
     const databaseSecurityGroup = new ec2.SecurityGroup(
       this,
-      "DbSecurityGroup",
+      "DatabaseSecurityGroup",
       {
         vpc: accountVpc,
         allowAllOutbound: true,
@@ -682,9 +682,9 @@ export class PinBoardStack extends GuStack {
       }
     );
 
-    // bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, {
-    //   basePath: "",
-    // });
+    bootstrappingApiDomainName.addBasePathMapping(bootstrappingApiGateway, {
+      basePath: "",
+    });
 
     new CfnOutput(this, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,

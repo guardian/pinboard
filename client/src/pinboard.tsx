@@ -59,7 +59,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
     showNotification,
 
-    errors,
     setError,
 
     unreadFlags,
@@ -225,7 +224,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
       ),
     [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
   );
-  const hasError = !!errors[pinboardId];
 
   const onSuccessfulSend = (
     pendingItem: PendingItem,

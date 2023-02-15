@@ -1,5 +1,5 @@
 import { css } from "@emotion/react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { palette, space } from "@guardian/source-foundations";
 import PencilIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";

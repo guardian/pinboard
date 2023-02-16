@@ -23,7 +23,7 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { GuidedTour, pinboardViewDemoSteps } from "./guidedTour";
+import { InteractiveDemo, pinboardChatSteps } from "./interactiveDemo";
 import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -38,7 +38,7 @@ interface PinboardProps {
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
-  guidedTourActive: boolean;
+  isInteractiveDemoActive: boolean;
   resetTour: () => void;
 }
 
@@ -47,7 +47,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   isExpanded,
   isSelected,
   panelElement,
-  guidedTourActive,
+  isInteractiveDemoActive,
   resetTour,
 }) => {
   const {
@@ -294,26 +294,30 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const messageAreaRef = useRef(null);
 
-  const pinboardViewWalkthroughSteps: Step[] = pinboardViewDemoSteps(
+  const pinboardViewWalkthroughSteps: Step[] = pinboardChatSteps(
     messageAreaRef
   );
 
-  const [guidedTourState, setGuidedTourState] = useState({
-    run: guidedTourActive,
+  const [interactiveDemoState, setInteractiveDemoState] = useState({
+    run: isInteractiveDemoActive,
     stepIndex: 0,
     mainKey: 0,
   });
-  const { run, stepIndex, mainKey } = guidedTourState;
+
+  const { run, stepIndex, mainKey } = interactiveDemoState;
 
   useEffect(() => {
-    setGuidedTourState({ ...guidedTourState, run: guidedTourActive });
-  }, [guidedTourActive]);
+    setInteractiveDemoState({
+      ...interactiveDemoState,
+      run: isInteractiveDemoActive,
+    });
+  }, [isInteractiveDemoActive]);
 
-  const handleGuidedTourCallback = (data: CallBackProps) => {
+  const handleInteractiveDemoCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
 
     if (type === EVENTS.TOUR_END) {
-      setGuidedTourState({
+      setInteractiveDemoState({
         mainKey: mainKey + 1,
         run: false,
         stepIndex: 0,
@@ -323,7 +327,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
+      setInteractiveDemoState({
+        ...interactiveDemoState,
+        stepIndex: nextStepIndex,
+      });
     }
   };
 
@@ -333,12 +340,12 @@ export const Pinboard: React.FC<PinboardProps> = ({
       <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
       {messageAreaRef && (
-        <GuidedTour
+        <InteractiveDemo
           steps={pinboardViewWalkthroughSteps}
           run={run}
           stepIndex={stepIndex}
           mainKey={mainKey}
-          handleCallback={handleGuidedTourCallback}
+          handleCallback={handleInteractiveDemoCallback}
         />
       )}
       {initialItemsQuery.loading && "Loading..."}

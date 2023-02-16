@@ -28,8 +28,8 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import Joyride, { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
-import { GuidedTour, indexViewWalkthroughSteps } from "./guidedTour";
+import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
+import { InteractiveDemo, indexSteps } from "./interactiveDemo";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -49,7 +49,7 @@ interface SelectPinboardProps {
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
-  guidedTourActive: boolean;
+  isInteractiveDemoActive: boolean;
   resetTour: () => void;
 }
 
@@ -59,7 +59,7 @@ export const SelectPinboard = ({
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
-  guidedTourActive,
+  isInteractiveDemoActive,
   resetTour,
 }: SelectPinboardProps) => {
   const {
@@ -343,29 +343,32 @@ export const SelectPinboard = ({
   const searchbarRef = useRef<HTMLDivElement>(null);
   const notificationSubscriptionRef = useRef<HTMLDivElement>(null);
 
-  const guidedWalkthroughSteps: Step[] = indexViewWalkthroughSteps(
+  const interactiveDemoSteps: Step[] = indexSteps(
     myPinboardsRef,
     teamsPinboardsRef,
     searchbarRef,
     notificationSubscriptionRef
   );
 
-  const [guidedTourState, setGuidedTourState] = useState({
-    run: guidedTourActive,
+  const [interactiveDemoState, setInteractiveDemoState] = useState({
+    run: isInteractiveDemoActive,
     stepIndex: 0,
     mainKey: 0,
   });
-  const { run, stepIndex, mainKey } = guidedTourState;
+  const { run, stepIndex, mainKey } = interactiveDemoState;
 
   useEffect(() => {
-    setGuidedTourState({ ...guidedTourState, run: guidedTourActive });
-  }, [guidedTourActive]);
+    setInteractiveDemoState({
+      ...interactiveDemoState,
+      run: isInteractiveDemoActive,
+    });
+  }, [isInteractiveDemoActive]);
 
   const handleGuidedTourCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
 
     if (type === EVENTS.TOUR_END) {
-      setGuidedTourState({
+      setInteractiveDemoState({
         mainKey: mainKey + 1,
         run: false,
         stepIndex: 0,
@@ -375,7 +378,10 @@ export const SelectPinboard = ({
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
+      setInteractiveDemoState({
+        ...interactiveDemoState,
+        stepIndex: nextStepIndex,
+      });
     }
   };
 
@@ -401,8 +407,8 @@ export const SelectPinboard = ({
           teamsPinboardsRef &&
           searchbarRef &&
           notificationSubscriptionRef && (
-            <GuidedTour
-              steps={guidedWalkthroughSteps}
+            <InteractiveDemo
+              steps={interactiveDemoSteps}
               run={run}
               stepIndex={stepIndex}
               mainKey={mainKey}
@@ -438,9 +444,9 @@ export const SelectPinboard = ({
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}
-        {(activePinboardsWithoutPreselected?.length > 0 ||
-          isLoadingActivePinboardList) && (
-          <div ref={myPinboardsRef}>
+        <div ref={myPinboardsRef}>
+          {(activePinboardsWithoutPreselected?.length > 0 ||
+            isLoadingActivePinboardList) && (
             <React.Fragment>
               <SectionHeading>
                 <span>MY PINBOARDS</span>
@@ -449,35 +455,36 @@ export const SelectPinboard = ({
               {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
               <div css={{ height: space[2] }} />
             </React.Fragment>
-          </div>
-        )}
-        {pinboardsWithClaimCounts?.length > 0 && (
-          <React.Fragment>
-            <div ref={teamsPinboardsRef}>
+          )}
+        </div>
+        <div ref={teamsPinboardsRef}>
+          {pinboardsWithClaimCounts?.length > 0 && (
+            <React.Fragment>
               <SectionHeading>MY TEAMS' PINBOARDS</SectionHeading>
-            </div>
-
-            {pinboardsWithClaimCounts.map(OpenPinboardButton)}
-            <button
-              css={css`
-                color: ${palette.neutral["20"]};
-                border: 1px solid ${palette.neutral["93"]};
-                cursor: pointer;
-                ${agateSans.xxsmall({ fontWeight: "bold" })};
-                background-color: ${palette.neutral["100"]};
-                &:hover {
-                  background-color: ${palette.neutral["86"]};
+              {pinboardsWithClaimCounts.map(OpenPinboardButton)}
+              <button
+                css={css`
+                  color: ${palette.neutral["20"]};
+                  border: 1px solid ${palette.neutral["93"]};
+                  cursor: pointer;
+                  ${agateSans.xxsmall({ fontWeight: "bold" })};
+                  background-color: ${palette.neutral["100"]};
+                  &:hover {
+                    background-color: ${palette.neutral["86"]};
+                  }
+                `}
+                onClick={() =>
+                  setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
                 }
-              `}
-              onClick={() => setIsShowAllTeamPinboards(!isShowAllTeamPinboards)}
-            >
-              {isShowAllTeamPinboards
-                ? "Show fewer"
-                : `Show ${noOfTeamPinboardsNotShown} more`}
-            </button>
-            <div css={{ height: space[2] }} />
-          </React.Fragment>
-        )}
+              >
+                {isShowAllTeamPinboards
+                  ? "Show fewer"
+                  : `Show ${noOfTeamPinboardsNotShown} more`}
+              </button>
+              <div css={{ height: space[2] }} />
+            </React.Fragment>
+          )}
+        </div>
         <div ref={searchbarRef}>
           <SectionHeading>SEARCH</SectionHeading>
           <div css={{ position: "relative" }}>

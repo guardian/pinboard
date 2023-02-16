@@ -9,12 +9,7 @@ import BeaconIcon from "../icons/beacon";
 import EditIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
 
-export interface DemoState {
-  run: boolean;
-  steps: Step[];
-}
-
-export const GuidedTourStartButton = ({
+export const InteractiveDemoStartButton = ({
   start,
 }: {
   start: React.MouseEventHandler<HTMLButtonElement>;
@@ -68,7 +63,7 @@ export const GuidedTourStartButton = ({
   );
 };
 
-export interface GuidedTourProps {
+export interface InteractiveDemoProps {
   handleCallback?: (data: CallBackProps) => void;
   run: boolean;
   steps: Step[];
@@ -77,14 +72,14 @@ export interface GuidedTourProps {
   showProgress?: boolean;
 }
 
-export const GuidedTour = ({
+export const InteractiveDemo = ({
   handleCallback,
   run,
   steps,
   stepIndex,
   mainKey,
   showProgress = true,
-}: GuidedTourProps) => {
+}: InteractiveDemoProps) => {
   return (
     <Joyride
       callback={handleCallback}
@@ -96,14 +91,13 @@ export const GuidedTour = ({
       scrollToFirstStep
       showSkipButton={false}
       spotlightPadding={1}
-      spotlightClicks
+      // spotlightClicks
       showProgress={showProgress}
       styles={{
         options: {
           primaryColor: "rgb(255, 140, 0)",
           zIndex: 999999,
         },
-
         tooltip: {
           fontFamily: "Guardian Agate Sans",
           textAlign: "left",
@@ -140,9 +134,7 @@ export const GuidedTour = ({
   );
 };
 
-export const panelGuidedWalkthroughSteps = (
-  ref: React.RefObject<HTMLDivElement>
-) => {
+export const panelSteps = (ref: React.RefObject<HTMLDivElement>) => {
   return [
     {
       target: ref.current!,
@@ -170,7 +162,7 @@ export const panelGuidedWalkthroughSteps = (
   ];
 };
 
-export const indexViewWalkthroughSteps = (
+export const indexSteps = (
   myPinboardsRef: React.RefObject<HTMLDivElement>,
   teamsPinboardsRef: React.RefObject<HTMLDivElement>,
   searchbarRef: React.RefObject<HTMLDivElement>,
@@ -218,7 +210,7 @@ export const indexViewWalkthroughSteps = (
   ];
 };
 
-export const pinboardViewDemoSteps = (
+export const pinboardChatSteps = (
   messageAreaRef: React.RefObject<HTMLDivElement>
 ) => {
   return [
@@ -237,7 +229,7 @@ export const pinboardViewDemoSteps = (
           message notification alert on their browser.
         </div>
       ),
-      placement: "top" as Placement,
+      placement: "left-end" as Placement,
     },
     {
       target: messageAreaRef.current!,
@@ -254,7 +246,7 @@ export const pinboardViewDemoSteps = (
           </p>
         </div>
       ),
-      placement: "top" as Placement,
+      placement: "left" as Placement,
     },
     {
       target: messageAreaRef.current!,
@@ -265,7 +257,7 @@ export const pinboardViewDemoSteps = (
           clicking on the corresponding icon next to your message.
         </div>
       ),
-      placement: "top" as Placement,
+      placement: "left" as Placement,
     },
   ];
 };

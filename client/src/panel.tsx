@@ -25,18 +25,12 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
-import Joyride, {
-  ACTIONS,
-  CallBackProps,
-  EVENTS,
-  STATUS,
-  Step,
-} from "react-joyride";
+import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
 import {
-  GuidedTour,
-  GuidedTourStartButton,
-  panelGuidedWalkthroughSteps,
-} from "./guidedTour";
+  InteractiveDemo,
+  InteractiveDemoStartButton,
+  panelSteps,
+} from "./interactiveDemo";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -177,39 +171,53 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
-  const walkthroughSteps: Step[] = panelGuidedWalkthroughSteps(panelRef);
+  const walkthroughSteps: Step[] = panelSteps(panelRef);
 
-  const [guidedTourState, setGuidedTourState] = useState({
+  const [interactiveDemoState, setInteractiveDemoState] = useState({
     run: false,
     stepIndex: 0,
     mainKey: 0,
   });
 
-  const [indexViewTourActive, setIndexViewTourActive] = useState(false);
-  const [pinboardViewTourActive, setPinboardViewTourActive] = useState(false);
+  const [
+    indexViewInteractiveDemoState,
+    setIndexViewInteractiveDemoState,
+  ] = useState(false);
+  const [
+    pinboardChatInteractiveDemoState,
+    setPinboardChatInteractiveDemoState,
+  ] = useState(false);
 
-  const { run, stepIndex, mainKey } = guidedTourState;
+  const { run, stepIndex, mainKey } = interactiveDemoState;
 
-  const handleGuidedTourStart = () => {
-    setGuidedTourState({ ...guidedTourState, run: true });
+  const handleInteractiveDemoStart = () => {
+    setInteractiveDemoState({ ...interactiveDemoState, run: true });
   };
 
-  const handleGuidedTourCallback = (data: CallBackProps) => {
+  const handleInteractiveDemoCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
 
-    if (type === EVENTS.TOUR_END) {
-      setGuidedTourState({
+    if (type === EVENTS.TOUR_START) {
+      // reset subsequent demos
+      setIndexViewInteractiveDemoState(false);
+      setPinboardChatInteractiveDemoState(false);
+    } else if (type === EVENTS.TOUR_END) {
+      setInteractiveDemoState({
         mainKey: mainKey + 1,
         run: false,
         stepIndex: 0,
       });
-      setIndexViewTourActive(true);
-      setPinboardViewTourActive(true);
+      // trigger subsequent demos
+      setIndexViewInteractiveDemoState(true);
+      setPinboardChatInteractiveDemoState(true);
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
     ) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setGuidedTourState({ ...guidedTourState, stepIndex: nextStepIndex });
+      setInteractiveDemoState({
+        ...interactiveDemoState,
+        stepIndex: nextStepIndex,
+      });
     }
   };
 
@@ -306,14 +314,14 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
-      <GuidedTourStartButton start={handleGuidedTourStart} />
+      <InteractiveDemoStartButton start={handleInteractiveDemoStart} />
       {panelRef && (
-        <GuidedTour
+        <InteractiveDemo
           run={run}
           steps={walkthroughSteps}
           stepIndex={stepIndex}
           mainKey={mainKey}
-          handleCallback={handleGuidedTourCallback}
+          handleCallback={handleInteractiveDemoCallback}
           showProgress={false}
         />
       )}
@@ -325,8 +333,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
-          guidedTourActive={indexViewTourActive}
-          resetTour={() => setIndexViewTourActive(false)}
+          isInteractiveDemoActive={indexViewInteractiveDemoState}
+          resetTour={() => setIndexViewInteractiveDemoState(false)}
         />
       )}
 
@@ -342,8 +350,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
             isExpanded={pinboardId === selectedPinboardId && isExpanded}
             isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
-            guidedTourActive={pinboardViewTourActive}
-            resetTour={() => setPinboardViewTourActive(false)}
+            isInteractiveDemoActive={pinboardChatInteractiveDemoState}
+            resetTour={() => setPinboardChatInteractiveDemoState(false)}
           />
         ))
       }
@@ -354,8 +362,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           isExpanded={isExpanded}
           isSelected={true}
           panelElement={panelRef.current}
-          guidedTourActive={pinboardViewTourActive}
-          resetTour={() => setPinboardViewTourActive(false)}
+          isInteractiveDemoActive={pinboardChatInteractiveDemoState}
+          resetTour={() => setPinboardChatInteractiveDemoState(false)}
         />
       )}
     </div>

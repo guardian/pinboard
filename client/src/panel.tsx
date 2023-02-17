@@ -9,7 +9,7 @@ import {
   top,
 } from "./styling";
 import { Pinboard } from "./pinboard";
-import { SelectPinboard } from "./selectPinboard";
+import { RefHandler, SelectPinboard } from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
@@ -27,6 +27,7 @@ import {
 import { ErrorOverlay } from "./errorOverlay";
 import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
 import {
+  indexSteps,
   InteractiveDemo,
   InteractiveDemoStartButton,
   panelSteps,
@@ -171,7 +172,20 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
-  const walkthroughSteps: Step[] = panelSteps(panelRef);
+  const selectPinboardRefs = useRef<RefHandler>(null);
+
+  const [demoSteps, setDemoSteps] = useState<Step[]>([]);
+
+  useEffect(() => {
+    setDemoSteps(
+      indexSteps(
+        selectPinboardRefs?.current!.myPinboardsRef,
+        selectPinboardRefs?.current!.teamsPinboardsRef,
+        selectPinboardRefs?.current!.searchbarRef,
+        selectPinboardRefs?.current!.notificationSubscriptionRef
+      )
+    );
+  }, []);
 
   const [interactiveDemoState, setInteractiveDemoState] = useState({
     run: false,
@@ -318,7 +332,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       {panelRef && (
         <InteractiveDemo
           run={run}
-          steps={walkthroughSteps}
+          steps={demoSteps}
           stepIndex={stepIndex}
           mainKey={mainKey}
           handleCallback={handleInteractiveDemoCallback}
@@ -333,8 +347,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
-          isInteractiveDemoActive={indexViewInteractiveDemoState}
-          resetTour={() => setIndexViewInteractiveDemoState(false)}
+          ref={selectPinboardRefs}
         />
       )}
 

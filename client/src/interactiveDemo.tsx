@@ -1,4 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
@@ -8,60 +14,6 @@ import CloseIcon from "../icons/close.svg";
 import BeaconIcon from "../icons/beacon";
 import EditIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
-
-export const InteractiveDemoStartButton = ({
-  start,
-}: {
-  start: React.MouseEventHandler<HTMLButtonElement>;
-}) => {
-  return (
-    <button
-      css={css`
-        display: flex;
-        flex-direction: column;
-        background-color: rgb(255, 140, 0);
-        padding: ${space[1]}px;
-        border-radius: 4px;
-        ${agateSans.xxsmall({ lineHeight: "regular" })};
-        gap: ${space[1]}px;
-        margin: ${space[1]}px;
-        margin-bottom: 0;
-        cursor: pointer;
-        border: 0;
-      `}
-      onClick={start}
-    >
-      <div
-        css={css`
-          display: flex;
-        `}
-      >
-        <PlayButton
-          css={css`
-            padding-top: 2px;
-            margin-left: 3px;
-          `}
-        />
-        <div
-          css={css`
-            color: white;
-            padding-left: ${space[1]}px;
-            text-align: left;
-          `}
-        >
-          First time on Pinboard? Start guided tour.
-        </div>
-        <CloseIcon
-          css={css`
-            margin-left: 10px;
-            height: 10px;
-            padding-top: 3px;
-          `}
-        />
-      </div>
-    </button>
-  );
-};
 
 export interface InteractiveDemoProps {
   handleCallback?: (data: CallBackProps) => void;
@@ -134,6 +86,74 @@ export const InteractiveDemo = ({
   );
 };
 
+export const InteractiveDemoStartButton = ({
+  start,
+}: {
+  start: React.MouseEventHandler<HTMLButtonElement>;
+}) => {
+  return (
+    <button
+      css={css`
+        display: flex;
+        flex-direction: column;
+        background-color: rgb(255, 140, 0);
+        padding: ${space[1]}px;
+        border-radius: 4px;
+        ${agateSans.xxsmall({ lineHeight: "regular" })};
+        gap: ${space[1]}px;
+        margin: ${space[1]}px;
+        margin-bottom: 0;
+        cursor: pointer;
+        border: 0;
+      `}
+      onClick={start}
+    >
+      <div
+        css={css`
+          display: flex;
+        `}
+      >
+        <PlayButton
+          css={css`
+            padding-top: 2px;
+            margin-left: 3px;
+          `}
+        />
+        <div
+          css={css`
+            color: white;
+            padding-left: ${space[1]}px;
+            text-align: left;
+          `}
+        >
+          First time on Pinboard? Start guided tour.
+        </div>
+        <CloseIcon
+          css={css`
+            margin-left: 10px;
+            height: 10px;
+            padding-top: 3px;
+          `}
+        />
+      </div>
+    </button>
+  );
+};
+//
+// export const interactiveDemoState = {
+//     run: false,
+//     stepIndex: 0,
+//     steps: [],
+//     active: false
+// }
+//
+// export const InteractiveDemoContext = createContext({
+//     state: interactiveDemoState,
+//     setState: () => undefined,
+// })
+//
+// InteractiveDemoContext.displayName = 'InteractiveDemoContext';
+
 export const panelSteps = (ref: React.RefObject<HTMLDivElement>) => {
   return [
     {
@@ -169,6 +189,12 @@ export const indexSteps = (
   notificationSubscriptionRef: React.RefObject<HTMLDivElement>
 ) => {
   return [
+    {
+      target: myPinboardsRef.current!,
+      title: "This is actually working?",
+      content: <div>yes!</div>,
+      placement: "left" as Placement,
+    },
     {
       target: myPinboardsRef.current!,
       title: "My Pinboards",
@@ -218,7 +244,7 @@ export const pinboardChatSteps = (
       target: messageAreaRef.current!,
       title: "Sending messages",
       content: <div>Try typing messages here...</div>,
-      placement: "top" as Placement,
+      placement: "left" as Placement,
     },
     {
       target: messageAreaRef.current!,
@@ -229,7 +255,7 @@ export const pinboardChatSteps = (
           message notification alert on their browser.
         </div>
       ),
-      placement: "left-end" as Placement,
+      placement: "left" as Placement,
     },
     {
       target: messageAreaRef.current!,
@@ -255,6 +281,17 @@ export const pinboardChatSteps = (
         <div>
           You can also edit <EditIcon /> or delete <BinIcon /> a message by
           clicking on the corresponding icon next to your message.
+        </div>
+      ),
+      placement: "left" as Placement,
+    },
+    {
+      target: messageAreaRef.current!,
+      title: "Share Grid images, collections or searches",
+      content: (
+        <div>
+          You can share Grid images on Pinboard. Navigate to{" "}
+          <a href={"https://media.test.dev-gutools.co.uk/"}>Grid</a>.
         </div>
       ),
       placement: "left" as Placement,

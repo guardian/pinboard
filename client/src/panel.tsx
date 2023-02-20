@@ -27,10 +27,9 @@ import {
 import { ErrorOverlay } from "./errorOverlay";
 import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
 import {
-  indexSteps,
+  selectPinboardsSteps,
   InteractiveDemo,
   InteractiveDemoStartButton,
-  panelSteps,
 } from "./interactiveDemo";
 
 const teamPinboardsSortFunction = (
@@ -172,19 +171,11 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
+  const [interactiveDemoSteps, setInteractiveDemoSteps] = useState<Step[]>([]);
   const selectPinboardRefs = useRef<RefHandler>(null);
 
-  const [demoSteps, setDemoSteps] = useState<Step[]>([]);
-
   useEffect(() => {
-    setDemoSteps(
-      indexSteps(
-        selectPinboardRefs?.current!.myPinboardsRef,
-        selectPinboardRefs?.current!.teamsPinboardsRef,
-        selectPinboardRefs?.current!.searchbarRef,
-        selectPinboardRefs?.current!.notificationSubscriptionRef
-      )
-    );
+    setInteractiveDemoSteps(selectPinboardsSteps(panelRef, selectPinboardRefs));
   }, []);
 
   const [interactiveDemoState, setInteractiveDemoState] = useState({
@@ -193,10 +184,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     mainKey: 0,
   });
 
-  const [
-    indexViewInteractiveDemoState,
-    setIndexViewInteractiveDemoState,
-  ] = useState(false);
   const [
     pinboardChatInteractiveDemoState,
     setPinboardChatInteractiveDemoState,
@@ -213,7 +200,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
     if (type === EVENTS.TOUR_START) {
       // reset subsequent demos
-      setIndexViewInteractiveDemoState(false);
+      // setIndexViewInteractiveDemoState(false);
       setPinboardChatInteractiveDemoState(false);
     } else if (type === EVENTS.TOUR_END) {
       setInteractiveDemoState({
@@ -222,7 +209,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
         stepIndex: 0,
       });
       // trigger subsequent demos
-      setIndexViewInteractiveDemoState(true);
+      // setIndexViewInteractiveDemoState(true);
       setPinboardChatInteractiveDemoState(true);
     } else if (
       ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
@@ -332,7 +319,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       {panelRef && (
         <InteractiveDemo
           run={run}
-          steps={demoSteps}
+          steps={interactiveDemoSteps}
           stepIndex={stepIndex}
           mainKey={mainKey}
           handleCallback={handleInteractiveDemoCallback}

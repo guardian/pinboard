@@ -36,8 +36,6 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
-import { InteractiveDemo, indexSteps } from "./interactiveDemo";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -365,10 +363,10 @@ export const SelectPinboard = forwardRef<RefHandler, SelectPinboardProps>(
     const notificationSubscriptionRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
-      myPinboardsRef: myPinboardsRef,
-      teamsPinboardsRef: teamsPinboardsRef,
-      searchbarRef: searchbarRef,
-      notificationSubscriptionRef: notificationSubscriptionRef,
+      myPinboardsRef,
+      teamsPinboardsRef,
+      searchbarRef,
+      notificationSubscriptionRef,
     }));
 
     return (

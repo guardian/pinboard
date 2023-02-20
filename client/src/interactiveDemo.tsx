@@ -14,6 +14,7 @@ import CloseIcon from "../icons/close.svg";
 import BeaconIcon from "../icons/beacon";
 import EditIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
+import { RefHandler } from "./selectPinboard";
 
 export interface InteractiveDemoProps {
   handleCallback?: (data: CallBackProps) => void;
@@ -43,7 +44,7 @@ export const InteractiveDemo = ({
       scrollToFirstStep
       showSkipButton={false}
       spotlightPadding={1}
-      // spotlightClicks
+      spotlightClicks
       showProgress={showProgress}
       styles={{
         options: {
@@ -182,21 +183,36 @@ export const panelSteps = (ref: React.RefObject<HTMLDivElement>) => {
   ];
 };
 
-export const indexSteps = (
-  myPinboardsRef: React.RefObject<HTMLDivElement>,
-  teamsPinboardsRef: React.RefObject<HTMLDivElement>,
-  searchbarRef: React.RefObject<HTMLDivElement>,
-  notificationSubscriptionRef: React.RefObject<HTMLDivElement>
+export const selectPinboardsSteps = (
+  panelRef: React.RefObject<HTMLDivElement>,
+  ref: React.RefObject<RefHandler>
 ) => {
   return [
     {
-      target: myPinboardsRef.current!,
-      title: "This is actually working?",
-      content: <div>yes!</div>,
+      target: panelRef.current!,
       placement: "left" as Placement,
+      title: "Welcome to Pinboard 👋",
+      content: (
+        <div
+          style={{
+            textAlign: "left",
+            marginTop: `${space[1]}px`,
+            padding: 0,
+          }}
+        >
+          The Guardian's very own discussion and asset-sharing tool developed
+          for the editorial.
+          <div style={{ display: "flex", alignItems: "center" }}>
+            Let's take a tour. Follow the orange beacon.
+            <BeaconIcon />
+          </div>
+        </div>
+      ),
+      locale: { last: "Continue" },
+      disableBeacon: true,
     },
     {
-      target: myPinboardsRef.current!,
+      target: ref.current!.myPinboardsRef.current!,
       title: "My Pinboards",
       content: (
         <div>
@@ -207,7 +223,7 @@ export const indexSteps = (
       placement: "left" as Placement,
     },
     {
-      target: teamsPinboardsRef.current!,
+      target: ref.current!.teamsPinboardsRef.current!,
       title: "My Teams' Pinboards",
       content: (
         <div>
@@ -218,7 +234,7 @@ export const indexSteps = (
       placement: "left" as Placement,
     },
     {
-      target: searchbarRef.current!,
+      target: ref.current!.searchbarRef.current!,
       title: "Search",
       content: (
         <div>
@@ -228,7 +244,7 @@ export const indexSteps = (
       placement: "left" as Placement,
     },
     {
-      target: notificationSubscriptionRef.current!,
+      target: ref.current!.notificationSubscriptionRef.current!,
       title: "Subscribe/Unsubscribe to Notifications",
       content: <div>You can set your browser notification settings here.</div>,
       placement: "left" as Placement,

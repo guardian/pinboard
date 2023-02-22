@@ -4,7 +4,12 @@
   "actions": [
     {
       "action": "pinboard-cloudformation",
-      "path": "cdk/cdk.out/PinBoardStack.template.json",
+      "path": "cdk/cdk.out/PinBoardStack-CODE.template.json",
+      "compress": false
+    },
+    {
+      "action": "pinboard-cloudformation",
+      "path": "cdk/cdk.out/PinBoardStack-PROD.template.json",
       "compress": false
     },
     {

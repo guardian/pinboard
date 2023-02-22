@@ -24,6 +24,7 @@ const allQueries = [...QUERIES.database, ...QUERIES.workflow, ...QUERIES.grid];
 type QueriesDefinedHere = typeof allQueries[number];
 
 // if the below line fails TSC, it means that the list of Queries defined in the schema.graphql doesn't match the list defined in `QUERIES` above
+// run `yarn graphql-refresh` to resolve
 assert<Equals<QueriesFromCodeGen, QueriesDefinedHere>>();
 
 export const MUTATIONS = {

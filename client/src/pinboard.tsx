@@ -23,8 +23,6 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { InteractiveDemo, pinboardChatSteps } from "./tour/interactiveDemo";
-import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
 import { useSetTourStepRef } from "./tour/tourState";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
@@ -39,8 +37,6 @@ interface PinboardProps {
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
-  isInteractiveDemoActive: boolean;
-  resetTour: () => void;
 }
 
 export const Pinboard: React.FC<PinboardProps> = ({
@@ -48,8 +44,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
   isExpanded,
   isSelected,
   panelElement,
-  isInteractiveDemoActive,
-  resetTour,
 }) => {
   const {
     hasBrowserFocus,
@@ -293,61 +287,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
   const [maybeDeleteItemModalElement, setMaybeDeleteItemModalElement] =
     useState<JSX.Element | null>(null);
 
-  const messageAreaRef = useRef(null);
-
-  const pinboardViewWalkthroughSteps: Step[] = pinboardChatSteps(
-    messageAreaRef
-  );
-
-  const [interactiveDemoState, setInteractiveDemoState] = useState({
-    run: isInteractiveDemoActive,
-    stepIndex: 0,
-    mainKey: 0,
-  });
-
-  const { run, stepIndex, mainKey } = interactiveDemoState;
-
-  useEffect(() => {
-    setInteractiveDemoState({
-      ...interactiveDemoState,
-      run: isInteractiveDemoActive,
-    });
-  }, [isInteractiveDemoActive]);
-
-  const handleInteractiveDemoCallback = (data: CallBackProps) => {
-    const { type, index, action } = data;
-
-    if (type === EVENTS.TOUR_END) {
-      setInteractiveDemoState({
-        mainKey: mainKey + 1,
-        run: false,
-        stepIndex: 0,
-      });
-      resetTour();
-    } else if (
-      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
-    ) {
-      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setInteractiveDemoState({
-        ...interactiveDemoState,
-        stepIndex: nextStepIndex,
-      });
-    }
-  };
-
   return !isSelected ? null : (
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
       <Feedback />
-      {messageAreaRef && (
-        <InteractiveDemo
-          run={run}
-          stepIndex={stepIndex}
-          mainKey={mainKey}
-          handleCallback={handleInteractiveDemoCallback}
-        />
-      )}
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
         css={css`

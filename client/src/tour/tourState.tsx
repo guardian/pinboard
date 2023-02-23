@@ -1,6 +1,12 @@
 import React, { useContext, useRef } from "react";
 
-type TourStepIDs = "myPinboards" | "teamsPinboards" | "messageArea";
+type TourStepIDs =
+  | "panel"
+  | "myPinboards"
+  | "teamPinboards"
+  | "searchbar"
+  | "notificationSetting"
+  | "messageArea";
 
 type TourStepRefMap = Partial<Record<TourStepIDs, HTMLElement | null>>;
 

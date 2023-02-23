@@ -23,8 +23,9 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { InteractiveDemo, pinboardChatSteps } from "./interactiveDemo";
+import { InteractiveDemo, pinboardChatSteps } from "./tour/interactiveDemo";
 import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
+import { useSetTourStepRef } from "./tour/tourState";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -341,7 +342,6 @@ export const Pinboard: React.FC<PinboardProps> = ({
       <Feedback />
       {messageAreaRef && (
         <InteractiveDemo
-          steps={pinboardViewWalkthroughSteps}
           run={run}
           stepIndex={stepIndex}
           mainKey={mainKey}
@@ -381,7 +381,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <AssetView items={items} />
       )}
       {activeTab === "chat" && (
-        <div ref={messageAreaRef}>
+        <div ref={useSetTourStepRef("messageArea")}>
           <SendMessageArea
             onSuccessfulSend={onSuccessfulSend}
             payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}

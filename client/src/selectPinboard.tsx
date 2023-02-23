@@ -36,6 +36,7 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
+import { useSetTourStepRef } from "./tour/tourState";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -418,7 +419,7 @@ export const SelectPinboard = forwardRef<RefHandler, SelectPinboardProps>(
               <div css={{ height: space[2] }} />
             </React.Fragment>
           )}
-          <div ref={myPinboardsRef}>
+          <div ref={useSetTourStepRef("myPinboards")}>
             {(activePinboardsWithoutPreselected?.length > 0 ||
               isLoadingActivePinboardList) && (
               <React.Fragment>
@@ -431,7 +432,7 @@ export const SelectPinboard = forwardRef<RefHandler, SelectPinboardProps>(
               </React.Fragment>
             )}
           </div>
-          <div ref={teamsPinboardsRef}>
+          <div ref={useSetTourStepRef("teamsPinboards")}>
             {pinboardsWithClaimCounts?.length > 0 && (
               <React.Fragment>
                 <SectionHeading>MY TEAMS' PINBOARDS</SectionHeading>

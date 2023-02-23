@@ -45,6 +45,7 @@ import {
 } from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
+import { TourStateProvider } from "./tour/tourState";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -347,77 +348,82 @@ export const PinBoardApp = ({
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
-        <GlobalStateProvider
-          hasApolloAuthError={hasApolloAuthError}
-          presetUnreadNotificationCount={presetUnreadNotificationCount}
-          userEmail={userEmail}
-          openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
-          preselectedComposerId={preSelectedComposerId}
-          payloadToBeSent={payloadToBeSent}
-          setPayloadToBeSent={setPayloadToBeSent}
-          isExpanded={isExpanded}
-          setIsExpanded={setIsExpanded}
-          userLookup={userLookup}
-          addEmailsToLookup={addEmailsToLookup}
-          hasWebPushSubscription={hasWebPushSubscription}
-          manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
-          setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
-          showNotification={showDesktopNotification}
-          clearDesktopNotificationsForPinboardId={
-            clearDesktopNotificationsForPinboardId
-          }
-        >
-          <Global styles={agateFontFaceIfApplicable} />
-          <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-          <root.div
-            onDragOver={(event) =>
-              isGridDragEvent(event) && event.preventDefault()
+        <TourStateProvider>
+          <GlobalStateProvider
+            hasApolloAuthError={hasApolloAuthError}
+            presetUnreadNotificationCount={presetUnreadNotificationCount}
+            userEmail={userEmail}
+            openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
+            preselectedComposerId={preSelectedComposerId}
+            payloadToBeSent={payloadToBeSent}
+            setPayloadToBeSent={setPayloadToBeSent}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
+            userLookup={userLookup}
+            addEmailsToLookup={addEmailsToLookup}
+            hasWebPushSubscription={hasWebPushSubscription}
+            manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
+            setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
+            showNotification={showDesktopNotification}
+            clearDesktopNotificationsForPinboardId={
+              clearDesktopNotificationsForPinboardId
             }
-            onDragEnter={(event) => {
-              if (isGridDragEvent(event)) {
-                event.preventDefault();
-                setIsDropTarget(true);
-              }
-            }}
-            onDragLeave={() => setIsDropTarget(false)}
-            onDragEnd={() => setIsDropTarget(false)}
-            onDragExit={() => setIsDropTarget(false)}
-            onDrop={(event) => {
-              if (isGridDragEvent(event)) {
-                event.preventDefault();
-                const payload = convertGridDragEventToPayload(event);
-                setPayloadToBeSent(payload);
-                setIsExpanded(true);
-                payload &&
-                  sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP, {
-                    assetType: payload.type,
-                  });
-              }
-              setIsDropTarget(false);
-            }}
           >
-            <TickContext.Provider value={lastTickTimestamp}>
-              {isInlineMode ? (
-                <InlineMode
-                  workflowPinboardElements={workflowPinboardElements}
-                />
-              ) : (
-                <React.Fragment>
-                  <Floaty isDropTarget={isDropTarget} />
-                  <Panel isDropTarget={isDropTarget} />
-                </React.Fragment>
-              )}
-            </TickContext.Provider>
-          </root.div>
-          {assetHandles.map((node, index) => (
-            <AddToPinboardButtonPortal
-              key={index}
-              node={node}
-              setPayloadToBeSent={setPayloadToBeSent}
-              expand={expandFloaty}
-            />
-          ))}
-        </GlobalStateProvider>
+            <Global styles={agateFontFaceIfApplicable} />
+            <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
+            <root.div
+              onDragOver={(event) =>
+                isGridDragEvent(event) && event.preventDefault()
+              }
+              onDragEnter={(event) => {
+                if (isGridDragEvent(event)) {
+                  event.preventDefault();
+                  setIsDropTarget(true);
+                }
+              }}
+              onDragLeave={() => setIsDropTarget(false)}
+              onDragEnd={() => setIsDropTarget(false)}
+              onDragExit={() => setIsDropTarget(false)}
+              onDrop={(event) => {
+                if (isGridDragEvent(event)) {
+                  event.preventDefault();
+                  const payload = convertGridDragEventToPayload(event);
+                  setPayloadToBeSent(payload);
+                  setIsExpanded(true);
+                  payload &&
+                    sendTelemetryEvent?.(
+                      PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP,
+                      {
+                        assetType: payload.type,
+                      }
+                    );
+                }
+                setIsDropTarget(false);
+              }}
+            >
+              <TickContext.Provider value={lastTickTimestamp}>
+                {isInlineMode ? (
+                  <InlineMode
+                    workflowPinboardElements={workflowPinboardElements}
+                  />
+                ) : (
+                  <React.Fragment>
+                    <Floaty isDropTarget={isDropTarget} />
+                    <Panel isDropTarget={isDropTarget} />
+                  </React.Fragment>
+                )}
+              </TickContext.Provider>
+            </root.div>
+            {assetHandles.map((node, index) => (
+              <AddToPinboardButtonPortal
+                key={index}
+                node={node}
+                setPayloadToBeSent={setPayloadToBeSent}
+                expand={expandFloaty}
+              />
+            ))}
+          </GlobalStateProvider>
+        </TourStateProvider>
       </ApolloProvider>
     </TelemetryContext.Provider>
   );

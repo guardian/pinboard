@@ -30,7 +30,7 @@ import {
   selectPinboardsSteps,
   InteractiveDemo,
   InteractiveDemoStartButton,
-} from "./interactiveDemo";
+} from "./tour/interactiveDemo";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -197,6 +197,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   const handleInteractiveDemoCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
+    console.log(data);
 
     if (type === EVENTS.TOUR_START) {
       // reset subsequent demos
@@ -319,7 +320,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       {panelRef && (
         <InteractiveDemo
           run={run}
-          steps={interactiveDemoSteps}
           stepIndex={stepIndex}
           mainKey={mainKey}
           handleCallback={handleInteractiveDemoCallback}

@@ -7,19 +7,19 @@ import React, {
 } from "react";
 import { css } from "@emotion/react";
 import { space } from "@guardian/source-foundations";
-import { agateSans } from "../fontNormaliser";
+import { agateSans } from "../../fontNormaliser";
 import Joyride, { CallBackProps, Placement, Step } from "react-joyride";
-import PlayButton from "../icons/play-button.svg";
-import CloseIcon from "../icons/close.svg";
-import BeaconIcon from "../icons/beacon";
-import EditIcon from "../icons/pencil.svg";
-import BinIcon from "../icons/bin.svg";
-import { RefHandler } from "./selectPinboard";
+import PlayButton from "../../icons/play-button.svg";
+import CloseIcon from "../../icons/close.svg";
+import BeaconIcon from "../../icons/beacon";
+import EditIcon from "../../icons/pencil.svg";
+import BinIcon from "../../icons/bin.svg";
+import { RefHandler } from "../selectPinboard";
+import { useTourStepRef, useTourStepRefs } from "./tourState";
 
 export interface InteractiveDemoProps {
   handleCallback?: (data: CallBackProps) => void;
   run: boolean;
-  steps: Step[];
   stepIndex: number;
   mainKey: number;
   showProgress?: boolean;
@@ -28,11 +28,44 @@ export interface InteractiveDemoProps {
 export const InteractiveDemo = ({
   handleCallback,
   run,
-  steps,
   stepIndex,
   mainKey,
   showProgress = true,
 }: InteractiveDemoProps) => {
+  const steps: Step[] = useMemo(() => {
+    console.log("steps updated");
+    return [
+      {
+        target: useTourStepRef("myPinboards"),
+        title: "My Pinboards",
+        content: (
+          <div>
+            Here you can find the list of Pinboards where you sent a message or
+            are tagged by others.
+          </div>
+        ),
+        placement: "left" as Placement,
+      },
+      {
+        target: useTourStepRef("teamsPinboards"),
+        title: "My Teams' Pinboards",
+        content: (
+          <div>
+            These are the Pinboards where your team is tagged (in a message or a
+            request).
+          </div>
+        ),
+        placement: "left" as Placement,
+      },
+      {
+        target: useTourStepRef("messageArea"),
+        title: "Sending messages",
+        content: <div>Try typing messages here...</div>,
+        placement: "left" as Placement,
+      },
+    ];
+  }, useTourStepRefs());
+
   return (
     <Joyride
       callback={handleCallback}

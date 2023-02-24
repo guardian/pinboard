@@ -1,12 +1,4 @@
-import React, {
-  forwardRef,
-  MutableRefObject,
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { css, CSSObject } from "@emotion/react";
 import { standardPanelContainerCss } from "./styling";
@@ -406,7 +398,7 @@ export const SelectPinboard = ({
         <div ref={useSetTourStepRef("teamPinboards")}>
           {pinboardsWithClaimCounts?.length > 0 && (
             <React.Fragment>
-              <SectionHeading>MY TEAMS' PINBOARDS</SectionHeading>
+              <SectionHeading>MY TEAMS&apos; PINBOARDS</SectionHeading>
               {pinboardsWithClaimCounts.map(OpenPinboardButton)}
               <button
                 css={css`

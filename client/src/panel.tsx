@@ -25,7 +25,7 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
-import { ACTIONS, CallBackProps, EVENTS, Step } from "react-joyride";
+import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import {
   InteractiveDemo,
   InteractiveDemoStartButton,

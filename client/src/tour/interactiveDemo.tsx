@@ -117,8 +117,8 @@ export const InteractiveDemo = ({
               notification (if their notification is turned on).
             </p>
             <p>
-              You can turn a message into a 'request', so that the tagged team
-              members can track the status.
+              You can turn a message into a &apos;request&apos;, so that the
+              tagged team members can track the status.
             </p>
           </div>
         ),

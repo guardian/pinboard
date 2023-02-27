@@ -35,7 +35,9 @@ export const getDatabaseJumpHost = async (stage: Stage) => {
         { Name: "tag:Stage", Values: [stage] },
         {
           Name: "tag:Name",
-          Values: [`PinBoardStack/${databaseJumpHostASGLogicalID}`],
+          Values: [
+            `PinBoardStack-${stage}/${databaseJumpHostASGLogicalID}Pinboard`,
+          ],
         },
         { Name: "instance-state-name", Values: ["running"] },
       ],

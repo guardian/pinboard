@@ -4,7 +4,6 @@ import {
   aws_autoscaling as autoscaling,
   aws_certificatemanager as acm,
   aws_cloudwatch as cloudwatch,
-  aws_cloudwatch_actions as cloudwatchActions,
   aws_ec2 as ec2,
   aws_events as events,
   aws_events_targets as eventsTargets,
@@ -12,10 +11,8 @@ import {
   aws_lambda as lambda,
   aws_rds as rds,
   aws_s3 as S3,
-  aws_sns as sns,
   aws_ssm as ssm,
   CfnOutput,
-  CfnParameter,
   Duration,
   Fn,
   RemovalPolicy,
@@ -41,10 +38,18 @@ import {
   getDatabaseProxyName,
 } from "../../shared/database/database";
 import { Stage } from "../../shared/types/stage";
-import { OperatingSystemType } from "aws-cdk-lib/aws-ec2";
-import * as fs from "fs";
 import { MUTATIONS, QUERIES } from "../../shared/graphql/operations";
-import { GuStack, GuStackProps } from "@guardian/cdk/lib/constructs/core";
+import {
+  GuAmiParameter,
+  GuStack,
+  GuStackProps,
+} from "@guardian/cdk/lib/constructs/core";
+import { GuVpc, SubnetType } from "@guardian/cdk/lib/constructs/ec2";
+import {
+  GuAutoScalingGroup,
+  GuUserData,
+} from "@guardian/cdk/lib/constructs/autoscaling";
+import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
@@ -59,39 +64,18 @@ export class PinBoardStack extends GuStack {
     id: string,
     { domainName, ...props }: PinBoardStackProps
   ) {
-    super(scope, id, props);
+    super(scope, id, { ...props, app: APP });
 
     const context = Stack.of(this);
     const account = context.account;
     const region = context.region;
 
-    const DatabaseJumpHostAmiID = new CfnParameter(
-      this,
-      "DatabaseJumpHostAmiID",
-      {
-        type: "AWS::EC2::Image::Id",
-        description: "AMI ID to be used for database 'jump host'",
-      }
-    ).valueAsString;
-
-    const accountVpcPrivateSubnetIds = new CfnParameter(
-      this,
-      "AccountVpcPrivateSubnetIds",
-      {
-        type: "AWS::SSM::Parameter::Value<List<String>>",
-        description:
-          "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
-        default: "/account/vpc/primary/subnets/private",
-      }
-    ).valueAsList;
-
-    const accountVpc = ec2.Vpc.fromVpcAttributes(this, "AccountVPC", {
-      vpcId: ssm.StringParameter.valueForStringParameter(
-        this,
-        "/account/vpc/primary/id"
-      ),
+    const accountVpc = GuVpc.fromIdParameter(this, "AccountVPC", {
       availabilityZones: Fn.getAzs(region),
-      privateSubnetIds: accountVpcPrivateSubnetIds,
+      privateSubnetIds: GuVpc.subnetsFromParameter(this, {
+        app: APP,
+        type: SubnetType.PRIVATE,
+      }).map((subnet) => subnet.subnetId),
     });
 
     const database = new rds.DatabaseInstance(this, "Database", {
@@ -293,98 +277,64 @@ export class PinBoardStack extends GuStack {
       this.stage as Stage
     );
 
-    const selfTerminatingUserDataScript = ec2.UserData.custom(
-      fs
-        .readFileSync("./UserData.sh")
-        .toString()
-        .replace("${databaseJumpHostASGName}", databaseJumpHostASGName)
-        .replace("${region}", region)
-    );
-
-    const databaseJumpHostASG = new autoscaling.AutoScalingGroup(
+    const databaseJumpHostASG = new GuAutoScalingGroup(
       this,
       databaseJumpHostASGLogicalID,
       {
-        autoScalingGroupName: databaseJumpHostASGName,
         vpc: accountVpc,
-        allowAllOutbound: false,
+        app: APP,
+        autoScalingGroupName: databaseJumpHostASGName,
+        instanceType: ec2.InstanceType.of(
+          ec2.InstanceClass.T4G,
+          ec2.InstanceSize.NANO
+        ),
         groupMetrics: [
           new autoscaling.GroupMetrics(
             autoscaling.GroupMetric.IN_SERVICE_INSTANCES
           ),
         ],
-        machineImage: {
-          getImage: () => ({
-            imageId: DatabaseJumpHostAmiID,
-            osType: OperatingSystemType.LINUX,
-            userData: selfTerminatingUserDataScript,
-          }),
-        },
-        role: new iam.Role(this, "DatabaseJumpHostRole", {
-          assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-          managedPolicies: [
-            iam.ManagedPolicy.fromManagedPolicyArn(
-              this,
-              "SSMPolicy",
-              Fn.importValue("guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy")
-            ),
-          ],
-        }),
-        securityGroup: databaseSecurityGroup,
-        instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T4G,
-          ec2.InstanceSize.NANO
-        ),
-        minCapacity: 0,
-        maxCapacity: 1,
-        userData: selfTerminatingUserDataScript,
+        allowAllOutbound: false,
+        minimumInstances: 0,
+        maximumInstances: 1,
+        additionalSecurityGroups: [databaseSecurityGroup],
+        imageId: new GuAmiParameter(this, { app: APP }),
+        userData: new GuUserData(this, {
+          app: APP,
+          distributable: {
+            fileName: "startup.sh",
+            executionStatement: `bash /${APP}/startup.sh ${databaseJumpHostASGName} ${region}`,
+          },
+        }).userData,
       }
     );
     databaseProxy.grantConnect(databaseJumpHostASG);
-
-    // allow the instance to effectively terminate itself by reducing the capacity of the ASG that controls it
     databaseJumpHostASG.addToRolePolicy(
+      // allow the instance to effectively terminate itself by reducing the capacity of the ASG that controls it
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ["autoscaling:SetDesiredCapacity"],
         resources: [
-          `arn:aws:autoscaling:${region}:${account}:*${databaseJumpHostASGName}`,
+          `arn:aws:autoscaling:${region}:${account}:*/${databaseJumpHostASGName}`, // unfortunately can't use the databaseJumpHostASG.autoScalingGroupArn property as it's circular
         ],
       })
     );
-
-    const alarmsSnsTopic = sns.Topic.fromTopicArn(
-      this,
-      "CloudwatchAlertsSNS",
-      `arn:aws:sns:${region}:${account}:Cloudwatch-Alerts`
-    );
-
-    const databaseJumpHostOverunningAlarm = new cloudwatch.Alarm(
-      this,
-      "DatabaseJumpHostOverunningAlarm",
-      {
-        alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
-        alarmDescription: `The ${APP} database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken`,
-        metric: new cloudwatch.Metric({
-          metricName: "GroupInServiceInstances",
-          namespace: "AWS/AutoScaling",
-          dimensionsMap: {
-            AutoScalingGroupName: databaseJumpHostASG.autoScalingGroupName,
-          },
-          period: Duration.hours(1),
-        }),
-        comparisonOperator:
-          cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-        threshold: 0,
-        evaluationPeriods: 12,
-      }
-    );
-    databaseJumpHostOverunningAlarm.addAlarmAction(
-      new cloudwatchActions.SnsAction(alarmsSnsTopic)
-    );
-    databaseJumpHostOverunningAlarm.addOkAction(
-      new cloudwatchActions.SnsAction(alarmsSnsTopic)
-    );
+    new GuAlarm(this, "DatabaseJumpHostOverrunningAlarm", {
+      app: APP,
+      snsTopicName: "Cloudwatch-Alerts",
+      alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
+      alarmDescription: `The ${APP} database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken`,
+      metric: new cloudwatch.Metric({
+        metricName: "GroupInServiceInstances",
+        namespace: "AWS/AutoScaling",
+        dimensionsMap: {
+          AutoScalingGroupName: databaseJumpHostASG.autoScalingGroupName,
+        },
+        period: Duration.hours(1),
+      }),
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      threshold: 0,
+      evaluationPeriods: 12,
+    });
 
     const pinboardNotificationsLambda = new lambda.Function(
       this,

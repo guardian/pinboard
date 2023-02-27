@@ -3,7 +3,22 @@
 exports[`PinBoardStack's generated CloudFormation matches the snapshot 1`] = `
 Object {
   "Metadata": Object {
-    "gu:cdk:constructs": Array [],
+    "gu:cdk:constructs": Array [
+      "GuSubnetListParameter",
+      "GuVpcParameter",
+      "GuAmiParameter",
+      "GuDistributionBucketParameter",
+      "GuInstanceRole",
+      "GuDescribeEC2Policy",
+      "GuLoggingStreamNameParameter",
+      "GuLogShippingPolicy",
+      "GuGetDistributablePolicy",
+      "GuParameterStoreReadPolicy",
+      "GuHttpsEgressSecurityGroup",
+      "GuAutoScalingGroup",
+      "GuWazuhAccess",
+      "GuAlarm",
+    ],
     "gu:cdk:version": "49.2.1",
   },
   "Outputs": Object {
@@ -44,22 +59,33 @@ Object {
     },
   },
   "Parameters": Object {
-    "AccountVpcPrivateSubnetIds": Object {
-      "Default": "/account/vpc/primary/subnets/private",
-      "Description": "CFN param to retrieve value from Param Store - workaround for https://github.com/aws/aws-cdk/issues/19349",
-      "Type": "AWS::SSM::Parameter::Value<List<String>>",
-    },
-    "DatabaseJumpHostAmiID": Object {
-      "Description": "AMI ID to be used for database 'jump host'",
+    "AMIPinboard": Object {
+      "Description": "Amazon Machine Image ID for the app pinboard. Use this in conjunction with AMIgo to keep AMIs up to date.",
       "Type": "AWS::EC2::Image::Id",
     },
-    "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
-      "Default": "/account/vpc/primary/id",
+    "DistributionBucketName": Object {
+      "Default": "/account/services/artifact.bucket",
+      "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "LoggingStreamName": Object {
+      "Default": "/account/services/logging.stream.name",
+      "Description": "SSM parameter containing the Name (not ARN) on the kinesis stream",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
       "Default": "/pinboard/sentryDSN",
       "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "VpcId": Object {
+      "Default": "/account/vpc/primary/id",
+      "Description": "Virtual Private Cloud to run EC2 instances within. Should NOT be the account default VPC.",
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>",
+    },
+    "pinboardPrivateSubnets": Object {
+      "Default": "/account/vpc/primary/subnets/private",
+      "Description": "A list of private subnets",
+      "Type": "AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>",
     },
   },
   "Resources": Object {
@@ -167,7 +193,7 @@ Object {
           },
         ],
         "VpcSubnetIds": Object {
-          "Ref": "AccountVpcPrivateSubnetIds",
+          "Ref": "pinboardPrivateSubnets",
         },
       },
       "Type": "AWS::RDS::DBProxy",
@@ -262,7 +288,7 @@ Object {
           },
         ],
         "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+          "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
@@ -282,11 +308,11 @@ Object {
       },
       "Type": "AWS::RDS::DBProxyTargetGroup",
     },
-    "DatabaseJumpHostASG7442506A": Object {
+    "DatabaseJumpHostASGPinboardASGF107AC84": Object {
       "Properties": Object {
         "AutoScalingGroupName": "pinboard-database-jump-host-ASG-TEST",
         "LaunchConfigurationName": Object {
-          "Ref": "DatabaseJumpHostASGLaunchConfig7E2B6251",
+          "Ref": "DatabaseJumpHostASGPinboardLaunchConfig9A2F1DD6",
         },
         "MaxSize": "1",
         "MetricsCollection": Array [
@@ -300,6 +326,11 @@ Object {
         "MinSize": "0",
         "Tags": Array [
           Object {
+            "Key": "App",
+            "PropagateAtLaunch": true,
+            "Value": "pinboard",
+          },
+          Object {
             "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
             "Value": "49.2.1",
@@ -312,7 +343,7 @@ Object {
           Object {
             "Key": "Name",
             "PropagateAtLaunch": true,
-            "Value": "PinBoardStack-TEST/DatabaseJumpHostASG",
+            "Value": "PinBoardStack-TEST/DatabaseJumpHostASGPinboard",
           },
           Object {
             "Key": "Stack",
@@ -326,40 +357,50 @@ Object {
           },
         ],
         "VPCZoneIdentifier": Object {
-          "Ref": "AccountVpcPrivateSubnetIds",
+          "Ref": "pinboardPrivateSubnets",
         },
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "UpdatePolicy": Object {
-        "AutoScalingScheduledAction": Object {
-          "IgnoreUnmodifiedGroupSizeProperties": true,
-        },
-      },
     },
-    "DatabaseJumpHostASGInstanceProfile309E3B68": Object {
+    "DatabaseJumpHostASGPinboardInstanceProfileD4BB1285": Object {
       "Properties": Object {
         "Roles": Array [
           Object {
-            "Ref": "DatabaseJumpHostRole001D5530",
+            "Ref": "InstanceRolePinboard534D1FFA",
           },
         ],
       },
       "Type": "AWS::IAM::InstanceProfile",
     },
-    "DatabaseJumpHostASGLaunchConfig7E2B6251": Object {
+    "DatabaseJumpHostASGPinboardLaunchConfig9A2F1DD6": Object {
       "DependsOn": Array [
-        "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
-        "DatabaseJumpHostRole001D5530",
+        "InstanceRolePinboardDefaultPolicy66C92FE8",
+        "InstanceRolePinboard534D1FFA",
       ],
       "Properties": Object {
         "IamInstanceProfile": Object {
-          "Ref": "DatabaseJumpHostASGInstanceProfile309E3B68",
+          "Ref": "DatabaseJumpHostASGPinboardInstanceProfileD4BB1285",
         },
         "ImageId": Object {
-          "Ref": "DatabaseJumpHostAmiID",
+          "Ref": "AMIPinboard",
         },
         "InstanceType": "t4g.nano",
+        "MetadataOptions": Object {
+          "HttpTokens": "required",
+        },
         "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "GuHttpsEgressSecurityGroupPinboardD9B9237E",
+              "GroupId",
+            ],
+          },
+          Object {
+            "Fn::GetAtt": Array [
+              "WazuhSecurityGroup",
+              "GroupId",
+            ],
+          },
           Object {
             "Fn::GetAtt": Array [
               "DatabaseSecurityGroup7319C0F6",
@@ -372,33 +413,17 @@ Object {
             "Fn::Join": Array [
               "",
               Array [
-                "#!/bin/bash -ev
-LAST_ACTIVE_SSHD=$(date +%s)
-while :
-do
-    echo \\"SSH tunnel last active at $LAST_ACTIVE_SSHD\\"
-    if [ \\"$(sudo lsof -i -n | egrep '\\\\<sshd\\\\>' | grep ubuntu)\\" = \\"1\\" ]; then
-        echo \\"SSH tunnel detected, bumping LAST_ACTIVE_SSHD\\"
-        LAST_ACTIVE_SSHD=$(date +%s)
-    fi
-    NOW=$(date +%s)
-    DIFF=$((NOW - LAST_ACTIVE_SSHD))
-    if [ \\"$DIFF\\" -gt 9000 ]; then #i.e. 150 mins since last active ssh tunnel
-        echo \\"No active SSH tunnel in the last 5mins - so scaling down\\"
-        aws autoscaling set-desired-capacity\\\\
-         --auto-scaling-group-name pinboard-database-jump-host-ASG-TEST\\\\
-         --desired-capacity 0\\\\
-         --no-honor-cooldown\\\\
-         --region ",
+                "#!/bin/bash
+mkdir -p $(dirname '/pinboard/startup.sh')
+aws s3 cp 's3://",
+                Object {
+                  "Ref": "DistributionBucketName",
+                },
+                "/workflow/TEST/pinboard/startup.sh' '/pinboard/startup.sh'
+bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
                 Object {
                   "Ref": "AWS::Region",
                 },
-                "
-    fi
-    sleep 60
-done & # this ampersand runs the whole loop in the background...
-# ...so cloud-init will 'finish' so other things on the box can actually start, notably ssm-agent for SSHing
-",
               ],
             ],
           },
@@ -406,8 +431,9 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
     },
-    "DatabaseJumpHostOverunningAlarm12DC5CA9": Object {
+    "DatabaseJumpHostOverrunningAlarmF19948C2": Object {
       "Properties": Object {
+        "ActionsEnabled": true,
         "AlarmActions": Array [
           Object {
             "Fn::Join": Array [
@@ -432,7 +458,7 @@ done & # this ampersand runs the whole loop in the background...
             "",
             Array [
               Object {
-                "Ref": "DatabaseJumpHostASG7442506A",
+                "Ref": "DatabaseJumpHostASGPinboardASGF107AC84",
               },
               " instance running for more than 12 hours",
             ],
@@ -443,54 +469,39 @@ done & # this ampersand runs the whole loop in the background...
           Object {
             "Name": "AutoScalingGroupName",
             "Value": Object {
-              "Ref": "DatabaseJumpHostASG7442506A",
+              "Ref": "DatabaseJumpHostASGPinboardASGF107AC84",
             },
           },
         ],
         "EvaluationPeriods": 12,
         "MetricName": "GroupInServiceInstances",
         "Namespace": "AWS/AutoScaling",
-        "OKActions": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:aws:sns:",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-                ":",
-                Object {
-                  "Ref": "AWS::AccountId",
-                },
-                ":Cloudwatch-Alerts",
-              ],
-            ],
-          },
-        ],
         "Period": 3600,
         "Statistic": "Average",
         "Threshold": 0,
       },
       "Type": "AWS::CloudWatch::Alarm",
     },
-    "DatabaseJumpHostRole001D5530": Object {
+    "DatabaseSecretAttachmentE5D1B020": Object {
       "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "ec2.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
+        "SecretId": Object {
+          "Ref": "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb",
         },
-        "ManagedPolicyArns": Array [
+        "TargetId": Object {
+          "Ref": "DatabaseB269D8BB",
+        },
+        "TargetType": "AWS::RDS::DBInstance",
+      },
+      "Type": "AWS::SecretsManager::SecretTargetAttachment",
+    },
+    "DatabaseSecurityGroup5C91FDCB": Object {
+      "Properties": Object {
+        "GroupDescription": "Security group for Database database",
+        "SecurityGroupEgress": Array [
           Object {
-            "Fn::ImportValue": "guardian-ec2-for-ssm-GuardianEC2ForSSMPolicy",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
           },
         ],
         "Tags": Array [
@@ -511,10 +522,311 @@ done & # this ampersand runs the whole loop in the background...
             "Value": "TEST",
           },
         ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseSecurityGroup7319C0F6": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack-TEST/DatabaseSecurityGroup",
+        "GroupName": "PinboardDatabaseSecurityGroupTEST",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "77.91.248.0/21",
+            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseSecurityGroupfromPinBoardStackTESTDatabaseDatabaseProxyProxySecurityGroupE5511BBEIndirectPortB75FB8BC": Object {
+      "Properties": Object {
+        "Description": "Allow connections to the database Instance from the Proxy",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseSecurityGroup5C91FDCB",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseB269D8BB",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseSubnetGroup7D60F180": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "DBSubnetGroupDescription": "Subnet group for Database database",
+        "SubnetIds": Object {
+          "Ref": "pinboardPrivateSubnets",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DescribeEC2PolicyFF5F9295": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeAutoScalingGroups",
+                "ec2:DescribeTags",
+                "ec2:DescribeInstances",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "describe-ec2-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetDistributablePolicyPinboard553D3662": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:s3:::",
+                    Object {
+                      "Ref": "DistributionBucketName",
+                    },
+                    "/workflow/TEST/pinboard/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetDistributablePolicyPinboard553D3662",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GuHttpsEgressSecurityGroupPinboardD9B9237E": Object {
+      "Properties": Object {
+        "GroupDescription": "Allow all outbound HTTPS traffic",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound HTTPS traffic",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "GuLogShippingPolicy981BFE5A": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "kinesis:Describe*",
+                "kinesis:Put*",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:kinesis:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":stream/",
+                    Object {
+                      "Ref": "LoggingStreamName",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GuLogShippingPolicy981BFE5A",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "InstanceRolePinboard534D1FFA": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Path": "/",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "DatabaseJumpHostRoleDefaultPolicyA1BA6E09": Object {
+    "InstanceRolePinboardDefaultPolicy66C92FE8": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -578,7 +890,7 @@ done & # this ampersand runs the whole loop in the background...
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*pinboard-database-jump-host-ASG-TEST",
+                    ":*/pinboard-database-jump-host-ASG-TEST",
                   ],
                 ],
               },
@@ -586,164 +898,14 @@ done & # this ampersand runs the whole loop in the background...
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "DatabaseJumpHostRoleDefaultPolicyA1BA6E09",
+        "PolicyName": "InstanceRolePinboardDefaultPolicy66C92FE8",
         "Roles": Array [
           Object {
-            "Ref": "DatabaseJumpHostRole001D5530",
+            "Ref": "InstanceRolePinboard534D1FFA",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
-    },
-    "DatabaseSecretAttachmentE5D1B020": Object {
-      "Properties": Object {
-        "SecretId": Object {
-          "Ref": "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb",
-        },
-        "TargetId": Object {
-          "Ref": "DatabaseB269D8BB",
-        },
-        "TargetType": "AWS::RDS::DBInstance",
-      },
-      "Type": "AWS::SecretsManager::SecretTargetAttachment",
-    },
-    "DatabaseSecurityGroup5C91FDCB": Object {
-      "Properties": Object {
-        "GroupDescription": "Security group for Database database",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "49.2.1",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "DatabaseSecurityGroup7319C0F6": Object {
-      "Properties": Object {
-        "GroupDescription": "PinBoardStack-TEST/DatabaseSecurityGroup",
-        "GroupName": "PinboardDatabaseSecurityGroupTEST",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "SecurityGroupIngress": Array [
-          Object {
-            "CidrIp": "77.91.248.0/21",
-            "Description": "Allow SSH for tunneling purposes when this security group is reused for database jump host.",
-            "FromPort": 22,
-            "IpProtocol": "tcp",
-            "ToPort": 22,
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "49.2.1",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "DatabaseSecurityGroupfromPinBoardStackTESTDatabaseDatabaseProxyProxySecurityGroupE5511BBEIndirectPortB75FB8BC": Object {
-      "Properties": Object {
-        "Description": "Allow connections to the database Instance from the Proxy",
-        "FromPort": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseB269D8BB",
-            "Endpoint.Port",
-          ],
-        },
-        "GroupId": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseSecurityGroup5C91FDCB",
-            "GroupId",
-          ],
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseDatabaseProxyProxySecurityGroup62D74C1F",
-            "GroupId",
-          ],
-        },
-        "ToPort": Object {
-          "Fn::GetAtt": Array [
-            "DatabaseB269D8BB",
-            "Endpoint.Port",
-          ],
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroupIngress",
-    },
-    "DatabaseSubnetGroup7D60F180": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "DBSubnetGroupDescription": "Subnet group for Database database",
-        "SubnetIds": Object {
-          "Ref": "AccountVpcPrivateSubnetIds",
-        },
-        "Tags": Array [
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "49.2.1",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-      },
-      "Type": "AWS::RDS::DBSubnetGroup",
-      "UpdateReplacePolicy": "Retain",
     },
     "NotificationLambdaInvokeRoleDefaultPolicy45F27235": Object {
       "Properties": Object {
@@ -845,6 +1007,65 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::IAM::Role",
     },
+    "ParameterStoreReadPinboard2639F7F2": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "parameter-store-read-policy",
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "PinBoardStackTESTDatabaseSecret441509D93fdaad7efa858a3daf9490cf0a702aeb": Object {
       "DeletionPolicy": "Delete",
       "Properties": Object {
@@ -886,6 +1107,49 @@ done & # this ampersand runs the whole loop in the background...
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
+    },
+    "WazuhSecurityGroup": Object {
+      "Properties": Object {
+        "GroupDescription": "Allow outbound traffic from wazuh agent to manager",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Wazuh event logging",
+            "FromPort": 1514,
+            "IpProtocol": "tcp",
+            "ToPort": 1514,
+          },
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Wazuh agent registration",
+            "FromPort": 1515,
+            "IpProtocol": "tcp",
+            "ToPort": 1515,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.2.1",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
     },
     "databaseProxySecurityGroupfromIndirectPeer5432453AB7EA": Object {
       "Properties": Object {
@@ -2708,7 +2972,7 @@ $util.toJson($ctx.result)",
             },
           ],
           "SubnetIds": Object {
-            "Ref": "AccountVpcPrivateSubnetIds",
+            "Ref": "pinboardPrivateSubnets",
           },
         },
       },
@@ -3026,7 +3290,7 @@ $util.toJson($ctx.result)",
             },
           ],
           "SubnetIds": Object {
-            "Ref": "AccountVpcPrivateSubnetIds",
+            "Ref": "pinboardPrivateSubnets",
           },
         },
       },
@@ -3061,7 +3325,7 @@ $util.toJson($ctx.result)",
           },
         ],
         "VpcId": Object {
-          "Ref": "SsmParameterValueaccountvpcprimaryidC96584B6F00A464EAD1953AFF4B05118Parameter",
+          "Ref": "VpcId",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
@@ -3225,7 +3489,7 @@ $util.toJson($ctx.result)",
             },
           ],
           "SubnetIds": Object {
-            "Ref": "AccountVpcPrivateSubnetIds",
+            "Ref": "pinboardPrivateSubnets",
           },
         },
       },

@@ -13,6 +13,11 @@
       "compress": false
     },
     {
+      "action": "pinboard-db-jump-host-asg-artifact",
+      "path": "cdk/startup.sh",
+      "compress": false
+    },
+    {
       "action": "pinboard-bootstrapping-lambda-api",
       "path": "dist",
       "compress": "zip"

@@ -6,7 +6,18 @@ allowedStages:
   - CODE
   - PROD
 deployments:
+  pinboard-db-jump-host-asg-artifact:
+    type: autoscaling
+    actions:
+      - uploadArtifacts # we don't need the 'deploy' action, as ASG is programmatically scaled up from 0, ephemerally
+    app: pinboard
+    parameters:
+      bucketSsmLookup: true
+      prefixApp: true
+
   pinboard-cloudformation:
+    dependencies:
+      - pinboard-db-jump-host-asg-artifact
     type: cloud-formation
     app: pinboard
     parameters:
@@ -20,7 +31,7 @@ deployments:
         Recipe: editorial-tools-focal-java8-ARM-WITH-cdk-base
         AmigoStage: PROD
       amiEncrypted: true
-      amiParameter: DatabaseJumpHostAmiID
+      amiParameter: AMIPinboard
 
   pinboard-bootstrapping-lambda-api:
     dependencies:

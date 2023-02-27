@@ -170,39 +170,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const peekAtPinboard = (pinboard: PinboardData) =>
     setMaybePeekingAtPinboard(pinboard);
 
-  const [interactiveDemoState, setInteractiveDemoState] = useState({
-    run: false,
-    stepIndex: 0,
-    mainKey: 0,
-  });
-
-  const { run, stepIndex, mainKey } = interactiveDemoState;
-
-  const handleInteractiveDemoStart = () => {
-    setInteractiveDemoState({ ...interactiveDemoState, run: true });
-  };
-
-  const handleInteractiveDemoCallback = (data: CallBackProps) => {
-    const { type, index, action } = data;
-    console.log(data);
-
-    if (type === EVENTS.TOUR_END) {
-      setInteractiveDemoState({
-        mainKey: mainKey + 1,
-        run: false,
-        stepIndex: 0,
-      });
-    } else if (
-      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
-    ) {
-      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setInteractiveDemoState({
-        ...interactiveDemoState,
-        stepIndex: nextStepIndex,
-      });
-    }
-  };
-
   return (
     <div
       css={css`
@@ -296,14 +263,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
-      <InteractiveDemoStartButton start={handleInteractiveDemoStart} />
-      <InteractiveDemo
-        run={run}
-        stepIndex={stepIndex}
-        mainKey={mainKey}
-        handleCallback={handleInteractiveDemoCallback}
-        showProgress
-      />
+      <InteractiveDemoStartButton />
+      <InteractiveDemo />
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard

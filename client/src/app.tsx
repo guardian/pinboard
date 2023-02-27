@@ -348,27 +348,27 @@ export const PinBoardApp = ({
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
-        <TourStateProvider>
-          <GlobalStateProvider
-            hasApolloAuthError={hasApolloAuthError}
-            presetUnreadNotificationCount={presetUnreadNotificationCount}
-            userEmail={userEmail}
-            openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
-            preselectedComposerId={preSelectedComposerId}
-            payloadToBeSent={payloadToBeSent}
-            setPayloadToBeSent={setPayloadToBeSent}
-            isExpanded={isExpanded}
-            setIsExpanded={setIsExpanded}
-            userLookup={userLookup}
-            addEmailsToLookup={addEmailsToLookup}
-            hasWebPushSubscription={hasWebPushSubscription}
-            manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
-            setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
-            showNotification={showDesktopNotification}
-            clearDesktopNotificationsForPinboardId={
-              clearDesktopNotificationsForPinboardId
-            }
-          >
+        <GlobalStateProvider
+          hasApolloAuthError={hasApolloAuthError}
+          presetUnreadNotificationCount={presetUnreadNotificationCount}
+          userEmail={userEmail}
+          openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
+          preselectedComposerId={preSelectedComposerId}
+          payloadToBeSent={payloadToBeSent}
+          setPayloadToBeSent={setPayloadToBeSent}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+          userLookup={userLookup}
+          addEmailsToLookup={addEmailsToLookup}
+          hasWebPushSubscription={hasWebPushSubscription}
+          manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
+          setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
+          showNotification={showDesktopNotification}
+          clearDesktopNotificationsForPinboardId={
+            clearDesktopNotificationsForPinboardId
+          }
+        >
+          <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />
             <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
             <root.div
@@ -422,8 +422,8 @@ export const PinBoardApp = ({
                 expand={expandFloaty}
               />
             ))}
-          </GlobalStateProvider>
-        </TourStateProvider>
+          </TourStateProvider>
+        </GlobalStateProvider>
       </ApolloProvider>
     </TelemetryContext.Provider>
   );

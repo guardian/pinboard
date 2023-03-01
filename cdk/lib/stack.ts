@@ -143,16 +143,14 @@ export class PinBoardStack extends GuStack {
     const permissionsFilePolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::permissions-cache/${this.stage}/*`],
+      resources: [`arn:aws:s3:::permissions-cache/${this.stage}/*`], //TODO when we guCDK the bootstrapping-lambda, tighten this up and use constants from 'shared/permissions.ts'
     });
 
     const pandaConfigAndKeyPolicyStatement = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ["s3:GetObject"],
-      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`],
+      resources: [`arn:aws:s3:::pan-domain-auth-settings/*`], //TODO when we guCDK the bootstrapping-lambda, tighten this up and use constants from 'shared/panDomainAuth.ts' (ideally we could limit to the stage specific settings file and anything in stage specific directory
     });
-
-    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
 
     const workflowDatastoreVpcId = Fn.importValue(
       `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${this.stage}`
@@ -171,6 +169,7 @@ export class PinBoardStack extends GuStack {
       }
     );
 
+    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
     const pinboardWorkflowBridgeLambda = new lambda.Function(
       this,
       workflowBridgeLambdaBasename,
@@ -217,7 +216,6 @@ export class PinBoardStack extends GuStack {
     );
 
     const gridBridgeLambdaBasename = "pinboard-grid-bridge-lambda";
-
     const pinboardGridBridgeLambda = new lambda.Function(
       this,
       gridBridgeLambdaBasename,

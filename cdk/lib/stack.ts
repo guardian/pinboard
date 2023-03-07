@@ -25,7 +25,9 @@ import {
   DATABASE_BRIDGE_LAMBDA_BASENAME,
   getDatabaseBridgeLambdaFunctionName,
   getNotificationsLambdaFunctionName,
+  getWorkflowBridgeLambdaFunctionName,
   NOTIFICATIONS_LAMBDA_BASENAME,
+  WORKFLOW_BRIDGE_LAMBDA_BASENAME,
 } from "../../shared/constants";
 import crypto from "crypto";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../shared/environmentVariables";
@@ -50,6 +52,7 @@ import {
   GuUserData,
 } from "@guardian/cdk/lib/constructs/autoscaling";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
+import { GuScheduledLambda } from "@guardian/cdk";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
@@ -153,10 +156,9 @@ export class PinBoardStack extends GuStack {
       }
     );
 
-    const workflowBridgeLambdaBasename = "pinboard-workflow-bridge-lambda";
     const pinboardWorkflowBridgeLambda = new lambda.Function(
       this,
-      workflowBridgeLambdaBasename,
+      WORKFLOW_BRIDGE_LAMBDA_BASENAME,
       {
         runtime: LAMBDA_NODE_VERSION,
         memorySize: 128,
@@ -170,12 +172,12 @@ export class PinBoardStack extends GuStack {
             `WorkflowDatastoreLoadBalancerDNSName-${this.stage}`
           ),
         },
-        functionName: `${workflowBridgeLambdaBasename}-${this.stage}`,
+        functionName: getWorkflowBridgeLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
-          `${this.stack}/${this.stage}/${workflowBridgeLambdaBasename}/${workflowBridgeLambdaBasename}.zip`
+          `${this.stack}/${this.stage}/${WORKFLOW_BRIDGE_LAMBDA_BASENAME}/${WORKFLOW_BRIDGE_LAMBDA_BASENAME}.zip`
         ),
-        role: new iam.Role(this, `${workflowBridgeLambdaBasename}-role`, {
+        role: new iam.Role(this, `${WORKFLOW_BRIDGE_LAMBDA_BASENAME}-role`, {
           assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
           managedPolicies: [
             iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -425,8 +427,7 @@ export class PinBoardStack extends GuStack {
     );
 
     const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${workflowBridgeLambdaBasename
-        .replace("pinboard-", "")
+      `${WORKFLOW_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
         .split("-")
         .join("_")}_ds`,
       pinboardWorkflowBridgeLambda
@@ -540,6 +541,32 @@ export class PinBoardStack extends GuStack {
       targets: [new eventsTargets.LambdaFunction(usersRefresherLambdaFunction)],
       schedule: events.Schedule.rate(Duration.days(1)),
     });
+
+    const archiverLambda = new GuScheduledLambda(this, "ArchiverLambda", {
+      app: APP,
+      vpc: accountVpc,
+      securityGroups: [databaseSecurityGroup],
+      functionName: `pinboard-archiver-lambda-${this.stage}`,
+      runtime: LAMBDA_NODE_VERSION,
+      handler: "index.handler",
+      environment: {
+        [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
+      },
+      monitoringConfiguration: {
+        noMonitoring: true,
+        // toleratedErrorPercentage: 0 TODO consider alarming on errors (need to provide sns topic which is sad since GuAlarm finds it for you)
+      },
+      fileName: "pinboard-archiver-lambda.zip",
+      rules: [
+        {
+          schedule: events.Schedule.rate(Duration.hours(6)),
+          description:
+            "Run every 6 hours to ensure pinboards get cleaned out regularly",
+        },
+      ],
+    });
+    pinboardWorkflowBridgeLambda.grantInvoke(archiverLambda);
+    databaseProxy.grantConnect(archiverLambda);
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;

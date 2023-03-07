@@ -51,6 +51,11 @@
       "action": "pinboard-database-bridge-lambda",
       "path": "database-bridge-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-archiver-lambda",
+      "path": "archiver-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

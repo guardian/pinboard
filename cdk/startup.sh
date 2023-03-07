@@ -1,5 +1,6 @@
 #!/bin/bash -ev
 LAST_ACTIVE_SSHD=$(date +%s)
+
 while :
 do
     echo "SSH tunnel last active at $LAST_ACTIVE_SSHD"
@@ -12,10 +13,10 @@ do
     if [ "$DIFF" -gt 9000 ]; then #i.e. 150 mins since last active ssh tunnel
         echo "No active SSH tunnel in the last 5mins - so scaling down"
         aws autoscaling set-desired-capacity\
-         --auto-scaling-group-name ${databaseJumpHostASGName}\
+         --auto-scaling-group-name "$1"\
          --desired-capacity 0\
          --no-honor-cooldown\
-         --region ${region}
+         --region "$2"
     fi
     sleep 60
 done & # this ampersand runs the whole loop in the background...

@@ -57,6 +57,8 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       runSetupSqlFile(sql, "014-AddUserGoogleIdIndex.sql"),
     "add editHistory and deletedAt columns to Item table": () =>
       runSetupSqlFile(sql, "015-AddEditAndDeleteColumnsToItemTable.sql"),
+    "add isArchived column to Item table": () =>
+      runSetupSqlFile(sql, "016-AddIsArchivedColumnToItemTable.sql"),
   };
 
   const allSteps = async () => {

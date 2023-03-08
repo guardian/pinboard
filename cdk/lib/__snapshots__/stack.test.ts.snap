@@ -15,12 +15,12 @@ Object {
       "GuGetDistributablePolicy",
       "GuParameterStoreReadPolicy",
       "GuHttpsEgressSecurityGroup",
-      "GuAutoScalingGroup",
       "GuWazuhAccess",
+      "GuAutoScalingGroup",
       "GuAlarm",
       "GuScheduledLambda",
     ],
-    "gu:cdk:version": "49.2.1",
+    "gu:cdk:version": "49.5.0",
   },
   "Outputs": Object {
     "pinboardbootstrappinglambdaapiEndpoint4DE1E032": Object {
@@ -132,7 +132,7 @@ Object {
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -420,7 +420,7 @@ Object {
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -486,7 +486,7 @@ Object {
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -590,7 +590,7 @@ Object {
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -621,7 +621,7 @@ Object {
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -660,8 +660,16 @@ Object {
     "DatabaseJumpHostASGPinboardASGF107AC84": Object {
       "Properties": Object {
         "AutoScalingGroupName": "pinboard-database-jump-host-ASG-TEST",
-        "LaunchConfigurationName": Object {
-          "Ref": "DatabaseJumpHostASGPinboardLaunchConfig9A2F1DD6",
+        "LaunchTemplate": Object {
+          "LaunchTemplateId": Object {
+            "Ref": "workflowTESTpinboardA2C40456",
+          },
+          "Version": Object {
+            "Fn::GetAtt": Array [
+              "workflowTESTpinboardA2C40456",
+              "LatestVersionNumber",
+            ],
+          },
         },
         "MaxSize": "1",
         "MetricsCollection": Array [
@@ -682,17 +690,12 @@ Object {
           Object {
             "Key": "gu:cdk:version",
             "PropagateAtLaunch": true,
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
             "PropagateAtLaunch": true,
             "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Name",
-            "PropagateAtLaunch": true,
-            "Value": "PinBoardStack-TEST/DatabaseJumpHostASGPinboard",
           },
           Object {
             "Key": "Stack",
@@ -710,75 +713,6 @@ Object {
         },
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
-    },
-    "DatabaseJumpHostASGPinboardInstanceProfileD4BB1285": Object {
-      "Properties": Object {
-        "Roles": Array [
-          Object {
-            "Ref": "InstanceRolePinboard534D1FFA",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::InstanceProfile",
-    },
-    "DatabaseJumpHostASGPinboardLaunchConfig9A2F1DD6": Object {
-      "DependsOn": Array [
-        "InstanceRolePinboardDefaultPolicy66C92FE8",
-        "InstanceRolePinboard534D1FFA",
-      ],
-      "Properties": Object {
-        "IamInstanceProfile": Object {
-          "Ref": "DatabaseJumpHostASGPinboardInstanceProfileD4BB1285",
-        },
-        "ImageId": Object {
-          "Ref": "AMIPinboard",
-        },
-        "InstanceType": "t4g.nano",
-        "MetadataOptions": Object {
-          "HttpTokens": "required",
-        },
-        "SecurityGroups": Array [
-          Object {
-            "Fn::GetAtt": Array [
-              "GuHttpsEgressSecurityGroupPinboardD9B9237E",
-              "GroupId",
-            ],
-          },
-          Object {
-            "Fn::GetAtt": Array [
-              "WazuhSecurityGroup",
-              "GroupId",
-            ],
-          },
-          Object {
-            "Fn::GetAtt": Array [
-              "DatabaseSecurityGroup7319C0F6",
-              "GroupId",
-            ],
-          },
-        ],
-        "UserData": Object {
-          "Fn::Base64": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "#!/bin/bash
-mkdir -p $(dirname '/pinboard/startup.sh')
-aws s3 cp 's3://",
-                Object {
-                  "Ref": "DistributionBucketName",
-                },
-                "/workflow/TEST/pinboard/startup.sh' '/pinboard/startup.sh'
-bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-              ],
-            ],
-          },
-        },
-      },
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
     },
     "DatabaseJumpHostOverrunningAlarmF19948C2": Object {
       "Properties": Object {
@@ -825,6 +759,24 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "EvaluationPeriods": 12,
         "MetricName": "GroupInServiceInstances",
         "Namespace": "AWS/AutoScaling",
+        "OKActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
         "Period": 3600,
         "Statistic": "Average",
         "Threshold": 0,
@@ -856,7 +808,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -900,7 +852,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -962,7 +914,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1058,7 +1010,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1157,7 +1109,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1338,7 +1290,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1438,7 +1390,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1479,7 +1431,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -1554,7 +1506,7 @@ bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2122,7 +2074,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2247,7 +2199,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2414,7 +2366,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2504,7 +2456,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2554,7 +2506,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2645,7 +2597,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2741,7 +2693,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2795,7 +2747,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -2983,7 +2935,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3002,7 +2954,7 @@ $util.toJson($ctx.result)",
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfaaac955038b6b3aa42d6e1b505902b2": Object {
+    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFe62d1dbfbe596d1e7a5dbb6222d86864": Object {
       "DependsOn": Array [
         "pinboardbootstrappinglambdaapiproxyANYABDEB60B",
         "pinboardbootstrappinglambdaapiproxyE53D56AC",
@@ -3022,7 +2974,7 @@ $util.toJson($ctx.result)",
       ],
       "Properties": Object {
         "DeploymentId": Object {
-          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFfaaac955038b6b3aa42d6e1b505902b2",
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFe62d1dbfbe596d1e7a5dbb6222d86864",
         },
         "RestApiId": Object {
           "Ref": "pinboardbootstrappinglambdaapi577E85F1",
@@ -3031,7 +2983,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3055,7 +3007,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3092,7 +3044,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3295,7 +3247,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3370,7 +3322,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3479,7 +3431,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3529,7 +3481,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3613,7 +3565,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3658,7 +3610,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3722,7 +3674,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3812,7 +3764,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -3887,7 +3839,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -4122,7 +4074,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -4199,7 +4151,7 @@ $util.toJson($ctx.result)",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
-            "Value": "49.2.1",
+            "Value": "49.5.0",
           },
           Object {
             "Key": "gu:repo",
@@ -4216,6 +4168,157 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "workflowTESTpinboardA2C40456": Object {
+      "Properties": Object {
+        "LaunchTemplateData": Object {
+          "IamInstanceProfile": Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "workflowTESTpinboardProfileE5BD154A",
+                "Arn",
+              ],
+            },
+          },
+          "ImageId": Object {
+            "Ref": "AMIPinboard",
+          },
+          "InstanceType": "t4g.nano",
+          "MetadataOptions": Object {
+            "HttpTokens": "required",
+          },
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "GuHttpsEgressSecurityGroupPinboardD9B9237E",
+                "GroupId",
+              ],
+            },
+            Object {
+              "Fn::GetAtt": Array [
+                "WazuhSecurityGroup",
+                "GroupId",
+              ],
+            },
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+          ],
+          "TagSpecifications": Array [
+            Object {
+              "ResourceType": "instance",
+              "Tags": Array [
+                Object {
+                  "Key": "gu:cdk:version",
+                  "Value": "49.5.0",
+                },
+                Object {
+                  "Key": "gu:repo",
+                  "Value": "guardian/pinboard",
+                },
+                Object {
+                  "Key": "Name",
+                  "Value": "PinBoardStack-TEST/workflow-TEST-pinboard",
+                },
+                Object {
+                  "Key": "Stack",
+                  "Value": "workflow",
+                },
+                Object {
+                  "Key": "Stage",
+                  "Value": "TEST",
+                },
+              ],
+            },
+            Object {
+              "ResourceType": "volume",
+              "Tags": Array [
+                Object {
+                  "Key": "gu:cdk:version",
+                  "Value": "49.5.0",
+                },
+                Object {
+                  "Key": "gu:repo",
+                  "Value": "guardian/pinboard",
+                },
+                Object {
+                  "Key": "Name",
+                  "Value": "PinBoardStack-TEST/workflow-TEST-pinboard",
+                },
+                Object {
+                  "Key": "Stack",
+                  "Value": "workflow",
+                },
+                Object {
+                  "Key": "Stage",
+                  "Value": "TEST",
+                },
+              ],
+            },
+          ],
+          "UserData": Object {
+            "Fn::Base64": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "#!/bin/bash
+mkdir -p $(dirname '/pinboard/startup.sh')
+aws s3 cp 's3://",
+                  Object {
+                    "Ref": "DistributionBucketName",
+                  },
+                  "/workflow/TEST/pinboard/startup.sh' '/pinboard/startup.sh'
+bash /pinboard/startup.sh pinboard-database-jump-host-ASG-TEST ",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                ],
+              ],
+            },
+          },
+        },
+        "TagSpecifications": Array [
+          Object {
+            "ResourceType": "launch-template",
+            "Tags": Array [
+              Object {
+                "Key": "gu:cdk:version",
+                "Value": "49.5.0",
+              },
+              Object {
+                "Key": "gu:repo",
+                "Value": "guardian/pinboard",
+              },
+              Object {
+                "Key": "Name",
+                "Value": "PinBoardStack-TEST/workflow-TEST-pinboard",
+              },
+              Object {
+                "Key": "Stack",
+                "Value": "workflow",
+              },
+              Object {
+                "Key": "Stage",
+                "Value": "TEST",
+              },
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::EC2::LaunchTemplate",
+    },
+    "workflowTESTpinboardProfileE5BD154A": Object {
+      "Properties": Object {
+        "Roles": Array [
+          Object {
+            "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
     },
   },
 }

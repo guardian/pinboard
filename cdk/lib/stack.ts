@@ -336,6 +336,8 @@ export class PinBoardStack extends GuStack {
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       threshold: 0,
       evaluationPeriods: 12,
+      actionsEnabled: true,
+      okAction: true,
     });
 
     const pinboardNotificationsLambda = new lambda.Function(

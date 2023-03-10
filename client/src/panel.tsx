@@ -25,11 +25,7 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
-import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
-import {
-  InteractiveDemo,
-  InteractiveDemoStartButton,
-} from "./tour/interactiveDemo";
+import { Tour, TourStartButton } from "./tour/tour";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -263,8 +259,12 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
-      <InteractiveDemoStartButton />
-      <InteractiveDemo />
+      {panelRef.current && (
+        <React.Fragment>
+          <TourStartButton />
+          <Tour panelElement={panelRef.current} />
+        </React.Fragment>
+      )}
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard

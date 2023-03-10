@@ -1,6 +1,7 @@
-import React, { useContext, useRef, useState } from "react";
-import { TourStepID, tourStepIDs } from "./tourStepMap";
+import React, { useContext, useLayoutEffect, useRef, useState } from "react";
+import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
+import { useGlobalStateContext } from "../globalState";
 
 type TourStepRefMap = Partial<Record<TourStepID, HTMLElement | null>>;
 
@@ -11,6 +12,7 @@ interface TourStateContextShape {
   setRef: (stepId: TourStepID) => (node: HTMLElement | null) => void;
   getRef: (stepId: TourStepID) => HTMLElement | null | undefined;
   handleCallback: (data: CallBackProps) => void;
+  jumpStepTo: (stepId: TourStepID) => void;
 }
 
 const TourStateContext = React.createContext<TourStateContextShape | null>(
@@ -45,13 +47,47 @@ export const useTourProgress = () => {
   };
 };
 
+export const useJumpToTourStep = (stepId: TourStepID) => {
+  const { jumpStepTo } = useTourStateContext();
+  return () => jumpStepTo(stepId);
+};
+
 export const TourStateProvider: React.FC = ({ children }) => {
   const refMap = useRef<TourStepRefMap>({}).current;
   const getRef = (stepId: TourStepID) => refMap[stepId];
   const setRef = (stepId: TourStepID) => (node: HTMLElement | null) => {
     refMap[stepId] = node;
   };
+
   const [stepIndex, setStepIndex] = useState<number>(-1);
+
+  const jumpStepTo = (stepId: TourStepID) => {
+    const stepIndex = tourStepIDs.indexOf(stepId);
+    setStepIndex(stepIndex + 1); // +1 is to account for the contents step
+  };
+
+  useLayoutEffect(() => {
+    const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
+
+    if (tourStepId) {
+      tourStepMap[tourStepId].isIndexView
+        ? clearSelectedPinboard()
+        : openPinboard(
+            {
+              id: "DEMO",
+              title: "Interactive Demo",
+              headline: "Pinboard Interactive Demo",
+              composerId: null,
+              isNotFound: null,
+              status: null,
+              trashed: null,
+            },
+            false
+          );
+    }
+  }, [stepIndex]);
+
+  const { openPinboard, clearSelectedPinboard } = useGlobalStateContext();
 
   const handleCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
@@ -59,14 +95,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
     if (type === EVENTS.TOUR_END) {
       setStepIndex(-1);
-    } else if (
-      ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND] as string[]).includes(type)
-    ) {
+    } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
       setStepIndex(nextStepIndex);
-      const tourStepId = tourStepIDs[nextStepIndex];
-      /* TODO - use globalStateContext to retrieve functions like setSelectedPinboard, clearSelectedPinboard (which drive the UI)
-       and run them conditionally based on tourStepID */
     }
   };
 
@@ -77,6 +108,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     stepIndex,
     handleCallback,
     start: () => setStepIndex(0),
+    jumpStepTo,
   };
 
   return (

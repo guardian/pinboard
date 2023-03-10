@@ -2,41 +2,20 @@ import { Placement } from "react-joyride";
 import React from "react";
 
 export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
-  // {
-  //   target: useTourStepRef("panel"),
-  //   placement: "left" as Placement,
-  //   title: "Welcome to Pinboard 👋",
-  //   content: (
-  //       <div
-  //           style={{
-  //             textAlign: "left",
-  //             marginTop: `${space[1]}px`,
-  //             padding: 0,
-  //           }}
-  //       >
-  //         The Guardian's very own discussion and asset-sharing tool developed
-  //         for the editorial.
-  //         <div style={{ display: "flex", alignItems: "center" }}>
-  //           Let's take a tour. Follow the orange beacon.
-  //           <BeaconIcon />
-  //         </div>
-  //       </div>
-  //   ),
-  //   locale: { last: "Continue" },
-  //   disableBeacon: true,
-  // }, // TODO - find a suitable target for the first step
   myPinboards: {
     title: "My Pinboards",
+    isIndexView: true,
     content: (
       <div>
-        Here you can find the list of Pinboards where you sent a message or are
-        tagged by others.
+        The list of pinboards you are active on or where you have been sent a
+        message or mentioned by someone.
       </div>
     ),
     placement: "left" as Placement,
   },
   teamPinboards: {
-    title: "My Teams' Pinboards",
+    title: "My teams' Pinboards",
+    isIndexView: true,
     content: (
       <div>
         These are the Pinboards where your team is tagged (in a message or a
@@ -46,7 +25,8 @@ export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
     placement: "left" as Placement,
   },
   searchbar: {
-    title: "Search",
+    title: "Search for a Pinboard",
+    isIndexView: true,
     content: (
       <div>
         You can search for other Pinboards on Workflow using this searchbar.
@@ -55,16 +35,24 @@ export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
     placement: "left" as Placement,
   },
   notificationSetting: {
-    title: "Subscribe/Unsubscribe to Notifications",
+    title: "Desktop Notifications",
+    isIndexView: true,
     content: <div>You can set your browser notification settings here.</div>,
     placement: "left" as Placement,
   },
   messageArea: {
     title: "Sending messages",
+    isIndexView: false,
     content: <div>Try typing messages here...</div>,
     placement: "left" as Placement,
   },
-  // {
+  feedback: {
+    title: "Send us feedback",
+    isIndexView: false,
+    content: <div>Send us any feedback</div>,
+    placement: "left" as Placement,
+  },
+  // messageArea:{
   //     target: useTourStepRef("messageArea"),
   //         title: "Tag someone",
   //     content: (

@@ -2,6 +2,7 @@ import React, { useContext, useLayoutEffect, useRef, useState } from "react";
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
+import { demoPinboardData } from "../../../shared/tour";
 
 type TourStepRefMap = Partial<Record<TourStepID, HTMLElement | null>>;
 
@@ -72,18 +73,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     if (tourStepId) {
       tourStepMap[tourStepId].isIndexView
         ? clearSelectedPinboard()
-        : openPinboard(
-            {
-              id: "DEMO",
-              title: "Interactive Demo",
-              headline: "Pinboard Interactive Demo",
-              composerId: null,
-              isNotFound: null,
-              status: null,
-              trashed: null,
-            },
-            false
-          );
+        : openPinboard(demoPinboardData, false);
     }
   }, [stepIndex]);
 

@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
 import { MAX_PINBOARDS_TO_DISPLAY } from "../../shared/constants";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
+import { demoPinboardData } from "../../shared/tour";
 
 const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
@@ -25,38 +26,40 @@ exports.handler = async (event: {
   ];
 };
 
-const getPinboardById =
-  (apiBase: "content" | "stubs") => async (id: string) => {
-    const contentResponse = await fetch(
-      `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
-    );
-    if (contentResponse.status === 404) {
-      return {
-        id,
-        isNotFound: true,
+const getPinboardById = (apiBase: "content" | "stubs") => async (
+  id: string
+) => {
+  if (id === demoPinboardData.id) {
+    return demoPinboardData;
+  }
+  const contentResponse = await fetch(
+    `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
+  );
+  if (contentResponse.status === 404) {
+    return {
+      id,
+      isNotFound: true,
+    };
+  }
+  if (!contentResponse.ok) {
+    throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
+  }
+  const data = ((await contentResponse.json()) as {
+    data: {
+      externalData: {
+        status: string;
       };
-    }
-    if (!contentResponse.ok) {
-      throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
-    }
-    const data = (
-      (await contentResponse.json()) as {
-        data: {
-          externalData: {
-            status: string;
-          };
-          // there are other fields, but they're just being forwarded on
-        };
-      }
-    ).data;
-    if (!data) {
-      return {
-        id,
-        isNotFound: true,
-      };
-    }
-    return { ...data.externalData, ...data };
-  };
+      // there are other fields, but they're just being forwarded on
+    };
+  }).data;
+  if (!data) {
+    return {
+      id,
+      isNotFound: true,
+    };
+  }
+  return { ...data.externalData, ...data };
+};
 
 const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
   const stubsResponse = await fetch(

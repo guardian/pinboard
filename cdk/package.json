@@ -20,7 +20,7 @@
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "2.54.0-alpha.0",
     "@guardian/cdk": "^49.2.1",
-    "aws-cdk": "2.64.0",
+    "aws-cdk": "2.65.0",
     "aws-cdk-lib": "2.64.0",
     "constructs": "10.1.249"
   }

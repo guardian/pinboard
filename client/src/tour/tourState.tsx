@@ -122,13 +122,19 @@ export const TourStateProvider: React.FC = ({ children }) => {
     }
   };
 
+  const start = () => {
+    openPinboard(demoPinboardData, false);
+    clearSelectedPinboard();
+    setStepIndex(0);
+  };
+
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
     setRef,
     getRef,
     stepIndex,
     handleCallback,
-    start: () => setStepIndex(0),
+    start,
     jumpStepTo,
     isRunning,
   };

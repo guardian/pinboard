@@ -101,3 +101,13 @@ deployments:
       prefixStack: false
       fileName: pinboard-database-bridge-lambda.zip
       functionNames: [pinboard-database-bridge-lambda-]
+
+  pinboard-archiver-lambda:
+    dependencies:
+      - pinboard-cloudformation
+    type: aws-lambda
+    app: pinboard
+    parameters:
+      prefixStack: false
+      fileName: pinboard-archiver-lambda.zip
+      functionNames: [pinboard-archiver-lambda-]

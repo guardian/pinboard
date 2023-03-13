@@ -15,9 +15,14 @@ exports.handler = async (event: {
   }
   if (event.arguments?.ids) {
     return await Promise.all(event.arguments.ids.map(getPinboardById("stubs")));
-  } else {
+  }
+  if (event.arguments?.searchText !== undefined) {
     return await getAllPinboards(event.arguments?.searchText);
   }
+  return [
+    ...(await getAllPinboardIds({ isTrashed: false })),
+    ...(await getAllPinboardIds({ isTrashed: true })),
+  ];
 };
 
 const getPinboardById = (apiBase: "content" | "stubs") => async (
@@ -50,6 +55,26 @@ const getPinboardById = (apiBase: "content" | "stubs") => async (
     };
   }
   return { ...data.externalData, ...data };
+};
+
+const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
+  const stubsResponse = await fetch(
+    `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=id&trashed=${isTrashed}`
+  );
+
+  if (!stubsResponse.ok) {
+    throw Error(`${stubsResponse.status} ${await stubsResponse.text()}`);
+  }
+
+  const stubsResponseBody = (await stubsResponse.json()) as {
+    data: {
+      content: { [status: string]: PinboardData[] };
+    };
+  };
+
+  return Object.values(stubsResponseBody.data.content)
+    .flat()
+    .map((_) => _.id);
 };
 
 const getAllPinboards = async (searchText?: string) => {

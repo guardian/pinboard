@@ -1,0 +1,19 @@
+{
+  "name": "archiver-lambda",
+  "version": "1.0.0",
+  "description": "Lambda to 'archive' items associated with workflow items which have been deleted",
+  "repository": "https://github.com/guardian/editorial-tools-pinboard",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
+    "watch": "ts-node-dev --respawn run.ts",
+    "build": "run-p --print-label type-check bundle"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.840.0",
+    "ts-node-dev": "^1.0.0"
+  },
+  "dependencies": {
+    "postgres": "^3.2.4"
+  }
+}

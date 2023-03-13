@@ -75,7 +75,7 @@ export const editItem = async (
             ${sql(args.input)},
             "editHistory" = ARRAY_APPEND("editHistory", now())
         WHERE "id" = ${args.itemId}
-         AND "userEmail" = ${userEmail}
+          AND "userEmail" = ${userEmail}
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
@@ -103,6 +103,7 @@ export const listItems = (
     SELECT ${fragmentItemFields(sql, userEmail)}
     FROM "Item"
     WHERE "pinboardId" = ${args.pinboardId}
+      AND "isArchived" = false
 `;
 
 export const claimItem = (
@@ -165,6 +166,7 @@ export const getGroupPinboardIds = async (
                    )     as "hasUnread"
         FROM "Item"
         WHERE "type" != 'claim'
+          AND "isArchived" = false
           AND "deletedAt" IS NULL
           AND EXISTS(
                 SELECT 1
@@ -226,6 +228,7 @@ export const getItemCounts = (
                 FROM "Item"
                 WHERE "pinboardId" IN ${sql(args.pinboardIds)}
                   AND "deletedAt" IS NULL
+                  AND "isArchived" = false
                 GROUP BY "pinboardId"
         `;
 

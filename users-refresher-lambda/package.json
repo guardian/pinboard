@@ -1,7 +1,7 @@
 {
   "name": "users-refresher-lambda",
   "version": "1.0.0",
-  "description": "Lambda to keep the users Dynamo table(s) up to date (run on a schedule)",
+  "description": "Lambda to keep the User, Group & GroupMember tables up to date (run on a schedule)",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
     "type-check": "tsc --noEmit",
@@ -22,6 +22,7 @@
     "@googleapis/people": "^1.0.2",
     "iniparser": "^1.0.5",
     "node-fetch": "2",
-    "node-forge": "^1.3.0"
+    "node-forge": "^1.3.0",
+    "postgres": "^3.2.4"
   }
 }

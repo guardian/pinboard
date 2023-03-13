@@ -12,7 +12,8 @@
     "notifications-lambda",
     "users-refresher-lambda",
     "workflow-bridge-lambda",
-    "database-bridge-lambda"
+    "database-bridge-lambda",
+    "archiver-lambda"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",

@@ -1,12 +1,22 @@
-import React, { useContext, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
 import { demoPinboardData } from "../../../shared/tour";
+import { ApolloLink, useApolloClient } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 
 type TourStepRefMap = Partial<Record<TourStepID, HTMLElement | null>>;
 
 interface TourStateContextShape {
+  isRunning: boolean;
   stepIndex: number;
   start: () => void;
   refs: Array<HTMLElement | null>;
@@ -38,12 +48,12 @@ export const useTourStepRef = (stepId: TourStepID) =>
 export const useTourStepRefs = () => useTourStateContext().refs;
 
 export const useTourProgress = () => {
-  const { stepIndex, handleCallback, start } = useTourStateContext();
+  const { isRunning, stepIndex, handleCallback, start } = useTourStateContext();
 
   return {
     stepIndex,
     handleCallback,
-    run: stepIndex !== -1,
+    run: isRunning,
     start,
   };
 };
@@ -62,10 +72,31 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const [stepIndex, setStepIndex] = useState<number>(-1);
 
+  const isRunning = stepIndex !== -1;
+
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setStepIndex(stepIndex + 1); // +1 is to account for the contents step
   };
+
+  const apolloClient = useApolloClient();
+
+  const apolloOriginalLinkChain = useMemo(() => apolloClient.link, []);
+
+  useEffect(() => {
+    apolloClient.setLink(
+      ApolloLink.concat(
+        setContext((_, { headers, ...restOfContext }) => ({
+          ...restOfContext,
+          headers: {
+            ...headers,
+            "X-is-demo": isRunning,
+          },
+        })),
+        apolloOriginalLinkChain
+      )
+    );
+  }, [stepIndex]);
 
   useLayoutEffect(() => {
     const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
@@ -99,6 +130,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     handleCallback,
     start: () => setStepIndex(0),
     jumpStepTo,
+    isRunning,
   };
 
   return (

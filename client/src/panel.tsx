@@ -25,7 +25,7 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
-import { Tour, TourStartButton } from "./tour/tour";
+import { Tour } from "./tour/tour";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -261,7 +261,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       </Navigation>
       {panelRef.current && (
         <React.Fragment>
-          <TourStartButton />
           <Tour panelElement={panelRef.current} />
         </React.Fragment>
       )}

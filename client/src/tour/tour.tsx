@@ -1,10 +1,7 @@
 import React, { useMemo } from "react";
-import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
-import { agateSans } from "../../fontNormaliser";
+import BeaconIcon from "../../icons/beacon";
 import Joyride, { Placement, Step } from "react-joyride";
-import PlayButton from "../../icons/play-button.svg";
-import CloseIcon from "../../icons/close.svg";
 import {
   useJumpToTourStep,
   useTourProgress,
@@ -31,6 +28,12 @@ const tourButtonStyles = {
   fontWeight: 800,
 };
 
+const nextButtonStyles = {
+  ...tourButtonStyles,
+  color: `${palette.neutral[100]}`,
+  backgroundColor: `${composer.primary[300]}`,
+};
+
 const secondaryButtonStyles = {
   ...tourButtonStyles,
   color: `${composer.primary[300]}`,
@@ -38,27 +41,31 @@ const secondaryButtonStyles = {
   marginRight: `${space[1]}px`,
 };
 
-const nextButtonStyles = {
-  ...tourButtonStyles,
-  color: `${palette.neutral[100]}`,
-  backgroundColor: `${composer.primary[300]}`,
-};
-
 export const Tour = ({ panelElement }: TourProps) => {
   const tourStepEntries = Object.entries(tourStepMap);
 
   const contentsStep: Step = {
-    title: "Welcome to pinboard",
+    title: "Welcome to Pinboard",
     target: panelElement,
     content: (
       <div>
-        <p>
-          A tool to discuss and share the assets for a story within the story
-          itself.
-        </p>
+        A tool to discuss and share the assets for a story within the story
+        itself.
+        <div style={{ display: "flex", gap: `${space[1]}px` }}>
+          <BeaconIcon />
+          Follow the beacon to take a tour.
+        </div>
+        <hr
+          style={{
+            width: "100%",
+            borderTop: `1px solid grey`,
+            marginLeft: 0,
+            borderBottom: 0,
+          }}
+        />
         <div>
-          Jump straight:
-          <ul style={{ listStyleType: "none", margin: 0, padding: 0 }}>
+          You can also jump straight:
+          <ol style={{ marginTop: `${space[1]}px`, paddingLeft: "14px" }}>
             {tourStepEntries.map(([tourStepId, { title }]) => (
               <li
                 key={tourStepId}
@@ -66,13 +73,12 @@ export const Tour = ({ panelElement }: TourProps) => {
                 style={{
                   cursor: "pointer",
                   textDecoration: "underline",
-                  color: `${composer.primary[300]}`,
                 }}
               >
                 {title}
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={secondaryButtonStyles}>Dismiss</button>
@@ -80,14 +86,14 @@ export const Tour = ({ panelElement }: TourProps) => {
             style={nextButtonStyles}
             onClick={useJumpToTourStep("myPinboards")}
           >
-            Next (1/{tourStepEntries.length + 1})
+            Next
           </button>
         </div>
       </div>
     ),
     placement: "left" as Placement,
     styles: {
-      buttonNext: {
+      tooltipFooter: {
         display: "none",
       },
     },
@@ -121,7 +127,7 @@ export const Tour = ({ panelElement }: TourProps) => {
       locale={{ back: "Previous" }}
       styles={{
         options: {
-          primaryColor: "rgb(255, 140, 0)",
+          primaryColor: `${composer.primary[300]}`,
           zIndex: 999999,
         },
         tooltip: {
@@ -132,14 +138,7 @@ export const Tour = ({ panelElement }: TourProps) => {
         },
         tooltipContent: {
           textAlign: "left",
-          padding: 10,
-        },
-        tooltipFooter: {
-          alignItems: "center",
-          display: "flex",
-          justifyContent: "space-between",
-          padding: 0,
-          margin: 0,
+          padding: "10px 10px 0",
         },
         buttonNext: { fontSize: 14, ...nextButtonStyles },
         buttonBack: { fontSize: 14, ...secondaryButtonStyles },
@@ -147,51 +146,3 @@ export const Tour = ({ panelElement }: TourProps) => {
     />
   );
 };
-
-export const TourStartButton = () => (
-  <button
-    css={css`
-      display: flex;
-      flex-direction: column;
-      background-color: rgb(255, 140, 0);
-      padding: ${space[1]}px;
-      border-radius: 4px;
-      ${agateSans.xxsmall({ lineHeight: "regular" })};
-      gap: ${space[1]}px;
-      margin: ${space[1]}px;
-      margin-bottom: 0;
-      cursor: pointer;
-      border: 0;
-    `}
-    onClick={useTourProgress().start}
-  >
-    <div
-      css={css`
-        display: flex;
-      `}
-    >
-      <PlayButton
-        css={css`
-          padding-top: 2px;
-          margin-left: 3px;
-        `}
-      />
-      <div
-        css={css`
-          color: white;
-          padding-left: ${space[1]}px;
-          text-align: left;
-        `}
-      >
-        First time on Pinboard? Start guided tour.
-      </div>
-      <CloseIcon
-        css={css`
-          margin-left: 10px;
-          height: 10px;
-          padding-top: 3px;
-        `}
-      />
-    </div>
-  </button>
-);

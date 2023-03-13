@@ -1,4 +1,5 @@
 import React from "react";
+import { composer } from "../colours";
 
 const BeaconIcon = () => {
   return (
@@ -14,16 +15,16 @@ const BeaconIcon = () => {
         padding: "8px",
         appearance: "none",
         display: "inline-block",
-        height: "36px",
+        height: "20px",
         position: "relative",
-        width: "36px",
+        width: "20px",
       }}
     >
       <span
         style={{
           animation:
             "1.2s ease-in-out 0s infinite normal none running joyride-beacon-inner",
-          backgroundColor: "rgb(255, 140, 0)",
+          backgroundColor: `${composer.primary[300]}`,
           borderRadius: "50%",
           display: "block",
           height: "50%",
@@ -39,7 +40,7 @@ const BeaconIcon = () => {
         style={{
           animation:
             "1.2s ease-in-out 0s infinite normal none running joyride-beacon-outer",
-          border: "2px solid rgb(255, 140, 0)",
+          border: `2px solid ${composer.primary[300]}`,
           borderRadius: "50%",
           boxSizing: "border-box",
           display: "block",

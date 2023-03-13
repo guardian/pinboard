@@ -1,5 +1,7 @@
 import { Placement } from "react-joyride";
 import React from "react";
+import EditIcon from "../../icons/pencil.svg";
+import BinIcon from "../../icons/bin.svg";
 
 export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
   myPinboards: {
@@ -41,10 +43,22 @@ export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
     placement: "left" as Placement,
   },
   messageArea: {
-    title: "Sending messages",
+    title: "Messages",
     isIndexView: false,
-    content: <div>Try typing messages here...</div>,
-    placement: "left" as Placement,
+    content: (
+      <div>
+        <h3>1. Mentioning people and groups</h3>
+        Mention a colleague by typing their name with @. They will receive a
+        Chrome notification.
+        <h3>2. Making requests to teams</h3>
+        You can mention a team (with @) and turn your message into a request.
+        All team members will receive a Chrome notification and track whether
+        the request has been completed.
+        <h3>3. Editing and deleting messages</h3>
+        You can edit <EditIcon /> or delete <BinIcon /> a message by clicking on
+        the corresponding icon next to your message.
+      </div>
+    ),
   },
   feedback: {
     title: "Send us feedback",

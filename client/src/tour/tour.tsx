@@ -41,6 +41,43 @@ const secondaryButtonStyles = {
   marginRight: `${space[1]}px`,
 };
 
+const Tooltip = ({
+  continuous,
+  index,
+  step,
+  backProps,
+  primaryProps,
+  tooltipProps,
+}: any) => {
+  return (
+    <div
+      {...tooltipProps}
+      style={{
+        backgroundColor: `${palette.neutral[100]}`,
+        fontSize: 14,
+        padding: `${space[2]}px`,
+        width: 300,
+        fontFamily: "Guardian Agate Sans",
+      }}
+    >
+      {step.title && <h3>{step.title}</h3>}
+      <p>{step.content}</p>
+      <div>
+        {index > 0 && (
+          <button {...backProps} styles={{ secondaryButtonStyles }}>
+            back
+          </button>
+        )}
+        {continuous && (
+          <button {...primaryProps} styles={{ nextButtonStyles }}>
+            next
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const Tour = ({ panelElement }: TourProps) => {
   const tourStepEntries = Object.entries(tourStepMap);
 
@@ -92,25 +129,29 @@ export const Tour = ({ panelElement }: TourProps) => {
       </div>
     ),
     placement: "left" as Placement,
-    styles: {
-      tooltipFooter: {
-        display: "none",
-      },
-    },
+    // styles: {
+    //   tooltipFooter: {
+    //     display: "none",
+    //   },
+    // },
   };
 
+  const { stepIndex, handleCallback, run } = useTourProgress();
+
   const steps: Step[] = useMemo(() => {
-    console.log("steps updated");
-    return [
+    const newSteps = [
       contentsStep,
       ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
         ...stepWithoutTarget,
-        target: useTourStepRef(tourStepId as TourStepID),
+        target: useTourStepRef(tourStepId as TourStepID).current || tourStepId,
       })),
     ];
-  }, useTourStepRefs());
-
-  const { stepIndex, handleCallback, run } = useTourProgress();
+    console.log(
+      "steps updated",
+      newSteps.map((_) => _.target)
+    );
+    return newSteps;
+  }, [stepIndex]);
 
   return (
     <Joyride

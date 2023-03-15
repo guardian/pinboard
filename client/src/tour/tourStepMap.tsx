@@ -59,6 +59,7 @@ export const tourStepMap /*: Record<TourStepIDs, Omit<Step, "target">> */ = {
         the corresponding icon next to your message.
       </div>
     ),
+    placement: "left-end" as Placement,
   },
   feedback: {
     title: "Send us feedback",

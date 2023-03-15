@@ -28,7 +28,7 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import { useSetTourStepRef } from "./tour/tourState";
+import { useTourStepRef } from "./tour/tourState";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -382,7 +382,7 @@ export const SelectPinboard = ({
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}
-        <div ref={useSetTourStepRef("myPinboards")}>
+        <div ref={useTourStepRef("myPinboards")}>
           {(activePinboardsWithoutPreselected?.length > 0 ||
             isLoadingActivePinboardList) && (
             <React.Fragment>
@@ -395,7 +395,7 @@ export const SelectPinboard = ({
             </React.Fragment>
           )}
         </div>
-        <div ref={useSetTourStepRef("teamPinboards")}>
+        <div ref={useTourStepRef("teamPinboards")}>
           {pinboardsWithClaimCounts?.length > 0 && (
             <React.Fragment>
               <SectionHeading>MY TEAMS&apos; PINBOARDS</SectionHeading>
@@ -423,7 +423,7 @@ export const SelectPinboard = ({
             </React.Fragment>
           )}
         </div>
-        <div ref={useSetTourStepRef("searchbar")}>
+        <div ref={useTourStepRef("searchbar")}>
           <SectionHeading>SEARCH</SectionHeading>
           <div css={{ position: "relative" }}>
             <TextInput
@@ -469,7 +469,7 @@ export const SelectPinboard = ({
           }}
         >
           {/* TODO move this to some settings menu (rather than bottom of selection list) */}
-          <div ref={useSetTourStepRef("notificationSetting")}>
+          <div ref={useTourStepRef("notificationSetting")}>
             <PushNotificationPreferencesOpener
               hasWebPushSubscription={hasWebPushSubscription}
             />

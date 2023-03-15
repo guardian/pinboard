@@ -13,15 +13,14 @@ import { demoPinboardData } from "../../../shared/tour";
 import { ApolloLink, useApolloClient } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
-type TourStepRefMap = Partial<Record<TourStepID, HTMLElement | null>>;
+type TourStepRefMap = Record<TourStepID, React.RefObject<HTMLDivElement>>;
 
 interface TourStateContextShape {
   isRunning: boolean;
   stepIndex: number;
   start: () => void;
-  refs: Array<HTMLElement | null>;
-  setRef: (stepId: TourStepID) => (node: HTMLElement | null) => void;
-  getRef: (stepId: TourStepID) => HTMLElement | null | undefined;
+  refs: React.RefObject<HTMLDivElement>[];
+  getRef: (stepId: TourStepID) => React.RefObject<HTMLDivElement>;
   handleCallback: (data: CallBackProps) => void;
   jumpStepTo: (stepId: TourStepID) => void;
 }
@@ -39,11 +38,8 @@ const useTourStateContext = (): TourStateContextShape => {
   return ctx;
 };
 
-export const useSetTourStepRef = (stepId: TourStepID) =>
-  useTourStateContext().setRef(stepId);
-
 export const useTourStepRef = (stepId: TourStepID) =>
-  useTourStateContext().getRef(stepId) || stepId;
+  useTourStateContext().getRef(stepId);
 
 export const useTourStepRefs = () => useTourStateContext().refs;
 
@@ -64,11 +60,15 @@ export const useJumpToTourStep = (stepId: TourStepID) => {
 };
 
 export const TourStateProvider: React.FC = ({ children }) => {
-  const refMap = useRef<TourStepRefMap>({}).current;
+  // const refMap = useRef<TourStepRefMap>({}).current;
+  const refMap: TourStepRefMap = useMemo(
+    () =>
+      Object.fromEntries(
+        tourStepIDs.map((stepId) => [stepId, React.createRef<HTMLElement>()])
+      ) as TourStepRefMap,
+    []
+  );
   const getRef = (stepId: TourStepID) => refMap[stepId];
-  const setRef = (stepId: TourStepID) => (node: HTMLElement | null) => {
-    refMap[stepId] = node;
-  };
 
   const [stepIndex, setStepIndex] = useState<number>(-1);
 
@@ -116,9 +116,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
     if (type === EVENTS.TOUR_END) {
       setStepIndex(-1);
-    } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
+    } else if (type === EVENTS.STEP_AFTER) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setStepIndex(nextStepIndex);
+      if (index !== 0 || nextStepIndex === 1) {
+        setStepIndex(nextStepIndex);
+      }
     }
   };
 
@@ -130,7 +132,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
-    setRef,
     getRef,
     stepIndex,
     handleCallback,

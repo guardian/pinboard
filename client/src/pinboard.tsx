@@ -23,7 +23,7 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { useSetTourStepRef } from "./tour/tourState";
+import { useTourStepRef } from "./tour/tourState";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -291,7 +291,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
-      <div ref={useSetTourStepRef("feedback")}>
+      <div ref={useTourStepRef("feedback")}>
         <Feedback />
       </div>
       {initialItemsQuery.loading && "Loading..."}
@@ -327,7 +327,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <AssetView items={items} />
       )}
       {activeTab === "chat" && (
-        <div ref={useSetTourStepRef("messageArea")}>
+        <div ref={useTourStepRef("messageArea")}>
           <SendMessageArea
             onSuccessfulSend={onSuccessfulSend}
             payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}

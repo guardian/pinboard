@@ -327,7 +327,14 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <AssetView items={items} />
       )}
       {activeTab === "chat" && (
-        <div ref={useTourStepRef("messageArea")}>
+        <div
+          ref={useTourStepRef(
+            "basicMessage",
+            "individualMentions",
+            "groupMentionsAndRequests",
+            "editAndDelete"
+          )}
+        >
           <SendMessageArea
             onSuccessfulSend={onSuccessfulSend}
             payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}

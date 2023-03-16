@@ -129,29 +129,33 @@ export const Tour = ({ panelElement }: TourProps) => {
       </div>
     ),
     placement: "left" as Placement,
-    // styles: {
-    //   tooltipFooter: {
-    //     display: "none",
-    //   },
-    // },
+    styles: {
+      tooltipFooter: {
+        display: "none",
+      },
+    },
   };
 
   const { stepIndex, handleCallback, run } = useTourProgress();
 
-  const steps: Step[] = useMemo(() => {
-    const newSteps = [
-      contentsStep,
-      ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
-        ...stepWithoutTarget,
-        target: useTourStepRef(tourStepId as TourStepID).current || tourStepId,
-      })),
-    ];
-    console.log(
-      "steps updated",
-      newSteps.map((_) => _.target)
-    );
-    return newSteps;
-  }, [stepIndex]);
+  const steps: Step[] = useMemo(
+    () => {
+      const newSteps = [
+        contentsStep,
+        ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
+          ...stepWithoutTarget,
+          target:
+            useTourStepRef(tourStepId as TourStepID).current || tourStepId,
+        })),
+      ];
+      console.log(
+        "steps updated",
+        newSteps.map((_) => _.target)
+      );
+      return newSteps;
+    },
+    useTourStepRefs().map((_) => _.current)
+  );
 
   return (
     <Joyride

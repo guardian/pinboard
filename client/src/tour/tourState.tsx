@@ -10,17 +10,19 @@ import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
 import { demoPinboardData } from "../../../shared/tour";
-import { ApolloLink, useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
-type TourStepRefMap = Record<TourStepID, React.RefObject<HTMLDivElement>>;
+type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
+
+type TourStepRefMap = Record<TourStepID, TourStepRef>;
 
 interface TourStateContextShape {
   isRunning: boolean;
   stepIndex: number;
   start: () => void;
-  refs: React.RefObject<HTMLDivElement>[];
-  getRef: (stepId: TourStepID) => React.RefObject<HTMLDivElement>;
+  refs: TourStepRef[];
+  getRef: (stepId: TourStepID) => TourStepRef;
   handleCallback: (data: CallBackProps) => void;
   jumpStepTo: (stepId: TourStepID) => void;
 }
@@ -38,8 +40,26 @@ const useTourStateContext = (): TourStateContextShape => {
   return ctx;
 };
 
-export const useTourStepRef = (stepId: TourStepID) =>
-  useTourStateContext().getRef(stepId);
+export function useTourStepRef(stepId: TourStepID): TourStepRef;
+export function useTourStepRef(
+  stepId: TourStepID,
+  ...otherStepIds: TourStepID[]
+): React.Ref<HTMLDivElement>;
+export function useTourStepRef(
+  stepId: TourStepID,
+  ...otherStepIds: TourStepID[]
+): React.Ref<HTMLDivElement> {
+  const context = useTourStateContext();
+
+  if (otherStepIds.length === 0) {
+    return context.getRef(stepId);
+  }
+
+  return (node: HTMLDivElement | null) =>
+    [stepId, ...otherStepIds]
+      .map(context.getRef)
+      .forEach((ref) => (ref.current = node));
+}
 
 export const useTourStepRefs = () => useTourStateContext().refs;
 
@@ -60,11 +80,14 @@ export const useJumpToTourStep = (stepId: TourStepID) => {
 };
 
 export const TourStateProvider: React.FC = ({ children }) => {
-  // const refMap = useRef<TourStepRefMap>({}).current;
+  const apolloClient = useApolloClient();
+
+  const apolloOriginalLinkChain = useMemo(() => apolloClient.link, []);
+
   const refMap: TourStepRefMap = useMemo(
     () =>
       Object.fromEntries(
-        tourStepIDs.map((stepId) => [stepId, React.createRef<HTMLElement>()])
+        tourStepIDs.map((stepId) => [stepId, useRef<HTMLElement>(null)])
       ) as TourStepRefMap,
     []
   );
@@ -74,29 +97,24 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const isRunning = stepIndex !== -1;
 
-  const jumpStepTo = (stepId: TourStepID) => {
-    const stepIndex = tourStepIDs.indexOf(stepId);
-    setStepIndex(stepIndex + 1); // +1 is to account for the contents step
-  };
-
-  const apolloClient = useApolloClient();
-
-  const apolloOriginalLinkChain = useMemo(() => apolloClient.link, []);
-
-  useEffect(() => {
-    apolloClient.setLink(
-      ApolloLink.concat(
+  useEffect(
+    () =>
+      apolloClient.setLink(
         setContext((_, { headers, ...restOfContext }) => ({
           ...restOfContext,
           headers: {
             ...headers,
             "X-is-demo": isRunning,
           },
-        })),
-        apolloOriginalLinkChain
-      )
-    );
-  }, [stepIndex]);
+        })).concat(apolloOriginalLinkChain)
+      ),
+    [isRunning]
+  );
+
+  const jumpStepTo = (stepId: TourStepID) => {
+    const stepIndex = tourStepIDs.indexOf(stepId);
+    setStepIndex(stepIndex + 1); // +1 is to account for the contents step
+  };
 
   useLayoutEffect(() => {
     const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
@@ -116,11 +134,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
     if (type === EVENTS.TOUR_END) {
       setStepIndex(-1);
-    } else if (type === EVENTS.STEP_AFTER) {
+    } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      if (index !== 0 || nextStepIndex === 1) {
-        setStepIndex(nextStepIndex);
-      }
+      setStepIndex(nextStepIndex);
     }
   };
 

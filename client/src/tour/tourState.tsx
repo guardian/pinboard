@@ -93,9 +93,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
   );
   const getRef = (stepId: TourStepID) => refMap[stepId];
 
-  const [stepIndex, setStepIndex] = useState<number>(-1);
-
-  const isRunning = stepIndex !== -1;
+  const [tourState, setTourState] = useState({
+    isRunning: false,
+    stepIndex: -1,
+  });
+  const { isRunning, stepIndex } = tourState;
 
   useEffect(
     () =>
@@ -113,7 +115,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
-    setStepIndex(stepIndex + 1); // +1 is to account for the contents step
+    setTourState({ ...tourState, isRunning: false });
+    setTimeout(
+      () => setTourState({ isRunning: true, stepIndex: stepIndex + 1 }),
+      10
+    ); // +1 is to account for the contents step
   };
 
   useLayoutEffect(() => {
@@ -133,17 +139,21 @@ export const TourStateProvider: React.FC = ({ children }) => {
     console.log(data);
 
     if (type === EVENTS.TOUR_END) {
-      setStepIndex(-1);
+      setTourState({ isRunning: false, stepIndex: -1 });
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      setStepIndex(nextStepIndex);
+      setTourState({ ...tourState, isRunning: false });
+      setTimeout(
+        () => setTourState({ isRunning: true, stepIndex: nextStepIndex }),
+        10
+      );
     }
   };
 
   const start = () => {
     openPinboard(demoPinboardData, false);
     clearSelectedPinboard();
-    setStepIndex(0);
+    setTourState({ isRunning: true, stepIndex: 0 });
   };
 
   const contextValue: TourStateContextShape = {

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { palette, space } from "@guardian/source-foundations";
 import BeaconIcon from "../../icons/beacon";
-import Joyride, { Placement, Step } from "react-joyride";
+import Joyride, { Step } from "react-joyride";
 import {
   useJumpToTourStep,
   useTourProgress,
@@ -39,43 +39,6 @@ const secondaryButtonStyles = {
   color: `${composer.primary[300]}`,
   backgroundColor: `${palette.neutral[100]}`,
   marginRight: `${space[1]}px`,
-};
-
-const Tooltip = ({
-  continuous,
-  index,
-  step,
-  backProps,
-  primaryProps,
-  tooltipProps,
-}: any) => {
-  return (
-    <div
-      {...tooltipProps}
-      style={{
-        backgroundColor: `${palette.neutral[100]}`,
-        fontSize: 14,
-        padding: `${space[2]}px`,
-        width: 300,
-        fontFamily: "Guardian Agate Sans",
-      }}
-    >
-      {step.title && <h3>{step.title}</h3>}
-      <p>{step.content}</p>
-      <div>
-        {index > 0 && (
-          <button {...backProps} styles={{ secondaryButtonStyles }}>
-            back
-          </button>
-        )}
-        {continuous && (
-          <button {...primaryProps} styles={{ nextButtonStyles }}>
-            next
-          </button>
-        )}
-      </div>
-    </div>
-  );
 };
 
 export const Tour = ({ panelElement }: TourProps) => {
@@ -128,12 +91,8 @@ export const Tour = ({ panelElement }: TourProps) => {
         </div>
       </div>
     ),
-    placement: "left" as Placement,
-    styles: {
-      tooltipFooter: {
-        display: "none",
-      },
-    },
+    placement: "left",
+    hideFooter: true,
   };
 
   const { stepIndex, handleCallback, run } = useTourProgress();

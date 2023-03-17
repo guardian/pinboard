@@ -98,6 +98,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     stepIndex: -1,
   });
   const { isRunning, stepIndex } = tourState;
+  const [tourHistory, setTourHistory] = useState<number[]>([]);
 
   useEffect(
     () =>
@@ -116,9 +117,10 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
+    setTourHistory([...tourHistory, -1, stepIndex + 1]); // -1 refers to the contents step
     setTimeout(
       () => setTourState({ isRunning: true, stepIndex: stepIndex + 1 }),
-      10
+      1
     ); // +1 is to account for the contents step
   };
 
@@ -136,16 +138,23 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const handleCallback = (data: CallBackProps) => {
     const { type, index, action } = data;
-    console.log(data);
 
     if (type === EVENTS.TOUR_END) {
       setTourState({ isRunning: false, stepIndex: -1 });
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
-      const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      let nextStepIndex: number;
+
+      if (action === ACTIONS.PREV) {
+        tourHistory.pop();
+        nextStepIndex = tourHistory[tourHistory.length - 1];
+      } else {
+        nextStepIndex = index + 1;
+        setTourHistory([...tourHistory, nextStepIndex]);
+      }
       setTourState({ ...tourState, isRunning: false });
       setTimeout(
         () => setTourState({ isRunning: true, stepIndex: nextStepIndex }),
-        10
+        1
       );
     }
   };

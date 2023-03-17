@@ -93,6 +93,7 @@ export const Tour = ({ panelElement }: TourProps) => {
     ),
     placement: "left",
     hideFooter: true,
+    disableBeacon: true,
   };
 
   const { stepIndex, handleCallback, run } = useTourProgress();
@@ -128,6 +129,7 @@ export const Tour = ({ panelElement }: TourProps) => {
       spotlightPadding={1}
       spotlightClicks
       showProgress
+      disableOverlay
       locale={{ back: "Previous" }}
       styles={{
         options: {

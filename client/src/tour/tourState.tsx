@@ -174,7 +174,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const start = () => {
     openPinboard(demoPinboardData, false);
     clearSelectedPinboard();
-    setTourState({ isRunning: true, stepIndex: 0 });
+    setTourState({ ...tourState, isRunning: false });
+    setTimeout(() => setTourState({ isRunning: true, stepIndex: 0 }), 1);
   };
 
   const contextValue: TourStateContextShape = {

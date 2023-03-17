@@ -12,6 +12,7 @@ import { useGlobalStateContext } from "../globalState";
 import { demoPinboardData } from "../../../shared/tour";
 import { useApolloClient } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import { STATUS } from "react-joyride";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -144,18 +145,29 @@ export const TourStateProvider: React.FC = ({ children }) => {
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       let nextStepIndex: number;
 
-      if (action === ACTIONS.PREV) {
-        tourHistory.pop();
-        nextStepIndex = tourHistory[tourHistory.length - 1];
-      } else {
-        nextStepIndex = index + 1;
-        setTourHistory([...tourHistory, nextStepIndex]);
+      const continueTourTo = (nextStepIndex: number) => {
+        setTourState({ ...tourState, isRunning: false });
+        setTimeout(
+          () => setTourState({ isRunning: true, stepIndex: nextStepIndex }),
+          1
+        );
+      };
+
+      switch (action) {
+        case ACTIONS.PREV:
+          tourHistory.pop();
+          nextStepIndex = tourHistory[tourHistory.length - 1];
+          continueTourTo(nextStepIndex);
+          break;
+        case ACTIONS.NEXT:
+          nextStepIndex = index + 1;
+          setTourHistory([...tourHistory, nextStepIndex]);
+          continueTourTo(nextStepIndex);
+          break;
+        case ACTIONS.CLOSE:
+          setTourState({ ...tourState, isRunning: false });
+          break;
       }
-      setTourState({ ...tourState, isRunning: false });
-      setTimeout(
-        () => setTourState({ isRunning: true, stepIndex: nextStepIndex }),
-        1
-      );
     }
   };
 

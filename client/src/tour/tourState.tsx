@@ -119,9 +119,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory([...tourHistory, -1, stepIndex + 1]); // -1 refers to the contents step
-    setTimeout(
-      () => setTourState({ isRunning: true, stepIndex: stepIndex + 1 }),
-      1
+    requestAnimationFrame(() =>
+      setTourState({ isRunning: true, stepIndex: stepIndex + 1 })
     ); // +1 is to account for the contents step
   };
 
@@ -137,36 +136,36 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const { openPinboard, clearSelectedPinboard } = useGlobalStateContext();
 
-  const handleCallback = (data: CallBackProps) => {
-    const { type, index, action } = data;
+  const continueTourTo = (nextStepIndex: number) => {
+    setTourState({ ...tourState, isRunning: false });
+    requestAnimationFrame(() =>
+      setTourState({ isRunning: true, stepIndex: nextStepIndex })
+    );
+  };
 
-    if (type === EVENTS.TOUR_END) {
+  const handleCallback = (data: CallBackProps) => {
+    const { type, index, action, status } = data;
+
+    if (status === (STATUS.FINISHED as string)) {
       setTourState({ isRunning: false, stepIndex: -1 });
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
-      let nextStepIndex: number;
-
-      const continueTourTo = (nextStepIndex: number) => {
-        setTourState({ ...tourState, isRunning: false });
-        setTimeout(
-          () => setTourState({ isRunning: true, stepIndex: nextStepIndex }),
-          1
-        );
-      };
-
       switch (action) {
-        case ACTIONS.PREV:
-          tourHistory.pop();
-          nextStepIndex = tourHistory[tourHistory.length - 1];
+        case ACTIONS.PREV: {
+          const nextStepIndex = tourHistory[tourHistory.length - 1];
+          setTourHistory(tourHistory.slice(0, -1));
           continueTourTo(nextStepIndex);
           break;
-        case ACTIONS.NEXT:
-          nextStepIndex = index + 1;
+        }
+        case ACTIONS.NEXT: {
+          const nextStepIndex = index + 1;
           setTourHistory([...tourHistory, nextStepIndex]);
           continueTourTo(nextStepIndex);
           break;
-        case ACTIONS.CLOSE:
-          setTourState({ ...tourState, isRunning: false });
+        }
+        case ACTIONS.CLOSE: {
+          setTourState({ isRunning: false, stepIndex: -1 });
           break;
+        }
       }
     }
   };
@@ -187,9 +186,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
     jumpStepTo,
     isRunning,
   };
-
   return (
     <TourStateContext.Provider value={contextValue}>
+      {" "}
       {children}
     </TourStateContext.Provider>
   );

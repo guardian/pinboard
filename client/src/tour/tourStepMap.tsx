@@ -92,56 +92,6 @@ export const tourStepMap /*: Record<
     content: <div>Send us any feedback</div>,
     placement: "left",
   },
-  // messageArea:{
-  //     target: useTourStepRef("messageArea"),
-  //         title: "Tag someone",
-  //     content: (
-  //     <div>
-  //         You can tag someone by typing their name with @. They will receive a
-  //         message notification alert on their browser.
-  //     </div>
-  // ),
-  //     placement: "left",
-  // },
-  // {
-  //     target: useTourStepRef("messageArea"),
-  //         title: "Tag a team",
-  //     content: (
-  //     <div>
-  //         <p>
-  //             When you tag a team, everyone in the team will receive a
-  //             notification (if their notification is turned on).
-  //         </p>
-  //         <p>
-  //             You can turn a message into a &apos;request&apos;, so that the
-  //             tagged team members can track the status.
-  //         </p>
-  //     </div>
-  // ),
-  //     placement: "left",
-  // },
-  // {
-  //     target: useTourStepRef("messageArea"),
-  //         title: "Edit or delete your messages",
-  //     content: (
-  //     <div>
-  //         You can also edit <EditIcon /> or delete <BinIcon /> a message by
-  //         clicking on the corresponding icon next to your message.
-  //     </div>
-  // ),
-  //     placement: "left",
-  // },
-  // {
-  //     target: useTourStepRef("messageArea"),
-  //         title: "Share Grid images, collections or searches",
-  //     content: (
-  //     <div>
-  //         You can share Grid images on Pinboard. Navigate to{" "}
-  //         <a href={"https://media.test.dev-gutools.co.uk/"}>Grid</a>.
-  //     </div>
-  // ),
-  //     placement: "left",
-  // },
 } as const;
 
 export type TourStepID = keyof typeof tourStepMap;

@@ -129,7 +129,6 @@ export const Tour = ({ panelElement }: TourProps) => {
       spotlightPadding={1}
       spotlightClicks
       showProgress
-      disableOverlay
       locale={{ back: "Previous" }}
       styles={{
         options: {

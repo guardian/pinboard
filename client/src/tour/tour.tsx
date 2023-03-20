@@ -96,7 +96,7 @@ export const Tour = ({ panelElement }: TourProps) => {
     disableBeacon: true,
   };
 
-  const { stepIndex, handleCallback, run } = useTourProgress();
+  const { stepIndex, handleCallback, isRunning } = useTourProgress();
 
   const steps: Step[] = useMemo(
     () => {
@@ -120,14 +120,14 @@ export const Tour = ({ panelElement }: TourProps) => {
   return (
     <Joyride
       callback={handleCallback}
-      run={run}
+      run={isRunning}
       steps={steps}
       stepIndex={stepIndex}
       continuous
       scrollToFirstStep
       showSkipButton={false}
       spotlightPadding={1}
-      spotlightClicks
+      spotlightClicks={false}
       showProgress
       locale={{ back: "Previous" }}
       styles={{

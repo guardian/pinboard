@@ -28,7 +28,11 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
-import { useTourStepRef } from "./tour/tourState";
+import { useTourProgress, useTourStepRef } from "./tour/tourState";
+import {
+  demoPinboardData,
+  demoPinboardsWithClaimCounts,
+} from "../../shared/tour";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -335,6 +339,8 @@ export const SelectPinboard = ({
     );
   };
 
+  const tourProgress = useTourProgress();
+
   return (
     <>
       <div
@@ -384,12 +390,16 @@ export const SelectPinboard = ({
         )}
         <div ref={useTourStepRef("myPinboards")}>
           {(activePinboardsWithoutPreselected?.length > 0 ||
-            isLoadingActivePinboardList) && (
+            isLoadingActivePinboardList ||
+            tourProgress.isRunning) && (
             <React.Fragment>
               <SectionHeading>
                 <span>MY PINBOARDS</span>
               </SectionHeading>
-              {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
+              {(tourProgress.isRunning
+                ? [demoPinboardData]
+                : activePinboardsWithoutPreselected
+              ).map(OpenPinboardButton)}
               {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
               <div css={{ height: space[2] }} />
             </React.Fragment>
@@ -400,25 +410,27 @@ export const SelectPinboard = ({
             <React.Fragment>
               <SectionHeading>MY TEAMS&apos; PINBOARDS</SectionHeading>
               {pinboardsWithClaimCounts.map(OpenPinboardButton)}
-              <button
-                css={css`
-                  color: ${palette.neutral["20"]};
-                  border: 1px solid ${palette.neutral["93"]};
-                  cursor: pointer;
-                  ${agateSans.xxsmall({ fontWeight: "bold" })};
-                  background-color: ${palette.neutral["100"]};
-                  &:hover {
-                    background-color: ${palette.neutral["86"]};
+              {!tourProgress.isRunning && (
+                <button
+                  css={css`
+                    color: ${palette.neutral["20"]};
+                    border: 1px solid ${palette.neutral["93"]};
+                    cursor: pointer;
+                    ${agateSans.xxsmall({ fontWeight: "bold" })};
+                    background-color: ${palette.neutral["100"]};
+                    &:hover {
+                      background-color: ${palette.neutral["86"]};
+                    }
+                  `}
+                  onClick={() =>
+                    setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
                   }
-                `}
-                onClick={() =>
-                  setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
-                }
-              >
-                {isShowAllTeamPinboards
-                  ? "Show fewer"
-                  : `Show ${noOfTeamPinboardsNotShown} more`}
-              </button>
+                >
+                  {isShowAllTeamPinboards
+                    ? "Show fewer"
+                    : `Show ${noOfTeamPinboardsNotShown} more`}
+                </button>
+              )}
               <div css={{ height: space[2] }} />
             </React.Fragment>
           )}

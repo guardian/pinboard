@@ -26,6 +26,8 @@ import {
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
 import { Tour } from "./tour/tour";
+import { useTourProgress } from "./tour/tourState";
+import { demoPinboardsWithClaimCounts } from "../../shared/tour";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -61,8 +63,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
-  const [maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
-    useState<PinboardData | null>(null);
+  const [
+    maybePeekingAtPinboard,
+    setMaybePeekingAtPinboard,
+  ] = useState<PinboardData | null>(null);
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -132,24 +136,26 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     pinboardDataQuery.refetch();
   }, [...groupPinboardIds]);
 
-  const pinboardsWithClaimCounts =
-    pinboardDataQuery.data?.getPinboardsByIds
-      ?.reduce((acc, pinboardData) => {
-        const maybePinboardIdWithClaimCounts =
-          groupPinboardIdsWithClaimCounts.find(
+  const tourProgress = useTourProgress();
+
+  const pinboardsWithClaimCounts = tourProgress.isRunning
+    ? demoPinboardsWithClaimCounts
+    : pinboardDataQuery.data?.getPinboardsByIds
+        ?.reduce((acc, pinboardData) => {
+          const maybePinboardIdWithClaimCounts = groupPinboardIdsWithClaimCounts.find(
             (_) => _.pinboardId === pinboardData.id
           );
-        return maybePinboardIdWithClaimCounts
-          ? [
-              ...acc,
-              {
-                ...pinboardData,
-                ...maybePinboardIdWithClaimCounts,
-              },
-            ]
-          : acc;
-      }, [] as PinboardDataWithClaimCounts[])
-      .sort(teamPinboardsSortFunction) || [];
+          return maybePinboardIdWithClaimCounts
+            ? [
+                ...acc,
+                {
+                  ...pinboardData,
+                  ...maybePinboardIdWithClaimCounts,
+                },
+              ]
+            : acc;
+        }, [] as PinboardDataWithClaimCounts[])
+        .sort(teamPinboardsSortFunction) || [];
 
   useEffect(() => {
     if (isExpanded) {

@@ -70,7 +70,7 @@ export const useTourProgress = () => {
   return {
     stepIndex,
     handleCallback,
-    run: isRunning,
+    isRunning,
     start,
   };
 };
@@ -171,10 +171,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
   };
 
   const start = () => {
-    openPinboard(demoPinboardData, false);
-    clearSelectedPinboard();
-    setTourState({ ...tourState, isRunning: false });
-    setTimeout(() => setTourState({ isRunning: true, stepIndex: 0 }), 1);
+    setTourHistory([]);
+    continueTourTo(0);
   };
 
   const contextValue: TourStateContextShape = {

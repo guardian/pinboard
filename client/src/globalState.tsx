@@ -231,7 +231,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     pinboardId: string,
     maybeEmailOverride?: string
   ) =>
-    // TODO: only do this if we are not in the demo mode
     addManuallyOpenedPinboardIds({
       variables: {
         pinboardId,

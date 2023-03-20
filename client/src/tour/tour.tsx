@@ -46,6 +46,7 @@ export const Tour = ({ panelElement }: TourProps) => {
 
   const contentsStep: Step = {
     title: "Welcome to Pinboard",
+    spotlightClicks: false,
     target: panelElement,
     content: (
       <div>
@@ -127,7 +128,8 @@ export const Tour = ({ panelElement }: TourProps) => {
       scrollToFirstStep
       showSkipButton={false}
       spotlightPadding={1}
-      spotlightClicks={false}
+      spotlightClicks
+      disableOverlayClose
       showProgress
       locale={{ back: "Previous" }}
       styles={{

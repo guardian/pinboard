@@ -3,13 +3,14 @@ import React from "react";
 import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
 
-export const tourStepMap /*: Record<
+export const tourStepMap: Record<
   string,
   Omit<Step, "target"> & { isIndexView: boolean }
-> */ = {
+> = {
   myPinboards: {
     title: "My Pinboards",
     isIndexView: true,
+    spotlightClicks: false,
     content: (
       <div>
         The list of pinboards you are active on or where you have been sent a
@@ -21,6 +22,7 @@ export const tourStepMap /*: Record<
   teamPinboards: {
     title: "My teams' Pinboards",
     isIndexView: true,
+    spotlightClicks: false,
     content: (
       <div>
         These are the Pinboards where your team is tagged (in a message or a
@@ -41,6 +43,7 @@ export const tourStepMap /*: Record<
   },
   notificationSetting: {
     title: "Desktop Notifications",
+    spotlightClicks: false,
     isIndexView: true,
     content: <div>You can set your browser notification settings here.</div>,
     placement: "left",

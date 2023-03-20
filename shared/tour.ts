@@ -3,6 +3,8 @@ import {
   PinboardDataWithClaimCounts,
 } from "./graphql/extraTypes";
 
+export const IS_DEMO_HEADER = "X-Is-Demo";
+
 export const demoPinboardData: PinboardData = {
   id: "DEMO",
   title: "Interactive Demo",

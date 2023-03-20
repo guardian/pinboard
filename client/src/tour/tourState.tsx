@@ -9,7 +9,7 @@ import React, {
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
-import { demoPinboardData } from "../../../shared/tour";
+import { demoPinboardData, IS_DEMO_HEADER } from "../../../shared/tour";
 import { useApolloClient } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { STATUS } from "react-joyride";
@@ -108,7 +108,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
           ...restOfContext,
           headers: {
             ...headers,
-            "X-is-demo": isRunning,
+            [IS_DEMO_HEADER]: isRunning,
           },
         })).concat(apolloOriginalLinkChain)
       ),
@@ -127,7 +127,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
   useLayoutEffect(() => {
     const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
 
-    if (tourStepId) {
+    if (stepIndex < 1) {
+      clearSelectedPinboard();
+    } else if (tourStepId) {
       tourStepMap[tourStepId].isIndexView
         ? clearSelectedPinboard()
         : openPinboard(demoPinboardData, false);
@@ -146,7 +148,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const handleCallback = (data: CallBackProps) => {
     const { type, index, action, status } = data;
 
-    if (status === (STATUS.FINISHED as string)) {
+    if (status === (STATUS.FINISHED as string) || action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       switch (action) {
@@ -160,10 +162,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
           const nextStepIndex = index + 1;
           setTourHistory([...tourHistory, nextStepIndex]);
           continueTourTo(nextStepIndex);
-          break;
-        }
-        case ACTIONS.CLOSE: {
-          setTourState({ isRunning: false, stepIndex: -1 });
           break;
         }
       }

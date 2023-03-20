@@ -176,9 +176,8 @@ export const getGroupPinboardIds = async (
                   AND "User"."email" = ${userEmail}
             )
         GROUP BY "pinboardId", "countType"
-    `.then((rows) => {
-    console.table(rows);
-    return Object.values(
+    `.then((rows) =>
+    Object.values(
       rows.reduce((acc, row) => {
         const isRowUnclaimedOrInformational =
           ["unclaimedCount", "notClaimableCount"].includes(row.countType) &&
@@ -207,8 +206,8 @@ export const getGroupPinboardIds = async (
           },
         };
       }, {} as Record<string, PinboardIdWithClaimCounts>)
-    );
-  });
+    )
+  );
 
 export const getItemCounts = (
   sql: Sql,

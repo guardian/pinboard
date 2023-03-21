@@ -9,7 +9,7 @@
     "jest": "jest",
     "test": "run-p --print-label type-check jest",
     "watch": "yarn test -- --watch",
-    "synth": "cdk synth --path-metadata false --version-reporting false --app 'npx ts-node bin/cdk.ts'",
+    "synth": "cdk synth --quiet --path-metadata false --version-reporting false --app 'npx ts-node bin/cdk.ts'",
     "build": "run-p --print-label type-check synth",
     "update-snapshot": "jest -u"
   },
@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "2.54.0-alpha.0",
-    "@guardian/cdk": "^49.2.1",
-    "aws-cdk": "2.64.0",
-    "aws-cdk-lib": "2.64.0",
-    "constructs": "10.1.249"
+    "@guardian/cdk": "49.5.0",
+    "aws-cdk": "2.68.0",
+    "aws-cdk-lib": "2.68.0",
+    "constructs": "10.1.273"
   }
 }

@@ -155,11 +155,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
     }
   }, [stepIndex]);
 
-  const {
-    openPinboard,
-    clearSelectedPinboard,
-    userEmail,
-  } = useGlobalStateContext();
+  const { openPinboard, clearSelectedPinboard, userEmail } =
+    useGlobalStateContext();
 
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });
@@ -206,31 +203,29 @@ export const TourStateProvider: React.FC = ({ children }) => {
     );
   }, [successfulSends]);
 
-  const sendItem = (callback: () => void) => ({
-    variables,
-  }: {
-    variables: { input: CreateItemInput };
-  }) => {
-    setSuccessfulSends([
-      ...successfulSends,
-      {
-        ...variables.input,
-        id: (successfulSends.length + 1).toString(),
-        timestamp: new Date().toISOString(),
-        pending: true,
-        userEmail,
-        claimedByEmail: null,
-        relatedItemId: null,
-        editHistory: null,
-        deletedAt: null,
-        mentions: [], //TODO - map variables.input.mentions to mention handle,
-        groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
-        claimable: variables.input.claimable || false,
-      },
-    ]);
-    callback();
-    // TODO - increment stepIndex (assuming the item fulfills the steps criteria)
-  };
+  const sendItem =
+    (callback: () => void) =>
+    ({ variables }: { variables: { input: CreateItemInput } }) => {
+      setSuccessfulSends([
+        ...successfulSends,
+        {
+          ...variables.input,
+          id: (successfulSends.length + 1).toString(),
+          timestamp: new Date().toISOString(),
+          pending: true,
+          userEmail,
+          claimedByEmail: null,
+          relatedItemId: null,
+          editHistory: null,
+          deletedAt: null,
+          mentions: [], //TODO - map variables.input.mentions to mention handle,
+          groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
+          claimable: variables.input.claimable || false,
+        },
+      ]);
+      callback();
+      // TODO - increment stepIndex (assuming the item fulfills the steps criteria)
+    };
 
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),

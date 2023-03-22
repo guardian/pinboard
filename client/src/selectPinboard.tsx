@@ -88,14 +88,12 @@ export const SelectPinboard = ({
     ? activePinboards.filter((_) => _.id !== preselectedPinboard.id)
     : activePinboards;
 
-  const [
-    searchPinboards,
-    { data, loading, stopPolling, startPolling },
-  ] = useLazyQuery<{
-    listPinboards: PinboardData[];
-  }>(gqlListPinboards, {
-    context: { debounceKey: gqlListPinboards, debounceTimeout: 500 },
-  });
+  const [searchPinboards, { data, loading, stopPolling, startPolling }] =
+    useLazyQuery<{
+      listPinboards: PinboardData[];
+    }>(gqlListPinboards, {
+      context: { debounceKey: gqlListPinboards, debounceTimeout: 500 },
+    });
 
   useEffect(() => {
     if (isExpanded && searchText) {

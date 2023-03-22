@@ -97,20 +97,15 @@ export const Tour = ({ panelElement }: TourProps) => {
     disableBeacon: true,
   };
 
-  const {
-    stepIndex,
-    handleCallback,
-    isRunning,
-    successfulSends,
-  } = useTourProgress();
+  const { stepIndex, handleCallback, isRunning, successfulSends } =
+    useTourProgress();
 
   const steps: Step[] = useMemo(
     () => [
       contentsStep,
       ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => {
-        const shouldPreventNext = stepWithoutTarget.shouldPreventNext?.(
-          successfulSends
-        );
+        const shouldPreventNext =
+          stepWithoutTarget.shouldPreventNext?.(successfulSends);
 
         return {
           ...stepWithoutTarget,

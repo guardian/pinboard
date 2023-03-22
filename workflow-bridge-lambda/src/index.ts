@@ -26,40 +26,41 @@ exports.handler = async (event: {
   ];
 };
 
-const getPinboardById = (apiBase: "content" | "stubs") => async (
-  id: string
-) => {
-  if (id === demoPinboardData.id) {
-    return demoPinboardData;
-  }
-  const contentResponse = await fetch(
-    `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
-  );
-  if (contentResponse.status === 404) {
-    return {
-      id,
-      isNotFound: true,
-    };
-  }
-  if (!contentResponse.ok) {
-    throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
-  }
-  const data = ((await contentResponse.json()) as {
-    data: {
-      externalData: {
-        status: string;
+const getPinboardById =
+  (apiBase: "content" | "stubs") => async (id: string) => {
+    if (id === demoPinboardData.id) {
+      return demoPinboardData;
+    }
+    const contentResponse = await fetch(
+      `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
+    );
+    if (contentResponse.status === 404) {
+      return {
+        id,
+        isNotFound: true,
       };
-      // there are other fields, but they're just being forwarded on
-    };
-  }).data;
-  if (!data) {
-    return {
-      id,
-      isNotFound: true,
-    };
-  }
-  return { ...data.externalData, ...data };
-};
+    }
+    if (!contentResponse.ok) {
+      throw Error(`${contentResponse.status} ${await contentResponse.text()}`);
+    }
+    const data = (
+      (await contentResponse.json()) as {
+        data: {
+          externalData: {
+            status: string;
+          };
+          // there are other fields, but they're just being forwarded on
+        };
+      }
+    ).data;
+    if (!data) {
+      return {
+        id,
+        isNotFound: true,
+      };
+    }
+    return { ...data.externalData, ...data };
+  };
 
 const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
   const stubsResponse = await fetch(

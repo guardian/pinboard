@@ -4,13 +4,12 @@ import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
 import { PendingItem } from "../types/PendingItem";
 
-export const tourStepMap: Record<
-  string, // FIXME - refine this type such that TourStepID is a string literal type
-  Omit<Step, "target"> & {
-    isIndexView: boolean;
-    shouldPreventNext?: (sends: PendingItem[]) => boolean;
-  }
-> = {
+type CustomStep = Omit<Step, "target"> & {
+  isIndexView: boolean;
+  shouldPreventNext?: (sends: PendingItem[]) => boolean;
+};
+
+const _tourStepMap = {
   myPinboards: {
     title: "My Pinboards",
     isIndexView: true,
@@ -101,8 +100,10 @@ export const tourStepMap: Record<
     content: <div>Send us any feedback</div>,
     placement: "left",
   },
-} as const;
+} satisfies Record<string, CustomStep>;
 
-export type TourStepID = keyof typeof tourStepMap;
+export type TourStepID = keyof typeof _tourStepMap;
+
+export const tourStepMap = _tourStepMap as Record<TourStepID, CustomStep>;
 
 export const tourStepIDs = Object.keys(tourStepMap) as TourStepID[];

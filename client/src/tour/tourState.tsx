@@ -176,9 +176,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
     } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
       switch (action) {
         case ACTIONS.PREV: {
-          const nextStepIndex = tourHistory[tourHistory.length - 1];
-          setTourHistory(tourHistory.slice(0, -1));
+          const nextStepIndex = tourHistory[tourHistory.length - 2];
           continueTourTo(nextStepIndex);
+          setTourHistory(() => tourHistory.slice(0, -1));
           break;
         }
         case ACTIONS.NEXT: {

@@ -73,6 +73,8 @@ export class PinBoardStack extends GuStack {
     const account = context.account;
     const region = context.region;
 
+    const isPROD = this.stage === "PROD";
+
     const accountVpc = GuVpc.fromIdParameter(this, "AccountVPC", {
       availabilityZones: Fn.getAzs(region),
       privateSubnetIds: GuVpc.subnetsFromParameter(this, {
@@ -97,9 +99,9 @@ export class PinBoardStack extends GuStack {
       autoMinorVersionUpgrade: true,
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T4G,
-        ec2.InstanceSize.MICRO // TODO consider small for PROD
+        isPROD ? ec2.InstanceSize.SMALL : ec2.InstanceSize.MICRO
       ),
-      multiAz: false, // TODO consider turning on for PROD
+      multiAz: isPROD,
       publiclyAccessible: false,
       removalPolicy: RemovalPolicy.RETAIN,
     });
@@ -605,7 +607,7 @@ export class PinBoardStack extends GuStack {
             actions: ["lambda:InvokeFunction"],
             resources: [
               `arn:aws:lambda:${region}:${account}:function:${DATABASE_BRIDGE_LAMBDA_BASENAME}-${
-                this.stage === "PROD" ? "*" : this.stage
+                isPROD ? "*" : this.stage
               }`,
             ],
           }),

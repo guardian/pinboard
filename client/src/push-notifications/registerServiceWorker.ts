@@ -32,7 +32,8 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
       console.log("Pinboard Service Worker running");
       await swRegistration.update();
 
-      const maybePushSubscription = await swRegistration.pushManager.getSubscription();
+      const maybePushSubscription =
+        await swRegistration.pushManager.getSubscription();
 
       if (maybePushSubscription) {
         toggleButton.innerText = "Unsubscribe from Desktop Notifications";
@@ -59,7 +60,8 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
     // running in iFrame
     else {
       // unfortunately can't call serviceWorker.register() due to cross-origin service worker prevention
-      const maybeSwRegistration = await navigator.serviceWorker.getRegistration();
+      const maybeSwRegistration =
+        await navigator.serviceWorker.getRegistration();
 
       if (maybeSwRegistration) {
         console.log("Pinboard Service Worker running");

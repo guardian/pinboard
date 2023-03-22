@@ -104,8 +104,9 @@ server.get(
           filename.endsWith(JS_EXTENSION)
       )
       .reduce((mostRecentSoFar, filename) => {
-        const lastModified = fs.statSync(`${clientDirectory}/${filename}`)
-          .mtime;
+        const lastModified = fs.statSync(
+          `${clientDirectory}/${filename}`
+        ).mtime;
         if (mostRecentSoFar && mostRecentSoFar.lastModified > lastModified) {
           return mostRecentSoFar;
         }

@@ -3,10 +3,10 @@ import * as Sentry from "@sentry/react";
 export const sources = ["grid"] as const;
 export const sourceTypes = ["crop", "original", "search"] as const;
 
-export type Source = typeof sources[number];
+export type Source = (typeof sources)[number];
 export const isSource = (source: unknown): source is Source =>
   sources.includes(source as Source);
-export type SourceType = typeof sourceTypes[number];
+export type SourceType = (typeof sourceTypes)[number];
 export const isSourceType = (sourceType: unknown): sourceType is SourceType =>
   sourceTypes.includes(sourceType as SourceType);
 

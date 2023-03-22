@@ -60,10 +60,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
-  const [
-    maybePeekingAtPinboard,
-    setMaybePeekingAtPinboard,
-  ] = useState<PinboardData | null>(null);
+  const [maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
+    useState<PinboardData | null>(null);
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -136,9 +134,10 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   const pinboardsWithClaimCounts =
     pinboardDataQuery.data?.getPinboardsByIds
       ?.reduce((acc, pinboardData) => {
-        const maybePinboardIdWithClaimCounts = groupPinboardIdsWithClaimCounts.find(
-          (_) => _.pinboardId === pinboardData.id
-        );
+        const maybePinboardIdWithClaimCounts =
+          groupPinboardIdsWithClaimCounts.find(
+            (_) => _.pinboardId === pinboardData.id
+          );
         return maybePinboardIdWithClaimCounts
           ? [
               ...acc,

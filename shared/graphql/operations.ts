@@ -21,7 +21,7 @@ export const QUERIES = {
 
 type QueriesFromCodeGen = keyof Required<Omit<Query, "__typename">>;
 const allQueries = [...QUERIES.database, ...QUERIES.workflow, ...QUERIES.grid];
-type QueriesDefinedHere = typeof allQueries[number];
+type QueriesDefinedHere = (typeof allQueries)[number];
 
 // if the below line fails TSC, it means that the list of Queries defined in the schema.graphql doesn't match the list defined in `QUERIES` above
 // run `yarn graphql-refresh` to resolve
@@ -42,10 +42,10 @@ export const MUTATIONS = {
 
 type MutationsFromCodeGen = keyof Required<Omit<Mutation, "__typename">>;
 const allMutations = [...MUTATIONS.database];
-type MutationsDefinedHere = typeof allMutations[number];
+type MutationsDefinedHere = (typeof allMutations)[number];
 
 // if the below line fails TSC, it means that the list of Mutations defined in the schema.graphql doesn't match the list defined in `MUTATIONS` above
 assert<Equals<MutationsFromCodeGen, MutationsDefinedHere>>();
 
 const allDatabaseOperations = [...QUERIES.database, ...MUTATIONS.database];
-export type DatabaseOperation = typeof allDatabaseOperations[number];
+export type DatabaseOperation = (typeof allDatabaseOperations)[number];

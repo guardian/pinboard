@@ -48,9 +48,10 @@ export const ItemHoverMenu = ({
     </React.Fragment>
   );
 
-  useEffect(() => setMaybeDeleteItemModalElement(deleteConfirmModalElement), [
-    deleteConfirmModalElement,
-  ]);
+  useEffect(
+    () => setMaybeDeleteItemModalElement(deleteConfirmModalElement),
+    [deleteConfirmModalElement]
+  );
 
   const [deleteItem] = useMutation(gqlDeleteItem, {
     onError: (error) => {

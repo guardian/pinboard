@@ -25,10 +25,8 @@ const formatChip = (chip: GridBadgeData) => {
 export const GridDynamicSearchDisplay = ({
   payload,
 }: Pick<DynamicGridPayload, "payload">) => {
-  const [
-    gridSearchSummaryLastChecked,
-    setGridSearchSummaryLastChecked,
-  ] = useState<number>();
+  const [gridSearchSummaryLastChecked, setGridSearchSummaryLastChecked] =
+    useState<number>();
 
   const [getGridSearchSummary, getGridSearchSummaryQuery] = useLazyQuery<{
     getGridSearchSummary: GridSearchSummary;

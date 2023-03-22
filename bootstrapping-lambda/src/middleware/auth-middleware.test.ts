@@ -18,31 +18,31 @@ describe("auth-middleware", () => {
   });
 
   test("should return a 401 response where no cookie provided", async () => {
-    const mockRequest = ({
+    const mockRequest = {
       header: jest.fn().mockReturnValue(undefined),
       userEmail: undefined,
-    } as unknown) as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
-    const mockResponse = ({
+    const mockResponse = {
       status: jest.fn().mockReturnValue({
         send: jest.fn(),
       }),
-    } as unknown) as Response;
+    } as unknown as Response;
     await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).toHaveBeenCalledWith(401);
     expect(mockNextFunction).not.toHaveBeenCalled();
   });
 
   test("should return a 200 response where no cookie provided and sendErrorAsOk is true", async () => {
-    const mockRequest = ({
+    const mockRequest = {
       header: jest.fn().mockReturnValue(undefined),
       userEmail: undefined,
-    } as unknown) as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
-    const mockResponse = ({
+    const mockResponse = {
       status: jest.fn(),
       send: jest.fn(),
-    } as unknown) as Response;
+    } as unknown as Response;
     await getAuthMiddleware(true)(mockRequest, mockResponse, mockNextFunction);
     expect(mockResponse.status).not.toHaveBeenCalled();
     expect(mockResponse.send).toHaveBeenCalledWith(
@@ -52,17 +52,17 @@ describe("auth-middleware", () => {
   });
 
   test("should return a 403 response where user does not have permission", async () => {
-    const mockRequest = ({
+    const mockRequest = {
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
       userEmail: undefined,
-    } as unknown) as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
     const mockSendFunction = jest.fn();
-    const mockResponse = ({
+    const mockResponse = {
       status: jest.fn().mockReturnValue({
         send: mockSendFunction,
       }),
-    } as unknown) as Response;
+    } as unknown as Response;
 
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
 
@@ -77,16 +77,16 @@ describe("auth-middleware", () => {
   });
 
   test("should return a 200 response where user does not have permission and sendErrorAsOk is true", async () => {
-    const mockRequest = ({
+    const mockRequest = {
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
       userEmail: undefined,
-    } as unknown) as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
     const mockSendFunction = jest.fn();
-    const mockResponse = ({
+    const mockResponse = {
       status: jest.fn(),
       send: mockSendFunction,
-    } as unknown) as Response;
+    } as unknown as Response;
 
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
 
@@ -101,16 +101,16 @@ describe("auth-middleware", () => {
   });
 
   test("calls next where user authenticated & authorised", async () => {
-    const mockRequest = ({
+    const mockRequest = {
       header: jest.fn().mockReturnValue({ Cookie: "foo@bar.com" }),
       userEmail: undefined,
-    } as unknown) as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
-    const mockResponse = ({
+    const mockResponse = {
       status: jest.fn().mockReturnValue({
         send: jest.fn(),
       }),
-    } as unknown) as Response;
+    } as unknown as Response;
     mockedGetVerifiedUserEmail.mockResolvedValueOnce("foo@bar.com");
     mockedUserHasPermission.mockResolvedValueOnce(true);
     await getAuthMiddleware()(mockRequest, mockResponse, mockNextFunction);

@@ -342,15 +342,14 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   const [unreadFlags, setUnreadFlags] = useState<PerPinboard<boolean>>({});
 
-  const setUnreadFlag = (pinboardId: string) => (
-    unreadFlag: boolean | undefined
-  ) => {
-    setUnreadFlags((prevUnreadFlags) => ({
-      ...prevUnreadFlags,
-      [pinboardId]: unreadFlag,
-    }));
-    !unreadFlag && clearDesktopNotificationsForPinboardId(pinboardId);
-  };
+  const setUnreadFlag =
+    (pinboardId: string) => (unreadFlag: boolean | undefined) => {
+      setUnreadFlags((prevUnreadFlags) => ({
+        ...prevUnreadFlags,
+        [pinboardId]: unreadFlag,
+      }));
+      !unreadFlag && clearDesktopNotificationsForPinboardId(pinboardId);
+    };
 
   const hasUnread =
     Object.values(unreadFlags).find((unreadFlag) => unreadFlag) || false;
@@ -430,10 +429,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     };
   };
 
-  const [
-    explicitPositionTranslation,
-    setExplicitPositionTranslationState,
-  ] = useState<ControlPosition>({ x: 0, y: 0 });
+  const [explicitPositionTranslation, setExplicitPositionTranslationState] =
+    useState<ControlPosition>({ x: 0, y: 0 });
   const setExplicitPositionTranslation = (newPosition: ControlPosition) => {
     setExplicitPositionTranslationState(newPosition);
     window.localStorage.setItem(
@@ -442,10 +439,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     );
   };
 
-  const [
-    boundedPositionTranslation,
-    setBoundedPositionTranslation,
-  ] = useState<ControlPosition>({ x: 0, y: 0 });
+  const [boundedPositionTranslation, setBoundedPositionTranslation] =
+    useState<ControlPosition>({ x: 0, y: 0 });
   // position translation must be passed in rather than using explicitPositionTranslation to avoid a rerender briefly in the old position
   const updateBoundedPositionTranslation = (
     positionTranslation: ControlPosition

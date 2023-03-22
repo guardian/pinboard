@@ -127,7 +127,7 @@ export function mount({
         `[Apollo - GraphQL error]: Message: ${message}, Location: ${gqlError.locations}, Path: ${gqlError.path}`
       );
       if (
-        ((gqlError as unknown) as Record<string, unknown>).errorType ===
+        (gqlError as unknown as Record<string, unknown>).errorType ===
           "UnauthorizedException" ||
         gqlError.extensions?.code === "UNAUTHENTICATED"
       ) {
@@ -149,11 +149,13 @@ export function mount({
       console.error(`[Apollo - Network error]`, networkError);
       if (
         [401, 403].includes(
-          ((networkError as unknown) as { statusCode: number })?.statusCode
+          (networkError as unknown as { statusCode: number })?.statusCode
         ) ||
-        ((networkError as unknown) as {
-          errors: Array<{ message: string }>;
-        })?.errors?.find((error) =>
+        (
+          networkError as unknown as {
+            errors: Array<{ message: string }>;
+          }
+        )?.errors?.find((error) =>
           error.message?.includes("UnauthorizedException")
         )
       ) {

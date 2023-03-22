@@ -1,6 +1,6 @@
 import { PendingItem } from "../types/PendingItem";
 import { Item } from "../../../shared/graphql/graphql";
-import { demoPinboardData, demoUser } from "../../../shared/tour";
+import { demoPinboardData, demoUser } from "./tourConstants";
 
 const pendingAsReceivedItem = ({ pending, ...item }: PendingItem) => item;
 

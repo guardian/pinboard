@@ -32,7 +32,7 @@ import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import {
   demoPinboardData,
   demoPinboardsWithClaimCounts,
-} from "../../shared/tour";
+} from "./tour/tourConstants";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,

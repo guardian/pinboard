@@ -1,8 +1,8 @@
 import {
   PinboardData,
   PinboardDataWithClaimCounts,
-} from "./graphql/extraTypes";
-import { User } from "./graphql/graphql";
+} from "../../../shared/graphql/extraTypes";
+import { User } from "../../../shared/graphql/graphql";
 
 export const demoPinboardData: PinboardData = {
   id: "DEMO",
@@ -13,7 +13,6 @@ export const demoPinboardData: PinboardData = {
   status: null,
   trashed: null,
 };
-
 export const demoPinboardsWithClaimCounts: PinboardDataWithClaimCounts[] = [
   {
     id: "DEMO-TEAM-1",
@@ -32,7 +31,6 @@ export const demoPinboardsWithClaimCounts: PinboardDataWithClaimCounts[] = [
     latestGroupMentionItemId: "123",
   },
 ];
-
 export const demoUser: User = {
   email: "pinboard.demo@guardian.co.uk",
   firstName: "Pinboard",

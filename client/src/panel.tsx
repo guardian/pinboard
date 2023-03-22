@@ -27,7 +27,7 @@ import {
 import { ErrorOverlay } from "./errorOverlay";
 import { Tour } from "./tour/tour";
 import { useTourProgress } from "./tour/tourState";
-import { demoPinboardsWithClaimCounts } from "../../shared/tour";
+import { demoPinboardsWithClaimCounts } from "./tour/tourConstants";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,

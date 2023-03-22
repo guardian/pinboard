@@ -9,11 +9,11 @@ import React, {
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
-import { demoPinboardData } from "../../../shared/tour";
 import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
 import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
 import { buildTourSubscriptionItems } from "./tourMessageReplies";
+import { demoPinboardData } from "./tourConstants";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 

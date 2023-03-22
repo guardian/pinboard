@@ -1,6 +1,5 @@
 import {
   ApolloError,
-  FetchResult,
   useLazyQuery,
   useMutation,
   useQuery,
@@ -23,7 +22,7 @@ import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
-import { demoPinboardData } from "../../shared/tour";
+import { demoPinboardData } from "./tour/tourConstants";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -234,16 +233,18 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     addManuallyOpenedPinboardIds: MyUser;
   }>(gqlAddManuallyOpenedPinboardIds);
 
-  const addManuallyOpenedPinboardId = (
-    isDemo: false // this asks the compiler to ensure we never call this in demo mode
-  ) => (pinboardId: string, maybeEmailOverride?: string) =>
-    !isDemo &&
-    addManuallyOpenedPinboardIds({
-      variables: {
-        pinboardId,
-        maybeEmailOverride,
-      },
-    });
+  const addManuallyOpenedPinboardId =
+    (
+      isDemo: false // this asks the compiler to ensure we never call this in demo mode
+    ) =>
+    (pinboardId: string, maybeEmailOverride?: string) =>
+      !isDemo &&
+      addManuallyOpenedPinboardIds({
+        variables: {
+          pinboardId,
+          maybeEmailOverride,
+        },
+      });
 
   const [interTabChannel] = useState<BroadcastChannel>(
     new BroadcastChannel("pinboard-inter-tab-communication")
@@ -306,29 +307,28 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     });
   };
 
-  const openPinboard = (isDemo: boolean) => (
-    pinboardData: PinboardData,
-    isOpenInNewTab: boolean
-  ) => {
-    if (!isDemo && !activePinboardIds.includes(pinboardData.id)) {
-      addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
-        (result) =>
-          result.data
-            ? setManuallyOpenedPinboardIds(
-                result.data.addManuallyOpenedPinboardIds
-              )
-            : console.error(
-                "addManuallyOpenedPinboardIds did not return any data"
-              ) // TODO probably report to Sentry
-      );
-    }
+  const openPinboard =
+    (isDemo: boolean) =>
+    (pinboardData: PinboardData, isOpenInNewTab: boolean) => {
+      if (!isDemo && !activePinboardIds.includes(pinboardData.id)) {
+        addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
+          (result) =>
+            result.data
+              ? setManuallyOpenedPinboardIds(
+                  result.data.addManuallyOpenedPinboardIds
+                )
+              : console.error(
+                  "addManuallyOpenedPinboardIds did not return any data"
+                ) // TODO probably report to Sentry
+        );
+      }
 
-    if (isOpenInNewTab) {
-      openPinboardInNewTab(pinboardData);
-    } else {
-      setSelectedPinboardId(pinboardData.id);
-    }
-  };
+      if (isOpenInNewTab) {
+        openPinboardInNewTab(pinboardData);
+      } else {
+        setSelectedPinboardId(pinboardData.id);
+      }
+    };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 

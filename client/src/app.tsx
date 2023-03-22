@@ -46,7 +46,7 @@ import {
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
-import { demoUser } from "../../shared/tour";
+import { demoUser } from "./tour/tourConstants";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";

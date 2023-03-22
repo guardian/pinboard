@@ -25,14 +25,12 @@ import { getDatabaseConnection } from "../../shared/database/databaseConnection"
 import { DatabaseOperation } from "../../shared/graphql/operations";
 import { MetricRequest } from "../../shared/types/grafanaType";
 import { getMetrics } from "./services/grafanaReportingService";
-import { IS_DEMO_HEADER } from "../../shared/tour";
 
 const run = (
   sql: Sql,
   databaseOperation: DatabaseOperation,
   args: never,
-  userEmail: string,
-  isDemo: boolean
+  userEmail: string
 ) => {
   switch (databaseOperation) {
     case "createItem":
@@ -58,9 +56,7 @@ const run = (
     case "setWebPushSubscriptionForUser":
       return setWebPushSubscriptionForUser(sql, args, userEmail);
     case "addManuallyOpenedPinboardIds":
-      return isDemo
-        ? getMyUser(sql, userEmail)
-        : addManuallyOpenedPinboardIds(sql, args, userEmail);
+      return addManuallyOpenedPinboardIds(sql, args, userEmail);
     case "removeManuallyOpenedPinboardIds":
       return removeManuallyOpenedPinboardIds(sql, args, userEmail);
     case "getGroupPinboardIds":
@@ -92,10 +88,7 @@ export const handler = async (
       const userEmail: string = (payload.identity as AppSyncIdentityLambda)
         .resolverContext.userEmail;
       const databaseOperation = payload.info.fieldName as DatabaseOperation;
-      const isDemo =
-        payload.request.headers[IS_DEMO_HEADER.toLowerCase()]?.toLowerCase() ===
-        "true";
-      return await run(sql, databaseOperation, args, userEmail, isDemo);
+      return await run(sql, databaseOperation, args, userEmail);
     }
   } finally {
     await sql.end();

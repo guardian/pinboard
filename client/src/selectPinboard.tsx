@@ -159,7 +159,7 @@ export const SelectPinboard = ({
         ? isOpenInNewTab
           ? openPinboardInNewTab(pinboardData)
           : peekAtPinboard(pinboardData)
-        : openPinboard(pinboardData, isOpenInNewTab);
+        : openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
 
     const secondaryInformation = isTeamPinboard && (
       <div>

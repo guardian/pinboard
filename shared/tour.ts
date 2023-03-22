@@ -4,8 +4,6 @@ import {
 } from "./graphql/extraTypes";
 import { User } from "./graphql/graphql";
 
-export const IS_DEMO_HEADER = "X-Is-Demo";
-
 export const demoPinboardData: PinboardData = {
   id: "DEMO",
   title: "Interactive Demo",

@@ -235,13 +235,20 @@ export const Pinboard: React.FC<PinboardProps> = ({
   ) => {
     setSuccessfulSends((previousSends) => [...previousSends, pendingItem]);
 
-    // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
-    addManuallyOpenedPinboardId(pendingItem.pinboardId);
+    const tourIsRunning = tourProgress.isRunning;
 
-    // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
-    mentionEmails.map((mentionEmail) =>
-      addManuallyOpenedPinboardId(pendingItem.pinboardId, mentionEmail)
-    );
+    if (!tourIsRunning) {
+      // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
+      addManuallyOpenedPinboardId(tourIsRunning)(pendingItem.pinboardId);
+
+      // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
+      mentionEmails.map((mentionEmail) =>
+        addManuallyOpenedPinboardId(tourIsRunning)(
+          pendingItem.pinboardId,
+          mentionEmail
+        )
+      );
+    }
   };
 
   const handleClaimed = (data: { claimItem: Claimed }) => {
@@ -250,7 +257,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
       data.claimItem.updatedItem,
       data.claimItem.newItem,
     ]);
-    addManuallyOpenedPinboardId(data.claimItem.pinboardId);
+    !tourProgress.isRunning &&
+      addManuallyOpenedPinboardId(tourProgress.isRunning)(
+        data.claimItem.pinboardId
+      );
     const unclaimedDurationInMillis =
       new Date(data.claimItem.newItem.timestamp).getTime() -
       new Date(data.claimItem.updatedItem.timestamp).getTime();

@@ -23,6 +23,7 @@ import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
+import { demoPinboardData } from "../../shared/tour";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -46,10 +47,11 @@ interface GlobalStateContextShape {
   clearPayloadToBeSent: () => void;
 
   addManuallyOpenedPinboardId: (
-    pinboardId: string,
-    maybeEmailOverride?: string
-  ) => Promise<FetchResult<{ addManuallyOpenedPinboardIds: MyUser }>>;
-  openPinboard: (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
+    isDemo: false // this asks the compiler to ensure we never call this in demo mode
+  ) => (pinboardId: string, maybeEmailOverride?: string) => void;
+  openPinboard: (
+    isDemo: boolean
+  ) => (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
   openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
@@ -164,16 +166,24 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const preselectedPinboardId =
     isPinboardData(preselectedPinboard) && preselectedPinboard.id;
 
-  const activePinboardIds = [
-    ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-    ...(openPinboardIdBasedOnQueryParam
-      ? [openPinboardIdBasedOnQueryParam]
-      : []),
-    ...manuallyOpenedPinboardIds?.filter(
-      (_) =>
-        _ !== preselectedPinboardId && _ !== openPinboardIdBasedOnQueryParam
-    ),
-  ];
+  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
+    openPinboardIdBasedOnQueryParam
+  );
+
+  const isDemoSelectedPinboard = selectedPinboardId === demoPinboardData.id;
+
+  const activePinboardIds = isDemoSelectedPinboard
+    ? [demoPinboardData.id]
+    : [
+        ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+        ...(openPinboardIdBasedOnQueryParam
+          ? [openPinboardIdBasedOnQueryParam]
+          : []),
+        ...manuallyOpenedPinboardIds?.filter(
+          (_) =>
+            _ !== preselectedPinboardId && _ !== openPinboardIdBasedOnQueryParam
+        ),
+      ];
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -184,7 +194,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   });
 
   useEffect(() => {
-    if (isExpanded) {
+    if (isExpanded && !isDemoSelectedPinboard) {
       pinboardDataQuery.refetch();
       pinboardDataQuery.startPolling(5000);
     } else {
@@ -197,12 +207,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   const isLoadingActivePinboardList = pinboardDataQuery.loading;
 
-  const activePinboards: PinboardData[] =
-    pinboardDataQuery.data?.getPinboardsByIds || [];
-
-  const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
-    openPinboardIdBasedOnQueryParam
-  );
+  const activePinboards: PinboardData[] = isDemoSelectedPinboard
+    ? [demoPinboardData]
+    : pinboardDataQuery.data?.getPinboardsByIds || [];
 
   useEffect(
     () =>
@@ -228,9 +235,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   }>(gqlAddManuallyOpenedPinboardIds);
 
   const addManuallyOpenedPinboardId = (
-    pinboardId: string,
-    maybeEmailOverride?: string
-  ) =>
+    isDemo: false // this asks the compiler to ensure we never call this in demo mode
+  ) => (pinboardId: string, maybeEmailOverride?: string) =>
+    !isDemo &&
     addManuallyOpenedPinboardIds({
       variables: {
         pinboardId,
@@ -299,12 +306,12 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     });
   };
 
-  const openPinboard = (
+  const openPinboard = (isDemo: boolean) => (
     pinboardData: PinboardData,
     isOpenInNewTab: boolean
   ) => {
-    if (!activePinboardIds.includes(pinboardData.id)) {
-      addManuallyOpenedPinboardId(pinboardData.id).then(
+    if (!isDemo && !activePinboardIds.includes(pinboardData.id)) {
+      addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
         (result) =>
           result.data
             ? setManuallyOpenedPinboardIds(

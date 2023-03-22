@@ -9,9 +9,7 @@ import React, {
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
-import { demoPinboardData, IS_DEMO_HEADER } from "../../../shared/tour";
-import { useApolloClient } from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
+import { demoPinboardData } from "../../../shared/tour";
 import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
 import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
@@ -100,10 +98,6 @@ export const useJumpToTourStep = (stepId: TourStepID) => {
 };
 
 export const TourStateProvider: React.FC = ({ children }) => {
-  const apolloClient = useApolloClient();
-
-  const apolloOriginalLinkChain = useMemo(() => apolloClient.link, []);
-
   const refMap: TourStepRefMap = useMemo(
     () =>
       Object.fromEntries(
@@ -119,20 +113,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
   });
   const { isRunning, stepIndex } = tourState;
   const [tourHistory, setTourHistory] = useState<number[]>([]);
-
-  useEffect(
-    () =>
-      apolloClient.setLink(
-        setContext((_, { headers, ...restOfContext }) => ({
-          ...restOfContext,
-          headers: {
-            ...headers,
-            [IS_DEMO_HEADER]: isRunning,
-          },
-        })).concat(apolloOriginalLinkChain)
-      ),
-    [isRunning]
-  );
 
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
@@ -151,7 +131,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     } else if (tourStepId) {
       tourStepMap[tourStepId].isIndexView
         ? clearSelectedPinboard()
-        : openPinboard(demoPinboardData, false);
+        : openPinboard(true)(demoPinboardData, false);
     }
   }, [stepIndex]);
 

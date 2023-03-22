@@ -1,11 +1,15 @@
-import { Placement, Step } from "react-joyride";
+import { Step } from "react-joyride";
 import React from "react";
 import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
+import { PendingItem } from "../types/PendingItem";
 
 export const tourStepMap: Record<
-  string,
-  Omit<Step, "target"> & { isIndexView: boolean }
+  string, // FIXME - refine this type such that TourStepID is a string literal type
+  Omit<Step, "target"> & {
+    isIndexView: boolean;
+    shouldPreventNext?: (sends: PendingItem[]) => boolean;
+  }
 > = {
   myPinboards: {
     title: "My Pinboards",
@@ -51,6 +55,8 @@ export const tourStepMap: Record<
   basicMessage: {
     title: "Basic messages",
     isIndexView: false,
+    shouldPreventNext: (successfulSends: PendingItem[]) =>
+      successfulSends.length === 0,
     content: <div>send basic message</div>, // TODO finish this
     placement: "left-end",
   },

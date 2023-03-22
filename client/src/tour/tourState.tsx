@@ -15,6 +15,7 @@ import { setContext } from "@apollo/client/link/context";
 import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
 import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
+import { buildTourSubscriptionItems } from "./tourMessageReplies";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -196,12 +197,20 @@ export const TourStateProvider: React.FC = ({ children }) => {
   };
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+
+  useEffect(() => {
+    setTimeout(
+      () => setSubscriptionItems(buildTourSubscriptionItems(successfulSends)),
+      250
+    );
+  }, [successfulSends]);
+
   const sendItem = (callback: () => void) => ({
     variables,
   }: {
     variables: { input: CreateItemInput };
   }) => {
-    // TODO - consider slight delay;
     setSuccessfulSends([
       ...successfulSends,
       {
@@ -232,7 +241,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     jumpStepTo,
     isRunning,
     successfulSends,
-    subscriptionItems: [],
+    subscriptionItems,
     sendItem,
   };
   return (

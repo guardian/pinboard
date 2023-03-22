@@ -2,6 +2,7 @@ import {
   PinboardData,
   PinboardDataWithClaimCounts,
 } from "./graphql/extraTypes";
+import { User } from "./graphql/graphql";
 
 export const IS_DEMO_HEADER = "X-Is-Demo";
 
@@ -33,3 +34,11 @@ export const demoPinboardsWithClaimCounts: PinboardDataWithClaimCounts[] = [
     latestGroupMentionItemId: "123",
   },
 ];
+
+export const demoUser: User = {
+  email: "pinboard.demo@guardian.co.uk",
+  firstName: "Pinboard",
+  lastName: "Demo",
+  isMentionable: false, // TODO - ensure demo user is NOT mentionable outside the tour before making this 'true'
+  avatarUrl: null, // TODO - add Avatar image for demo user (e.g. 📌)
+};

@@ -100,21 +100,13 @@ export const Tour = ({ panelElement }: TourProps) => {
   const { stepIndex, handleCallback, isRunning } = useTourProgress();
 
   const steps: Step[] = useMemo(
-    () => {
-      const newSteps = [
-        contentsStep,
-        ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
-          ...stepWithoutTarget,
-          target:
-            useTourStepRef(tourStepId as TourStepID).current || tourStepId,
-        })),
-      ];
-      console.log(
-        "steps updated",
-        newSteps.map((_) => _.target)
-      );
-      return newSteps;
-    },
+    () => [
+      contentsStep,
+      ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
+        ...stepWithoutTarget,
+        target: useTourStepRef(tourStepId as TourStepID).current || tourStepId,
+      })),
+    ],
     useTourStepRefs().map((_) => _.current)
   );
 

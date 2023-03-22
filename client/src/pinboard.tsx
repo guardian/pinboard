@@ -23,7 +23,7 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-import { useTourStepRef } from "./tour/tourState";
+import { useTourProgress, useTourStepRef } from "./tour/tourState";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -69,6 +69,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
+  const tourProgress = useTourProgress();
+
   const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
@@ -96,9 +98,15 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [claimItems, setClaimItems] = useState<Item[]>([]);
 
-  const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const [_subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const subscriptionItems = tourProgress.isRunning
+    ? tourProgress.subscriptionItems
+    : _subscriptionItems;
 
-  const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const [_successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const successfulSends = tourProgress.isRunning
+    ? tourProgress.successfulSends
+    : _successfulSends;
 
   const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId), {
     onCompleted: (data) => {

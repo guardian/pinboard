@@ -13,6 +13,8 @@ import { demoPinboardData, IS_DEMO_HEADER } from "../../../shared/tour";
 import { useApolloClient } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { STATUS } from "react-joyride";
+import { PendingItem } from "../types/PendingItem";
+import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -26,6 +28,11 @@ interface TourStateContextShape {
   getRef: (stepId: TourStepID) => TourStepRef;
   handleCallback: (data: CallBackProps) => void;
   jumpStepTo: (stepId: TourStepID) => void;
+  sendItem: (
+    callback: () => void
+  ) => (_: { variables: { input: CreateItemInput } }) => unknown;
+  successfulSends: PendingItem[];
+  subscriptionItems: Item[];
 }
 
 const TourStateContext = React.createContext<TourStateContextShape | null>(
@@ -65,13 +72,24 @@ export function useTourStepRef(
 export const useTourStepRefs = () => useTourStateContext().refs;
 
 export const useTourProgress = () => {
-  const { isRunning, stepIndex, handleCallback, start } = useTourStateContext();
+  const {
+    isRunning,
+    stepIndex,
+    handleCallback,
+    start,
+    successfulSends,
+    subscriptionItems,
+    sendItem,
+  } = useTourStateContext();
 
   return {
     stepIndex,
     handleCallback,
     isRunning,
     start,
+    successfulSends,
+    subscriptionItems,
+    sendItem,
   };
 };
 
@@ -136,7 +154,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
     }
   }, [stepIndex]);
 
-  const { openPinboard, clearSelectedPinboard } = useGlobalStateContext();
+  const {
+    openPinboard,
+    clearSelectedPinboard,
+    userEmail,
+  } = useGlobalStateContext();
 
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });
@@ -173,6 +195,34 @@ export const TourStateProvider: React.FC = ({ children }) => {
     continueTourTo(0);
   };
 
+  const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const sendItem = (callback: () => void) => ({
+    variables,
+  }: {
+    variables: { input: CreateItemInput };
+  }) => {
+    // TODO - consider slight delay;
+    setSuccessfulSends([
+      ...successfulSends,
+      {
+        ...variables.input,
+        id: (successfulSends.length + 1).toString(),
+        timestamp: new Date().toISOString(),
+        pending: true,
+        userEmail,
+        claimedByEmail: null,
+        relatedItemId: null,
+        editHistory: null,
+        deletedAt: null,
+        mentions: [], //TODO - map variables.input.mentions to mention handle,
+        groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
+        claimable: variables.input.claimable || false,
+      },
+    ]);
+    callback();
+    // TODO - increment stepIndex (assuming the item fulfills the steps criteria)
+  };
+
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
     getRef,
@@ -181,6 +231,9 @@ export const TourStateProvider: React.FC = ({ children }) => {
     start,
     jumpStepTo,
     isRunning,
+    successfulSends,
+    subscriptionItems: [],
+    sendItem,
   };
   return (
     <TourStateContext.Provider value={contextValue}>

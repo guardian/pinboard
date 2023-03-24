@@ -10,8 +10,7 @@
     "run-dev": "esbuild run.ts --bundle --minify --outfile=dist/index.js --platform=node && node dist/index.js"
   },
   "devDependencies": {
-    "@types/node-fetch": "^3.0.3",
-    "aws-sdk": "^2.840.0"
+    "@types/node-fetch": "^3.0.3"
   },
   "dependencies": {
     "node-fetch": "^3.2.0"

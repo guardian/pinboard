@@ -21,7 +21,7 @@ import { getGroupMembersFromGoogle } from "./google/getGroupMembersFromGoogle";
 import { getGroupDetailFromGoogle } from "./google/getGroupDetailFromGoogle";
 import { isDefinitelyDifferentAvatar } from "./google/isDefinitelyDifferentAvatar";
 
-const S3 = new AWS.S3(standardAwsConfig);
+const s3 = new AWS.S3(standardAwsConfig);
 
 export const handler = async ({
   isProcessPermissionChangesOnly,
@@ -29,7 +29,7 @@ export const handler = async ({
   isProcessPermissionChangesOnly?: boolean;
 }) => {
   const emailsOfUsersWithPinboardPermission = (
-    await getPinboardPermissionOverrides(S3)
+    await getPinboardPermissionOverrides(s3)
   )?.reduce<string[]>(
     (acc, { userId, active }) =>
       active ? [...acc, userId.toLowerCase()] : acc,

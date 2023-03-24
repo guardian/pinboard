@@ -4,7 +4,7 @@ import { standardAwsConfig } from "../shared/awsIntegration";
 import { getYourEmail } from "../shared/local/yourEmail";
 
 (async () => {
-  const S3 = new AWS.S3(standardAwsConfig);
+  const s3 = new AWS.S3(standardAwsConfig);
 
   const { stage } = await prompts({
     type: "select",
@@ -25,5 +25,5 @@ import { getYourEmail } from "../shared/local/yourEmail";
   const generateAppSyncConfig = (await import("./src/generateAppSyncConfig"))
     .generateAppSyncConfig;
 
-  console.log((await generateAppSyncConfig(yourEmail, S3)).authToken);
+  console.log((await generateAppSyncConfig(yourEmail, s3)).authToken);
 })();

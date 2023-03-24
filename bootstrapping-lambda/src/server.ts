@@ -25,7 +25,7 @@ import { getMetrics } from "./reporting/reportingServiceClient";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
-const S3 = new AWS.S3(standardAwsConfig);
+const s3 = new AWS.S3(standardAwsConfig);
 
 const server = express();
 
@@ -122,7 +122,7 @@ server.get(
       return response.send(`console.error('${message}')`);
     }
 
-    const appSyncConfig = await generateAppSyncConfig(request.userEmail!, S3);
+    const appSyncConfig = await generateAppSyncConfig(request.userEmail!, s3);
 
     response.send(
       loaderTemplate(

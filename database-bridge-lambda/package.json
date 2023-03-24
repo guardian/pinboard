@@ -10,8 +10,6 @@
     "watch": "ts-node-dev --respawn run.ts"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.102",
-    "aws-sdk": "^2.840.0",
     "ts-node-dev": "^1.0.0"
   },
   "dependencies": {

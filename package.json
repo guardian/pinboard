@@ -13,7 +13,8 @@
     "users-refresher-lambda",
     "workflow-bridge-lambda",
     "database-bridge-lambda",
-    "archiver-lambda"
+    "archiver-lambda",
+    "shared"
   ],
   "scripts": {
     "graphql-refresh": "graphql-codegen --config graphql-refresh.yml",

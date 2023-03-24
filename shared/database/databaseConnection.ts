@@ -1,8 +1,8 @@
-import AWS from "aws-sdk";
 import { standardAwsConfig } from "../awsIntegration";
 import postgres from "postgres";
 import { DATABASE_PORT, DATABASE_USERNAME, DATABASE_NAME } from "./database";
 import { getEnvironmentVariableOrThrow } from "../environmentVariables";
+import { Signer } from "@aws-sdk/rds-signer";
 
 export async function getDatabaseConnection() {
   const isRunningLocally = !process.env.LAMBDA_TASK_ROOT;
@@ -15,10 +15,10 @@ export async function getDatabaseConnection() {
     username: DATABASE_USERNAME,
   };
 
-  const iamToken = new AWS.RDS.Signer({
+  const iamToken = await new Signer({
     ...standardAwsConfig,
-    credentials: await standardAwsConfig.credentialProvider.resolvePromise(),
-  }).getAuthToken(basicConnectionDetails);
+    ...basicConnectionDetails,
+  }).getAuthToken();
 
   isRunningLocally &&
     console.log(

@@ -1,24 +1,21 @@
-import AWS from "aws-sdk";
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { NativeAttributeValue } from "@aws-sdk/util-dynamodb";
 import { standardAwsConfig } from "../../awsIntegration";
 import { createDatabaseTunnel } from "./databaseTunnel";
 import { getDatabaseConnection } from "../databaseConnection";
 import { Sql } from "../types";
 
-const dynamo = new AWS.DynamoDB.DocumentClient(standardAwsConfig);
+const dynamo = DynamoDBDocument.from(new DynamoDB(standardAwsConfig));
 
-async function getDynamoRows(
-  TableName: string
-): Promise<DocumentClient.AttributeMap[]> {
-  const getRows = async (
-    startKey?: DocumentClient.Key
-  ): Promise<DocumentClient.AttributeMap[]> => {
-    const userResults = await dynamo
-      .scan({
-        TableName,
-        ExclusiveStartKey: startKey,
-      })
-      .promise();
+type AttributeMap = Record<string, NativeAttributeValue>;
+
+async function getDynamoRows(TableName: string): Promise<AttributeMap[]> {
+  const getRows = async (startKey?: AttributeMap): Promise<AttributeMap[]> => {
+    const userResults = await dynamo.scan({
+      TableName,
+      ExclusiveStartKey: startKey,
+    });
 
     const storedUsers = userResults.Items || [];
 

@@ -35,7 +35,6 @@ import {
   DATABASE_NAME,
   DATABASE_PORT,
   DATABASE_USERNAME,
-  databaseJumpHostASGLogicalID,
   getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
 } from "../../shared/database/database";
@@ -283,7 +282,7 @@ export class PinBoardStack extends GuStack {
 
     const databaseJumpHostASG = new GuAutoScalingGroup(
       this,
-      databaseJumpHostASGLogicalID,
+      "DatabaseJumpHostASG",
       {
         vpc: accountVpc,
         app: APP,

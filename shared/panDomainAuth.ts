@@ -1,5 +1,5 @@
 import iniparser from "iniparser";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import { Stage } from "./types/stage";
 
 const STAGE = (process.env.STAGE as Stage) || "LOCAL";
@@ -26,10 +26,10 @@ const pandaConfigLocation = {
       : pandaConfigFilenameLookup["CODE"],
 };
 
-export const getPandaConfig = async <T>(s3: AWS.S3) => {
-  const pandaConfigIni = (
-    await s3.getObject(pandaConfigLocation).promise()
-  ).Body?.toString();
+export const getPandaConfig = async <T>(s3: S3) => {
+  const pandaConfigIni = await s3
+    .getObject(pandaConfigLocation)
+    .then(({ Body }) => Body?.transformToString());
 
   if (!pandaConfigIni) {
     throw Error(

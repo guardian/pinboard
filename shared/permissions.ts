@@ -1,5 +1,5 @@
 import { STAGE } from "./awsIntegration";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 
 interface Override {
   userId: string;
@@ -14,18 +14,19 @@ interface Permission {
   overrides: Override[];
 }
 
-export const getPinboardPermissionOverrides = (S3: AWS.S3) =>
+export const getPinboardPermissionOverrides = (S3: S3) =>
   S3.getObject({
     Bucket: "permissions-cache",
     Key: `${STAGE}/permissions.json`,
   })
-    .promise()
     .then(({ Body }) => {
       if (!Body) {
         throw Error("could not read permissions");
       }
-
-      const allPermissions = JSON.parse(Body.toString()) as Permission[];
+      return Body.transformToString();
+    })
+    .then((Body) => {
+      const allPermissions = JSON.parse(Body) as Permission[];
 
       return allPermissions.find(
         ({ permission }) =>

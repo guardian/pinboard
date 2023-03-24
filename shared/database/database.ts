@@ -10,8 +10,6 @@ export const DATABASE_NAME = APP;
 export const getDatabaseProxyName = (stage: Stage) =>
   `${APP}-database-proxy-${stage}`;
 
-export const databaseJumpHostASGLogicalID = "DatabaseJumpHostASG";
-
 export const getDatabaseJumpHostAsgName = (stage: Stage) =>
   `pinboard-database-jump-host-ASG-${stage}`;
 

@@ -1,6 +1,6 @@
 import { admin as googleAdminAPI, auth as googleAuth } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import {
   pinboardConfigPromiseGetter,
   pinboardSecretPromiseGetter,
@@ -21,7 +21,7 @@ import { getGroupMembersFromGoogle } from "./google/getGroupMembersFromGoogle";
 import { getGroupDetailFromGoogle } from "./google/getGroupDetailFromGoogle";
 import { isDefinitelyDifferentAvatar } from "./google/isDefinitelyDifferentAvatar";
 
-const s3 = new AWS.S3(standardAwsConfig);
+const s3 = new S3(standardAwsConfig);
 
 export const handler = async ({
   isProcessPermissionChangesOnly,

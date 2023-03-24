@@ -2,10 +2,10 @@ import { jwtVerify } from "jose";
 import { getPandaConfig } from "../../shared/panDomainAuth";
 import crypto from "crypto";
 import { standardAwsConfig } from "../../shared/awsIntegration";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import { AppSyncAuthorizerEvent } from "aws-lambda";
 
-const s3 = new AWS.S3(standardAwsConfig);
+const s3 = new S3(standardAwsConfig);
 
 exports.handler = async ({ authorizationToken }: AppSyncAuthorizerEvent) => {
   const pandaConfig = await getPandaConfig<{ publicKey: string }>(s3);

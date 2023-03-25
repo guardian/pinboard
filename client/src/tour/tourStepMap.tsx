@@ -3,6 +3,8 @@ import React from "react";
 import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
 import { PendingItem } from "../types/PendingItem";
+import { LineBreak } from "./toolTip";
+import { space } from "@guardian/source-foundations";
 
 type CustomStep = Omit<Step, "target"> & {
   isIndexView: boolean;
@@ -16,8 +18,14 @@ const _tourStepMap = {
     spotlightClicks: false,
     content: (
       <div>
-        The list of pinboards you are active on or where you have been sent a
-        message or mentioned by someone.
+        The list of pinboards where:
+        <ul>
+          <li>you are active on</li>
+          <li>have been sent a message</li>
+          <li>or have been mentioned in</li>
+        </ul>
+        <LineBreak />
+        You can manually hide them by clicking on the x icon.
       </div>
     ),
     placement: "left",
@@ -39,7 +47,9 @@ const _tourStepMap = {
     isIndexView: true,
     content: (
       <div>
-        You can search for other Pinboards on Workflow using this searchbar.
+        You can search for Pinboards using this searchbar.
+        <LineBreak />
+        Remember files need to be tracked on Workflow to have a Pinboard!
       </div>
     ),
     placement: "left",
@@ -48,15 +58,74 @@ const _tourStepMap = {
     title: "Desktop Notifications",
     spotlightClicks: false,
     isIndexView: true,
-    content: <div>You can set your browser notification settings here.</div>,
+    content: (
+      <div>
+        Turn browser notifications on and off by clicking the subscribe button
+        <LineBreak />
+        You will get notifications on the icon regardless.
+      </div>
+    ),
     placement: "left",
   },
   basicMessage: {
-    title: "Basic messages",
+    title: "Messaging",
     isIndexView: false,
     shouldPreventNext: (successfulSends: PendingItem[]) =>
       successfulSends.length === 0,
-    content: <div>send basic message</div>, // TODO finish this
+    content: (
+      <div>
+        You can use this space to message colleagues with Composer permissions.
+        <ul
+          style={{ marginTop: `${space[2]}px`, paddingLeft: `${space[4]}px` }}
+        >
+          <li style={{ margin: `${space[2]}px 0` }}>
+            <b>Mention</b> them directly by using @name.surname
+          </li>
+          <li style={{ margin: `${space[2]}px 0` }}>
+            You can also <b>mention a team</b> if you’re unsure who’s on shift.
+          </li>
+          <li style={{ margin: `${space[2]}px 0` }}>
+            You can <b>edit and delete</b> your messages by clicking on the
+            icons
+          </li>
+          <div>
+            <div
+              style={{
+                display: "flex",
+                border: "1px solid lightGrey",
+                width: "36px",
+                justifyContent: "space-between",
+                padding: "6px",
+                position: "relative",
+                background: "white",
+                marginLeft: "140px",
+                borderRadius: "40px",
+              }}
+            >
+              <EditIcon />
+              <BinIcon />
+            </div>
+            <div
+              style={{
+                backgroundColor: "#ECECEC",
+                width: "70%",
+                marginTop: "-20px",
+              }}
+            >
+              <p
+                style={{ color: "grey", margin: 0, fontSize: `${space[2]}px` }}
+              >
+                13:08
+              </p>
+              <p style={{ margin: 0 }}>Example message</p>
+            </div>
+          </div>
+        </ul>
+        <LineBreak />
+        Remember all Pinboard content is public and will be visible to everyone
+        with access to Composer
+      </div>
+    ), // TODO finish this
     placement: "left-end",
   },
   individualMentions: {
@@ -97,7 +166,13 @@ const _tourStepMap = {
   feedback: {
     title: "Send us feedback",
     isIndexView: false,
-    content: <div>Send us any feedback</div>,
+    content: (
+      <div>
+        Does something not work as expected? Do you have any feature requests
+        for Pinboard? Send a note to the Editorial Tools team directly from
+        Pinboard
+      </div>
+    ),
     placement: "left",
   },
 } satisfies Record<string, CustomStep>;

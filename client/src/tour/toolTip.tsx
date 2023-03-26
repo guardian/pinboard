@@ -9,7 +9,7 @@ export const tourButtonStyles = {
   alignItems: "flex-start",
   fontFamily: "Guardian Agate Sans",
   border: `${composer.primary[300]} 1px solid`,
-  borderRadius: `${space[2]}px`,
+  borderRadius: `${space[1]}px`,
   padding: `${space[1]}px ${space[2]}px`,
   gap: `${space[2]}px`,
   lineHeight: "2",
@@ -58,7 +58,7 @@ export const Tooltip = ({
       padding: `${space[2]}px ${space[3]}px ${space[3]}px`,
       width: 250,
       backgroundColor: `${palette.neutral[100]}`,
-      lineHeight: "20px",
+      lineHeight: `${space[5]}px`,
       borderRadius: `${space[2]}px`,
     }}
   >
@@ -69,7 +69,7 @@ export const Tooltip = ({
     {index > 0 && (
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <p>
-          {index + 1} of {tourStepIDs.length}
+          {index + 1} of {tourStepIDs.length + 1}
         </p>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button style={secondaryButtonStyles} {...backProps}>

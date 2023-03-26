@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { space } from "@guardian/source-foundations";
+import root from "react-shadow/emotion";
 import BeaconIcon from "../../icons/beacon";
 import Joyride, { Step } from "react-joyride";
 import {
@@ -58,7 +59,7 @@ export const Tour = ({ panelElement }: TourProps) => {
           Stories must be tracked in Workflow to have a Pinboard attached.
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <p>1 of {tourStepIDs.length}</p>
+          <p>1 of {tourStepIDs.length + 1}</p>
           <button
             style={primaryButtonStyles}
             onClick={useJumpToTourStep("myPinboards")}
@@ -100,25 +101,27 @@ export const Tour = ({ panelElement }: TourProps) => {
   );
 
   return (
-    <Joyride
-      callback={handleCallback}
-      run={isRunning}
-      steps={steps}
-      stepIndex={stepIndex}
-      continuous
-      scrollToFirstStep
-      showSkipButton={false}
-      spotlightPadding={1}
-      spotlightClicks
-      disableOverlayClose
-      locale={{ back: "Previous" }}
-      tooltipComponent={Tooltip}
-      styles={{
-        options: {
-          primaryColor: `${composer.primary[300]}`,
-          zIndex: 999999,
-        },
-      }}
-    />
+    <root.div css={{ listStyleType: "auto" }}>
+      <Joyride
+        callback={handleCallback}
+        run={isRunning}
+        steps={steps}
+        stepIndex={stepIndex}
+        continuous
+        scrollToFirstStep
+        showSkipButton={false}
+        spotlightPadding={1}
+        spotlightClicks
+        disableOverlayClose
+        locale={{ back: "Previous" }}
+        tooltipComponent={Tooltip}
+        styles={{
+          options: {
+            primaryColor: `${composer.primary[300]}`,
+            zIndex: 999999,
+          },
+        }}
+      />
+    </root.div>
   );
 };

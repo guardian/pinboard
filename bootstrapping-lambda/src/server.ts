@@ -5,7 +5,7 @@ import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
 import { standardAwsConfig } from "../../shared/awsIntegration";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import fs from "fs";
 import {
   applyAggressiveCaching,
@@ -25,7 +25,7 @@ import { getMetrics } from "./reporting/reportingServiceClient";
 
 const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
-const s3 = new AWS.S3(standardAwsConfig);
+const s3 = new S3(standardAwsConfig);
 
 const server = express();
 

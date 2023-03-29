@@ -1,4 +1,4 @@
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import { SignJWT } from "jose";
 import { AppSyncConfig } from "../../shared/appSyncConfig";
@@ -8,7 +8,7 @@ import { APP } from "../../shared/constants";
 
 export async function generateAppSyncConfig(
   userEmail: string,
-  s3: AWS.S3
+  s3: S3
 ): Promise<AppSyncConfig> {
   const graphqlEndpoint = getEnvironmentVariableOrThrow("graphqlEndpoint");
 

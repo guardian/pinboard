@@ -1,10 +1,10 @@
 import prompts from "prompts";
-import * as AWS from "aws-sdk";
+import { S3 } from "@aws-sdk/client-s3";
 import { standardAwsConfig } from "../shared/awsIntegration";
 import { getYourEmail } from "../shared/local/yourEmail";
 
 (async () => {
-  const s3 = new AWS.S3(standardAwsConfig);
+  const s3 = new S3(standardAwsConfig);
 
   const { stage } = await prompts({
     type: "select",

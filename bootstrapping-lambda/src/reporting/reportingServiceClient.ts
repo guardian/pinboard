@@ -4,7 +4,7 @@ import {
   MetricsResponse,
   Metric,
 } from "../../../shared/types/grafanaType";
-import * as AWS from "aws-sdk";
+import { Lambda } from "@aws-sdk/client-lambda";
 import { standardAwsConfig } from "../../../shared/awsIntegration";
 import { getDatabaseBridgeLambdaFunctionName } from "../../../shared/constants";
 import { Stage } from "../../../shared/types/stage";
@@ -22,26 +22,26 @@ const stageMetricToMetric = {
 export const getMetrics = async (
   request: GrafanaRequest
 ): Promise<MetricsResponse[]> => {
-  const lambda = new AWS.Lambda(standardAwsConfig);
+  const lambda = new Lambda(standardAwsConfig);
   const { range, targets } = request;
   const metricsResponse = await Promise.all(
     targets.map((target) => {
       console.log(`processing grafana request`, target.target);
-      return lambda
-        .invoke({
-          FunctionName: getDatabaseBridgeLambdaFunctionName(
-            metricEndpointMap[target.target]
-          ),
-          Payload: JSON.stringify({
+      return lambda.invoke({
+        FunctionName: getDatabaseBridgeLambdaFunctionName(
+          metricEndpointMap[target.target]
+        ),
+        Payload: Buffer.from(
+          JSON.stringify({
             range,
             metric: stageMetricToMetric[target.target],
-          }),
-        })
-        .promise();
+          })
+        ),
+      });
     })
   );
   return metricsResponse.map((response, index) => ({
     target: targets[index].target,
-    datapoints: JSON.parse(response.Payload as string),
+    datapoints: JSON.parse(Buffer.from(response.Payload!).toString()),
   }));
 };

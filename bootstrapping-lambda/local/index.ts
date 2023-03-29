@@ -1,4 +1,4 @@
-import * as AWS from "aws-sdk";
+import { AppSync } from "@aws-sdk/client-appsync";
 import {
   pinboardConfigPromiseGetter,
   STAGE,
@@ -11,11 +11,10 @@ pinboardConfigPromiseGetter("sentryDSN").then(
   (sentryDSN) => (process.env[ENVIRONMENT_VARIABLE_KEYS.sentryDSN] = sentryDSN)
 );
 
-new AWS.AppSync(standardAwsConfig)
+new AppSync(standardAwsConfig)
   .listGraphqlApis({
     maxResults: 25, // TODO consider implementing paging (for absolute future proofing)
   })
-  .promise()
   .then((_) =>
     _.graphqlApis?.find(
       (api) => api.tags?.["Stage"] === STAGE && api.tags?.["App"] === APP

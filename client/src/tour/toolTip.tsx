@@ -10,7 +10,7 @@ export const tourButtonStyles = {
   fontFamily: "Guardian Agate Sans",
   border: `${composer.primary[300]} 1px solid`,
   borderRadius: `${space[1]}px`,
-  padding: `${space[1]}px ${space[2]}px`,
+  fontSize: `${space[3]}px`,
   gap: `${space[2]}px`,
   lineHeight: "2",
   cursor: "pointer",
@@ -67,8 +67,14 @@ export const Tooltip = ({
     )}
     <div style={{ textAlign: "left" }}>{step.content}</div>
     {index > 0 && (
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <p>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+        }}
+      >
+        <p style={{ fontSize: `${space[3]}px`, marginBottom: 0 }}>
           {index + 1} of {tourStepIDs.length + 1}
         </p>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>

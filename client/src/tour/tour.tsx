@@ -11,7 +11,12 @@ import {
 } from "./tourState";
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
-import { LineBreak, primaryButtonStyles, Tooltip } from "./toolTip";
+import {
+  LineBreak,
+  primaryButtonStyles,
+  Tooltip,
+  tourButtonStyles,
+} from "./toolTip";
 
 interface TourProps {
   panelElement: HTMLElement;
@@ -30,7 +35,7 @@ export const Tour = ({ panelElement }: TourProps) => {
         itself.
         <div style={{ display: "flex", gap: `${space[1]}px` }}>
           <BeaconIcon />
-          Follow the beacon to take a tour.
+          <b>Follow the beacon</b> to take a tour.
         </div>
         <LineBreak />
         <div>
@@ -56,10 +61,15 @@ export const Tour = ({ panelElement }: TourProps) => {
             <li>Workflow</li>
             <li>Grid</li>
           </ul>
-          Stories must be tracked in Workflow to have a Pinboard attached.
+          Stories must be tracked in Workflow to appear in Pinboard.
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <p>1 of {tourStepIDs.length + 1}</p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "end",
+            marginTop: `${space[3]}px`,
+          }}
+        >
           <button
             style={primaryButtonStyles}
             onClick={useJumpToTourStep("myPinboards")}
@@ -101,27 +111,25 @@ export const Tour = ({ panelElement }: TourProps) => {
   );
 
   return (
-    <root.div css={{ listStyleType: "auto" }}>
-      <Joyride
-        callback={handleCallback}
-        run={isRunning}
-        steps={steps}
-        stepIndex={stepIndex}
-        continuous
-        scrollToFirstStep
-        showSkipButton={false}
-        spotlightPadding={1}
-        spotlightClicks
-        disableOverlayClose
-        locale={{ back: "Previous" }}
-        tooltipComponent={Tooltip}
-        styles={{
-          options: {
-            primaryColor: `${composer.primary[300]}`,
-            zIndex: 999999,
-          },
-        }}
-      />
-    </root.div>
+    <Joyride
+      callback={handleCallback}
+      run={isRunning}
+      steps={steps}
+      stepIndex={stepIndex}
+      continuous
+      scrollToFirstStep
+      showSkipButton={false}
+      spotlightPadding={1}
+      spotlightClicks
+      disableOverlayClose
+      locale={{ back: "Previous" }}
+      tooltipComponent={Tooltip}
+      styles={{
+        options: {
+          primaryColor: `${composer.primary[300]}`,
+          zIndex: 999999,
+        },
+      }}
+    />
   );
 };

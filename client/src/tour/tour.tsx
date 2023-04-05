@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { space } from "@guardian/source-foundations";
-import root from "react-shadow/emotion";
 import BeaconIcon from "../../icons/beacon";
 import Joyride, { Step } from "react-joyride";
 import {
@@ -9,14 +8,9 @@ import {
   useTourStepRef,
   useTourStepRefs,
 } from "./tourState";
-import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
+import { TourStepID, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
-import {
-  LineBreak,
-  primaryButtonStyles,
-  Tooltip,
-  tourButtonStyles,
-} from "./toolTip";
+import { LineBreak, primaryButtonStyles, Tooltip } from "./toolTip";
 
 interface TourProps {
   panelElement: HTMLElement;

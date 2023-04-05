@@ -1,6 +1,5 @@
 import React, {
   useContext,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -232,9 +231,15 @@ export const TourStateProvider: React.FC = ({ children }) => {
           setSubscriptionItems((prevSubscriptionItems) => [
             ...prevSubscriptionItems,
             pendingAsReceivedItem(newItem),
-            ...replyTo(newItem, successfulSends),
+            ...replyTo(
+              demoMentionableUsers.find(
+                (_) => _.email === variables.input.mentions?.[0]
+              ),
+              newItem,
+              successfulSends
+            ),
           ]),
-        250
+        500
       );
     };
 

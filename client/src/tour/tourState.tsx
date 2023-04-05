@@ -11,9 +11,10 @@ import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
 import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
-import { CreateItemInput, Item } from "../../../shared/graphql/graphql";
-import { buildTourSubscriptionItems } from "./tourMessageReplies";
-import { demoPinboardData } from "./tourConstants";
+import { CreateItemInput, Item, User } from "../../../shared/graphql/graphql";
+import { pendingAsReceivedItem, replyTo } from "./tourMessageReplies";
+import { demoMentionableUsers, demoPinboardData } from "./tourConstants";
+import { userToMentionHandle } from "../mentionsUtil";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -81,6 +82,15 @@ export const useTourProgress = () => {
     sendItem,
   } = useTourStateContext();
 
+  const demoMentionsProvider = (token: string): Promise<User[]> =>
+    Promise.resolve(
+      demoMentionableUsers.filter(
+        (_) =>
+          _.firstName.toLowerCase().includes(token.toLowerCase()) ||
+          _.lastName.toLowerCase().includes(token.toLowerCase())
+      )
+    );
+
   return {
     stepIndex,
     handleCallback,
@@ -89,6 +99,20 @@ export const useTourProgress = () => {
     successfulSends,
     subscriptionItems,
     sendItem,
+    demoMentionsProvider,
+    interactionFlags: {
+      hasSentBasicMessage: !!successfulSends.length > 0,
+      hasMentionedIndividual: !!successfulSends.find(
+        (_) => _.mentions?.length > 0
+      ),
+      hasMentionedTeam: !!successfulSends.find(
+        (_) => _.groupMentions?.length > 0
+      ),
+      hasEditedMessage: !!successfulSends.find(
+        (_) => _.editHistory?.length > 0
+      ),
+      hasDeletedMessage: !!successfulSends.find((_) => _.deletedAt),
+    },
   };
 };
 
@@ -176,35 +200,42 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
 
-  useEffect(() => {
-    setTimeout(
-      () => setSubscriptionItems(buildTourSubscriptionItems(successfulSends)),
-      250
-    );
-  }, [successfulSends]);
-
   const sendItem =
     (callback: () => void) =>
     ({ variables }: { variables: { input: CreateItemInput } }) => {
-      setSuccessfulSends([
-        ...successfulSends,
-        {
-          ...variables.input,
-          id: (successfulSends.length + 1).toString(),
-          timestamp: new Date().toISOString(),
-          pending: true,
-          userEmail,
-          claimedByEmail: null,
-          relatedItemId: null,
-          editHistory: null,
-          deletedAt: null,
-          mentions: [], //TODO - map variables.input.mentions to mention handle,
-          groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
-          claimable: variables.input.claimable || false,
-        },
+      const newItem = {
+        ...variables.input,
+        id: (successfulSends.length + 1).toString(),
+        timestamp: new Date().toISOString(),
+        pending: true,
+        userEmail,
+        claimedByEmail: null,
+        relatedItemId: null,
+        editHistory: null,
+        deletedAt: null,
+        mentions: variables.input.mentions.map((email) => ({
+          label: demoMentionableUsers
+            .filter((_) => _.email === email)
+            .map(userToMentionHandle)[0],
+          isMe: false,
+        })),
+        groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
+        claimable: variables.input.claimable || false,
+      };
+      setSuccessfulSends((prevSuccessfulSends) => [
+        ...prevSuccessfulSends,
+        newItem,
       ]);
       callback();
-      // TODO - increment stepIndex (assuming the item fulfills the steps criteria)
+      setTimeout(
+        () =>
+          setSubscriptionItems((prevSubscriptionItems) => [
+            ...prevSubscriptionItems,
+            pendingAsReceivedItem(newItem),
+            ...replyTo(newItem, successfulSends),
+          ]),
+        250
+      );
     };
 
   const contextValue: TourStateContextShape = {

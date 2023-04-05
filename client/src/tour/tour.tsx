@@ -84,28 +84,27 @@ export const Tour = ({ panelElement }: TourProps) => {
     disableBeacon: true,
   };
 
-  const { stepIndex, handleCallback, isRunning, successfulSends } =
-    useTourProgress();
+  const {
+    stepIndex,
+    handleCallback,
+    isRunning,
+    successfulSends,
+    interactionFlags,
+  } = useTourProgress();
 
   const steps: Step[] = useMemo(
     () => [
       contentsStep,
-      ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => {
-        const shouldPreventNext =
-          stepWithoutTarget.shouldPreventNext?.(successfulSends);
-
-        return {
-          ...stepWithoutTarget,
-          target:
-            stepWithoutTarget.shouldPreventNext && !shouldPreventNext
-              ? panelElement
-              : useTourStepRef(tourStepId as TourStepID).current || tourStepId,
-          spotlightClicks:
-            stepWithoutTarget.spotlightClicks !== false &&
-            (!stepWithoutTarget.shouldPreventNext || shouldPreventNext),
-          // TODO - disable next button if shouldPreventNext
-        };
-      }),
+      ...tourStepEntries.map(([tourStepId, stepWithoutTarget]) => ({
+        ...stepWithoutTarget,
+        content:
+          typeof stepWithoutTarget.content === "function"
+            ? stepWithoutTarget.content(interactionFlags)
+            : stepWithoutTarget.content,
+        target: stepWithoutTarget.shouldEnlargeSpotlight?.(interactionFlags)
+          ? panelElement // TODO - ideally replace with some ref that wraps ScrollableItems and SendMessageArea
+          : useTourStepRef(tourStepId as TourStepID).current || tourStepId,
+      })),
     ],
     [...useTourStepRefs().map((_) => _.current), ...successfulSends]
   );

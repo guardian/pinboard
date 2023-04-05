@@ -6,9 +6,20 @@ import { PendingItem } from "../types/PendingItem";
 import { LineBreak } from "./toolTip";
 import { space } from "@guardian/source-foundations";
 
-type CustomStep = Omit<Step, "target"> & {
+interface InteractionFlags {
+  hasSentBasicMessage: boolean;
+  hasMentionedIndividual: boolean;
+  hasMentionedTeam: boolean;
+  hasEditedMessage: boolean;
+  hasDeletedMessage: boolean;
+}
+
+type CustomStep = Omit<Omit<Step, "target">, "content"> & {
   isIndexView: boolean;
-  shouldPreventNext?: (sends: PendingItem[]) => boolean;
+  shouldEnlargeSpotlight?: (interactions: InteractionFlags) => boolean;
+  content:
+    | React.ReactNode
+    | ((interactions: InteractionFlags) => React.ReactNode);
 };
 
 const _tourStepMap = {
@@ -70,62 +81,72 @@ const _tourStepMap = {
   basicMessage: {
     title: "Messaging",
     isIndexView: false,
-    shouldPreventNext: (successfulSends: PendingItem[]) =>
-      successfulSends.length === 0,
-    content: (
+    shouldEnlargeSpotlight: ({ hasSentBasicMessage }) => hasSentBasicMessage,
+    // eslint-disable-next-line react/display-name
+    content: ({
+      hasSentBasicMessage,
+      hasMentionedIndividual,
+      hasEditedMessage,
+      hasDeletedMessage,
+    }) => (
       <div>
-        You can use this space to message colleagues with Composer permissions.
-        <ul
-          style={{ marginTop: `${space[2]}px`, paddingLeft: `${space[4]}px` }}
-        >
-          <li style={{ margin: `${space[2]}px 0` }}>
-            <b>Mention</b> them directly by using @name.surname
+        You can use this space to message colleagues with Composer / Grid
+        permissions. Please try the following:
+        <ol style={{ paddingLeft: `${space[5]}px` }}>
+          <li
+            style={
+              hasSentBasicMessage
+                ? {
+                    textDecoration: "line-through",
+                  }
+                : {}
+            }
+          >
+            <strong>Send a basic message</strong> by typing in the box and
+            hitting Enter or clicking Send
           </li>
-          <li style={{ margin: `${space[2]}px 0` }}>
-            You can also <b>mention a team</b> if you’re unsure who’s on shift.
+          <li
+            style={
+              hasMentionedIndividual
+                ? {
+                    textDecoration: "line-through",
+                  }
+                : {}
+            }
+          >
+            <strong>Mention a person</strong> directly by typing <code>@</code>{" "}
+            and typing their name
           </li>
-          <li style={{ margin: `${space[2]}px 0` }}>
-            You can <b>edit and delete</b> your messages by clicking on the
-            icons
+          <li
+            style={
+              hasEditedMessage
+                ? {
+                    textDecoration: "line-through",
+                  }
+                : {}
+            }
+          >
+            <strong>Edit your messages</strong> by hovering on your message and
+            clicking pencil icon {/* TODO - use the Pencil icon */}
           </li>
-          <div>
-            <div
-              style={{
-                display: "flex",
-                border: "1px solid lightGrey",
-                width: "36px",
-                justifyContent: "space-between",
-                padding: "6px",
-                position: "relative",
-                background: "white",
-                marginLeft: "140px",
-                borderRadius: "40px",
-              }}
-            >
-              <EditIcon />
-              <BinIcon />
-            </div>
-            <div
-              style={{
-                backgroundColor: "#ECECEC",
-                width: "70%",
-                marginTop: "-20px",
-              }}
-            >
-              <p
-                style={{ color: "grey", margin: 0, fontSize: `${space[2]}px` }}
-              >
-                13:08
-              </p>
-              <p style={{ margin: 0 }}>Example message</p>
-            </div>
-          </div>
-        </ul>
+          <li
+            style={
+              hasDeletedMessage
+                ? {
+                    textDecoration: "line-through",
+                  }
+                : {}
+            }
+          >
+            <strong>Delete your messages</strong> by hovering on your message
+            and clicking the bin icon {/* TODO - use the bin icon */}
+          </li>
+        </ol>
         <LineBreak />
         Remember all Pinboard content is public and will be visible to everyone
         with access to Composer
       </div>
-    ), // TODO finish this
+    ),
     placement: "left-end",
   },
   individualMentions: {

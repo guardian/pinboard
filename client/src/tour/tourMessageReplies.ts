@@ -2,7 +2,10 @@ import { PendingItem } from "../types/PendingItem";
 import { Item } from "../../../shared/graphql/graphql";
 import { demoPinboardData, demoUser } from "./tourConstants";
 
-const pendingAsReceivedItem = ({ pending, ...item }: PendingItem) => item;
+export const pendingAsReceivedItem = ({
+  pending,
+  ...item
+}: PendingItem): Item => item;
 
 const buildMessageItem = (message: string, precedingItem: Item): Item => ({
   id: crypto.randomUUID(),
@@ -11,7 +14,7 @@ const buildMessageItem = (message: string, precedingItem: Item): Item => ({
     new Date(precedingItem.timestamp).getTime() + 250
   ).toISOString(),
   type: "message-only",
-  userEmail: demoUser.email,
+  userEmail: demoUser.email, // TODO - reply from person mentioned in preceding item
   groupMentions: null,
   mentions: null,
   payload: null,
@@ -23,15 +26,24 @@ const buildMessageItem = (message: string, precedingItem: Item): Item => ({
   pinboardId: demoPinboardData.id,
 });
 
-export const buildTourSubscriptionItems = (successfulSends: PendingItem[]) => {
-  if (successfulSends.length === 1) {
+export const replyTo = (
+  newItem: PendingItem,
+  successfulSends: PendingItem[]
+): Item[] => {
+  if (
+    successfulSends.length === 0 &&
+    newItem.mentions.length === 0 &&
+    newItem.groupMentions.length === 0
+  ) {
     return [
-      pendingAsReceivedItem(successfulSends[0]),
       buildMessageItem(
-        "Awesome! You've sent your first Pinboard message 🎉 Now you can proceed to the next step...",
-        successfulSends[0]
+        "Awesome! You've sent your first Pinboard message 🎉 You can ...",
+        newItem
       ),
     ];
   }
-  return [];
+
+  if (newItem.mentions.length > 0) {
+    return [buildMessageItem("Hey, thanks for mentioning me!", newItem)];
+  }
 };

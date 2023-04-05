@@ -30,6 +30,7 @@ export const demoPinboardsWithClaimCounts: PinboardDataWithClaimCounts[] = [
     pinboardId: "DEMO-TEAM-1",
     latestGroupMentionItemId: "123",
   },
+  // TODO - add more
 ];
 export const demoUser: User = {
   email: "pinboard.demo@guardian.co.uk",
@@ -38,3 +39,26 @@ export const demoUser: User = {
   isMentionable: false, // TODO - ensure demo user is NOT mentionable outside the tour before making this 'true'
   avatarUrl: null, // TODO - add Avatar image for demo user (e.g. 📌)
 };
+export const demoMentionableUsers: User[] = [
+  {
+    email: "hazel.nutt@guardian.co.uk",
+    firstName: "Hazel",
+    lastName: "Nutt",
+    isMentionable: true,
+    avatarUrl: null,
+  },
+  {
+    email: "chris.p.bacon@guardian.co.uk",
+    firstName: "Chris P.",
+    lastName: "Bacon",
+    isMentionable: true,
+    avatarUrl: null,
+  },
+  {
+    email: "bess.twishes@guardian.co.uk",
+    firstName: "Bess",
+    lastName: "Twishes",
+    isMentionable: true,
+    avatarUrl: null,
+  },
+];

@@ -2,7 +2,11 @@ import { PendingItem } from "../types/PendingItem";
 import { Item, User } from "../../../shared/graphql/graphql";
 import { demoPinboardData, demoUser } from "./tourConstants";
 
-export const pendingAsReceivedItem = ({ ...item }: PendingItem): Item => item;
+export const pendingAsReceivedItem = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentionally dropping pending key
+  pending,
+  ...item
+}: PendingItem): Item => item;
 
 const buildMessageItem = (
   user: User,
@@ -55,4 +59,6 @@ export const replyTo = (
       ),
     ];
   }
+
+  return [];
 };

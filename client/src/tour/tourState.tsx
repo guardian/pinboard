@@ -10,7 +10,12 @@ import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
 import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
-import { CreateItemInput, Item, User } from "../../../shared/graphql/graphql";
+import {
+  CreateItemInput,
+  EditItemInput,
+  Item,
+  User,
+} from "../../../shared/graphql/graphql";
 import { pendingAsReceivedItem, replyTo } from "./tourMessageReplies";
 import { demoMentionableUsers, demoPinboardData } from "./tourConstants";
 import { userToMentionHandle } from "../mentionsUtil";
@@ -30,6 +35,9 @@ interface TourStateContextShape {
   sendItem: (
     callback: () => void
   ) => (_: { variables: { input: CreateItemInput } }) => unknown;
+  editItem: (
+    callback: () => void
+  ) => (_: { variables: { itemId: string; input: EditItemInput } }) => unknown;
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
 }
@@ -79,6 +87,7 @@ export const useTourProgress = () => {
     successfulSends,
     subscriptionItems,
     sendItem,
+    editItem,
   } = useTourStateContext();
 
   const demoMentionsProvider = (token: string): Promise<User[]> =>
@@ -98,6 +107,7 @@ export const useTourProgress = () => {
     successfulSends,
     subscriptionItems,
     sendItem,
+    editItem,
     demoMentionsProvider,
     interactionFlags: {
       hasSentBasicMessage: !!successfulSends.length > 0,
@@ -107,10 +117,10 @@ export const useTourProgress = () => {
       hasMentionedTeam: !!successfulSends.find(
         (_) => _.groupMentions?.length > 0
       ),
-      hasEditedMessage: !!successfulSends.find(
+      hasEditedMessage: !!subscriptionItems.find(
         (_) => _.editHistory?.length > 0
       ),
-      hasDeletedMessage: !!successfulSends.find((_) => _.deletedAt),
+      hasDeletedMessage: !!subscriptionItems.find((_) => _.deletedAt),
     },
   };
 };
@@ -243,6 +253,32 @@ export const TourStateProvider: React.FC = ({ children }) => {
       );
     };
 
+  const editItem =
+    (callback: () => void) =>
+    ({
+      variables,
+    }: {
+      variables: { itemId: string; input: EditItemInput };
+    }) => {
+      callback();
+      setSubscriptionItems((prevSubscriptionItems) => {
+        const existingItem = prevSubscriptionItems.find(
+          (_) => _.id === variables.itemId
+        )!;
+        return [
+          ...prevSubscriptionItems,
+          {
+            ...existingItem,
+            editHistory: [
+              ...(existingItem.editHistory || []),
+              new Date().toISOString(),
+            ],
+            ...variables.input,
+          },
+        ];
+      });
+    };
+
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
     getRef,
@@ -254,6 +290,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     successfulSends,
     subscriptionItems,
     sendItem,
+    editItem,
   };
   return (
     <TourStateContext.Provider value={contextValue}>

@@ -2,9 +2,10 @@ import { Step } from "react-joyride";
 import React from "react";
 import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
-import { PendingItem } from "../types/PendingItem";
 import { LineBreak } from "./toolTip";
 import { space } from "@guardian/source-foundations";
+import Pencil from "../../icons/pencil.svg";
+import Bin from "../../icons/bin.svg";
 
 interface InteractionFlags {
   hasSentBasicMessage: boolean;
@@ -103,7 +104,7 @@ const _tourStepMap = {
             }
           >
             <strong>Send a basic message</strong> by typing in the box and
-            hitting Enter or clicking Send
+            hitting Enter
           </li>
           <li
             style={
@@ -127,7 +128,7 @@ const _tourStepMap = {
             }
           >
             <strong>Edit your messages</strong> by hovering on your message and
-            clicking pencil icon {/* TODO - use the Pencil icon */}
+            clicking <Pencil />
           </li>
           <li
             style={
@@ -139,7 +140,7 @@ const _tourStepMap = {
             }
           >
             <strong>Delete your messages</strong> by hovering on your message
-            and clicking the bin icon {/* TODO - use the bin icon */}
+            and clicking <Bin />
           </li>
         </ol>
         <LineBreak />

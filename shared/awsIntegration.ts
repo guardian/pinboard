@@ -1,15 +1,19 @@
 import { SSM } from "@aws-sdk/client-ssm";
-import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
+import { fromIni, fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { AWS_REGION } from "./awsRegion";
 import { APP } from "./constants";
 
-const PROFILE = "workflow";
+const LOCAL_PROFILE = "workflow";
+
+export const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
 
 export const STAGE = process.env.STAGE || "CODE"; // locally we use CODE AppSync API
 
 export const standardAwsConfig = {
   region: AWS_REGION,
-  credentials: fromNodeProviderChain({ profile: PROFILE }),
+  credentials: IS_RUNNING_LOCALLY
+    ? fromIni({ profile: LOCAL_PROFILE })
+    : fromNodeProviderChain(),
 };
 
 const ssm = new SSM(standardAwsConfig);

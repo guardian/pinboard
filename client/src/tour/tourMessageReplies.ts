@@ -13,7 +13,7 @@ const buildMessageItem = (
   message: string,
   precedingItem: Item
 ): Item => ({
-  id: crypto.randomUUID(),
+  id: crypto.randomUUID(), // FIXME this probably wants to be a sequential ID, to help with seenBy/unread logic
   message,
   timestamp: new Date(
     new Date(precedingItem.timestamp).getTime() + 250
@@ -38,8 +38,8 @@ export const replyTo = (
 ): Item[] => {
   if (
     successfulSends.length === 0 &&
-    newItem.mentions.length === 0 &&
-    newItem.groupMentions.length === 0
+    (newItem.mentions || []).length === 0 &&
+    (newItem.groupMentions || []).length === 0
   ) {
     return [
       buildMessageItem(
@@ -50,7 +50,7 @@ export const replyTo = (
     ];
   }
 
-  if (newItem.mentions.length > 0) {
+  if (newItem.mentions && newItem.mentions.length > 0) {
     return [
       buildMessageItem(
         demoMentionableUser,

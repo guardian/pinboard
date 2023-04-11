@@ -167,12 +167,14 @@ export const PinBoardApp = ({
     });
   }, []);
 
-  const [userLookup, setUserLookup] = useState<UserLookup>({
-    [demoUser.email]: demoUser,
-    ...Object.assign(
-      ...demoMentionableUsers.map((user) => ({ [user.email]: user }))
-    ),
-  });
+  const [userLookup, setUserLookup] = useState<UserLookup>(
+    // FIXME really not sure we should be doing this unless we're in the tour
+    demoMentionableUsers.reduce(
+      (acc, user) => ({ ...acc, [user.email]: user }),
+      { [demoUser.email]: demoUser }
+    )
+  );
+
   const [userEmailsToLookup, setEmailsToLookup] = useState<Set<string>>(
     new Set()
   );

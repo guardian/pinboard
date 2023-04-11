@@ -17,7 +17,11 @@ import {
   User,
 } from "../../../shared/graphql/graphql";
 import { pendingAsReceivedItem, replyTo } from "./tourMessageReplies";
-import { demoMentionableUsers, demoPinboardData } from "./tourConstants";
+import {
+  demoMentionableUsers,
+  demoPinboardData,
+  demoUser,
+} from "./tourConstants";
 import { userToMentionHandle } from "../mentionsUtil";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
@@ -110,15 +114,15 @@ export const useTourProgress = () => {
     editItem,
     demoMentionsProvider,
     interactionFlags: {
-      hasSentBasicMessage: !!successfulSends.length > 0,
+      hasSentBasicMessage: successfulSends.length > 0,
       hasMentionedIndividual: !!successfulSends.find(
-        (_) => _.mentions?.length > 0
+        (_) => (_.mentions || []).length > 0
       ),
       hasMentionedTeam: !!successfulSends.find(
-        (_) => _.groupMentions?.length > 0
+        (_) => (_.groupMentions || []).length > 0
       ),
       hasEditedMessage: !!subscriptionItems.find(
-        (_) => _.editHistory?.length > 0
+        (_) => (_.editHistory || []).length > 0
       ),
       hasDeletedMessage: !!subscriptionItems.find((_) => _.deletedAt),
     },
@@ -212,7 +216,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const sendItem =
     (callback: () => void) =>
     ({ variables }: { variables: { input: CreateItemInput } }) => {
-      const newItem = {
+      const newItem: PendingItem = {
         ...variables.input,
         id: (successfulSends.length + 1).toString(),
         timestamp: new Date().toISOString(),
@@ -222,7 +226,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
         relatedItemId: null,
         editHistory: null,
         deletedAt: null,
-        mentions: variables.input.mentions.map((email) => ({
+        mentions: (variables.input.mentions || []).map((email) => ({
           label: demoMentionableUsers
             .filter((_) => _.email === email)
             .map(userToMentionHandle)[0],
@@ -244,7 +248,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
             ...replyTo(
               demoMentionableUsers.find(
                 (_) => _.email === variables.input.mentions?.[0]
-              ),
+              ) || demoUser,
               newItem,
               successfulSends
             ),

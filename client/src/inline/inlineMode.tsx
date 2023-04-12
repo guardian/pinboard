@@ -37,9 +37,8 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     Record<string, PinboardIdWithItemCounts>
   >({});
 
-  const [fetchItemCounts, { stopPolling, startPolling }] = useLazyQuery(
-    gqlGetItemCounts
-  );
+  const [fetchItemCounts, { stopPolling, startPolling }] =
+    useLazyQuery(gqlGetItemCounts);
 
   useEffect(() => {
     stopPolling();

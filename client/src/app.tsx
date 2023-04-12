@@ -105,9 +105,8 @@ export const PinBoardApp = ({
     );
 
   const refreshPreselectedPinboard = () => {
-    const preselectPinboardHTMLElement: HTMLElement | null = document.querySelector(
-      PRESELECT_PINBOARD_HTML_TAG
-    );
+    const preselectPinboardHTMLElement: HTMLElement | null =
+      document.querySelector(PRESELECT_PINBOARD_HTML_TAG);
     const newComposerId = preselectPinboardHTMLElement?.dataset?.composerId;
     newComposerId !== preSelectedComposerId &&
       setPreselectedComposerId(newComposerId);
@@ -118,14 +117,14 @@ export const PinBoardApp = ({
       setComposerSection(newComposerSection);
   };
 
-  const [
-    presetUnreadNotificationCount,
-    setPresetUnreadNotificationCount,
-  ] = useState<number | undefined>();
+  const [presetUnreadNotificationCount, setPresetUnreadNotificationCount] =
+    useState<number | undefined>();
   const refreshPresetUnreadNotifications = () => {
-    const rawCount = (document.querySelector(
-      PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG
-    ) as HTMLElement)?.dataset?.count;
+    const rawCount = (
+      document.querySelector(
+        PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG
+      ) as HTMLElement
+    )?.dataset?.count;
 
     if (rawCount !== undefined) {
       const count = parseInt(rawCount);

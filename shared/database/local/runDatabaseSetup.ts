@@ -27,21 +27,22 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
     "create User table": () => runSetupSqlFile(sql, "005-UserTable.sql"),
     "enable Lambda invocation from within RDS DB": () =>
       runSetupSqlFile(sql, "006-EnableLambdaInvocation.sql"),
-    "create/update 'after insert' trigger on Item table (to invoke notifications-lambda if applicable)": async () =>
-      // TODO ideally we could do this with sql.file() but it doesn't seem to work
-      sql.unsafe(
-        readFileSync(
-          "./shared/database/local/setup/007-TriggerNotificationsLambdaAfterItemInsert.sql",
-          "utf8"
-        )
-          .replace(
-            "$notificationLambdaFunctionName",
-            getNotificationsLambdaFunctionName(stage)
+    "create/update 'after insert' trigger on Item table (to invoke notifications-lambda if applicable)":
+      async () =>
+        // TODO ideally we could do this with sql.file() but it doesn't seem to work
+        sql.unsafe(
+          readFileSync(
+            "./shared/database/local/setup/007-TriggerNotificationsLambdaAfterItemInsert.sql",
+            "utf8"
           )
-          .replace("$awsRegion", AWS_REGION)
-          .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
-          .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
-      ),
+            .replace(
+              "$notificationLambdaFunctionName",
+              getNotificationsLambdaFunctionName(stage)
+            )
+            .replace("$awsRegion", AWS_REGION)
+            .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
+            .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
+        ),
     "add googleID column to User table": () =>
       runSetupSqlFile(sql, "008-AddGoogleIDToUserTable.sql"),
     "create Group table": () => runSetupSqlFile(sql, "009-GroupTable.sql"),

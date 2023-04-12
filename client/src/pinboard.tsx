@@ -83,10 +83,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const claimSubscription = useSubscription(gqlOnClaimItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
-      const {
-        updatedItem,
-        newItem,
-      }: Claimed = subscriptionData.data.onClaimItem;
+      const { updatedItem, newItem }: Claimed =
+        subscriptionData.data.onClaimItem;
       addEmailsToLookup([newItem.userEmail]);
       setClaimItems((prevState) => [...prevState, updatedItem, newItem]);
       if (!isExpanded) {
@@ -152,10 +150,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
     }
   );
 
-  const [
-    lastItemSeenByUserLookup,
-    setLastItemSeenByUserLookup,
-  ] = useState<LastItemSeenByUserLookup>({});
+  const [lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
+    useState<LastItemSeenByUserLookup>({});
 
   useSubscription(gqlOnSeenItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
@@ -288,10 +284,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
     }
   }, [maybeEditingItemId]);
 
-  const [
-    maybeDeleteItemModalElement,
-    setMaybeDeleteItemModalElement,
-  ] = useState<JSX.Element | null>(null);
+  const [maybeDeleteItemModalElement, setMaybeDeleteItemModalElement] =
+    useState<JSX.Element | null>(null);
 
   return !isSelected ? null : (
     <React.Fragment>

@@ -42,14 +42,12 @@ const showNotification = (
             {
               action: "grid",
               title: "Open in new Grid tab",
-              icon:
-                "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
+              icon: "https://media.gutools.co.uk/assets/images/grid-favicon-32.png",
             },
             {
               action: "composer",
               title: "Open in new Composer tab",
-              icon:
-                "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
+              icon: "https://composer.gutools.co.uk/static/10791/image/images/favicon.ico",
             },
           ],
         }

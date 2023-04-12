@@ -20,31 +20,31 @@ const agateFontNameVariants = [
 
 // source foundations will give us Guardian Text Sans, but we usually want Guardian Agate Sans, so as to fit in with
 // the tools hosting pinboard.
-const overrideToAgateSans: FontOverride = (
-  originalFunc: FontScaleFunctionStr
-) => (options?: FontScaleArgs) => `
+const overrideToAgateSans: FontOverride =
+  (originalFunc: FontScaleFunctionStr) => (options?: FontScaleArgs) =>
+    `
   ${originalFunc(options)};
   font-family: ${agateFontNameVariants
     .map((_) => `"${_}"`)
     .join(",")}, Arial, sans-serif;
 `;
 
-const defaultToPx: FontOverride = (originalFunc: FontScaleFunctionStr) => (
-  options?: FontScaleArgs
-) => originalFunc({ unit: "px", ...options });
+const defaultToPx: FontOverride =
+  (originalFunc: FontScaleFunctionStr) => (options?: FontScaleArgs) =>
+    originalFunc({ unit: "px", ...options });
 
 type FontDefinition = { [fontSizeName: string]: FontScaleFunctionStr };
 
-const applyFontOverride = <T extends FontDefinition>(
-  fontOverride: FontOverride
-) => (originalFont: T) =>
-  Object.entries(originalFont).reduce(
-    (acc, [fontSizeName, fontScaleFunc]) => ({
-      ...acc,
-      [fontSizeName]: fontOverride(fontScaleFunc),
-    }),
-    {} as T
-  );
+const applyFontOverride =
+  <T extends FontDefinition>(fontOverride: FontOverride) =>
+  (originalFont: T) =>
+    Object.entries(originalFont).reduce(
+      (acc, [fontSizeName, fontScaleFunc]) => ({
+        ...acc,
+        [fontSizeName]: fontOverride(fontScaleFunc),
+      }),
+      {} as T
+    );
 
 const agateSansFont = applyFontOverride(overrideToAgateSans);
 const pixelSizedFont = applyFontOverride(defaultToPx);

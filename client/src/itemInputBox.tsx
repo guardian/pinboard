@@ -138,16 +138,22 @@ export const ItemInputBox = ({
         query: gqlSearchMentionableUsers(token),
         context: { debounceKey: "user-search", debounceTimeout: 250 },
       })
-      .then(({ data: { searchMentionableUsers: { users, groups } } }) => [
-        ...users.map((user: User, index: number) => ({
-          ...user,
-          heading: index === 0 ? "INDIVIDUALS" : undefined,
-        })),
-        ...groups.map((group: Group, index: number) => ({
-          ...group,
-          heading: index === 0 ? "GROUPS" : undefined,
-        })),
-      ]);
+      .then(
+        ({
+          data: {
+            searchMentionableUsers: { users, groups },
+          },
+        }) => [
+          ...users.map((user: User, index: number) => ({
+            ...user,
+            heading: index === 0 ? "INDIVIDUALS" : undefined,
+          })),
+          ...groups.map((group: Group, index: number) => ({
+            ...group,
+            heading: index === 0 ? "GROUPS" : undefined,
+          })),
+        ]
+      );
 
   useEffect(
     () => /* unmount handler */ () => {

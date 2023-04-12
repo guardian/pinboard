@@ -94,10 +94,8 @@ export const ScrollableItems = ({
     [lastItemSeenByUserLookup]
   );
 
-  const [
-    hasPinboardNeverBeenExpanded,
-    setHasPinboardNeverBeenExpanded,
-  ] = useState(true);
+  const [hasPinboardNeverBeenExpanded, setHasPinboardNeverBeenExpanded] =
+    useState(true);
 
   const [scrollableArea, setScrollableArea] = useState<HTMLDivElement | null>(
     null
@@ -192,10 +190,8 @@ export const ScrollableItems = ({
 
   const onScrollThrottled = useThrottle(onScroll, 250);
 
-  const [
-    itemDisplayContainer,
-    setItemDisplayContainer,
-  ] = useState<HTMLDivElement | null>(null);
+  const [itemDisplayContainer, setItemDisplayContainer] =
+    useState<HTMLDivElement | null>(null);
   const setItemDisplayContainerRef = useCallback(
     (node) => node && setItemDisplayContainer(node),
     []

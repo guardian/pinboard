@@ -430,27 +430,30 @@ export class PinBoardStack extends GuStack {
       }
     );
 
-    const pinboardWorkflowBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${WORKFLOW_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
-        .split("-")
-        .join("_")}_ds`,
-      pinboardWorkflowBridgeLambda
-    );
+    const pinboardWorkflowBridgeLambdaDataSource =
+      pinboardAppsyncApi.addLambdaDataSource(
+        `${WORKFLOW_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
+          .split("-")
+          .join("_")}_ds`,
+        pinboardWorkflowBridgeLambda
+      );
 
-    const pinboardGridBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${gridBridgeLambdaBasename
-        .replace("pinboard-", "")
-        .split("-")
-        .join("_")}_ds`,
-      pinboardGridBridgeLambda
-    );
+    const pinboardGridBridgeLambdaDataSource =
+      pinboardAppsyncApi.addLambdaDataSource(
+        `${gridBridgeLambdaBasename
+          .replace("pinboard-", "")
+          .split("-")
+          .join("_")}_ds`,
+        pinboardGridBridgeLambda
+      );
 
-    const pinboardDatabaseBridgeLambdaDataSource = pinboardAppsyncApi.addLambdaDataSource(
-      `${DATABASE_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
-        .split("-")
-        .join("_")}_ds`,
-      pinboardDatabaseBridgeLambda
-    );
+    const pinboardDatabaseBridgeLambdaDataSource =
+      pinboardAppsyncApi.addLambdaDataSource(
+        `${DATABASE_BRIDGE_LAMBDA_BASENAME.replace("pinboard-", "")
+          .split("-")
+          .join("_")}_ds`,
+        pinboardDatabaseBridgeLambda
+      );
 
     const gqlSchemaChecksum = crypto
       .createHash("md5")
@@ -464,18 +467,17 @@ export class PinBoardStack extends GuStack {
         `## schema checksum : ${gqlSchemaChecksum}\n${mappingTemplate.renderTemplate()}`
       );
 
-    const createLambdaResolver = (
-      lambdaDS: appsync.LambdaDataSource,
-      typeName: "Query" | "Mutation"
-    ) => (fieldName: string) => {
-      lambdaDS.createResolver({
-        typeName,
-        fieldName,
-        responseMappingTemplate: resolverBugWorkaround(
-          appsync.MappingTemplate.lambdaResult()
-        ),
-      });
-    };
+    const createLambdaResolver =
+      (lambdaDS: appsync.LambdaDataSource, typeName: "Query" | "Mutation") =>
+      (fieldName: string) => {
+        lambdaDS.createResolver({
+          typeName,
+          fieldName,
+          responseMappingTemplate: resolverBugWorkaround(
+            appsync.MappingTemplate.lambdaResult()
+          ),
+        });
+      };
 
     QUERIES.database.forEach(
       createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Query")
@@ -589,10 +591,11 @@ export class PinBoardStack extends GuStack {
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint]:
             pinboardAppsyncApi.graphqlUrl,
-          [ENVIRONMENT_VARIABLE_KEYS.sentryDSN]: ssm.StringParameter.valueForStringParameter(
-            this,
-            "/pinboard/sentryDSN"
-          ),
+          [ENVIRONMENT_VARIABLE_KEYS.sentryDSN]:
+            ssm.StringParameter.valueForStringParameter(
+              this,
+              "/pinboard/sentryDSN"
+            ),
         },
         functionName: `${bootstrappingLambdaBasename}-${this.stage}`,
         code: lambda.Code.fromBucket(

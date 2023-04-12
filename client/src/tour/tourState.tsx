@@ -245,6 +245,13 @@ export const TourStateProvider: React.FC = ({ children }) => {
           setSubscriptionItems((prevSubscriptionItems) => [
             ...prevSubscriptionItems,
             pendingAsReceivedItem(newItem),
+          ]),
+        750
+      );
+      setTimeout(
+        () =>
+          setSubscriptionItems((prevSubscriptionItems) => [
+            ...prevSubscriptionItems,
             ...replyTo(
               demoMentionableUsers.find(
                 (_) => _.email === variables.input.mentions?.[0]
@@ -253,7 +260,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
               successfulSends
             ),
           ]),
-        500
+        1500
       );
     };
 

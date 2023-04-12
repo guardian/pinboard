@@ -16,7 +16,7 @@ const buildMessageItem = (
   id: crypto.randomUUID(), // FIXME this probably wants to be a sequential ID, to help with seenBy/unread logic
   message,
   timestamp: new Date(
-    new Date(precedingItem.timestamp).getTime() + 250
+    new Date(precedingItem.timestamp).getTime() + 750
   ).toISOString(),
   type: "message-only",
   userEmail: user.email,

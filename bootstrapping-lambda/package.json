@@ -7,7 +7,7 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "test": "jest --coverage --forceExit",
-    "bundle": "esbuild src/server.ts --bundle --minify --outfile=dist/index.js --platform=node",
+    "bundle": "esbuild src/server.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
     "watch": "ts-node-dev --respawn local/index.ts",
     "build": "run-p --print-label type-check bundle"
   },

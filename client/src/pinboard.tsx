@@ -158,8 +158,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
     }
   );
 
-  const [lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
+  const [_lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
     useState<LastItemSeenByUserLookup>({});
+  const lastItemSeenByUserLookup = tourProgress.isRunning
+    ? tourProgress.lastItemSeenByUserLookup
+    : _lastItemSeenByUserLookup;
 
   useSubscription(gqlOnSeenItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
@@ -167,7 +170,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         subscriptionData.data.onSeenItem;
       addEmailsToLookup([newLastItemSeenByUser.userEmail]);
       const previousLastItemSeenByUser =
-        lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
+        _lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
       if (
         !previousLastItemSeenByUser ||
         previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt

@@ -14,6 +14,8 @@ import {
   CreateItemInput,
   EditItemInput,
   Item,
+  LastItemSeenByUser,
+  LastItemSeenByUserInput,
   User,
 } from "../../../shared/graphql/graphql";
 import { pendingAsReceivedItem, replyTo } from "./tourMessageReplies";
@@ -23,6 +25,7 @@ import {
   demoUser,
 } from "./tourConstants";
 import { userToMentionHandle } from "../mentionsUtil";
+import { LastItemSeenByUserLookup } from "../pinboard";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -45,6 +48,10 @@ interface TourStateContextShape {
   deleteItem: (itemId: string) => unknown;
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
+  lastItemSeenByUserLookup: LastItemSeenByUserLookup;
+  seenItem: (
+    userEmail: string
+  ) => (_: { variables: { input: LastItemSeenByUserInput } }) => unknown;
 }
 
 const TourStateContext = React.createContext<TourStateContextShape | null>(
@@ -91,9 +98,11 @@ export const useTourProgress = () => {
     start,
     successfulSends,
     subscriptionItems,
+    lastItemSeenByUserLookup,
     sendItem,
     editItem,
     deleteItem,
+    seenItem,
   } = useTourStateContext();
 
   const demoMentionsProvider = (token: string): Promise<User[]> =>
@@ -112,9 +121,11 @@ export const useTourProgress = () => {
     start,
     successfulSends,
     subscriptionItems,
+    lastItemSeenByUserLookup,
     sendItem,
     editItem,
     deleteItem,
+    seenItem,
     demoMentionsProvider,
     interactionFlags: {
       hasSentBasicMessage: successfulSends.length > 0,
@@ -215,6 +226,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
   const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const [lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
+    useState<LastItemSeenByUserLookup>({});
 
   const sendItem =
     (callback: () => void) =>
@@ -249,19 +262,32 @@ export const TourStateProvider: React.FC = ({ children }) => {
             ...prevSubscriptionItems,
             pendingAsReceivedItem(newItem),
           ]),
-        750
+        500
       );
+      const replyingUser =
+        demoMentionableUsers.find(
+          (_) => _.email === variables.input.mentions?.[0]
+        ) || demoUser;
+      setTimeout(() => {
+        const args = {
+          variables: {
+            input: { pinboardId: demoPinboardData.id, itemID: newItem.id },
+          },
+        };
+        seenItem(replyingUser.email)(args);
+
+        const otherUsers = [...demoMentionableUsers, demoUser].filter(
+          (_) => _.email !== replyingUser.email
+        );
+        const otherUser =
+          otherUsers[Math.floor(Math.random() * otherUsers.length)];
+        seenItem(otherUser.email)(args);
+      }, 1000);
       setTimeout(
         () =>
           setSubscriptionItems((prevSubscriptionItems) => [
             ...prevSubscriptionItems,
-            ...replyTo(
-              demoMentionableUsers.find(
-                (_) => _.email === variables.input.mentions?.[0]
-              ) || demoUser,
-              newItem,
-              successfulSends
-            ),
+            ...replyTo(replyingUser, newItem, successfulSends),
           ]),
         1500
       );
@@ -306,6 +332,20 @@ export const TourStateProvider: React.FC = ({ children }) => {
     });
   };
 
+  const seenItem =
+    (userEmail: string) =>
+    ({ variables }: { variables: { input: LastItemSeenByUserInput } }) => {
+      setLastItemSeenByUserLookup((prevLookup) => ({
+        ...prevLookup,
+        [userEmail]: {
+          pinboardId: variables.input.pinboardId,
+          itemID: variables.input.itemID,
+          userEmail,
+          seenAt: new Date().toISOString(),
+        },
+      }));
+    };
+
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
     getRef,
@@ -316,9 +356,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
     isRunning,
     successfulSends,
     subscriptionItems,
+    lastItemSeenByUserLookup,
     sendItem,
     editItem,
     deleteItem,
+    seenItem,
   };
   return (
     <TourStateContext.Provider value={contextValue}>

@@ -26,6 +26,7 @@ import { useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
+import { useTourProgress } from "./tour/tourState";
 
 interface ScrollableItemsProps {
   items: Array<PendingItem | Item>;
@@ -122,7 +123,9 @@ export const ScrollableItems = ({
     onScroll();
   };
 
-  const [seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
+  const tourProgress = useTourProgress();
+
+  const [_seenItem] = useMutation<{ seenItem: LastItemSeenByUser }>(
     gqlSeenItem,
     {
       onError(error) {
@@ -130,6 +133,9 @@ export const ScrollableItems = ({
       }, // TODO bubble up as proper error
     }
   );
+  const seenItem = tourProgress.isRunning
+    ? tourProgress.seenItem(userEmail)
+    : _seenItem;
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 

@@ -2,22 +2,22 @@ import { getDatabaseConnection } from "../../shared/database/databaseConnection"
 import { getWorkflowBridgeLambdaFunctionName } from "../../shared/constants";
 import { STAGE, standardAwsConfig } from "../../shared/awsIntegration";
 import { Stage } from "../../shared/types/stage";
-import * as AWS from "aws-sdk";
+import { Lambda } from "@aws-sdk/client-lambda";
 
-const lambda = new AWS.Lambda(standardAwsConfig);
+const lambda = new Lambda(standardAwsConfig);
 
 export const handler = async () => {
   const sql = await getDatabaseConnection();
 
   try {
     const activeWorkflowIds: string[] = JSON.parse(
-      (
-        await lambda
-          .invoke({
+      Buffer.from(
+        (
+          await lambda.invoke({
             FunctionName: getWorkflowBridgeLambdaFunctionName(STAGE as Stage),
           })
-          .promise()
-      ).Payload!.toString()
+        ).Payload!
+      ).toString()
     );
 
     console.log(`Active workflow items: ${activeWorkflowIds.length}`);

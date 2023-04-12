@@ -4,13 +4,16 @@ import { default as express } from "express";
 import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
-import { standardAwsConfig } from "../../shared/awsIntegration";
-import * as AWS from "aws-sdk";
+import {
+  IS_RUNNING_LOCALLY,
+  standardAwsConfig,
+} from "../../shared/awsIntegration";
+import { S3 } from "@aws-sdk/client-s3";
 import fs from "fs";
 import {
   applyAggressiveCaching,
-  applyNoCaching,
   applyJavascriptContentType,
+  applyNoCaching,
 } from "./util";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
 import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
@@ -23,9 +26,7 @@ import {
 
 import { getMetrics } from "./reporting/reportingServiceClient";
 
-const IS_RUNNING_LOCALLY = !process.env.LAMBDA_TASK_ROOT;
-
-const S3 = new AWS.S3(standardAwsConfig);
+const s3 = new S3(standardAwsConfig);
 
 const server = express();
 
@@ -122,7 +123,7 @@ server.get(
       return response.send(`console.error('${message}')`);
     }
 
-    const appSyncConfig = await generateAppSyncConfig(request.userEmail!, S3);
+    const appSyncConfig = await generateAppSyncConfig(request.userEmail!, s3);
 
     response.send(
       loaderTemplate(

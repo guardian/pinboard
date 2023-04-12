@@ -2,7 +2,7 @@ import { DATABASE_PORT, getDatabaseProxyName } from "../database";
 import { Stage } from "../../types/stage";
 import { exec } from "child_process";
 import { promisify } from "util";
-import AWS from "aws-sdk";
+import { RDS } from "@aws-sdk/client-rds";
 import { standardAwsConfig } from "../../awsIntegration";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../environmentVariables";
 import { getDatabaseJumpHost } from "./getDatabaseJumpHost";
@@ -91,9 +91,9 @@ export async function createDatabaseTunnel() {
 
   const DBProxyName = getDatabaseProxyName(stage);
 
-  const dbProxyResponse = await new AWS.RDS(standardAwsConfig)
-    .describeDBProxies({ DBProxyName })
-    .promise();
+  const dbProxyResponse = await new RDS(standardAwsConfig).describeDBProxies({
+    DBProxyName,
+  });
 
   const { Endpoint } = dbProxyResponse.DBProxies![0]!;
   process.env[ENVIRONMENT_VARIABLE_KEYS.databaseHostname] = Endpoint!;

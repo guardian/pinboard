@@ -5,10 +5,13 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
     "type-check": "tsc --noEmit",
-    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --external:aws-sdk --platform=node",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --platform=node",
     "build": "run-p --print-label type-check bundle"
   },
   "dependencies": {
     "jose": "^4.3.7"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "^3.299.0"
   }
 }

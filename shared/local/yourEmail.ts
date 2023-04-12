@@ -1,9 +1,9 @@
 import { standardAwsConfig } from "../awsIntegration";
-import AWS from "aws-sdk";
+import { STS } from "@aws-sdk/client-sts";
 
 export const getYourEmail = async () => {
   const userName = (
-    await new AWS.STS(standardAwsConfig).getCallerIdentity().promise()
+    await new STS(standardAwsConfig).getCallerIdentity({})
   ).UserId?.split(":")[1];
 
   return `${userName}@guardian.co.uk`;

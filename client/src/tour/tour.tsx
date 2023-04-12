@@ -25,16 +25,20 @@ export const Tour = ({ panelElement }: TourProps) => {
     target: panelElement,
     content: (
       <div>
-        A tool to discuss and share the assets for a story within the story
-        itself.
+        Pinboard allows users to easily have a conversation, and share image
+        assets from within a file.
+        <br />
+        Take a tour
         <div style={{ display: "flex", gap: `${space[1]}px` }}>
           <BeaconIcon />
-          <b>Follow the beacon</b> to take a tour.
+          <span>
+            <strong>Follow the beacon</strong> or select from the list below.
+          </span>
         </div>
         <LineBreak />
         <div>
           You can also jump straight:
-          <ol style={{ marginTop: `${space[1]}px`, paddingLeft: "14px" }}>
+          <ol style={{ marginTop: `${space[1]}px`, paddingLeft: "25px" }}>
             {tourStepEntries.map(([tourStepId, { title }]) => (
               <li
                 key={tourStepId}
@@ -49,13 +53,19 @@ export const Tour = ({ panelElement }: TourProps) => {
             ))}
           </ol>
           <LineBreak />
-          Access via:
+          You can access Pinboard on:
           <ul style={{ marginTop: `${space[1]}px` }}>
-            <li>Composer</li>
-            <li>Workflow</li>
-            <li>Grid</li>
+            <li>
+              <strong>Composer</strong>
+            </li>
+            <li>
+              <strong>Workflow</strong>
+            </li>
+            <li>
+              <strong>Grid</strong>
+            </li>
           </ul>
-          Stories must be tracked in Workflow to appear in Pinboard.
+          Files must be tracked in Workflow to appear on Pinboard
         </div>
         <div
           style={{

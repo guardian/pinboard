@@ -347,10 +347,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
       {activeTab === "chat" && (
         <div
           ref={useTourStepRef(
-            "basicMessage",
-            "individualMentions",
-            "groupMentionsAndRequests",
-            "editAndDelete"
+            "messaging",
+            "requests",
+            "sharingGridAssets",
+            "workflow"
           )}
         >
           <SendMessageArea

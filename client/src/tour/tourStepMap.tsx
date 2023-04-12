@@ -25,61 +25,66 @@ type CustomStep = Omit<Omit<Step, "target">, "content"> & {
 
 const _tourStepMap = {
   myPinboards: {
-    title: "My Pinboards",
+    title: "My boards",
     isIndexView: true,
     spotlightClicks: false,
     content: (
       <div>
         The list of pinboards where:
         <ul>
-          <li>you are active on</li>
-          <li>have been sent a message</li>
-          <li>or have been mentioned in</li>
+          <li>You have edited the body text or furniture</li>
+          <li>
+            or, have been <strong>@mentioned</strong>
+          </li>
         </ul>
         <LineBreak />
-        You can manually hide them by clicking on the x icon.
+        You can manually hide these items from your list by selecting the ‘X’
+        icon.
       </div>
     ),
     placement: "left",
   },
   teamPinboards: {
-    title: "My teams' Pinboards",
+    title: "My teams' boards",
     isIndexView: true,
     spotlightClicks: false,
     content: (
       <div>
-        These are the Pinboards where your team is tagged (in a message or a
-        request).
+        This where you can see all the stories where any of the teams you belong
+        to have been mentioned.
+        <LineBreak />
+        You will be able to see requests made to your team, both unclaimed and
+        claimed.
       </div>
     ),
     placement: "left",
   },
   searchbar: {
-    title: "Search for a Pinboard",
+    title: "Search",
     isIndexView: true,
     content: (
       <div>
-        You can search for Pinboards using this searchbar.
+        You can search for boards using the ‘Search’ toolbar at the bottom of
+        the index.
         <LineBreak />
-        Remember files need to be tracked on Workflow to have a Pinboard!
+        Remember: files must be tracked on Workflow to appear on Pinboard
       </div>
     ),
     placement: "left",
   },
   notificationSetting: {
-    title: "Desktop Notifications",
+    title: "Manage notifications",
     spotlightClicks: false,
     isIndexView: true,
     content: (
       <div>
-        Turn browser notifications on and off by clicking the subscribe button
-        <LineBreak />
-        You will get notifications on the icon regardless.
+        Turn browser notifications on by clicking the ‘Subscribe to desktop
+        notifications’ button
       </div>
     ),
     placement: "left",
   },
-  basicMessage: {
+  messaging: {
     title: "Messaging",
     isIndexView: false,
     shouldEnlargeSpotlight: ({ hasSentBasicMessage }) => hasSentBasicMessage,
@@ -150,37 +155,57 @@ const _tourStepMap = {
     ),
     placement: "left-end",
   },
-  individualMentions: {
-    title: "Mentioning individuals",
+  requests: {
+    title: "Requests",
     isIndexView: false,
     content: (
       <div>
-        Mention a colleague by typing an @ followed by their name. This will add
-        the pinboard to their list of pinboards (and they should get a desktop
-        notification if they have switched them on).
+        You can make requests by @mentioning a team.
+        <ul>
+          <li>You won’t need to know who’s on rota to ask for help</li>
+          <li>
+            They will be able to claim a request and confirm they are
+            responsible for that work
+          </li>
+        </ul>
       </div>
     ),
     placement: "left-end",
   },
-  groupMentionsAndRequests: {
-    title: "Mentioning groups/teams and requests",
+  sharingGridAssets: {
+    title: "Sharing Grid assets",
     isIndexView: false,
     content: (
       <div>
-        You can mention a team (with @) and turn your message into a request.
-        All team members will receive a desktop notification and track whether
-        the request has been completed.
+        Share assets directly from Grid
+        <ul>
+          <li>Use the button under to the thumbnails</li>
+          <li>Drag and drop thumbnails directly onto Pinboard</li>
+        </ul>
       </div>
     ),
     placement: "left-end",
   },
-  editAndDelete: {
-    title: "Editing and deleting messages",
+  assetView: {
+    title: "Asset View",
+    isIndexView: false,
+    content: (
+      <div>View all the assets shared in a story file collated in this tab</div>
+    ),
+    placement: "bottom",
+  },
+  workflow: {
+    title: "Access from Workflow",
     isIndexView: false,
     content: (
       <div>
-        You can edit <EditIcon /> or delete <BinIcon /> a message by clicking on
-        the corresponding icon next to your message.
+        Enable the Worfklow Pinboard column through the Workflow filters panel
+        <ul>
+          <li>Select Pinboard</li>
+          <li>Click reload at the bottom of the checklist</li>
+        </ul>
+        <LineBreak />
+        This will allow you to interact with Pinboard directly from Workflow
       </div>
     ),
     placement: "left-end",

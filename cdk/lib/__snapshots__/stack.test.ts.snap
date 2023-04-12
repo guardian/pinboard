@@ -124,7 +124,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -2452,7 +2452,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -2593,7 +2593,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -3243,7 +3243,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -3427,7 +3427,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -3561,7 +3561,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -3760,7 +3760,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",
@@ -4070,7 +4070,7 @@ $util.toJson($ctx.result)",
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Tags": Array [
           Object {
             "Key": "gu:cdk:version",

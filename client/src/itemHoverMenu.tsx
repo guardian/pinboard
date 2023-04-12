@@ -10,6 +10,7 @@ import { useMutation } from "@apollo/client";
 import { gqlDeleteItem } from "../gql";
 import { Item } from "../../shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { useTourProgress } from "./tour/tourState";
 
 export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
@@ -59,8 +60,9 @@ export const ItemHoverMenu = ({
       alert(`failed to delete item`);
     },
   });
-
   const sendTelemetryEvent = useContext(TelemetryContext);
+
+  const tourProgress = useTourProgress();
 
   const onClickDeleteItem = () => {
     confirmDelete().then((confirmed) => {
@@ -71,12 +73,16 @@ export const ItemHoverMenu = ({
 
       if (confirmed) {
         // TODO show spinner whilst deleting
-        deleteItem({ variables: { itemId: item.id } });
-        sendTelemetryEvent?.(
-          PINBOARD_TELEMETRY_TYPE.DELETE_ITEM,
-          telemetryPayload
-        );
-      } else {
+        if (tourProgress.isRunning) {
+          tourProgress.deleteItem(item.id);
+        } else {
+          deleteItem({ variables: { itemId: item.id } });
+          sendTelemetryEvent?.(
+            PINBOARD_TELEMETRY_TYPE.DELETE_ITEM,
+            telemetryPayload
+          );
+        }
+      } else if (!tourProgress.isRunning) {
         sendTelemetryEvent?.(
           PINBOARD_TELEMETRY_TYPE.CANCEL_DELETE_ITEM,
           telemetryPayload

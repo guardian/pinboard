@@ -42,6 +42,7 @@ interface TourStateContextShape {
   editItem: (
     callback: () => void
   ) => (_: { variables: { itemId: string; input: EditItemInput } }) => unknown;
+  deleteItem: (itemId: string) => unknown;
   successfulSends: PendingItem[];
   subscriptionItems: Item[];
 }
@@ -92,6 +93,7 @@ export const useTourProgress = () => {
     subscriptionItems,
     sendItem,
     editItem,
+    deleteItem,
   } = useTourStateContext();
 
   const demoMentionsProvider = (token: string): Promise<User[]> =>
@@ -112,6 +114,7 @@ export const useTourProgress = () => {
     subscriptionItems,
     sendItem,
     editItem,
+    deleteItem,
     demoMentionsProvider,
     interactionFlags: {
       hasSentBasicMessage: successfulSends.length > 0,
@@ -290,6 +293,19 @@ export const TourStateProvider: React.FC = ({ children }) => {
       });
     };
 
+  const deleteItem = (itemId: string) => {
+    setSubscriptionItems((prevSubscriptionItems) => {
+      const itemToDelete = prevSubscriptionItems.find((_) => _.id === itemId)!;
+      return [
+        ...prevSubscriptionItems,
+        {
+          ...itemToDelete,
+          deletedAt: new Date().toISOString(),
+        },
+      ];
+    });
+  };
+
   const contextValue: TourStateContextShape = {
     refs: Object.values(refMap),
     getRef,
@@ -302,6 +318,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     subscriptionItems,
     sendItem,
     editItem,
+    deleteItem,
   };
   return (
     <TourStateContext.Provider value={contextValue}>

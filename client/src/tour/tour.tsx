@@ -83,6 +83,7 @@ export const Tour = ({ panelElement }: TourProps) => {
     handleCallback,
     isRunning,
     successfulSends,
+    subscriptionItems,
     interactionFlags,
   } = useTourProgress();
 
@@ -100,7 +101,11 @@ export const Tour = ({ panelElement }: TourProps) => {
           : useTourStepRef(tourStepId as TourStepID).current || tourStepId,
       })),
     ],
-    [...useTourStepRefs().map((_) => _.current), ...successfulSends]
+    [
+      ...useTourStepRefs().map((_) => _.current),
+      ...successfulSends,
+      ...subscriptionItems,
+    ]
   );
 
   return (

@@ -74,7 +74,7 @@ export const ItemHoverMenu = ({
       if (confirmed) {
         // TODO show spinner whilst deleting
         if (tourProgress.isRunning) {
-          tourProgress.deleteItem(item.id);
+          setTimeout(() => tourProgress.deleteItem(item.id), 50);
         } else {
           deleteItem({ variables: { itemId: item.id } });
           sendTelemetryEvent?.(

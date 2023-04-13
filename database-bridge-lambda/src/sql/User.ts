@@ -19,12 +19,12 @@ export const searchMentionableUsers = async (
         LIMIT 5
     `,
   groups: await sql`
-    SELECT "shorthand", "name", (
+    SELECT "shorthand", "name", COALESCE((
         SELECT json_agg("email")
         FROM "User", "GroupMember"
         WHERE "shorthand" = "GroupMember"."groupShorthand"
         AND "GroupMember"."userGoogleID" = "User"."googleID"
-        ) AS "memberEmails"
+        ), '[]') AS "memberEmails"
     FROM "Group"
     WHERE "shorthand" ILIKE ${args.prefix + "%"}
     OR "name" ILIKE ${"%" + args.prefix + "%"}

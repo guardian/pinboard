@@ -12,6 +12,8 @@ import { useTourProgress } from "./tour/tourState";
 export const Feedback = () => {
   const sendTelemetryEvent = useContext(TelemetryContext);
   const [isOpen, setIsOpen] = useState(false);
+  const tourProgress = useTourProgress();
+
   return (
     <div
       css={css`
@@ -163,23 +165,25 @@ export const Feedback = () => {
             />
           </div>
         )}
-        <div
-          css={css`
-            color: white;
-          `}
-        >
-          First time on Pinboard? Start{" "}
-          <span
-            role="button"
+        {!tourProgress.isRunning && (
+          <div
             css={css`
-              text-decoration: underline;
-              cursor: pointer;
+              color: white;
             `}
-            onClick={useTourProgress().start}
           >
-            Guided Tour
-          </span>
-        </div>
+            First time on Pinboard? Start{" "}
+            <span
+              role="button"
+              css={css`
+                text-decoration: underline;
+                cursor: pointer;
+              `}
+              onClick={useTourProgress().start}
+            >
+              Guided Tour
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

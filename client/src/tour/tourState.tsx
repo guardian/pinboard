@@ -221,7 +221,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const start = () => {
     setTourHistory([]);
-    continueTourTo(0);
+    setTourState({ isRunning: true, stepIndex: -1 });
   };
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);

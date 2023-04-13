@@ -10,7 +10,7 @@ import {
 } from "./tourState";
 import { TourStepID, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
-import { LineBreak, primaryButtonStyles, Tooltip } from "./toolTip";
+import { LineBreak, primaryButtonStyles, Tooltip } from "./tooltip";
 
 interface TourProps {
   panelElement: HTMLElement;

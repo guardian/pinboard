@@ -3,6 +3,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { TooltipRenderProps } from "react-joyride";
 import { composer } from "../../colours";
 import { tourStepIDs } from "./tourStepMap";
+import { SvgCross } from "@guardian/source-react-components";
 
 export const tourButtonStyles = {
   display: "flex",
@@ -42,6 +43,29 @@ export const LineBreak = () => (
   />
 );
 
+const CloseButton = ({ ...props }) => {
+  return (
+    <div {...props} style={{ cursor: "pointer" }}>
+      <SvgCross size="xsmall" />
+    </div>
+  );
+};
+
+const PrevButton = ({ ...props }) => {
+  return (
+    <button style={secondaryButtonStyles} {...props}>
+      Previous
+    </button>
+  );
+};
+const NextButton = ({ ...props }) => {
+  return (
+    <button style={primaryButtonStyles} {...props}>
+      Next
+    </button>
+  );
+};
+
 export const Tooltip = ({
   index,
   step,
@@ -62,9 +86,20 @@ export const Tooltip = ({
       borderRadius: `${space[2]}px`,
     }}
   >
-    {step.title && (
-      <h3 style={{ margin: `${space[2]}px 0 ${space[3]}px` }}>{step.title}</h3>
-    )}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+      }}
+    >
+      {step.title && (
+        <h3 style={{ margin: `${space[2]}px 0 ${space[3]}px` }}>
+          {step.title}
+        </h3>
+      )}
+      <CloseButton {...closeProps} />
+    </div>
     <div style={{ textAlign: "left" }}>{step.content}</div>
     {index > 0 && (
       <div
@@ -78,12 +113,8 @@ export const Tooltip = ({
           {index + 1} of {tourStepIDs.length + 1}
         </p>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button style={secondaryButtonStyles} {...backProps}>
-            Previous
-          </button>
-          <button style={primaryButtonStyles} {...primaryProps}>
-            Next
-          </button>
+          <PrevButton {...backProps} />
+          <NextButton {...primaryProps} />
         </div>
       </div>
     )}

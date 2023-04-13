@@ -2,7 +2,7 @@ import { Step } from "react-joyride";
 import React from "react";
 import EditIcon from "../../icons/pencil.svg";
 import BinIcon from "../../icons/bin.svg";
-import { LineBreak } from "./toolTip";
+import { LineBreak } from "./tooltip";
 import { space } from "@guardian/source-foundations";
 import Pencil from "../../icons/pencil.svg";
 import Bin from "../../icons/bin.svg";

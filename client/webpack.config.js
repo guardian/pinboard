@@ -61,6 +61,10 @@ module.exports = (env, argv) => {
           test: /\.svg$/,
           use: ["@svgr/webpack"],
         },
+        {
+          test: /\.(jpe?g|png)/,
+          type: "asset/inline",
+        },
       ],
     },
     resolve: {

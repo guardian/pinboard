@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { space } from "@guardian/source-foundations";
-import BeaconIcon from "../../icons/beacon";
 import Joyride, { Step } from "react-joyride";
 import {
   useJumpToTourStep,
@@ -8,10 +7,9 @@ import {
   useTourStepRef,
   useTourStepRefs,
 } from "./tourState";
-import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
+import { TourStepID, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
-import { primaryButtonStyles, Tooltip } from "./tooltip";
-import root from "react-shadow/emotion";
+import { Tooltip } from "./tooltip";
 import { css } from "@emotion/react";
 import Warning from "../../icons/warning.svg";
 
@@ -27,27 +25,29 @@ export const Tour = ({ panelElement }: TourProps) => {
     spotlightClicks: false,
     target: panelElement,
     content: (
-      <root.div
+      <div
         css={css`
           list-style-type: auto;
         `}
       >
-        Pinboard allows users to easily have a conversation, and share image
-        assets from within a file.
+        Pinboard allows users to easily have conversations and share image
+        assets specific to Composer pieces.
         <div
           css={css`
             margin-top: ${space[2]}px;
           `}
         >
-          <strong>Take a tour</strong>
-          <div>
-            <BeaconIcon />
-            <strong>Follow the beacon</strong> or select from the list below:
-          </div>
+          <p
+            css={css`
+              margin-bottom: 0;
+            `}
+          >
+            Explore Pinboard&apos;s features:
+          </p>
           <div>
             <ol
               css={css`
-                margin-top: ${space[1]}px;
+                margin-top: 0;
                 padding-left: ${space[6]}px;
               `}
             >
@@ -82,10 +82,10 @@ export const Tour = ({ panelElement }: TourProps) => {
               <strong>Grid</strong>
             </li>
           </ul>
-          <Warning />
-          Files must be tracked in Workflow to appear on Pinboard.
+          <Warning viewBox="2 -3 16 13" />
+          Composer pieces must be tracked in Workflow to appear in Pinboard.
         </div>
-        <div
+        {/* <div
           css={css`
             display: flex;
             justify-content: space-between;
@@ -105,11 +105,11 @@ export const Tour = ({ panelElement }: TourProps) => {
           >
             Next
           </button>
-        </div>
-      </root.div>
+        </div> */}
+      </div>
     ),
     placement: "left",
-    hideFooter: true,
+    hideFooter: false,
     disableBeacon: true,
   };
 

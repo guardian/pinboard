@@ -5,13 +5,7 @@
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "scripts": {
     "type-check": "tsc --noEmit",
-    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js --platform=node",
+    "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
     "build": "run-p --print-label type-check bundle"
-  },
-  "devDependencies": {
-    "@types/node-fetch": "^3.0.3"
-  },
-  "dependencies": {
-    "node-fetch": "^3.2.0"
   }
 }

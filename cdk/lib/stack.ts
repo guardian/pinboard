@@ -54,7 +54,7 @@ import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
 
 // if changing should also change .nvmrc (at the root of repo)
-const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_16_X;
+const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
 
 interface PinBoardStackProps extends GuStackProps {
   domainName: string;

@@ -48,10 +48,10 @@ const PrevButton = ({ ...props }) => {
     </button>
   );
 };
-const NextButton = ({ ...props }) => {
+const NextButton = ({ customLabel, ...props }: { customLabel: string }) => {
   return (
     <button style={primaryButtonStyles} {...props}>
-      Next
+      {customLabel}
     </button>
   );
 };
@@ -91,24 +91,25 @@ export const Tooltip = ({
       <CloseButton {...closeProps} />
     </div>
     <div style={{ textAlign: "left" }}>{step.content}</div>
-    {index > 0 && (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginTop: `${space[4]}px`,
-          marginBottom: `${space[2]}px`,
-        }}
-      >
-        <p style={{ fontSize: `${space[3]}px`, marginBottom: 0 }}>
-          {index + 1} of {tourStepIDs.length + 1}
-        </p>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <PrevButton {...backProps} />
-          <NextButton {...primaryProps} />
-        </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        marginTop: `${space[4]}px`,
+        marginBottom: `${space[2]}px`,
+      }}
+    >
+      <p style={{ fontSize: `${space[3]}px`, marginBottom: 0 }}>
+        {index + 1} of {tourStepIDs.length + 1}
+      </p>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        {index > 0 && <PrevButton {...backProps} />}
+        <NextButton
+          {...primaryProps}
+          customLabel={index === tourStepIDs.length ? "Finish" : "Next"}
+        />
       </div>
-    )}
+    </div>
   </root.div>
 );

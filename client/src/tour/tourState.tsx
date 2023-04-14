@@ -162,12 +162,12 @@ export const TourStateProvider: React.FC = ({ children }) => {
     stepIndex: -1,
   });
   const { isRunning, stepIndex } = tourState;
-  const [tourHistory, setTourHistory] = useState<number[]>([]);
+  const [tourHistory, setTourHistory] = useState<number[]>([0]);
 
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
-    setTourHistory([...tourHistory, -1, stepIndex + 1]); // -1 refers to the contents step
+    setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
     requestAnimationFrame(() =>
       setTourState({ isRunning: true, stepIndex: stepIndex + 1 })
     ); // +1 is to account for the contents step
@@ -200,17 +200,22 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
     if (status === (STATUS.FINISHED as string) || action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
-    } else if (index !== 0 && type === EVENTS.STEP_AFTER) {
+    } else if (type === EVENTS.STEP_AFTER) {
       switch (action) {
         case ACTIONS.PREV: {
-          const nextStepIndex = tourHistory[tourHistory.length - 2];
-          continueTourTo(nextStepIndex);
-          setTourHistory(() => tourHistory.slice(0, -1));
+          setTourHistory((prevTourHistory) => {
+            const nextStepIndex = prevTourHistory[prevTourHistory.length - 2];
+            continueTourTo(nextStepIndex);
+            return prevTourHistory.slice(0, -1);
+          });
           break;
         }
         case ACTIONS.NEXT: {
           const nextStepIndex = index + 1;
-          setTourHistory([...tourHistory, nextStepIndex]);
+          setTourHistory((prevTourHistory) => [
+            ...prevTourHistory,
+            nextStepIndex,
+          ]);
           continueTourTo(nextStepIndex);
           break;
         }
@@ -220,7 +225,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
 
   const start = () => {
     clearSelectedPinboard();
-    setTourHistory([]);
+    setTourHistory([0]);
     setTourState({ isRunning: true, stepIndex: -1 });
   };
 

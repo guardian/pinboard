@@ -221,11 +221,18 @@ const _tourStepMap = {
     isIndexView: false,
     content: (
       <div>
-        You can share{" "}
+        <WarningIcon viewBox="2 -3 16 13" />
         <strong>
-          original images, crops, collections, labels and searches
-        </strong>{" "}
-        directly from Grid.
+          This step of the tour is currently not interactive (i.e. just
+          informational).
+        </strong>
+        <p>
+          You can share{" "}
+          <strong>
+            original images, crops, collections, labels and searches
+          </strong>{" "}
+          directly from Grid.
+        </p>
         <div
           css={css`
             margin-top: ${space[2]}px;
@@ -239,6 +246,8 @@ const _tourStepMap = {
       </div>
     ),
     placement: "left-end",
+    shouldEnlargeSpotlight: () => true,
+    spotlightClicks: false,
   },
   assetView: {
     title: "Asset tab",
@@ -254,10 +263,17 @@ const _tourStepMap = {
     isIndexView: false,
     content: (
       <div>
-        In <strong>Workflow</strong>, you can enable the Pinboard column by:
+        <WarningIcon viewBox="2 -3 16 13" />
+        <strong>
+          This step of the tour is currently not interactive (i.e. just
+          informational).
+        </strong>
+        <p>
+          In <strong>Workflow</strong>, you can enable the Pinboard column by:
+        </p>
         <ol
           css={css`
-            paddingleft: ${space[5]}px;
+            padding-left: ${space[5]}px;
           `}
         >
           <li>Scroll all the way to the right</li>
@@ -269,17 +285,20 @@ const _tourStepMap = {
           <li>
             Click the ‘reload to view changes’ button at the bottom of the
             checklist
+            <br />
             <img src={WorkflowReloadButtonImage} alt="workflow reload icon" />
           </li>
         </ol>
         <p>
           Once enabled, you can see Pinboard message counts for each Workflow
           item, and easily view and interact with the associated Pinboard by
-          clicking the mssage counts.
+          clicking the message counts.
         </p>
       </div>
     ),
     placement: "left-end",
+    shouldEnlargeSpotlight: () => true,
+    spotlightClicks: false,
   },
   feedback: {
     title: "Send us feedback",

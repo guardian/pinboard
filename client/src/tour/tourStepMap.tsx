@@ -215,9 +215,9 @@ const _tourStepMap = {
     isIndexView: false,
     content: (
       <div>
-        Does something not work as expected? Do you have any feature requests
-        for Pinboard? Send a note to the Editorial Tools team directly from
-        Pinboard
+        Does something not work as expected?
+        <p>Do you have any feature requests for Pinboard?</p>
+        <p>Send a note to the Editorial Tools team directly from Pinboard</p>
       </div>
     ),
     placement: "left",

@@ -14,7 +14,6 @@ import {
   CreateItemInput,
   EditItemInput,
   Item,
-  LastItemSeenByUser,
   LastItemSeenByUserInput,
   User,
 } from "../../../shared/graphql/graphql";

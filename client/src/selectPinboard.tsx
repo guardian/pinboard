@@ -310,29 +310,30 @@ export const SelectPinboard = ({
             )}
           </div>
         </button>
-        {activePinboardIds.includes(pinboardData.id) &&
+        {((activePinboardIds.includes(pinboardData.id) &&
           !isThePreselectedPinboard &&
-          !isTeamPinboard && (
-            <button
-              css={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-around",
-                cursor: "pointer",
-                padding: 0,
-                border: "none",
-                height: "24px",
-                width: "24px",
-                borderRadius: "50%",
-                "&:hover": {
-                  backgroundColor: palette.neutral["86"],
-                },
-              }}
-              onClick={() => closePinboard(pinboardData.id)}
-            >
-              <SvgCross size="xsmall" />
-            </button>
-          )}
+          !isTeamPinboard) ||
+          pinboardData.id === "DEMO") && (
+          <button
+            css={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-around",
+              cursor: "pointer",
+              padding: 0,
+              border: "none",
+              height: "24px",
+              width: "24px",
+              borderRadius: "50%",
+              "&:hover": {
+                backgroundColor: palette.neutral["86"],
+              },
+            }}
+            onClick={() => closePinboard(pinboardData.id)}
+          >
+            <SvgCross size="xsmall" />
+          </button>
+        )}
       </div>
     );
   };

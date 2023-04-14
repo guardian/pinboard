@@ -11,6 +11,8 @@ import {
 import { TourStepID, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
 import { LineBreak, primaryButtonStyles, Tooltip } from "./tooltip";
+import root from "react-shadow/emotion";
+import { css } from "@emotion/react";
 
 interface TourProps {
   panelElement: HTMLElement;
@@ -24,7 +26,11 @@ export const Tour = ({ panelElement }: TourProps) => {
     spotlightClicks: false,
     target: panelElement,
     content: (
-      <div>
+      <root.div
+        css={css`
+          list-style-type: auto;
+        `}
+      >
         Pinboard allows users to easily have a conversation, and share image
         assets from within a file.
         <br />
@@ -81,7 +87,7 @@ export const Tour = ({ panelElement }: TourProps) => {
             Next
           </button>
         </div>
-      </div>
+      </root.div>
     ),
     placement: "left",
     hideFooter: true,

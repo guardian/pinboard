@@ -8,11 +8,12 @@ import {
   useTourStepRef,
   useTourStepRefs,
 } from "./tourState";
-import { TourStepID, tourStepMap } from "./tourStepMap";
+import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
 import { composer } from "../../colours";
-import { LineBreak, primaryButtonStyles, Tooltip } from "./tooltip";
+import { primaryButtonStyles, Tooltip } from "./tooltip";
 import root from "react-shadow/emotion";
 import { css } from "@emotion/react";
+import Warning from "../../icons/warning.svg";
 
 interface TourProps {
   panelElement: HTMLElement;
@@ -33,34 +34,44 @@ export const Tour = ({ panelElement }: TourProps) => {
       >
         Pinboard allows users to easily have a conversation, and share image
         assets from within a file.
-        <br />
-        Take a tour
-        <div style={{ display: "flex", gap: `${space[1]}px` }}>
-          <BeaconIcon />
-          <span>
-            <strong>Follow the beacon</strong> or select from the list below.
-          </span>
-        </div>
-        <LineBreak />
-        <div>
-          You can also jump straight:
-          <ol style={{ marginTop: `${space[1]}px`, paddingLeft: "25px" }}>
-            {tourStepEntries.map(([tourStepId, { title }]) => (
-              <li
-                key={tourStepId}
-                onClick={useJumpToTourStep(tourStepId as TourStepID)}
-                style={{
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                {title}
-              </li>
-            ))}
-          </ol>
-          <LineBreak />
-          You can access Pinboard on:
-          <ul style={{ marginTop: `${space[1]}px` }}>
+        <div
+          css={css`
+            margin-top: ${space[2]}px;
+          `}
+        >
+          <strong>Take a tour</strong>
+          <div>
+            <BeaconIcon />
+            <strong>Follow the beacon</strong> or select from the list below:
+          </div>
+          <div>
+            <ol
+              css={css`
+                margin-top: ${space[1]}px;
+                padding-left: ${space[6]}px;
+              `}
+            >
+              {tourStepEntries.map(([tourStepId, { title }]) => (
+                <li
+                  key={tourStepId}
+                  onClick={useJumpToTourStep(tourStepId as TourStepID)}
+                  style={{
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {title}
+                </li>
+              ))}
+            </ol>
+          </div>
+          You can access Pinboard in:
+          <ul
+            css={css`
+              margin-top: ${space[1]}px;
+              padding-left: ${space[6]}px;
+            `}
+          >
             <li>
               <strong>Composer</strong>
             </li>
@@ -71,15 +82,23 @@ export const Tour = ({ panelElement }: TourProps) => {
               <strong>Grid</strong>
             </li>
           </ul>
-          Files must be tracked in Workflow to appear on Pinboard
+          <Warning />
+          Files must be tracked in Workflow to appear on Pinboard.
         </div>
         <div
-          style={{
-            display: "flex",
-            justifyContent: "end",
-            marginTop: `${space[3]}px`,
-          }}
+          css={css`
+            display: flex;
+            justify-content: space-between;
+            margin-top: ${space[3]}px;
+          `}
         >
+          <p
+            css={css`
+              font-size: ${space[3]}px;
+            `}
+          >
+            1 of {tourStepIDs.length + 1}
+          </p>
           <button
             style={primaryButtonStyles}
             onClick={useJumpToTourStep("myPinboards")}

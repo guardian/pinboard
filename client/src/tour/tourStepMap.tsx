@@ -1,11 +1,11 @@
 import { Step } from "react-joyride";
 import React from "react";
-import EditIcon from "../../icons/pencil.svg";
-import BinIcon from "../../icons/bin.svg";
-import { LineBreak } from "./tooltip";
+import Warning from "../../icons/warning.svg";
+import Vector from "../../icons/vector.svg";
 import { space } from "@guardian/source-foundations";
 import Pencil from "../../icons/pencil.svg";
 import Bin from "../../icons/bin.svg";
+import root from "react-shadow/emotion";
 
 interface InteractionFlags {
   hasSentBasicMessage: boolean;
@@ -29,18 +29,19 @@ const _tourStepMap = {
     isIndexView: true,
     spotlightClicks: false,
     content: (
-      <div>
+      <root.div>
         The list of pinboards where:
-        <ul>
+        <ul style={{ margin: "0", paddingLeft: `${space[4]}px` }}>
           <li>You have edited the body text or furniture</li>
           <li>
             or, have been <strong>@mentioned</strong>
           </li>
         </ul>
-        <LineBreak />
-        You can manually hide these items from your list by selecting the ‘X’
-        icon.
-      </div>
+        <p>
+          You can manually hide these items from your list by selecting the{" "}
+          <em>‘X’</em> icon.
+        </p>
+      </root.div>
     ),
     placement: "left",
   },
@@ -50,11 +51,8 @@ const _tourStepMap = {
     spotlightClicks: false,
     content: (
       <div>
-        This where you can see all the stories where any of the teams you belong
-        to have been mentioned.
-        <LineBreak />
-        You will be able to see requests made to your team, both unclaimed and
-        claimed.
+        The list of boards where any of the teams you belong to have been
+        mentioned or received a request.
       </div>
     ),
     placement: "left",
@@ -66,8 +64,10 @@ const _tourStepMap = {
       <div>
         You can search for boards using the ‘Search’ toolbar at the bottom of
         the index.
-        <LineBreak />
-        Remember: files must be tracked on Workflow to appear on Pinboard
+        <div style={{ marginTop: `${space[2]}px` }}>
+          <Warning />
+          Remember: files must be tracked on Workflow to appear on Pinboard.
+        </div>
       </div>
     ),
     placement: "left",
@@ -78,8 +78,8 @@ const _tourStepMap = {
     isIndexView: true,
     content: (
       <div>
-        Turn browser notifications on by clicking the ‘Subscribe to desktop
-        notifications’ button
+        Turn browser notifications on by clicking the{" "}
+        <strong>‘Subscribe to desktop notifications’</strong> button
       </div>
     ),
     placement: "left",
@@ -95,9 +95,8 @@ const _tourStepMap = {
       hasEditedMessage,
       hasDeletedMessage,
     }) => (
-      <div>
-        You can use this space to message colleagues with Composer / Grid
-        permissions. Please try the following:
+      <root.div>
+        You can use the message field to:
         <ol style={{ paddingLeft: `${space[5]}px` }}>
           <li
             style={
@@ -108,8 +107,8 @@ const _tourStepMap = {
                 : {}
             }
           >
-            <strong>Send a basic message</strong> by typing in the box and
-            hitting Enter
+            <strong>Send any message</strong> by typing in the box and hitting
+            Enter
           </li>
           <li
             style={
@@ -132,7 +131,7 @@ const _tourStepMap = {
                 : {}
             }
           >
-            <strong>Edit your messages</strong> by hovering on your message and
+            <strong>Edit</strong> your messages by hovering on your message and
             clicking <Pencil />
           </li>
           <li
@@ -144,14 +143,14 @@ const _tourStepMap = {
                 : {}
             }
           >
-            <strong>Delete your messages</strong> by hovering on your message
-            and clicking <Bin />
+            <strong>Delete</strong> your messagesby hovering on your message and
+            clicking <Bin />
           </li>
         </ol>
-        <LineBreak />
-        Remember all Pinboard content is public and will be visible to everyone
-        with access to Composer
-      </div>
+        <Vector />
+        You will only be able to contact colleagues through Pinboard, if they
+        have access to Composer.
+      </root.div>
     ),
     placement: "left-end",
   },
@@ -160,34 +159,40 @@ const _tourStepMap = {
     isIndexView: false,
     content: (
       <div>
-        You can make requests by @mentioning a team.
-        <ul>
-          <li>You won’t need to know who’s on rota to ask for help</li>
-          <li>
-            They will be able to claim a request and confirm they are
-            responsible for that work
-          </li>
-        </ul>
+        To raise a request, you will need to mention a team.
+        <p>
+          Individuals within the team will be able to claim a request and
+          confirm responsibility. This will avoid duplication of work.
+          <br />
+          You won’t need to know who’s on shift to make a request.
+        </p>
+        <p>
+          <strong>Claim a request</strong> by clicking on the ‘claim’ button.
+        </p>
       </div>
     ),
     placement: "left-end",
   },
   sharingGridAssets: {
-    title: "Sharing Grid assets",
+    title: "Sharing assets",
     isIndexView: false,
     content: (
       <div>
-        Share assets directly from Grid
-        <ul>
-          <li>Use the button under to the thumbnails</li>
-          <li>Drag and drop thumbnails directly onto Pinboard</li>
-        </ul>
+        You can share{" "}
+        <strong>
+          original images, crops, collections, labels and searches
+        </strong>{" "}
+        directly from Grid.
+        <p>
+          Use the ‘Add to’ button to attach images or drag and drop thumbnails
+          directly onto Pinboard.
+        </p>
       </div>
     ),
     placement: "left-end",
   },
   assetView: {
-    title: "Asset View",
+    title: "Asset tab",
     isIndexView: false,
     content: (
       <div>View all the assets shared in a story file collated in this tab</div>
@@ -198,15 +203,22 @@ const _tourStepMap = {
     title: "Access from Workflow",
     isIndexView: false,
     content: (
-      <div>
-        Enable the Worfklow Pinboard column through the Workflow filters panel
-        <ul>
+      <root.div>
+        You can enable Pinboard through{" "}
+        <strong>
+          <u>Workflow</u>
+        </strong>
+        ’s filters panel.
+        <ol style={{ paddingLeft: `${space[5]}px` }}>
+          <li>Scroll all the way to the right</li>
+          <li>Click on the column icon</li>
           <li>Select Pinboard</li>
-          <li>Click reload at the bottom of the checklist</li>
-        </ul>
-        <LineBreak />
-        This will allow you to interact with Pinboard directly from Workflow
-      </div>
+          <li>
+            Click the ‘reload to view changes’ button at the bottom of the
+            checklist
+          </li>
+        </ol>
+      </root.div>
     ),
     placement: "left-end",
   },
@@ -215,9 +227,9 @@ const _tourStepMap = {
     isIndexView: false,
     content: (
       <div>
-        Does something not work as expected?
-        <p>Do you have any feature requests for Pinboard?</p>
-        <p>Send a note to the Editorial Tools team directly from Pinboard</p>
+        <p>Experiencing an issue or have a feature request for Pinboard?</p>
+        <p>The Editorial Tools team would love to hear from you.</p>
+        <p>Just drop us a message via Pinboard.</p>
       </div>
     ),
     placement: "left",

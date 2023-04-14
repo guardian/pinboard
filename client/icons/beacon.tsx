@@ -1,3 +1,4 @@
+import { space } from "@guardian/source-foundations";
 import React from "react";
 import { composer } from "../colours";
 
@@ -18,6 +19,8 @@ const BeaconIcon = () => {
         height: "20px",
         position: "relative",
         width: "20px",
+        top: `-${space[1]}px`,
+        marginRight: `${space[1]}px`,
       }}
     >
       <span

@@ -4,6 +4,7 @@ import { TooltipRenderProps } from "react-joyride";
 import { composer } from "../../colours";
 import { tourStepIDs } from "./tourStepMap";
 import { SvgCross } from "@guardian/source-react-components";
+import root from "react-shadow/emotion";
 
 export const tourButtonStyles = {
   display: "flex",
@@ -31,17 +32,6 @@ export const secondaryButtonStyles = {
   color: `${composer.primary[300]}`,
   marginRight: `${space[1]}px`,
 };
-
-export const LineBreak = () => (
-  <hr
-    style={{
-      width: "100%",
-      borderTop: `1px solid grey`,
-      marginLeft: 0,
-      borderBottom: 0,
-    }}
-  />
-);
 
 const CloseButton = ({ ...props }) => {
   return (
@@ -74,15 +64,15 @@ export const Tooltip = ({
   primaryProps,
   tooltipProps,
 }: TooltipRenderProps) => (
-  <div
+  <root.div
     {...tooltipProps}
     style={{
       fontFamily: "Guardian Agate Sans",
       fontSize: 15,
       padding: `${space[2]}px ${space[3]}px ${space[3]}px`,
-      width: 250,
+      width: 253,
       backgroundColor: `${palette.neutral[100]}`,
-      lineHeight: `${space[5]}px`,
+      lineHeight: "150%",
       borderRadius: `${space[2]}px`,
     }}
   >
@@ -107,6 +97,8 @@ export const Tooltip = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
+          marginTop: `${space[4]}px`,
+          marginBottom: `${space[2]}px`,
         }}
       >
         <p style={{ fontSize: `${space[3]}px`, marginBottom: 0 }}>
@@ -118,5 +110,5 @@ export const Tooltip = ({
         </div>
       </div>
     )}
-  </div>
+  </root.div>
 );

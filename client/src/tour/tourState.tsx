@@ -219,6 +219,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
   };
 
   const start = () => {
+    clearSelectedPinboard();
     setTourHistory([]);
     setTourState({ isRunning: true, stepIndex: -1 });
   };

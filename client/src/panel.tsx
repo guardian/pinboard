@@ -60,11 +60,16 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     setUnreadFlag,
   } = useGlobalStateContext();
 
+  const tourProgress = useTourProgress();
+
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
-  const [maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
+  const [_maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
     useState<PinboardData | null>(null);
+  const maybePeekingAtPinboard = tourProgress.isRunning
+    ? null
+    : _maybePeekingAtPinboard;
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -133,8 +138,6 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
   useEffect(() => {
     pinboardDataQuery.refetch();
   }, [...groupPinboardIds]);
-
-  const tourProgress = useTourProgress();
 
   const pinboardsWithClaimCounts = tourProgress.isRunning
     ? demoPinboardsWithClaimCounts

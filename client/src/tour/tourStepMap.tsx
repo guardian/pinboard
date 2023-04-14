@@ -84,8 +84,8 @@ const _tourStepMap = {
     isIndexView: true,
     content: (
       <div>
-        You can search for boards using the ‘Search’ toolbar at the bottom of
-        the index.
+        You can search for boards using the ‘Search’ box. It matches on working
+        title (WT) and headline (HL), highlighting accordingly.
         <div
           css={css`
             margin-top: ${space[2]}px;

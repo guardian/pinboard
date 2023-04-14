@@ -151,6 +151,7 @@ export const Tour = ({ panelElement }: TourProps) => {
       stepIndex={stepIndex}
       continuous
       scrollToFirstStep
+      disableScrollParentFix
       showSkipButton={false}
       spotlightPadding={1}
       spotlightClicks

@@ -6,9 +6,14 @@ import React, {
   useState,
 } from "react";
 import { TourStepID, tourStepIDs, tourStepMap } from "./tourStepMap";
-import { ACTIONS, CallBackProps, EVENTS } from "react-joyride";
+import {
+  ACTIONS,
+  CallBackProps,
+  EVENTS,
+  LIFECYCLE,
+  STATUS,
+} from "react-joyride";
 import { useGlobalStateContext } from "../globalState";
-import { STATUS } from "react-joyride";
 import { PendingItem } from "../types/PendingItem";
 import {
   CreateItemInput,
@@ -25,6 +30,7 @@ import {
 } from "./tourConstants";
 import { userToMentionHandle } from "../mentionsUtil";
 import { LastItemSeenByUserLookup } from "../pinboard";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -168,10 +174,15 @@ export const TourStateProvider: React.FC = ({ children }) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.TOUR_JUMP_STEP, {
+      tourStepId: stepId,
+    });
     requestAnimationFrame(() =>
       setTourState({ isRunning: true, stepIndex: stepIndex + 1 })
     ); // +1 is to account for the contents step
   };
+
+  const sendTelemetryEvent = useContext(TelemetryContext);
 
   useLayoutEffect(() => {
     const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
@@ -196,10 +207,20 @@ export const TourStateProvider: React.FC = ({ children }) => {
   };
 
   const handleCallback = (data: CallBackProps) => {
-    const { type, index, action, status } = data;
+    const { type, index, action, status, lifecycle } = data;
 
     if (status === (STATUS.FINISHED as string) || action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
+
+      lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged twice
+        sendTelemetryEvent?.(
+          index === tourStepIDs.length
+            ? PINBOARD_TELEMETRY_TYPE.TOUR_FINISH
+            : PINBOARD_TELEMETRY_TYPE.TOUR_CLOSE,
+          {
+            tourStepId: tourStepIDs[index - 1] || "contents",
+          }
+        );
     } else if (type === EVENTS.STEP_AFTER) {
       switch (action) {
         case ACTIONS.PREV: {

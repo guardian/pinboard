@@ -10,7 +10,7 @@ import { PendingItem } from "./types/PendingItem";
 import { composer } from "../colours";
 import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
-import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
@@ -122,11 +122,14 @@ export const SendMessageArea = ({
     confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
       (claimable) =>
         (tourProgress.isRunning
-          ? tourProgress.sendItem(() => {
+          ? (sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.TOUR_INTERACTIVE_MESSAGING
+            ),
+            tourProgress.sendItem(() => {
               setMessage("");
               clearPayloadToBeSent();
               setUnverifiedMentions([]);
-            })
+            }))
           : _sendItem)({
           variables: {
             input: {

@@ -15,6 +15,7 @@ import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
+import { useTourProgress } from "./tour/tourState";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -115,10 +116,18 @@ export const SendMessageArea = ({
     </React.Fragment>
   );
 
+  const tourProgress = useTourProgress();
+
   const sendItem = () =>
     confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
       (claimable) =>
-        _sendItem({
+        (tourProgress.isRunning
+          ? tourProgress.sendItem(() => {
+              setMessage("");
+              clearPayloadToBeSent();
+              setUnverifiedMentions([]);
+            })
+          : _sendItem)({
           variables: {
             input: {
               type: payloadToBeSent?.type || "message-only",

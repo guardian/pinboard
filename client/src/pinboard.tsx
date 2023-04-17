@@ -23,7 +23,7 @@ import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
-
+import { useTourProgress, useTourStepRef } from "./tour/tourState";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -69,6 +69,8 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
+  const tourProgress = useTourProgress();
+
   const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
       const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
@@ -96,9 +98,15 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   const [claimItems, setClaimItems] = useState<Item[]>([]);
 
-  const [subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const [_subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
+  const subscriptionItems = tourProgress.isRunning
+    ? tourProgress.subscriptionItems
+    : _subscriptionItems;
 
-  const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const [_successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
+  const successfulSends = tourProgress.isRunning
+    ? tourProgress.successfulSends
+    : _successfulSends;
 
   const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId), {
     onCompleted: (data) => {
@@ -150,8 +158,11 @@ export const Pinboard: React.FC<PinboardProps> = ({
     }
   );
 
-  const [lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
+  const [_lastItemSeenByUserLookup, setLastItemSeenByUserLookup] =
     useState<LastItemSeenByUserLookup>({});
+  const lastItemSeenByUserLookup = tourProgress.isRunning
+    ? tourProgress.lastItemSeenByUserLookup
+    : _lastItemSeenByUserLookup;
 
   useSubscription(gqlOnSeenItem(pinboardId), {
     onSubscriptionData: ({ subscriptionData }) => {
@@ -159,7 +170,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
         subscriptionData.data.onSeenItem;
       addEmailsToLookup([newLastItemSeenByUser.userEmail]);
       const previousLastItemSeenByUser =
-        lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
+        _lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
       if (
         !previousLastItemSeenByUser ||
         previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
@@ -227,13 +238,20 @@ export const Pinboard: React.FC<PinboardProps> = ({
   ) => {
     setSuccessfulSends((previousSends) => [...previousSends, pendingItem]);
 
-    // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
-    addManuallyOpenedPinboardId(pendingItem.pinboardId);
+    const tourIsRunning = tourProgress.isRunning;
 
-    // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
-    mentionEmails.map((mentionEmail) =>
-      addManuallyOpenedPinboardId(pendingItem.pinboardId, mentionEmail)
-    );
+    if (!tourIsRunning) {
+      // ensure any pinboard you contribute to ends up on your list of manually opened pinboards
+      addManuallyOpenedPinboardId(tourIsRunning)(pendingItem.pinboardId);
+
+      // ensure any pinboard you're mentioned on ends up on your list of manually opened pinboards
+      mentionEmails.map((mentionEmail) =>
+        addManuallyOpenedPinboardId(tourIsRunning)(
+          pendingItem.pinboardId,
+          mentionEmail
+        )
+      );
+    }
   };
 
   const handleClaimed = (data: { claimItem: Claimed }) => {
@@ -242,7 +260,10 @@ export const Pinboard: React.FC<PinboardProps> = ({
       data.claimItem.updatedItem,
       data.claimItem.newItem,
     ]);
-    addManuallyOpenedPinboardId(data.claimItem.pinboardId);
+    !tourProgress.isRunning &&
+      addManuallyOpenedPinboardId(tourProgress.isRunning)(
+        data.claimItem.pinboardId
+      );
     const unclaimedDurationInMillis =
       new Date(data.claimItem.newItem.timestamp).getTime() -
       new Date(data.claimItem.updatedItem.timestamp).getTime();
@@ -291,7 +312,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
     <React.Fragment>
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
-      <Feedback />
+      <div ref={useTourStepRef("feedback")}>
+        <Feedback />
+      </div>
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill
         css={css`
@@ -325,15 +348,24 @@ export const Pinboard: React.FC<PinboardProps> = ({
         <AssetView items={items} />
       )}
       {activeTab === "chat" && (
-        <SendMessageArea
-          onSuccessfulSend={onSuccessfulSend}
-          payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
-          clearPayloadToBeSent={clearPayloadToBeSent}
-          onError={(error) => setError(pinboardId, error)}
-          userEmail={userEmail}
-          pinboardId={pinboardId}
-          panelElement={panelElement}
-        />
+        <div
+          ref={useTourStepRef(
+            "messaging",
+            "requests",
+            "sharingGridAssets",
+            "workflow"
+          )}
+        >
+          <SendMessageArea
+            onSuccessfulSend={onSuccessfulSend}
+            payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
+            clearPayloadToBeSent={clearPayloadToBeSent}
+            onError={(error) => setError(pinboardId, error)}
+            userEmail={userEmail}
+            pinboardId={pinboardId}
+            panelElement={panelElement}
+          />
+        </div>
       )}
     </React.Fragment>
   );

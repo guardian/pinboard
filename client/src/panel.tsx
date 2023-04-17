@@ -25,6 +25,9 @@ import {
   PinboardDataWithClaimCounts,
 } from "../../shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
+import { Tour } from "./tour/tour";
+import { useTourProgress } from "./tour/tourState";
+import { demoPinboardsWithClaimCounts } from "./tour/tourConstants";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -57,11 +60,16 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     setUnreadFlag,
   } = useGlobalStateContext();
 
+  const tourProgress = useTourProgress();
+
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
-  const [maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
+  const [_maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
     useState<PinboardData | null>(null);
+  const maybePeekingAtPinboard = tourProgress.isRunning
+    ? null
+    : _maybePeekingAtPinboard;
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -131,24 +139,25 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
     pinboardDataQuery.refetch();
   }, [...groupPinboardIds]);
 
-  const pinboardsWithClaimCounts =
-    pinboardDataQuery.data?.getPinboardsByIds
-      ?.reduce((acc, pinboardData) => {
-        const maybePinboardIdWithClaimCounts =
-          groupPinboardIdsWithClaimCounts.find(
-            (_) => _.pinboardId === pinboardData.id
-          );
-        return maybePinboardIdWithClaimCounts
-          ? [
-              ...acc,
-              {
-                ...pinboardData,
-                ...maybePinboardIdWithClaimCounts,
-              },
-            ]
-          : acc;
-      }, [] as PinboardDataWithClaimCounts[])
-      .sort(teamPinboardsSortFunction) || [];
+  const pinboardsWithClaimCounts = tourProgress.isRunning
+    ? demoPinboardsWithClaimCounts
+    : pinboardDataQuery.data?.getPinboardsByIds
+        ?.reduce((acc, pinboardData) => {
+          const maybePinboardIdWithClaimCounts =
+            groupPinboardIdsWithClaimCounts.find(
+              (_) => _.pinboardId === pinboardData.id
+            );
+          return maybePinboardIdWithClaimCounts
+            ? [
+                ...acc,
+                {
+                  ...pinboardData,
+                  ...maybePinboardIdWithClaimCounts,
+                },
+              ]
+            : acc;
+        }, [] as PinboardDataWithClaimCounts[])
+        .sort(teamPinboardsSortFunction) || [];
 
   useEffect(() => {
     if (isExpanded) {
@@ -258,6 +267,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
+      {panelRef.current && <Tour panelElement={panelRef.current} />}
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard

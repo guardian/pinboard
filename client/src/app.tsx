@@ -45,6 +45,8 @@ import {
 } from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
+import { TourStateProvider } from "./tour/tourState";
+import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -165,7 +167,14 @@ export const PinBoardApp = ({
     });
   }, []);
 
-  const [userLookup, setUserLookup] = useState<UserLookup>({});
+  const [userLookup, setUserLookup] = useState<UserLookup>(
+    // FIXME really not sure we should be doing this unless we're in the tour
+    demoMentionableUsers.reduce(
+      (acc, user) => ({ ...acc, [user.email]: user }),
+      { [demoUser.email]: demoUser }
+    )
+  );
+
   const [userEmailsToLookup, setEmailsToLookup] = useState<Set<string>>(
     new Set()
   );
@@ -367,56 +376,61 @@ export const PinBoardApp = ({
             clearDesktopNotificationsForPinboardId
           }
         >
-          <Global styles={agateFontFaceIfApplicable} />
-          <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
-          <root.div
-            onDragOver={(event) =>
-              isGridDragEvent(event) && event.preventDefault()
-            }
-            onDragEnter={(event) => {
-              if (isGridDragEvent(event)) {
-                event.preventDefault();
-                setIsDropTarget(true);
+          <TourStateProvider>
+            <Global styles={agateFontFaceIfApplicable} />
+            <HiddenIFrameForServiceWorker iFrameRef={serviceWorkerIFrameRef} />
+            <root.div
+              onDragOver={(event) =>
+                isGridDragEvent(event) && event.preventDefault()
               }
-            }}
-            onDragLeave={() => setIsDropTarget(false)}
-            onDragEnd={() => setIsDropTarget(false)}
-            onDragExit={() => setIsDropTarget(false)}
-            onDrop={(event) => {
-              if (isGridDragEvent(event)) {
-                event.preventDefault();
-                const payload = convertGridDragEventToPayload(event);
-                setPayloadToBeSent(payload);
-                setIsExpanded(true);
-                payload &&
-                  sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP, {
-                    assetType: payload.type,
-                  });
-              }
-              setIsDropTarget(false);
-            }}
-          >
-            <TickContext.Provider value={lastTickTimestamp}>
-              {isInlineMode ? (
-                <InlineMode
-                  workflowPinboardElements={workflowPinboardElements}
-                />
-              ) : (
-                <React.Fragment>
-                  <Floaty isDropTarget={isDropTarget} />
-                  <Panel isDropTarget={isDropTarget} />
-                </React.Fragment>
-              )}
-            </TickContext.Provider>
-          </root.div>
-          {assetHandles.map((node, index) => (
-            <AddToPinboardButtonPortal
-              key={index}
-              node={node}
-              setPayloadToBeSent={setPayloadToBeSent}
-              expand={expandFloaty}
-            />
-          ))}
+              onDragEnter={(event) => {
+                if (isGridDragEvent(event)) {
+                  event.preventDefault();
+                  setIsDropTarget(true);
+                }
+              }}
+              onDragLeave={() => setIsDropTarget(false)}
+              onDragEnd={() => setIsDropTarget(false)}
+              onDragExit={() => setIsDropTarget(false)}
+              onDrop={(event) => {
+                if (isGridDragEvent(event)) {
+                  event.preventDefault();
+                  const payload = convertGridDragEventToPayload(event);
+                  setPayloadToBeSent(payload);
+                  setIsExpanded(true);
+                  payload &&
+                    sendTelemetryEvent?.(
+                      PINBOARD_TELEMETRY_TYPE.DRAG_AND_DROP,
+                      {
+                        assetType: payload.type,
+                      }
+                    );
+                }
+                setIsDropTarget(false);
+              }}
+            >
+              <TickContext.Provider value={lastTickTimestamp}>
+                {isInlineMode ? (
+                  <InlineMode
+                    workflowPinboardElements={workflowPinboardElements}
+                  />
+                ) : (
+                  <React.Fragment>
+                    <Floaty isDropTarget={isDropTarget} />
+                    <Panel isDropTarget={isDropTarget} />
+                  </React.Fragment>
+                )}
+              </TickContext.Provider>
+            </root.div>
+            {assetHandles.map((node, index) => (
+              <AddToPinboardButtonPortal
+                key={index}
+                node={node}
+                setPayloadToBeSent={setPayloadToBeSent}
+                expand={expandFloaty}
+              />
+            ))}
+          </TourStateProvider>
         </GlobalStateProvider>
       </ApolloProvider>
     </TelemetryContext.Provider>

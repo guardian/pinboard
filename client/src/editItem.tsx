@@ -9,6 +9,7 @@ import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { composer } from "../colours";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { useTourProgress } from "./tour/tourState";
 
 interface EditItemProps {
   item: Item;
@@ -33,15 +34,9 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
     [payloadToBeSent]
   );
 
-  const [editItem, { loading }] = useMutation(gqlEditItem, {
-    variables: {
-      itemId: item.id,
-      input: {
-        message: message || null,
-        payload,
-        type,
-      },
-    },
+  const tourProgress = useTourProgress();
+
+  const [_editItem, { loading }] = useMutation(gqlEditItem, {
     onCompleted: () => {
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.UPDATE_ITEM, {
         ...telemetryPayloadCommon,
@@ -56,6 +51,18 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
       alert(`failed to update item`);
     },
   });
+
+  const editItem = () =>
+    (tourProgress.isRunning ? tourProgress.editItem(cancel) : _editItem)({
+      variables: {
+        itemId: item.id,
+        input: {
+          message: message || null,
+          payload,
+          type,
+        },
+      },
+    });
 
   const canUpdate = message || payloadToBeSent;
 

@@ -4,6 +4,7 @@ import { neutral } from "@guardian/source-foundations";
 import { Tab } from "../types/Tab";
 import { NavButton } from "./button";
 import { ClipIcon, SpeechBubbleIcon } from "./icon";
+import { useTourStepRef } from "../tour/tourState";
 
 interface TabsProps {
   activeTab: Tab;
@@ -48,6 +49,7 @@ export const Tabs: React.FC<TabsProps> = ({
           : "none"};
         cursor: pointer;
       `}
+      ref={useTourStepRef("assetView")}
       onClick={() => setActiveTab("asset")}
     >
       <NavButton icon={ClipIcon} hoverParent={true} />

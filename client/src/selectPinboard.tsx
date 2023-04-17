@@ -28,6 +28,8 @@ import {
 } from "@guardian/source-react-components";
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
+import { useTourProgress, useTourStepRef } from "./tour/tourState";
+import { demoPinboardData } from "./tour/tourConstants";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -154,7 +156,7 @@ export const SelectPinboard = ({
         ? isOpenInNewTab
           ? openPinboardInNewTab(pinboardData)
           : peekAtPinboard(pinboardData)
-        : openPinboard(pinboardData, isOpenInNewTab);
+        : openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
 
     const secondaryInformation = isTeamPinboard && (
       <div>
@@ -305,32 +307,35 @@ export const SelectPinboard = ({
             )}
           </div>
         </button>
-        {activePinboardIds.includes(pinboardData.id) &&
+        {((activePinboardIds.includes(pinboardData.id) &&
           !isThePreselectedPinboard &&
-          !isTeamPinboard && (
-            <button
-              css={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-around",
-                cursor: "pointer",
-                padding: 0,
-                border: "none",
-                height: "24px",
-                width: "24px",
-                borderRadius: "50%",
-                "&:hover": {
-                  backgroundColor: palette.neutral["86"],
-                },
-              }}
-              onClick={() => closePinboard(pinboardData.id)}
-            >
-              <SvgCross size="xsmall" />
-            </button>
-          )}
+          !isTeamPinboard) ||
+          pinboardData.id === "DEMO") && (
+          <button
+            css={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-around",
+              cursor: "pointer",
+              padding: 0,
+              border: "none",
+              height: "24px",
+              width: "24px",
+              borderRadius: "50%",
+              "&:hover": {
+                backgroundColor: palette.neutral["86"],
+              },
+            }}
+            onClick={() => closePinboard(pinboardData.id)}
+          >
+            <SvgCross size="xsmall" />
+          </button>
+        )}
       </div>
     );
   };
+
+  const tourProgress = useTourProgress();
 
   return (
     <>
@@ -379,62 +384,78 @@ export const SelectPinboard = ({
             <div css={{ height: space[2] }} />
           </React.Fragment>
         )}
-        {(activePinboardsWithoutPreselected?.length > 0 ||
-          isLoadingActivePinboardList) && (
-          <React.Fragment>
-            <SectionHeading>MY PINBOARDS</SectionHeading>
-            {activePinboardsWithoutPreselected.map(OpenPinboardButton)}
-            {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
-            <div css={{ height: space[2] }} />
-          </React.Fragment>
-        )}
-        {pinboardsWithClaimCounts?.length > 0 && (
-          <React.Fragment>
-            <SectionHeading>{"MY TEAMS' PINBOARDS"}</SectionHeading>
-            {pinboardsWithClaimCounts.map(OpenPinboardButton)}
-            <button
-              css={css`
-                color: ${palette.neutral["20"]};
-                border: 1px solid ${palette.neutral["93"]};
-                cursor: pointer;
-                ${agateSans.xxsmall({ fontWeight: "bold" })};
-                background-color: ${palette.neutral["100"]};
-                &:hover {
-                  background-color: ${palette.neutral["86"]};
-                }
-              `}
-              onClick={() => setIsShowAllTeamPinboards(!isShowAllTeamPinboards)}
-            >
-              {isShowAllTeamPinboards
-                ? "Show fewer"
-                : `Show ${noOfTeamPinboardsNotShown} more`}
-            </button>
-            <div css={{ height: space[2] }} />
-          </React.Fragment>
-        )}
-        <SectionHeading>SEARCH</SectionHeading>
-        <div css={{ position: "relative" }}>
-          <TextInput
-            label="Search"
-            hideLabel
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            onKeyPress={(event) => event.stopPropagation()}
-            placeholder="Search by Working Title / Headline"
-            css={{
-              marginBottom: "5px",
-              boxSizing: "border-box",
-              width: "100%",
-              borderRadius: "16px",
-              borderWidth: "1px",
-              height: "32px",
-              fontFamily: agateSans.small(),
-              lineHeight: "32px",
-              paddingRight: "30px", // to allow for icon
-            }}
-          />
-          <div css={{ position: "absolute", right: "4px", top: "6px" }}>
-            <SvgMagnifyingGlass size="small" />
+        <div ref={useTourStepRef("myPinboards")}>
+          {(activePinboardsWithoutPreselected?.length > 0 ||
+            isLoadingActivePinboardList ||
+            tourProgress.isRunning) && (
+            <React.Fragment>
+              <SectionHeading>
+                <span>MY PINBOARDS</span>
+              </SectionHeading>
+              {(tourProgress.isRunning
+                ? [demoPinboardData]
+                : activePinboardsWithoutPreselected
+              ).map(OpenPinboardButton)}
+              {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
+              <div css={{ height: space[2] }} />
+            </React.Fragment>
+          )}
+        </div>
+        <div ref={useTourStepRef("teamPinboards")}>
+          {pinboardsWithClaimCounts?.length > 0 && (
+            <React.Fragment>
+              <SectionHeading>MY TEAMS&apos; PINBOARDS</SectionHeading>
+              {pinboardsWithClaimCounts.map(OpenPinboardButton)}
+              {!tourProgress.isRunning && (
+                <button
+                  css={css`
+                    color: ${palette.neutral["20"]};
+                    border: 1px solid ${palette.neutral["93"]};
+                    cursor: pointer;
+                    ${agateSans.xxsmall({ fontWeight: "bold" })};
+                    background-color: ${palette.neutral["100"]};
+                    &:hover {
+                      background-color: ${palette.neutral["86"]};
+                    }
+                  `}
+                  onClick={() =>
+                    setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
+                  }
+                >
+                  {isShowAllTeamPinboards
+                    ? "Show fewer"
+                    : `Show ${noOfTeamPinboardsNotShown} more`}
+                </button>
+              )}
+              <div css={{ height: space[2] }} />
+            </React.Fragment>
+          )}
+        </div>
+        <div ref={useTourStepRef("searchbar")}>
+          <SectionHeading>SEARCH</SectionHeading>
+          <div css={{ position: "relative" }}>
+            <TextInput
+              label="Search"
+              hideLabel
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyPress={(event) => event.stopPropagation()}
+              placeholder="Search by Working Title / Headline"
+              css={{
+                marginBottom: "5px",
+                boxSizing: "border-box",
+                width: "100%",
+                borderRadius: "16px",
+                borderWidth: "1px",
+                height: "32px",
+                fontFamily: agateSans.small(),
+                lineHeight: "32px",
+                paddingRight: "30px", // to allow for icon
+              }}
+            />
+            <div css={{ position: "absolute", right: "4px", top: "6px" }}>
+              <SvgMagnifyingGlass size="small" />
+            </div>
           </div>
         </div>
         {loading && searchText && <Text>Searching...</Text>}
@@ -456,9 +477,11 @@ export const SelectPinboard = ({
           }}
         >
           {/* TODO move this to some settings menu (rather than bottom of selection list) */}
-          <PushNotificationPreferencesOpener
-            hasWebPushSubscription={hasWebPushSubscription}
-          />
+          <div ref={useTourStepRef("notificationSetting")}>
+            <PushNotificationPreferencesOpener
+              hasWebPushSubscription={hasWebPushSubscription}
+            />
+          </div>
         </div>
       </div>
     </>

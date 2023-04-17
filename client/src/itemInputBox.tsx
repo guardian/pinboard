@@ -14,6 +14,7 @@ import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
+import { useTourProgress } from "./tour/tourState";
 
 interface WithEntity<E> {
   entity: E & {
@@ -132,28 +133,32 @@ export const ItemInputBox = ({
 
   const apolloClient = useApolloClient();
 
-  const mentionsDataProvider = (token: string) =>
-    apolloClient
-      .query({
-        query: gqlSearchMentionableUsers(token),
-        context: { debounceKey: "user-search", debounceTimeout: 250 },
-      })
-      .then(
-        ({
-          data: {
-            searchMentionableUsers: { users, groups },
-          },
-        }) => [
-          ...users.map((user: User, index: number) => ({
-            ...user,
-            heading: index === 0 ? "INDIVIDUALS" : undefined,
-          })),
-          ...groups.map((group: Group, index: number) => ({
-            ...group,
-            heading: index === 0 ? "GROUPS" : undefined,
-          })),
-        ]
-      );
+  const tourProgress = useTourProgress();
+
+  const mentionsDataProvider = tourProgress.isRunning
+    ? tourProgress.demoMentionsProvider
+    : (token: string) =>
+        apolloClient
+          .query({
+            query: gqlSearchMentionableUsers(token),
+            context: { debounceKey: "user-search", debounceTimeout: 250 },
+          })
+          .then(
+            ({
+              data: {
+                searchMentionableUsers: { users, groups },
+              },
+            }) => [
+              ...users.map((user: User, index: number) => ({
+                ...user,
+                heading: index === 0 ? "INDIVIDUALS" : undefined,
+              })),
+              ...groups.map((group: Group, index: number) => ({
+                ...group,
+                heading: index === 0 ? "GROUPS" : undefined,
+              })),
+            ]
+          );
 
   useEffect(
     () => /* unmount handler */ () => {

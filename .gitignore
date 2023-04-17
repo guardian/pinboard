@@ -12,3 +12,4 @@ cloudformation.yaml
 cdk.out/
 
 shared/graphql/graphql.ts
+.DS_Store

@@ -14,7 +14,11 @@ exports.handler = async (event: {
     return await getPinboardById("content")(event.arguments.composerId);
   }
   if (event.arguments?.ids) {
-    return await Promise.all(event.arguments.ids.map(getPinboardById("stubs")));
+    return await Promise.all(
+      event.arguments.ids
+        .map(parseFloat) // workflow IDs are Longs
+        .map(getPinboardById("stubs"))
+    );
   }
   if (event.arguments?.searchText !== undefined) {
     return await getAllPinboards(event.arguments?.searchText);
@@ -26,7 +30,7 @@ exports.handler = async (event: {
 };
 
 const getPinboardById =
-  (apiBase: "content" | "stubs") => async (id: string) => {
+  (apiBase: "content" | "stubs") => async (id: string | number) => {
     const contentResponse = await fetch(
       `${WORKFLOW_DATASTORE_API_URL}/${apiBase}/${id}`
     );

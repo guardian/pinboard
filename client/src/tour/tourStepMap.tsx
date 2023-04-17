@@ -174,8 +174,8 @@ const _tourStepMap = {
                 : {}
             }
           >
-            <strong>Delete</strong> your messagesby hovering on your message and
-            clicking <Bin />
+            <strong>Delete</strong> your messages by hovering on your message
+            and clicking <Bin />
           </li>
         </ol>
         <InfoIcon

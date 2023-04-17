@@ -16,7 +16,9 @@ export const Feedback = () => {
 
   const handleTourStart = () => {
     tourProgress.start();
-    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.TOUR_START);
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+      tourEvent: "start_tour",
+    });
   };
 
   return (

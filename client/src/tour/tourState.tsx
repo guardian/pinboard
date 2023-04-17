@@ -174,7 +174,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
-    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.TOUR_JUMP_STEP, {
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+      tourEvent: "jump_tour",
       tourStepId: stepId,
     });
     requestAnimationFrame(() =>
@@ -209,18 +210,18 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const handleCallback = (data: CallBackProps) => {
     const { type, index, action, status, lifecycle } = data;
 
-    if (status === (STATUS.FINISHED as string) || action === ACTIONS.CLOSE) {
+    if (status === (STATUS.FINISHED as string)) {
       setTourState({ isRunning: false, stepIndex: -1 });
-
-      lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged twice
-        sendTelemetryEvent?.(
-          index === tourStepIDs.length
-            ? PINBOARD_TELEMETRY_TYPE.TOUR_FINISH
-            : PINBOARD_TELEMETRY_TYPE.TOUR_CLOSE,
-          {
-            tourStepId: tourStepIDs[index - 1] || "contents",
-          }
-        );
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+        tourEvent: "complete_tour",
+      });
+    } else if (action === ACTIONS.CLOSE) {
+      setTourState({ isRunning: false, stepIndex: -1 });
+      lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged multiple times
+        sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+          tourEvent: "dismiss_tour",
+          tourStepId: tourStepIDs[index],
+        });
     } else if (type === EVENTS.STEP_AFTER) {
       switch (action) {
         case ACTIONS.PREV: {

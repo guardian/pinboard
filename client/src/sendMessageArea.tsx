@@ -122,9 +122,9 @@ export const SendMessageArea = ({
     confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
       (claimable) =>
         (tourProgress.isRunning
-          ? (sendTelemetryEvent?.(
-              PINBOARD_TELEMETRY_TYPE.TOUR_INTERACTIVE_MESSAGING
-            ),
+          ? (sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+              tourEvent: "messaging",
+            }),
             tourProgress.sendItem(() => {
               setMessage("");
               clearPayloadToBeSent();

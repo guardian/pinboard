@@ -267,11 +267,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           {title}
         </span>
       </Navigation>
-      {panelRef.current && (
-        <React.Fragment>
-          <Tour panelElement={panelRef.current} />
-        </React.Fragment>
-      )}
+      {panelRef.current && <Tour panelElement={panelRef.current} />}
 
       {!selectedPinboardId && !maybePeekingAtPinboard && (
         <SelectPinboard

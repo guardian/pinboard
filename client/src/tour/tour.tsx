@@ -85,27 +85,6 @@ export const Tour = ({ panelElement }: TourProps) => {
           <Warning viewBox="2 -3 16 13" />
           Composer pieces must be tracked in Workflow to appear in Pinboard.
         </div>
-        {/* <div
-          css={css`
-            display: flex;
-            justify-content: space-between;
-            margin-top: ${space[3]}px;
-          `}
-        >
-          <p
-            css={css`
-              font-size: ${space[3]}px;
-            `}
-          >
-            1 of {tourStepIDs.length + 1}
-          </p>
-          <button
-            style={primaryButtonStyles}
-            onClick={useJumpToTourStep("myPinboards")}
-          >
-            Next
-          </button>
-        </div> */}
       </div>
     ),
     placement: "left",

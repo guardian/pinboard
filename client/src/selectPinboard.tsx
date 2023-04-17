@@ -29,10 +29,7 @@ import {
 import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
-import {
-  demoPinboardData,
-  demoPinboardsWithClaimCounts,
-} from "./tour/tourConstants";
+import { demoPinboardData } from "./tour/tourConstants";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,

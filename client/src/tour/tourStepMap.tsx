@@ -123,6 +123,7 @@ const _tourStepMap = {
       hasDeletedMessage,
     }) => (
       <div>
+        Please try the following:
         <ol
           css={css`
             padding-left: ${space[5]}px;

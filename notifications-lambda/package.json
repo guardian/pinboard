@@ -14,6 +14,6 @@
     "ts-node-dev": "^1.1.8"
   },
   "dependencies": {
-    "web-push": "^3.4.5"
+    "web-push": "^3.5.0"
   }
 }

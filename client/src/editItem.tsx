@@ -17,7 +17,8 @@ interface EditItemProps {
 }
 
 export const EditItem = ({ item, cancel }: EditItemProps) => {
-  const { payloadToBeSent, clearPayloadToBeSent } = useGlobalStateContext();
+  const { payloadToBeSent, setPayloadToBeSent, clearPayloadToBeSent } =
+    useGlobalStateContext();
   const sendTelemetryEvent = useContext(TelemetryContext);
 
   const telemetryPayloadCommon = {
@@ -78,6 +79,7 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
     >
       <ItemInputBox
         payloadToBeSent={payloadToBeSent}
+        setPayloadToBeSent={setPayloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
         message={message || ""}
         setMessage={setMessage}

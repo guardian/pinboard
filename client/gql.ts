@@ -259,3 +259,9 @@ export const gqlGetGridSearchSummary = gql`
         }
     }
 `;
+
+export const gqlAsGridPayload = (gridUrl: string) => gql`
+    query AsGridPayload {
+        asGridPayload(gridUrl: "${gridUrl}")
+    }
+`;

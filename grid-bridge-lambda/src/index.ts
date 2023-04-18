@@ -9,6 +9,7 @@ import type {
 } from "../../shared/graphql/graphql";
 
 import { isCollectionResponse, isSearchResponse } from "./types";
+import { PayloadAndType } from "client/src/types/PayloadAndType";
 
 const gutoolsDomain =
   STAGE === "PROD" ? "gutools.co.uk" : "test.dev-gutools.co.uk";
@@ -16,9 +17,14 @@ const mediaApiDomain = `api.media.${gutoolsDomain}`;
 const collectionsDomain = `media-collections.${gutoolsDomain}`;
 const maxImagesInSummary = "4";
 
-export const handler = async (event: { arguments?: { apiUrl?: string } }) => {
+export const handler = async (event: {
+  arguments?: { apiUrl?: string; gridUrl?: string };
+}) => {
   if (event.arguments?.apiUrl) {
-    return getSearchSummary(event.arguments.apiUrl);
+    return getSearchSummary(new URL(event.arguments.apiUrl));
+  }
+  if (event.arguments?.gridUrl) {
+    return buildPayloadFor(new URL(event.arguments.gridUrl));
   }
 };
 
@@ -34,20 +40,15 @@ const gridFetch = async (url: string): Promise<unknown> => {
   return await response.json();
 };
 
-const getSearchSummary = async (url: string): Promise<GridSearchSummary> => {
-  const parsedUrl = new URL(url);
-
-  if (
-    parsedUrl.hostname !== mediaApiDomain ||
-    parsedUrl.pathname !== "/images"
-  ) {
+const getSearchSummary = async (url: URL): Promise<GridSearchSummary> => {
+  if (url.hostname !== mediaApiDomain || url.pathname !== "/images") {
     throw new Error("Invalid Grid search API URL");
   }
-  parsedUrl.searchParams.set("length", maxImagesInSummary);
+  url.searchParams.set("length", maxImagesInSummary);
 
   // Run api calls in parallel
-  const search = gridFetch(parsedUrl.href);
-  const queryBreakdown = breakdownQuery(parsedUrl.searchParams.get("q"));
+  const search = gridFetch(url.href);
+  const queryBreakdown = breakdownQuery(url.searchParams.get("q"));
 
   const searchResponse = await search;
 
@@ -121,4 +122,60 @@ async function breakdownQuery(
     chips,
     restOfSearch,
   };
+}
+
+async function buildPayloadFor(gridUrl: URL): Promise<PayloadAndType | null> {
+  if (gridUrl.pathname === "/search") {
+    const apiUrl = new URL(gridUrl.href);
+    apiUrl.hostname = mediaApiDomain;
+    apiUrl.pathname = apiUrl.pathname.replace("/search", "/images");
+    apiUrl.searchParams.set("countAll", "true");
+    apiUrl.searchParams.set("length", "0");
+    const query = gridUrl.searchParams.get("query");
+    if (query) {
+      apiUrl.searchParams.set("q", query);
+      apiUrl.searchParams.delete("query");
+    }
+
+    const embeddableUrl = new URL(gridUrl.href);
+    embeddableUrl.searchParams.set("nonFree", "true");
+    return {
+      type: "grid-search",
+      payload: {
+        apiUrl: apiUrl.href,
+        embeddableUrl: embeddableUrl.href,
+      },
+    };
+  }
+  if (gridUrl.pathname.startsWith("/images/")) {
+    const maybeCrop = gridUrl.searchParams.get("crop");
+    const apiUrl = new URL(gridUrl.href);
+    apiUrl.hostname = mediaApiDomain;
+    const imageResponse = (await gridFetch(apiUrl.href)) as {
+      data: {
+        thumbnail: { secureUrl: string };
+        exports: Array<{
+          id: string;
+          assets: Array<{
+            secureUrl: string;
+            size: number;
+            dimensions: { height: number; width: number };
+          }>;
+        }>;
+      };
+    }; // TODO probably define this in types.ts
+    const thumbnail: string = maybeCrop
+      ? imageResponse.data.exports
+          .find((_) => _.id === maybeCrop)!
+          .assets.sort((a, b) => a.size - b.size)[0]!.secureUrl
+      : imageResponse.data.thumbnail.secureUrl;
+    return {
+      type: maybeCrop ? "grid-crop" : "grid-original",
+      payload: {
+        embeddableUrl: gridUrl.href,
+        thumbnail,
+      },
+    };
+  }
+  return null;
 }

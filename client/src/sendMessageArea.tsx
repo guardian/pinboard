@@ -10,7 +10,7 @@ import { PendingItem } from "./types/PendingItem";
 import { composer } from "../colours";
 import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
-import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
@@ -120,14 +120,8 @@ export const SendMessageArea = ({
 
   const sendItem = () =>
     confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
-      (claimable) =>
-        (tourProgress.isRunning
-          ? tourProgress.sendItem(() => {
-              setMessage("");
-              clearPayloadToBeSent();
-              setUnverifiedMentions([]);
-            })
-          : _sendItem)({
+      (claimable) => {
+        const messageItem = {
           variables: {
             input: {
               type: payloadToBeSent?.type || "message-only",
@@ -140,7 +134,20 @@ export const SendMessageArea = ({
               claimable,
             },
           },
-        })
+        };
+        if (tourProgress.isRunning) {
+          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+            tourEvent: "messaging",
+          });
+          tourProgress.sendItem(() => {
+            setMessage("");
+            clearPayloadToBeSent();
+            setUnverifiedMentions([]);
+          })(messageItem);
+        } else {
+          _sendItem(messageItem);
+        }
+      }
     );
 
   return (

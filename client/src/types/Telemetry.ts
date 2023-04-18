@@ -23,6 +23,7 @@ export enum PINBOARD_TELEMETRY_TYPE {
   CANCEL_DELETE_ITEM = "CANCEL_DELETE_ITEM",
   UPDATE_ITEM = "UPDATE_ITEM",
   CANCEL_UPDATE_ITEM = "CANCEL_UPDATE_ITEM",
+  INTERACTIVE_TOUR = "INTERACTIVE_TOUR",
 }
 
 export interface IPinboardEventTags {
@@ -34,6 +35,14 @@ export interface IPinboardEventTags {
   tab?: Tab;
   composerId?: string;
   composerSection?: string;
+  tourEvent?:
+    | "start_tour"
+    | "dismiss_tour"
+    | "finish_tour"
+    | "messaging"
+    | "complete_tour"
+    | "jump_tour";
+  tourStepId?: string;
 }
 
 type PinboardNotificationSetting = "ON" | "OFF";

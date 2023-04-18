@@ -14,6 +14,13 @@ export const Feedback = () => {
   const [isOpen, setIsOpen] = useState(false);
   const tourProgress = useTourProgress();
 
+  const handleTourStart = () => {
+    tourProgress.start();
+    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+      tourEvent: "start_tour",
+    });
+  };
+
   return (
     <div
       css={css`
@@ -178,7 +185,7 @@ export const Feedback = () => {
                 text-decoration: underline;
                 cursor: pointer;
               `}
-              onClick={useTourProgress().start}
+              onClick={handleTourStart}
             >
               Guided Tour
             </span>

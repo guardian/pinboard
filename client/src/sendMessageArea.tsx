@@ -120,17 +120,8 @@ export const SendMessageArea = ({
 
   const sendItem = () =>
     confirmClaimable(verifiedGroupMentionShorthands?.length > 0).then(
-      (claimable) =>
-        (tourProgress.isRunning
-          ? (sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
-              tourEvent: "messaging",
-            }),
-            tourProgress.sendItem(() => {
-              setMessage("");
-              clearPayloadToBeSent();
-              setUnverifiedMentions([]);
-            }))
-          : _sendItem)({
+      (claimable) => {
+        const messageItem = {
           variables: {
             input: {
               type: payloadToBeSent?.type || "message-only",
@@ -143,7 +134,20 @@ export const SendMessageArea = ({
               claimable,
             },
           },
-        })
+        };
+        if (tourProgress.isRunning) {
+          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
+            tourEvent: "messaging",
+          });
+          tourProgress.sendItem(() => {
+            setMessage("");
+            clearPayloadToBeSent();
+            setUnverifiedMentions([]);
+          })(messageItem);
+        } else {
+          _sendItem(messageItem);
+        }
+      }
     );
 
   return (

@@ -188,7 +188,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     getPinboardsByIds: PinboardData[];
   }>(gqlGetPinboardsByIds, {
     variables: {
-      ids: activePinboardIds,
+      ids: activePinboardIds.filter((id) => id !== demoPinboardData.id),
     },
   });
 

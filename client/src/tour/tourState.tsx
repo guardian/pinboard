@@ -168,7 +168,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     stepIndex: -1,
   });
   const { isRunning, stepIndex } = tourState;
-  const [_, setTourHistory] = useState<number[]>([0]);
+  const [, setTourHistory] = useState<number[]>([0]);
 
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);

@@ -19,6 +19,7 @@ type Query {
   getPinboardByComposerId(composerId: String!): WorkflowStub
   # grid-bridge-lambda queries
   getGridSearchSummary(apiUrl: String!): GridSearchSummary
+  asGridPayload(gridUrl: String!): AWSJSON
 }
 
 type Mutation {

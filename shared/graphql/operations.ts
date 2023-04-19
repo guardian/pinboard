@@ -16,7 +16,7 @@ export const QUERIES = {
     "getPinboardsByIds",
     "getPinboardByComposerId",
   ] as const,
-  grid: ["getGridSearchSummary"] as const,
+  grid: ["getGridSearchSummary", "asGridPayload"] as const,
 } as const;
 
 type QueriesFromCodeGen = keyof Required<Omit<Query, "__typename">>;

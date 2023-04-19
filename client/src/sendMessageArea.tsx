@@ -19,6 +19,7 @@ import { useTourProgress } from "./tour/tourState";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
+  setPayloadToBeSent: (payload: PayloadAndType | null) => void;
   clearPayloadToBeSent: () => void;
   onSuccessfulSend: (item: PendingItem, mentionEmails: string[]) => void;
   onError: (error: ApolloError) => void;
@@ -29,6 +30,7 @@ interface SendMessageAreaProps {
 
 export const SendMessageArea = ({
   payloadToBeSent,
+  setPayloadToBeSent,
   clearPayloadToBeSent,
   onSuccessfulSend,
   onError,
@@ -62,11 +64,6 @@ export const SendMessageArea = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
-  const hasGridUrl = (message: string) => {
-    const gridUrlRegex = /https:\/\/media.gutools.co.uk/;
-    return !!message.match(gridUrlRegex);
-  };
-
   const [_sendItem, { loading: isItemSending }] = useMutation<{
     createItem: Item;
   }>(gqlCreateItem, {
@@ -78,9 +75,6 @@ export const SendMessageArea = ({
         },
         verifiedIndividualMentionEmails
       );
-      if (hasGridUrl(message)) {
-        sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_LINK_PASTED);
-      }
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
         pinboardId: sendMessageResult.createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
@@ -164,6 +158,7 @@ export const SendMessageArea = ({
       {claimableConfirmModalElement}
       <ItemInputBox
         payloadToBeSent={payloadToBeSent}
+        setPayloadToBeSent={setPayloadToBeSent}
         clearPayloadToBeSent={clearPayloadToBeSent}
         message={message}
         setMessage={setMessage}

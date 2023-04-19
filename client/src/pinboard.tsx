@@ -359,6 +359,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           <SendMessageArea
             onSuccessfulSend={onSuccessfulSend}
             payloadToBeSent={maybeEditingItemId ? null : payloadToBeSent}
+            setPayloadToBeSent={setPayloadToBeSent}
             clearPayloadToBeSent={clearPayloadToBeSent}
             onError={(error) => setError(pinboardId, error)}
             userEmail={userEmail}

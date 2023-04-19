@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -10,11 +10,12 @@ import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useApolloClient } from "@apollo/client";
-import { gqlSearchMentionableUsers } from "../gql";
+import { gqlAsGridPayload, gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
 import { isGroup, isUser } from "../../shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 interface WithEntity<E> {
   entity: E & {
@@ -102,8 +103,20 @@ const Suggestion = ({
 const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
   event.key === "Enter" || event.keyCode === 13;
 
+const hostname = window?.location.hostname || ".test.";
+const gridDomain =
+  hostname.includes(".local.") ||
+  hostname.includes(".code.") ||
+  hostname.includes(".test.")
+    ? "test.dev-gutools.co.uk"
+    : "gutools.co.uk";
+
+const gridBaseUrl = `https://media.${gridDomain}`;
+
 interface ItemInputBoxProps {
   payloadToBeSent: PayloadAndType | null;
+  setPayloadToBeSent: (payload: PayloadAndType | null) => void;
+
   clearPayloadToBeSent: () => void;
   message: string;
   setMessage: (newMessage: string) => void;
@@ -115,6 +128,7 @@ interface ItemInputBoxProps {
 
 export const ItemInputBox = ({
   payloadToBeSent,
+  setPayloadToBeSent,
   clearPayloadToBeSent,
   message,
   setMessage,
@@ -123,6 +137,8 @@ export const ItemInputBox = ({
   panelElement,
   isSending,
 }: ItemInputBoxProps) => {
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   const textAreaRef = useRef<HTMLTextAreaElement>();
 
   useLayoutEffect(() => {
@@ -171,6 +187,25 @@ export const ItemInputBox = ({
     target.style.height = "0";
     // Chrome will sometimes show a scrollbar at the exact scrollHeight, so give it a .1px extra as a nudge not to add one
     target.style.height = `${target.scrollHeight + 0.1}px`;
+  };
+
+  const handlePaste = ({
+    clipboardData,
+  }: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = clipboardData.getData("text")?.trim();
+    if (pastedText.startsWith(gridBaseUrl)) {
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_LINK_PASTED);
+      apolloClient
+        .query<{ asGridPayload: string | null }>({
+          query: gqlAsGridPayload(pastedText),
+        })
+        .then(({ data: { asGridPayload } }) => {
+          if (asGridPayload) {
+            setPayloadToBeSent(JSON.parse(asGridPayload));
+            setMessage(message.replace(pastedText, "")); // remove the link from the message
+          }
+        }); //TODO add error handling
+    }
   };
 
   return (
@@ -225,6 +260,7 @@ export const ItemInputBox = ({
             }
           })
         }
+        onPaste={handlePaste}
         onItemSelected={({ item }) => addUnverifiedMention?.(item)}
         rows={1}
         css={css`

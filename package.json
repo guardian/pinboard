@@ -14,6 +14,7 @@
     "workflow-bridge-lambda",
     "database-bridge-lambda",
     "archiver-lambda",
+    "email-lambda",
     "shared"
   ],
   "scripts": {

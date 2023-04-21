@@ -62,6 +62,8 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       runSetupSqlFile(sql, "016-AddIsArchivedColumnToItemTable.sql"),
     "add visitedTourSteps column to User table": () =>
       runSetupSqlFile(sql, "017-AddVisitedTourStepsColumnToUserTable.sql"),
+    "add isEmailEvaluated column to Item table": () =>
+      runSetupSqlFile(sql, "018-AddIsEmailEvaluatedColumnToItemTable.sql"),
   };
 
   const allSteps = async () => {

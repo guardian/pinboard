@@ -12,6 +12,7 @@ import {
   aws_rds as rds,
   aws_s3 as S3,
   aws_ssm as ssm,
+  aws_ses as ses,
   CfnOutput,
   Duration,
   Fn,
@@ -28,18 +29,18 @@ import {
   getWorkflowBridgeLambdaFunctionName,
   NOTIFICATIONS_LAMBDA_BASENAME,
   WORKFLOW_BRIDGE_LAMBDA_BASENAME,
-} from "../../shared/constants";
+} from "shared/constants";
 import crypto from "crypto";
-import { ENVIRONMENT_VARIABLE_KEYS } from "../../shared/environmentVariables";
+import { ENVIRONMENT_VARIABLE_KEYS } from "shared/environmentVariables";
 import {
   DATABASE_NAME,
   DATABASE_PORT,
   DATABASE_USERNAME,
   getDatabaseJumpHostAsgName,
   getDatabaseProxyName,
-} from "../../shared/database/database";
-import { Stage } from "../../shared/types/stage";
-import { MUTATIONS, QUERIES } from "../../shared/graphql/operations";
+} from "shared/database/database";
+import { Stage } from "shared/types/stage";
+import { MUTATIONS, QUERIES } from "shared/graphql/operations";
 import {
   GuAmiParameter,
   GuStack,
@@ -52,6 +53,8 @@ import {
 } from "@guardian/cdk/lib/constructs/autoscaling";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
+import { EmailIdentity } from "aws-cdk-lib/aws-ses";
+import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
@@ -572,6 +575,52 @@ export class PinBoardStack extends GuStack {
     });
     pinboardWorkflowBridgeLambda.grantInvoke(archiverLambda);
     databaseProxy.grantConnect(archiverLambda);
+
+    const sesVerifiedIdentity = new EmailIdentity(this, "EmailIdentity", {
+      identity: ses.Identity.domain(domainName),
+    });
+    sesVerifiedIdentity.dkimRecords.forEach(({ name, value }, index) => {
+      new GuCname(this, `EmailIdentityDkim${index}`, {
+        app: APP,
+        domainName: name,
+        resourceRecord: value,
+        ttl: Duration.hours(1),
+      });
+    });
+    const emailLambda = new GuScheduledLambda(this, "EmailLambda", {
+      app: APP,
+      vpc: accountVpc,
+      securityGroups: [databaseSecurityGroup],
+      functionName: `pinboard-email-lambda-${this.stage}`,
+      runtime: LAMBDA_NODE_VERSION,
+      handler: "index.handler",
+      environment: {
+        [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
+      },
+      monitoringConfiguration: {
+        noMonitoring: true,
+        // toleratedErrorPercentage: 0 TODO consider alarming on errors (need to provide sns topic which is sad since GuAlarm finds it for you)
+      },
+      fileName: "pinboard-email-lambda.zip",
+      rules: [
+        {
+          schedule: events.Schedule.rate(Duration.minutes(5)),
+          description:
+            "Run every 5 minutes to ensure emails get sent out promptly (and not too huge batches, which might hit rate limits)",
+        },
+      ],
+      initialPolicy: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ["ses:SendEmail"],
+          resources: [
+            `arn:aws:ses:${this.region}:${this.account}:identity/${sesVerifiedIdentity.emailIdentityName}`,
+          ],
+        }),
+      ],
+    });
+    pinboardWorkflowBridgeLambda.grantInvoke(emailLambda);
+    databaseProxy.grantConnect(emailLambda);
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;

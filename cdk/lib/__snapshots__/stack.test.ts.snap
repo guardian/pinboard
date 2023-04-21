@@ -19,6 +19,10 @@ Object {
       "GuAutoScalingGroup",
       "GuAlarm",
       "GuScheduledLambda",
+      "GuCname",
+      "GuCname",
+      "GuCname",
+      "GuScheduledLambda",
     ],
     "gu:cdk:version": "49.5.0",
   },
@@ -954,6 +958,449 @@ Object {
         "Roles": Array [
           Object {
             "Ref": "InstanceRolePinboard534D1FFA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "EmailIdentity7187767D": Object {
+      "Properties": Object {
+        "EmailIdentity": "pinboard.test.dev-gutools.co.uk",
+      },
+      "Type": "AWS::SES::EmailIdentity",
+    },
+    "EmailIdentityDkim0": Object {
+      "Properties": Object {
+        "Name": Object {
+          "Fn::GetAtt": Array [
+            "EmailIdentity7187767D",
+            "DkimDNSTokenName1",
+          ],
+        },
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "EmailIdentity7187767D",
+              "DkimDNSTokenValue1",
+            ],
+          },
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
+    },
+    "EmailIdentityDkim1": Object {
+      "Properties": Object {
+        "Name": Object {
+          "Fn::GetAtt": Array [
+            "EmailIdentity7187767D",
+            "DkimDNSTokenName2",
+          ],
+        },
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "EmailIdentity7187767D",
+              "DkimDNSTokenValue2",
+            ],
+          },
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
+    },
+    "EmailIdentityDkim2": Object {
+      "Properties": Object {
+        "Name": Object {
+          "Fn::GetAtt": Array [
+            "EmailIdentity7187767D",
+            "DkimDNSTokenName3",
+          ],
+        },
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "EmailIdentity7187767D",
+              "DkimDNSTokenValue3",
+            ],
+          },
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
+    },
+    "EmailLambda93E95E21": Object {
+      "DependsOn": Array [
+        "EmailLambdaServiceRoleDefaultPolicy23741915",
+        "EmailLambdaServiceRoleCBE95916",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "workflow/TEST/pinboard/pinboard-email-lambda.zip",
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
+            "STACK": "workflow",
+            "STAGE": "TEST",
+          },
+        },
+        "FunctionName": "pinboard-email-lambda-TEST",
+        "Handler": "index.handler",
+        "MemorySize": 512,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "EmailLambdaServiceRoleCBE95916",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.5.0",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "Timeout": 30,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Object {
+            "Ref": "pinboardPrivateSubnets",
+          },
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "EmailLambdaEmailLambdarate5minutes0AllowEventRulePinBoardStackTESTEmailLambdaA8A9241C239D7601": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "EmailLambda93E95E21",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "EmailLambdaEmailLambdarate5minutes0E68F318E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "EmailLambdaEmailLambdarate5minutes0E68F318E": Object {
+      "Properties": Object {
+        "Description": "Run every 5 minutes to ensure emails get sent out promptly (and not too huge batches, which might hit rate limits)",
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "EmailLambda93E95E21",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "EmailLambdaServiceRoleCBE95916": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.5.0",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EmailLambdaServiceRoleDefaultPolicy23741915": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ses:SendEmail",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ses:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":identity/",
+                    Object {
+                      "Ref": "EmailIdentity7187767D",
+                    },
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/workflow/TEST/pinboard/pinboard-email-lambda.zip",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard/*",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardworkflowbridgelambda30D4AA22",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardworkflowbridgelambda30D4AA22",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "EmailLambdaServiceRoleDefaultPolicy23741915",
+        "Roles": Array [
+          Object {
+            "Ref": "EmailLambdaServiceRoleCBE95916",
           },
         ],
       },

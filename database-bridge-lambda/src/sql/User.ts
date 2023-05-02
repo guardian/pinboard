@@ -47,7 +47,7 @@ export const getUsers = (sql: Sql, args: { emails: string[] }) =>
   `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
-  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription"`;
+  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "completedTourSteps" IS NOT NULL AS "hasEverUsedTour", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription"`;
 
 export const getMyUser = (sql: Sql, userEmail: string) =>
   sql`
@@ -92,6 +92,20 @@ export const removeManuallyOpenedPinboardIds = async (
     SET "manuallyOpenedPinboardIds" = ARRAY_REMOVE("manuallyOpenedPinboardIds", ${
       args.pinboardIdToClose
     })
+    WHERE "email" = ${userEmail}
+    RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
+`.then((rows) => rows[0]);
+
+export const addCompletedTourStep = async (
+  sql: Sql,
+  args: { tourStepId: string },
+  userEmail: string
+) =>
+  sql`
+    UPDATE "User" 
+    SET "completedTourstep" = jsonb_set("completedTourSteps", '{${
+      args.tourStepId
+    }}', 'true', true)
     WHERE "email" = ${userEmail}
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);

@@ -31,6 +31,7 @@ import {
 import { userToMentionHandle } from "../mentionsUtil";
 import { LastItemSeenByUserLookup } from "../pinboard";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
+import { addCompletedTourStep } from "database-bridge-lambda/src/sql/User";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -197,8 +198,12 @@ export const TourStateProvider: React.FC = ({ children }) => {
     }
   }, [stepIndex]);
 
-  const { openPinboard, clearSelectedPinboard, userEmail } =
-    useGlobalStateContext();
+  const {
+    openPinboard,
+    clearSelectedPinboard,
+    userEmail,
+    addCompletedTourStep,
+  } = useGlobalStateContext();
 
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });
@@ -239,6 +244,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
             nextStepIndex,
           ]);
           continueTourTo(nextStepIndex);
+          addCompletedTourStep(tourStepIDs[nextStepIndex]); // tracks in the database TODO - rename to addVisitedTourStep
           break;
         }
       }

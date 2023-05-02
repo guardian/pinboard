@@ -1,5 +1,6 @@
 import {
   ApolloError,
+  useApolloClient,
   useLazyQuery,
   useMutation,
   useQuery,
@@ -7,6 +8,7 @@ import {
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
+  gqlAddCompletedTourStep,
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
   gqlGetPinboardsByIds,
@@ -23,6 +25,7 @@ import { bottom, top, floatySize, right } from "./styling";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { demoPinboardData } from "./tour/tourConstants";
+import { TourStepID } from "./tour/tourStepMap";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -56,6 +59,8 @@ interface GlobalStateContextShape {
   preselectedPinboard: PreselectedPinboard;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
+
+  addCompletedTourStep: (tourStepId: string) => void;
 
   showNotification: (item: Item) => void;
   hasWebPushSubscription: boolean | null | undefined;
@@ -245,6 +250,18 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
           maybeEmailOverride,
         },
       });
+
+  const apolloClient = useApolloClient();
+
+  const addCompletedTourStep = (tourStepId: string) =>
+    apolloClient.mutate<{
+      addCompletedTourStep: MyUser;
+    }>({
+      mutation: gqlAddCompletedTourStep,
+      variables: {
+        tourStepId,
+      },
+    }); // TODO - set myUser based on response
 
   const [interTabChannel] = useState<BroadcastChannel>(
     new BroadcastChannel("pinboard-inter-tab-communication")
@@ -516,6 +533,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     preselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
+
+    addCompletedTourStep,
 
     showNotification,
     hasWebPushSubscription,

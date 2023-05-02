@@ -1,5 +1,6 @@
 import React, {
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -164,6 +165,15 @@ export const TourStateProvider: React.FC = ({ children }) => {
   );
   const getRef = (stepId: TourStepID) => refMap[stepId];
 
+  const {
+    openPinboard,
+    clearSelectedPinboard,
+    userEmail,
+    isExpanded,
+    hasEverUsedTour,
+    addCompletedTourStep,
+  } = useGlobalStateContext();
+
   const [tourState, setTourState] = useState({
     isRunning: false,
     stepIndex: -1,
@@ -171,10 +181,17 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const { isRunning, stepIndex } = tourState;
   const [, setTourHistory] = useState<number[]>([0]);
 
+  useEffect(() => {
+    if (isExpanded && !hasEverUsedTour) {
+      setTourState({ isRunning: true, stepIndex: -1 });
+    }
+  }, [isExpanded, hasEverUsedTour]);
+
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
+    addCompletedTourStep(stepId);
     sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
       tourEvent: "jump_tour",
       tourStepId: stepId,
@@ -197,13 +214,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
         : openPinboard(true)(demoPinboardData, false);
     }
   }, [stepIndex]);
-
-  const {
-    openPinboard,
-    clearSelectedPinboard,
-    userEmail,
-    addCompletedTourStep,
-  } = useGlobalStateContext();
 
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });
@@ -244,7 +254,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
             nextStepIndex,
           ]);
           continueTourTo(nextStepIndex);
-          addCompletedTourStep(tourStepIDs[nextStepIndex]); // tracks in the database TODO - rename to addVisitedTourStep
+          addCompletedTourStep(tourStepIDs[index]); // tracks in the database TODO - rename to addVisitedTourStep
           break;
         }
       }

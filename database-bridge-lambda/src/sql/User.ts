@@ -102,10 +102,13 @@ export const addCompletedTourStep = async (
   userEmail: string
 ) =>
   sql`
-    UPDATE "User" 
-    SET "completedTourstep" = jsonb_set("completedTourSteps", '{${
-      args.tourStepId
-    }}', 'true', true)
+    UPDATE "User"
+    SET "completedTourSteps" = jsonb_set(
+        COALESCE("completedTourSteps", '{}'::jsonb), 
+        ${[args.tourStepId]}, 
+        to_jsonb(true), 
+        true
+    )
     WHERE "email" = ${userEmail}
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);

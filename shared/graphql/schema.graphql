@@ -95,7 +95,7 @@ type MyUser {
   avatarUrl: String
   hasWebPushSubscription: Boolean
   manuallyOpenedPinboardIds: [String!]
-  hasEverUsedTour: Boolean
+  hasEverUsedTour: Boolean!
 }
 
 type Group {

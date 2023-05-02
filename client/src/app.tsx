@@ -375,6 +375,7 @@ export const PinBoardApp = ({
           clearDesktopNotificationsForPinboardId={
             clearDesktopNotificationsForPinboardId
           }
+          hasEverUsedTour={me?.hasEverUsedTour}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />

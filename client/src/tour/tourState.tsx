@@ -32,7 +32,6 @@ import {
 import { userToMentionHandle } from "../mentionsUtil";
 import { LastItemSeenByUserLookup } from "../pinboard";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
-import { addCompletedTourStep } from "database-bridge-lambda/src/sql/User";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -232,6 +231,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
       });
     } else if (action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
+      !hasEverUsedTour && addCompletedTourStep("DISMISSED");
+
       lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged multiple times
         sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
           tourEvent: "dismiss_tour",

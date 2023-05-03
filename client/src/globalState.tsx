@@ -1,6 +1,5 @@
 import {
   ApolloError,
-  useApolloClient,
   useLazyQuery,
   useMutation,
   useQuery,
@@ -8,7 +7,6 @@ import {
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
-  gqlAddCompletedTourStep,
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
   gqlGetPinboardsByIds,
@@ -25,7 +23,6 @@ import { bottom, top, floatySize, right } from "./styling";
 import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { demoPinboardData } from "./tour/tourConstants";
-import { TourStepID } from "./tour/tourStepMap";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -123,6 +120,7 @@ interface GlobalStateProviderProps {
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
+  addCompletedTourStep: (tourStepId: string) => void;
 }
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   hasApolloAuthError,
@@ -142,6 +140,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   showNotification,
   clearDesktopNotificationsForPinboardId,
   hasEverUsedTour,
+  addCompletedTourStep,
   children,
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
@@ -253,18 +252,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
           maybeEmailOverride,
         },
       });
-
-  const apolloClient = useApolloClient();
-
-  const addCompletedTourStep = (tourStepId: string) =>
-    apolloClient.mutate<{
-      addCompletedTourStep: MyUser;
-    }>({
-      mutation: gqlAddCompletedTourStep,
-      variables: {
-        tourStepId,
-      },
-    }); // TODO - set myUser based on response
 
   const [interTabChannel] = useState<BroadcastChannel>(
     new BroadcastChannel("pinboard-inter-tab-communication")

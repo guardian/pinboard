@@ -37,7 +37,7 @@ export const MUTATIONS = {
     "setWebPushSubscriptionForUser",
     "addManuallyOpenedPinboardIds",
     "removeManuallyOpenedPinboardIds",
-    "addCompletedTourStep",
+    "addVisitedTourStep",
   ] as const,
 } as const;
 

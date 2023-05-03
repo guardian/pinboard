@@ -34,7 +34,7 @@ import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
     },
     deleteItem: { itemId: "2352" },
     getMyUser: {},
-    addCompletedTourStep: { tourStepId: "testing" },
+    addVisitedTourStep: { tourStepId: "testing" },
   };
 
   await createDatabaseTunnel();

@@ -31,7 +31,7 @@ type Mutation {
   setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
   addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
   removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
-  addCompletedTourStep(tourStepId: String!): MyUser
+  visitTourStep(tourStepId: String!): MyUser
 }
 
 type Subscription {

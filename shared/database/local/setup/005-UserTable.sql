@@ -5,5 +5,5 @@ CREATE TABLE "User" (
     "avatarUrl" varchar(2046),
     "isMentionable" BOOLEAN NOT NULL,
     "webPushSubscription" JSONB,
-    "manuallyOpenedPinboardIds" varchar(128)[],
+    "manuallyOpenedPinboardIds" varchar(128)[]
 );

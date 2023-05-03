@@ -15,7 +15,7 @@ import {
   useSubscription,
 } from "@apollo/client";
 import {
-  gqlAddCompletedTourStep,
+  gqlAddVisitedTourStep,
   gqlGetMyUser,
   gqlGetUsers,
   gqlOnManuallyOpenedPinboardIdsChanged,
@@ -222,19 +222,19 @@ export const PinBoardApp = ({
     meQuery.updateQuery(() => ({ getMyUser: newMyUser }));
   };
 
-  const addCompletedTourStep = (tourStepId: string) =>
+  const addVisitedTourStep = (tourStepId: string) =>
     apolloClient
       .mutate<{
-        addCompletedTourStep: MyUser;
+        addVisitedTourStep: MyUser;
       }>({
-        mutation: gqlAddCompletedTourStep,
+        mutation: gqlAddVisitedTourStep,
         variables: {
           tourStepId,
         },
       })
       .then(({ data }) => {
-        data?.addCompletedTourStep &&
-          meQuery.updateQuery(() => ({ getMyUser: data.addCompletedTourStep }));
+        data?.addVisitedTourStep &&
+          meQuery.updateQuery(() => ({ getMyUser: data.addVisitedTourStep }));
       });
 
   useSubscription<{ onManuallyOpenedPinboardIdsChanged: MyUser }>(
@@ -392,7 +392,7 @@ export const PinBoardApp = ({
             clearDesktopNotificationsForPinboardId
           }
           hasEverUsedTour={me?.hasEverUsedTour}
-          addCompletedTourStep={addCompletedTourStep}
+          addVisitedTourStep={addVisitedTourStep}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />

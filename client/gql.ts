@@ -267,9 +267,9 @@ export const gqlAsGridPayload = (gridUrl: string) => gql`
     }
 `;
 
-export const gqlAddVisitedTourStep = gql`
-    mutation AddVisitedTourStep($tourStepId: String!) {
-        addVisitedTourStep(tourStepId: $tourStepId) {
+export const gqlVisitTourStep = gql`
+    mutation visitTourStep($tourStepId: String!) {
+        visitTourStep(tourStepId: $tourStepId) {
             ${myUserReturnFields}
         }
     }

@@ -170,7 +170,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     userEmail,
     isExpanded,
     hasEverUsedTour,
-    addVisitedTourStep,
+    visitTourStep,
   } = useGlobalStateContext();
 
   const [tourState, setTourState] = useState({
@@ -190,7 +190,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
-    addVisitedTourStep(stepId);
+    visitTourStep(stepId);
     sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
       tourEvent: "jump_tour",
       tourStepId: stepId,
@@ -231,7 +231,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
       });
     } else if (action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
-      !hasEverUsedTour && addVisitedTourStep("DISMISSED");
+      !hasEverUsedTour && visitTourStep("DISMISSED");
 
       lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged multiple times
         sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
@@ -255,7 +255,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
             nextStepIndex,
           ]);
           continueTourTo(nextStepIndex);
-          addVisitedTourStep(tourStepIDs[index]); // tracks in the database
+          visitTourStep(tourStepIDs[index]); // tracks in the database
           break;
         }
       }

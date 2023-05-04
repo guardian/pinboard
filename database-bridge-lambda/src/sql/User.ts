@@ -96,7 +96,7 @@ export const removeManuallyOpenedPinboardIds = async (
     RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
 `.then((rows) => rows[0]);
 
-export const addVisitedTourStep = async (
+export const visitTourStep = async (
   sql: Sql,
   args: { tourStepId: string },
   userEmail: string

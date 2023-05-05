@@ -57,6 +57,9 @@ interface GlobalStateContextShape {
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 
+  hasEverUsedTour: boolean | undefined;
+  visitTourStep: (tourStepId: string) => void;
+
   showNotification: (item: Item) => void;
   hasWebPushSubscription: boolean | null | undefined;
 
@@ -116,6 +119,8 @@ interface GlobalStateProviderProps {
   showNotification: (item: Item) => void;
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
+  hasEverUsedTour: boolean | undefined;
+  visitTourStep: (tourStepId: string) => void;
 }
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   hasApolloAuthError,
@@ -134,6 +139,8 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   setManuallyOpenedPinboardIds,
   showNotification,
   clearDesktopNotificationsForPinboardId,
+  hasEverUsedTour,
+  visitTourStep,
   children,
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
@@ -516,6 +523,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     preselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
+
+    hasEverUsedTour,
+    visitTourStep,
 
     showNotification,
     hasWebPushSubscription,

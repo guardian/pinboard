@@ -118,6 +118,7 @@ const userReturnFields = `
 const myUserReturnFields = `${userReturnFields}
   hasWebPushSubscription
   manuallyOpenedPinboardIds
+  hasEverUsedTour
 `;
 
 export const gqlSearchMentionableUsers = (prefix: string) => gql`
@@ -263,5 +264,13 @@ export const gqlGetGridSearchSummary = gql`
 export const gqlAsGridPayload = (gridUrl: string) => gql`
     query AsGridPayload {
         asGridPayload(gridUrl: "${gridUrl}")
+    }
+`;
+
+export const gqlVisitTourStep = gql`
+    mutation visitTourStep($tourStepId: String!) {
+        visitTourStep(tourStepId: $tourStepId) {
+            ${myUserReturnFields}
+        }
     }
 `;

@@ -20,6 +20,7 @@ import {
   removeManuallyOpenedPinboardIds,
   searchMentionableUsers,
   setWebPushSubscriptionForUser,
+  visitTourStep,
 } from "./sql/User";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { DatabaseOperation } from "../../shared/graphql/operations";
@@ -63,6 +64,8 @@ const run = (
       return getGroupPinboardIds(sql, userEmail);
     case "getItemCounts":
       return getItemCounts(sql, args, userEmail);
+    case "visitTourStep":
+      return visitTourStep(sql, args, userEmail);
   }
 
   throw Error(

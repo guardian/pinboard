@@ -1,5 +1,6 @@
 import React, {
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -163,6 +164,15 @@ export const TourStateProvider: React.FC = ({ children }) => {
   );
   const getRef = (stepId: TourStepID) => refMap[stepId];
 
+  const {
+    openPinboard,
+    clearSelectedPinboard,
+    userEmail,
+    isExpanded,
+    hasEverUsedTour,
+    visitTourStep,
+  } = useGlobalStateContext();
+
   const [tourState, setTourState] = useState({
     isRunning: false,
     stepIndex: -1,
@@ -170,10 +180,17 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const { isRunning, stepIndex } = tourState;
   const [, setTourHistory] = useState<number[]>([0]);
 
+  useEffect(() => {
+    if (isExpanded && !hasEverUsedTour) {
+      setTourState({ isRunning: true, stepIndex: -1 });
+    }
+  }, [isExpanded, hasEverUsedTour]);
+
   const jumpStepTo = (stepId: TourStepID) => {
     const stepIndex = tourStepIDs.indexOf(stepId);
     setTourState({ ...tourState, isRunning: false });
     setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
+    visitTourStep(stepId);
     sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
       tourEvent: "jump_tour",
       tourStepId: stepId,
@@ -197,9 +214,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
     }
   }, [stepIndex]);
 
-  const { openPinboard, clearSelectedPinboard, userEmail } =
-    useGlobalStateContext();
-
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });
     requestAnimationFrame(() =>
@@ -217,6 +231,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
       });
     } else if (action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
+      !hasEverUsedTour && visitTourStep("DISMISSED");
+
       lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged multiple times
         sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
           tourEvent: "dismiss_tour",
@@ -239,6 +255,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
             nextStepIndex,
           ]);
           continueTourTo(nextStepIndex);
+          visitTourStep(tourStepIDs[index]); // tracks in the database
           break;
         }
       }

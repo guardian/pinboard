@@ -32,6 +32,7 @@ import {
 import { userToMentionHandle } from "../mentionsUtil";
 import { LastItemSeenByUserLookup } from "../pinboard";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
+import { isInlineMode } from "../inline/inlineMode";
 
 type TourStepRef = React.MutableRefObject<HTMLDivElement | null>;
 
@@ -190,7 +191,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
     if (
       isExpanded &&
       hasEverUsedTour ===
-        false /* explicit false check to ensure 'hasEverUsedTour' has actually been loaded */
+        false /* explicit false check to ensure 'hasEverUsedTour' has actually been loaded */ &&
+      !isInlineMode()
     ) {
       start();
     }

@@ -8,6 +8,7 @@ import UpChevron from "../icons/chevron-up.svg";
 import { agateSans } from "../fontNormaliser";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
+import { isInlineMode } from "./inline/inlineMode";
 
 export const Feedback = () => {
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -172,7 +173,7 @@ export const Feedback = () => {
             />
           </div>
         )}
-        {!tourProgress.isRunning && (
+        {!tourProgress.isRunning && !isInlineMode() && (
           <div
             css={css`
               color: white;

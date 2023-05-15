@@ -42,6 +42,7 @@ import {
 import { UserLookup } from "./types/UserLookup";
 import {
   InlineMode,
+  isInlineMode,
   WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
 } from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
@@ -63,11 +64,6 @@ export const PinBoardApp = ({
   hasApolloAuthErrorVar,
   userEmail,
 }: PinBoardAppProps) => {
-  const isInlineMode = useMemo(
-    () => window.location.hostname.startsWith("workflow."),
-    []
-  );
-
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
   );
@@ -428,7 +424,7 @@ export const PinBoardApp = ({
               }}
             >
               <TickContext.Provider value={lastTickTimestamp}>
-                {isInlineMode ? (
+                {useMemo(isInlineMode, []) ? (
                   <InlineMode
                     workflowPinboardElements={workflowPinboardElements}
                   />

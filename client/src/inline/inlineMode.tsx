@@ -10,6 +10,9 @@ import { InlineModeWorkflowColumnHeading } from "./inlineModeWorkflowColumnHeadi
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
 
+export const isInlineMode = () =>
+  window.location.hostname.startsWith("workflow.");
+
 interface InlineModeProps {
   workflowPinboardElements: HTMLElement[];
 }

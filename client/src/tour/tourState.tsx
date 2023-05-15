@@ -22,7 +22,7 @@ import {
   Item,
   LastItemSeenByUserInput,
   User,
-} from "../../../shared/graphql/graphql";
+} from "shared/graphql/graphql";
 import { pendingAsReceivedItem, replyTo } from "./tourMessageReplies";
 import {
   demoMentionableUsers,
@@ -180,24 +180,34 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const { isRunning, stepIndex } = tourState;
   const [, setTourHistory] = useState<number[]>([0]);
 
+  const start = () => {
+    clearSelectedPinboard();
+    setTourHistory([0]);
+    setTourState({ isRunning: true, stepIndex: -1 });
+  };
+
   useEffect(() => {
-    if (isExpanded && !hasEverUsedTour) {
-      setTourState({ isRunning: true, stepIndex: -1 });
+    if (
+      isExpanded &&
+      hasEverUsedTour ===
+        false /* explicit false check to ensure 'hasEverUsedTour' has actually been loaded */
+    ) {
+      start();
     }
   }, [isExpanded, hasEverUsedTour]);
 
   const jumpStepTo = (stepId: TourStepID) => {
-    const stepIndex = tourStepIDs.indexOf(stepId);
+    const stepIndex = tourStepIDs.indexOf(stepId) + 1; // +1 is to account for the contents step
     setTourState({ ...tourState, isRunning: false });
-    setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex + 1]);
+    setTourHistory((prevTourHistory) => [...prevTourHistory, stepIndex]);
     visitTourStep(stepId);
     sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
       tourEvent: "jump_tour",
       tourStepId: stepId,
     });
     requestAnimationFrame(() =>
-      setTourState({ isRunning: true, stepIndex: stepIndex + 1 })
-    ); // +1 is to account for the contents step
+      setTourState({ isRunning: true, stepIndex: stepIndex })
+    );
   };
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -260,12 +270,6 @@ export const TourStateProvider: React.FC = ({ children }) => {
         }
       }
     }
-  };
-
-  const start = () => {
-    clearSelectedPinboard();
-    setTourHistory([0]);
-    setTourState({ isRunning: true, stepIndex: -1 });
   };
 
   const [successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);

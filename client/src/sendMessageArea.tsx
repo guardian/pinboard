@@ -1,9 +1,9 @@
-import { ApolloError, useMutation } from "@apollo/client";
+import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
 import { Group, Item, User } from "../../shared/graphql/graphql";
-import { gqlCreateItem } from "../gql";
+import { gqlAsGridPayload, gqlCreateItem } from "../gql";
 import { ItemInputBox } from "./itemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { PendingItem } from "./types/PendingItem";
@@ -144,6 +144,10 @@ export const SendMessageArea = ({
       }
     );
 
+  const [asGridPayload, { loading: isAsGridPayloadLoading }] = useLazyQuery<{
+    asGridPayload: string | null;
+  }>(gqlAsGridPayload);
+
   return (
     <div
       css={css`
@@ -166,6 +170,8 @@ export const SendMessageArea = ({
         addUnverifiedMention={addUnverifiedMention}
         panelElement={panelElement}
         isSending={isItemSending}
+        asGridPayload={asGridPayload}
+        isAsGridPayloadLoading={isAsGridPayloadLoading}
       />
       <button
         css={css`
@@ -189,7 +195,11 @@ export const SendMessageArea = ({
           }
         `}
         onClick={sendItem}
-        disabled={isItemSending || !(message || payloadToBeSent)}
+        disabled={
+          isItemSending ||
+          isAsGridPayloadLoading ||
+          !(message || payloadToBeSent)
+        }
       >
         {isItemSending ? (
           <SvgSpinner />

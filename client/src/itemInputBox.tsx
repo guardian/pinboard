@@ -4,15 +4,19 @@ import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
-import { Group, User } from "../../shared/graphql/graphql";
+import { Group, User } from "shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
-import { useApolloClient } from "@apollo/client";
-import { gqlAsGridPayload, gqlSearchMentionableUsers } from "../gql";
+import {
+  LazyQueryHookOptions,
+  OperationVariables,
+  useApolloClient,
+} from "@apollo/client";
+import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { isGroup, isUser } from "../../shared/graphql/extraTypes";
+import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
@@ -124,6 +128,10 @@ interface ItemInputBoxProps {
   addUnverifiedMention?: (userOrGroup: User | Group) => void;
   panelElement: HTMLElement | null;
   isSending: boolean;
+  asGridPayload: (
+    options?: Partial<LazyQueryHookOptions<{ asGridPayload: string | null }>>
+  ) => unknown;
+  isAsGridPayloadLoading: boolean;
 }
 
 export const ItemInputBox = ({
@@ -136,6 +144,8 @@ export const ItemInputBox = ({
   addUnverifiedMention,
   panelElement,
   isSending,
+  asGridPayload,
+  isAsGridPayloadLoading,
 }: ItemInputBoxProps) => {
   const sendTelemetryEvent = useContext(TelemetryContext);
 
@@ -195,16 +205,17 @@ export const ItemInputBox = ({
     const pastedText = clipboardData.getData("text")?.trim();
     if (pastedText.startsWith(gridBaseUrl)) {
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_LINK_PASTED);
-      apolloClient
-        .query<{ asGridPayload: string | null }>({
-          query: gqlAsGridPayload(pastedText),
-        })
-        .then(({ data: { asGridPayload } }) => {
+      asGridPayload({
+        variables: {
+          gridUrl: pastedText,
+        },
+        onCompleted: ({ asGridPayload }) => {
           if (asGridPayload) {
             setPayloadToBeSent(JSON.parse(asGridPayload));
             setMessage(message.replace(pastedText, "")); // remove the link from the message
           }
-        }); //TODO add error handling
+        },
+      }); //TODO add error handling
     }
   };
 
@@ -253,7 +264,7 @@ export const ItemInputBox = ({
           ((event) => {
             event.stopPropagation();
             if (isEnterKey(event)) {
-              if (message || payloadToBeSent) {
+              if (!isAsGridPayloadLoading && (message || payloadToBeSent)) {
                 sendItem();
               }
               event.preventDefault();
@@ -281,6 +292,19 @@ export const ItemInputBox = ({
         `}
         boundariesElement={panelElement || undefined}
       />
+      {isAsGridPayloadLoading && (
+        <div
+          css={css`
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            ${agateSans.small({ fontStyle: "italic" })};
+          `}
+        >
+          <SvgSpinner size="small" />
+          &nbsp;please wait a moment
+        </div>
+      )}
       {payloadToBeSent && (
         <div
           css={css`

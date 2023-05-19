@@ -30,6 +30,7 @@ import { NotTrackedInWorkflow } from "./notTrackedInWorkflow";
 import { Feedback } from "./feedback";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import { demoPinboardData } from "./tour/tourConstants";
+import { ComposerIcon } from "./navigation/icon";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -80,6 +81,25 @@ export const SelectPinboard = ({
   } = useGlobalStateContext();
 
   const [searchText, setSearchText] = useState<string>("");
+
+  const [isShiftKeyDown, setIsShiftKeyDown] = useState(false);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) =>
+      e.key === "Shift" && setIsShiftKeyDown(true);
+    const handleKeyUp = (e: KeyboardEvent) =>
+      e.key === "Shift" && setIsShiftKeyDown(false);
+    const handleWindowBlur = () => setIsShiftKeyDown(false);
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleWindowBlur);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleWindowBlur);
+    };
+  }, []);
 
   const activePinboardsWithoutPreselected = isPinboardData(preselectedPinboard)
     ? activePinboards.filter((_) => _.id !== preselectedPinboard.id)
@@ -145,18 +165,20 @@ export const SelectPinboard = ({
       pinboardData.id === preselectedPinboard.id;
 
     const isOpenInNewTab =
+      isShiftKeyDown ||
       preselectedPinboard === "notTrackedInWorkflow" ||
       (isPinboardData(preselectedPinboard) &&
         pinboardData.id !== preselectedPinboard.id);
 
     const isTeamPinboard = isPinboardDataWithClaimCounts(pinboardData);
 
-    const onClick = () =>
-      isTeamPinboard
+    const onClick = () => {
+      isTeamPinboard || isShiftKeyDown
         ? isOpenInNewTab
           ? openPinboardInNewTab(pinboardData)
           : peekAtPinboard(pinboardData)
         : openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
+    };
 
     const secondaryInformation = isTeamPinboard && (
       <div>
@@ -291,6 +313,7 @@ export const SelectPinboard = ({
               {/* PLACEHOLDER for unread count per pinboard, once implemented*/}
             </div>
           )}
+          {isShiftKeyDown && <ComposerIcon />}
           <div
             css={{
               display: "flex",
@@ -352,6 +375,7 @@ export const SelectPinboard = ({
             backgroundColor: pinboard["500"],
             color: palette.neutral["20"],
           },
+          outline: "none",
         }}
       >
         <Feedback />
@@ -459,6 +483,13 @@ export const SelectPinboard = ({
           </div>
         </div>
         {loading && searchText && <Text>Searching...</Text>}
+        {data && searchText && (
+          <Text>
+            {unopenedPinboards.length > 0
+              ? "Shift + click opens in new Composer tab"
+              : "No results, please adjust your search..."}
+          </Text>
+        )}
         {data &&
           unopenedPinboards
             .slice(0, MAX_PINBOARDS_TO_DISPLAY)
@@ -466,9 +497,7 @@ export const SelectPinboard = ({
         {unopenedPinboards.length > MAX_PINBOARDS_TO_DISPLAY && (
           <Text>Too many results, please refine your search...</Text>
         )}
-        {data && searchText && unopenedPinboards.length === 0 && (
-          <Text>No results, please adjust your search...</Text>
-        )}
+
         <div css={{ flexGrow: 1 }} />
         <div
           css={{

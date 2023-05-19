@@ -261,10 +261,10 @@ export const gqlGetGridSearchSummary = gql`
     }
 `;
 
-export const gqlAsGridPayload = (gridUrl: string) => gql`
-    query AsGridPayload {
-        asGridPayload(gridUrl: "${gridUrl}")
-    }
+export const gqlAsGridPayload = gql`
+  query AsGridPayload($gridUrl: String!) {
+    asGridPayload(gridUrl: $gridUrl)
+  }
 `;
 
 export const gqlVisitTourStep = gql`

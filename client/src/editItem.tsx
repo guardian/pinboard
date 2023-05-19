@@ -3,8 +3,8 @@ import { Item } from "../../shared/graphql/graphql";
 import { ItemInputBox } from "./itemInputBox";
 import { useGlobalStateContext } from "./globalState";
 import { css } from "@emotion/react";
-import { useMutation } from "@apollo/client";
-import { gqlEditItem } from "../gql";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { gqlAsGridPayload, gqlEditItem } from "../gql";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
 import { composer } from "../colours";
@@ -69,6 +69,10 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
 
   const ref = useRef<HTMLDivElement | null>(null);
 
+  const [asGridPayload, { loading: isAsGridPayloadLoading }] = useLazyQuery<{
+    asGridPayload: string | null;
+  }>(gqlAsGridPayload);
+
   return (
     <div
       ref={ref}
@@ -85,6 +89,8 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
         setMessage={setMessage}
         isSending={loading}
         panelElement={ref.current}
+        asGridPayload={asGridPayload}
+        isAsGridPayloadLoading={isAsGridPayloadLoading}
       />
       <div
         css={css`
@@ -117,7 +123,7 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
               background-color: ${composer.primary[400]};
             }
           `}
-          disabled={loading || !canUpdate}
+          disabled={loading || !canUpdate || isAsGridPayloadLoading}
         >
           Update
         </button>

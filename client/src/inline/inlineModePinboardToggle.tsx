@@ -3,10 +3,11 @@ import React, { useEffect, useMemo } from "react";
 import { css } from "@emotion/react";
 import root from "react-shadow/emotion";
 import { composer, pinboard, pinMetal } from "../../colours";
-import { PinboardIdWithItemCounts } from "../../../shared/graphql/graphql";
+import { PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import { palette, space } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 import { useGlobalStateContext } from "../globalState";
+import { SvgSpinner } from "@guardian/source-react-components";
 
 export const COUNT_COLUMNS_MIN_WIDTH = 25;
 
@@ -89,8 +90,10 @@ const InlineModePinboardToggle = ({
           padding: 2px 12px 2px 3px;
           margin: 0 3px;
           background-color: ${isSelected ? pinboard["500"] : "none"};
+          color: ${palette.neutral[86]};
           &:hover {
             background-color: ${pinboard[isSelected ? "800" : "500"]};
+            color: ${palette.neutral[0]};
           }
         `}
       >
@@ -122,12 +125,32 @@ const InlineModePinboardToggle = ({
           css={css`
             display: inline-block;
             min-width: ${COUNT_COLUMNS_MIN_WIDTH}px;
-            font-weight: bold;
             text-align: right;
+            ${counts?.totalCount === 0
+              ? ""
+              : `font-weight: bold; color: ${palette.neutral[0]};`}
           `}
         >
           {counts?.totalCount}
         </span>
+        {counts?.totalCount === undefined && (
+          <div
+            css={css`
+              svg {
+                width: 15px;
+                height: 15px;
+                circle {
+                  stroke: ${palette.neutral[86]};
+                }
+                path {
+                  stroke: ${palette.neutral[60]};
+                }
+              }
+            `}
+          >
+            <SvgSpinner />
+          </div>
+        )}
       </div>
     </root.div>
   );

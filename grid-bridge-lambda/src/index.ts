@@ -1,12 +1,9 @@
 import fetch from "node-fetch";
-import {
-  pinboardSecretPromiseGetter,
-  STAGE,
-} from "../../shared/awsIntegration";
+import { pinboardSecretPromiseGetter, STAGE } from "shared/awsIntegration";
 import type {
   GridSearchQueryBreakdown,
   GridSearchSummary,
-} from "../../shared/graphql/graphql";
+} from "shared/graphql/graphql";
 
 import { isCollectionResponse, isSearchResponse } from "./types";
 import { PayloadAndType } from "client/src/types/PayloadAndType";
@@ -45,6 +42,7 @@ const getSearchSummary = async (url: URL): Promise<GridSearchSummary> => {
     throw new Error("Invalid Grid search API URL");
   }
   url.searchParams.set("length", maxImagesInSummary);
+  url.searchParams.set("orderBy", "-uploadTime"); // latest/newest first
 
   // Run api calls in parallel
   const search = gridFetch(url.href);

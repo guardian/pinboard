@@ -17,8 +17,8 @@ export const handler = async () => {
   const sql = await getDatabaseConnection();
 
   try {
-    // find unread mentions (individual) older than X (which haven't already been emailed about)
-    /*    const missedIndividualMentions = await sql`
+    // find individual mentions which have remained unread for more than an hour (which haven't already been emailed about)
+    const missedIndividualMentions = await sql`
         SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
             SELECT json_agg("userEmail")
             FROM "LastItemSeenByUser"
@@ -27,18 +27,19 @@ export const handler = async () => {
               AND "LastItemSeenByUser"."itemID" < "Item"."id"
         ) AS "unreadMentions"
         FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-        WHERE "mentions" IS NOT NULL // TODO double check that mentions is null by default rather than empty array
+        WHERE "mentions" != '{}' /* i.e. not empty */
+          AND "mentions" IS NOT NULL
           AND "isEmailEvaluated" IS FALSE
           AND "timestamp" < (NOW() - INTERVAL '1 hour')
-    `;*/
+    `;
 
+    // find items where Central Production has been group mentioned (which haven't already been emailed about) so they can be emailed promptly
     const centralProductionMentions = await sql`
-        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl",
-               (
-                   SELECT json_agg("primaryEmail")
-                   FROM "Group"
-                   WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
-               ) AS "unreadMentions"
+        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
+           SELECT json_agg("primaryEmail")
+           FROM "Group"
+           WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
+        ) AS "unreadMentions"
         FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
         WHERE 'Central Production' = ANY("groupMentions")
           AND "isEmailEvaluated" IS FALSE
@@ -47,7 +48,7 @@ export const handler = async () => {
     //TODO group mentions proper
 
     const itemsToEmailAbout = [
-      // ...missedIndividualMentions, // TODO enable emails for individual mentions
+      ...missedIndividualMentions,
       ...centralProductionMentions,
     ];
 

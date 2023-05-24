@@ -2,8 +2,6 @@ import { STAGE, standardAwsConfig } from "shared/awsIntegration";
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { basicMessage, EmailBody, PerPersonDetails } from "./email";
 import { renderToString } from "preact-render-to-string";
-import * as fs from "fs";
-import * as child_process from "child_process";
 
 const emailer = new SESClient(standardAwsConfig);
 

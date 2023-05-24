@@ -6,7 +6,6 @@ import prompts from "prompts";
 import { EmailBody, PerPersonDetails } from "./src/email";
 import fs from "fs";
 import { renderToString } from "preact-render-to-string";
-import * as child_process from "child_process";
 
 const sampleData: PerPersonDetails = {
   "65283": {

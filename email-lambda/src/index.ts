@@ -17,8 +17,8 @@ export const handler = async () => {
   const sql = await getDatabaseConnection();
 
   try {
-    // find unread mentions (individual and group) older than X (which haven't already been emailed about)
-    const itemsToEmailAbout = await sql`
+    // find unread mentions (individual) older than X (which haven't already been emailed about)
+    /*    const missedIndividualMentions = await sql`
         SELECT "id", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
             SELECT json_agg("userEmail")
             FROM "LastItemSeenByUser"
@@ -27,11 +27,29 @@ export const handler = async () => {
               AND "LastItemSeenByUser"."itemID" < "Item"."id"
         ) AS "unreadMentions"
         FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-        WHERE "mentions" IS NOT NULL 
+        WHERE "mentions" IS NOT NULL // TODO double check that mentions is null by default rather than empty array
           AND "isEmailEvaluated" IS FALSE
           AND "timestamp" < (NOW() - INTERVAL '1 hour')
+    `;*/
+
+    const centralProductionMentions = await sql`
+        SELECT "id", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl",
+               (
+                   SELECT json_agg("primaryEmail")
+                   FROM "Group"
+                   WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
+               ) AS "unreadMentions"
+        FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
+        WHERE 'Central Production' = ANY("groupMentions")
+          AND "isEmailEvaluated" IS FALSE
     `;
-    //TODO group mentions
+
+    //TODO group mentions proper
+
+    const itemsToEmailAbout = [
+      // ...missedIndividualMentions, // TODO enable emails for individual mentions
+      ...centralProductionMentions,
+    ];
 
     if (itemsToEmailAbout.length === 0) {
       console.log("No items to email about");

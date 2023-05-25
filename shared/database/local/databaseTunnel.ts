@@ -78,16 +78,20 @@ export const establishTunnelToDBProxy = async (
   }
 };
 
-export async function createDatabaseTunnel() {
-  const { stage } = await prompts({
-    type: "select",
-    name: "stage",
-    message: "Stage?",
-    choices: [
-      { title: "CODE", value: "CODE", selected: true },
-      { title: "PROD", value: "PROD" },
-    ],
-  });
+export async function createDatabaseTunnel(defaultSelection?: {
+  stage: Stage;
+}) {
+  const { stage } =
+    defaultSelection ||
+    (await prompts({
+      type: "select",
+      name: "stage",
+      message: "Stage?",
+      choices: [
+        { title: "CODE", value: "CODE", selected: true },
+        { title: "PROD", value: "PROD" },
+      ],
+    }));
 
   const DBProxyName = getDatabaseProxyName(stage);
 

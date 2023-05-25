@@ -56,6 +56,11 @@
       "action": "pinboard-archiver-lambda",
       "path": "archiver-lambda/dist",
       "compress": "zip"
+    },
+    {
+      "action": "pinboard-email-lambda",
+      "path": "email-lambda/dist",
+      "compress": "zip"
     }
   ]
 }

@@ -19,7 +19,7 @@ export const handler = async () => {
   try {
     // find unread mentions (individual) older than X (which haven't already been emailed about)
     /*    const missedIndividualMentions = await sql`
-        SELECT "id", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
+        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
             SELECT json_agg("userEmail")
             FROM "LastItemSeenByUser"
             WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
@@ -33,7 +33,7 @@ export const handler = async () => {
     `;*/
 
     const centralProductionMentions = await sql`
-        SELECT "id", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl",
+        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl",
                (
                    SELECT json_agg("primaryEmail")
                    FROM "Group"
@@ -88,7 +88,7 @@ export const handler = async () => {
     const finalStructure: FinalStructure = itemsToEmailAbout.reduce(
       (
         outerAcc: FinalStructure,
-        { id, message, payload, timestamp, pinboardId, unreadMentions }
+        { payload, timestamp, pinboardId, unreadMentions, ...itemFragment }
       ) =>
         unreadMentions?.reduce(
           (innerAcc: FinalStructure, email: string) => ({
@@ -102,9 +102,8 @@ export const handler = async () => {
                 items: [
                   ...(innerAcc[email]?.[pinboardId]?.items || []),
                   {
-                    id,
-                    message,
-                    thumbnail:
+                    ...itemFragment,
+                    thumbnailURL:
                       (payload && JSON.parse(payload)?.thumbnail) || null,
                     timestamp: new Date(timestamp), // TODO improve timezone locality before displaying in emails
                   },

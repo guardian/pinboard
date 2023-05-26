@@ -8,6 +8,7 @@ import { pinboard, pinMetal } from "client/colours";
 
 interface ItemFragment {
   id: string;
+  type: string;
   timestamp: Date;
   message: string | null;
   thumbnailURL: string | null;
@@ -67,7 +68,15 @@ export const EmailBody = (perPersonDetails: PerPersonDetails) => (
           <ul style={{ padding: "0 10px", listStyle: "none" }}>
             {items.map(
               (
-                { id, firstName, lastName, avatarUrl, message, thumbnailURL },
+                {
+                  id,
+                  firstName,
+                  lastName,
+                  avatarUrl,
+                  type,
+                  message,
+                  thumbnailURL,
+                },
                 index
               ) => (
                 <li
@@ -105,6 +114,7 @@ export const EmailBody = (perPersonDetails: PerPersonDetails) => (
                     style={{ marginLeft: `${AVATAR_SIZE + AVATAR_GAP + 2}px` }}
                   >
                     {message}
+                    {type === "claim" && <em>...claimed a request</em>}
                     <a
                       href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
                     >

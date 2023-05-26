@@ -17,6 +17,7 @@ const sampleData: PerPersonDetails = {
         lastName: "Nutt",
         avatarUrl: "https://thumbs.dreamstime.com/z/hazelnut-5422216.jpg",
         id: "2616",
+        type: "message-only",
         message: "Hi @Tom Richards this is a test message for the email-lambda",
         thumbnailURL: null,
         timestamp: new Date("2023-05-12T11:48:25.504Z"),
@@ -26,11 +27,22 @@ const sampleData: PerPersonDetails = {
         lastName: "Twishes",
         avatarUrl: null, // intentionally null
         id: "2617",
+        type: "grid-crop",
         message:
           "Here's another mention @Tom Richards but this time with a piccy...",
         thumbnailURL:
           "https://d2av06b16cc3yv.cloudfront.net/a/7/3/9/f/2/a739f22a4fe2da157cc7602c118406639653013a?Expires=1683895136&Signature=SNNeWOEggAL6Ym15Hcm3M1o8PNZG-JRdFmlSZcyPrFbnSbMsnaCkrqAmt2zaihhAwDztwytARUTW3gE60QXkHw6WnSMlof1UaijSpbfy9bKBeypD614AI5DihRmaWLkR1HxYa8czVW5kEvZ1iTeL1PIyjXs~SjIUvdan11w1yIqVptQaWW8L87SrzI8SrPSFRHxAYG3wvvSD93eRhLLbifnGD0Lyzme7e9nZ3pSppzA~a1E5p-zzj-3YphwjXNGeFrXITDbg1sqycFOcQmIWM535rd7bg2lMywFfFjl717pRW17x3jD9A7wxpioJCzgSQ1tMMH1xdfBEuI1~-OFjPw__&Key-Pair-Id=APKAJPTTPZNNPHQSSUAQ",
         timestamp: new Date("2023-05-12T12:07:10.039Z"),
+      },
+      {
+        firstName: "Hazel",
+        lastName: "Nutt",
+        avatarUrl: "https://thumbs.dreamstime.com/z/hazelnut-5422216.jpg",
+        id: "2619",
+        type: "claim",
+        message: null,
+        thumbnailURL: null,
+        timestamp: new Date("2023-05-12T11:48:25.504Z"),
       },
     ],
   },
@@ -44,6 +56,7 @@ const sampleData: PerPersonDetails = {
         avatarUrl:
           "https://assets.epicurious.com/photos/57714624e43289453ac28e41/1:1/w_2560%2Cc_limit/diner-bacon-hero-22062016.jpg",
         id: "2618",
+        type: "message-only",
         message: "Hi @Tom Richards this is really great",
         thumbnailURL: null,
         timestamp: new Date("2023-05-12T12:12:43.803Z"),

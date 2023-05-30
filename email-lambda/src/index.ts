@@ -104,8 +104,7 @@ export const handler = async () => {
                   ...(innerAcc[email]?.[pinboardId]?.items || []),
                   {
                     ...itemFragment,
-                    thumbnailURL:
-                      (payload && JSON.parse(payload)?.thumbnail) || null,
+                    thumbnailURL: payload?.thumbnail || null,
                     timestamp: new Date(timestamp), // TODO improve timezone locality before displaying in emails
                   },
                 ],

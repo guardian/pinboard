@@ -178,18 +178,72 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
 
   const isDemoSelectedPinboard = selectedPinboardId === demoPinboardData.id;
 
+  const [pinboardIdsFromOtherTabs, setPinboardIdsFromOtherTabs] = useState<
+    string[]
+  >([]);
+
+  const [interTabChannel] = useState<BroadcastChannel>(
+    new BroadcastChannel("pinboard-inter-tab-communication")
+  );
+
+  useEffect(() => {
+    interTabChannel.onmessage = (event) => {
+      if (
+        event.data.composerId &&
+        window.parent.location.href?.includes(
+          `content/${event.data.composerId}`
+        )
+      ) {
+        // unfortunately we cannot bring this tab to the fore as browsers prevent it, so we alert to make it easier to find
+        alert(
+          `This is the composer file you wanted to open from pinboard in tab '${event.data.composerTabTitle}'`
+        );
+        // reply with acknowledgement
+        interTabChannel.postMessage({
+          composerIdFocused: event.data.composerId,
+          composerTabTitle: window.document.title,
+        });
+      } else if (event.data.pinboardIdFromOtherTab) {
+        console.log(event.data);
+        setPinboardIdsFromOtherTabs((prevState) =>
+          Array.from(new Set([...prevState, event.data.pinboardIdFromOtherTab]))
+        );
+        // FIXME somehow detect staleness
+      } else if (event.source !== window) {
+        // pinboardId request from another tab
+        const maybePinboardId = preselectedPinboardId || selectedPinboardId;
+        console.log("request for pinboard id");
+        if (maybePinboardId) {
+          interTabChannel.postMessage({
+            pinboardIdFromOtherTab: maybePinboardId,
+          });
+        }
+      } else {
+        console.log({ event });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const intervalHandle = setInterval(
+      () => interTabChannel.postMessage({}), // request pinboardId(s) from other tab(s)
+      1000
+    );
+    return () => clearInterval(intervalHandle);
+  }, []);
+
   const activePinboardIds = isDemoSelectedPinboard
     ? [demoPinboardData.id]
-    : [
-        ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-        ...(openPinboardIdBasedOnQueryParam
-          ? [openPinboardIdBasedOnQueryParam]
-          : []),
-        ...manuallyOpenedPinboardIds?.filter(
-          (_) =>
-            _ !== preselectedPinboardId && _ !== openPinboardIdBasedOnQueryParam
-        ),
-      ];
+    : Array.from(
+        new Set([
+          ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+          ...(openPinboardIdBasedOnQueryParam
+            ? [openPinboardIdBasedOnQueryParam]
+            : []),
+          ...pinboardIdsFromOtherTabs,
+          ...manuallyOpenedPinboardIds,
+        ])
+      );
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -252,31 +306,6 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
           maybeEmailOverride,
         },
       });
-
-  const [interTabChannel] = useState<BroadcastChannel>(
-    new BroadcastChannel("pinboard-inter-tab-communication")
-  );
-
-  useEffect(() => {
-    interTabChannel.onmessage = (event) => {
-      if (
-        event.data.composerId &&
-        window.parent.location.href?.includes(
-          `content/${event.data.composerId}`
-        )
-      ) {
-        // unfortunately we cannot bring this tab to the fore as browsers prevent it, so we alert to make it easier to find
-        alert(
-          `This is the composer file you wanted to open from pinboard in tab '${event.data.composerTabTitle}'`
-        );
-        // reply with acknowledgement
-        interTabChannel.postMessage({
-          composerIdFocused: event.data.composerId,
-          composerTabTitle: window.document.title,
-        });
-      }
-    };
-  }, []);
 
   const openPinboardInNewTab = (pinboardData: PinboardData) => {
     const openInNewTabTimeoutId = setTimeout(() => {

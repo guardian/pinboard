@@ -17,28 +17,34 @@ export const handler = async () => {
   const sql = await getDatabaseConnection();
 
   try {
-    // find unread mentions (individual) older than X (which haven't already been emailed about)
-    /*    const missedIndividualMentions = await sql`
+    // find individual mentions which have remained unread for more than an hour (which haven't already been emailed about)
+    const missedIndividualMentions = await sql`
         SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
-            SELECT json_agg("userEmail")
-            FROM "LastItemSeenByUser"
-            WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-              AND "LastItemSeenByUser"."userEmail" = ANY("Item"."mentions")
-              AND "LastItemSeenByUser"."itemID" < "Item"."id"
+            SELECT json_agg("mentionEmail")
+            FROM unnest("mentions") as "mentionEmail"
+            WHERE NOT EXISTS( /* this approach captures BOTH when the last thing they saw was before the mention in question AND when they've never seen the pinboard at all */
+                SELECT 1
+                FROM "LastItemSeenByUser"
+                WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+                  AND "LastItemSeenByUser"."userEmail" = "mentionEmail"
+                  AND "LastItemSeenByUser"."itemID" >= "Item"."id"
+            )
         ) AS "unreadMentions"
         FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-        WHERE "mentions" IS NOT NULL // TODO double check that mentions is null by default rather than empty array
+        WHERE "mentions" != '{}' /* i.e. not empty */
+          AND "mentions" IS NOT NULL
           AND "isEmailEvaluated" IS FALSE
           AND "timestamp" < (NOW() - INTERVAL '1 hour')
-    `;*/
 
+    `;
+
+    // find items where Central Production has been group mentioned (which haven't already been emailed about) so they can be emailed promptly
     const centralProductionMentions = await sql`
-        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl",
-               (
-                   SELECT json_agg("primaryEmail")
-                   FROM "Group"
-                   WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
-               ) AS "unreadMentions"
+        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
+           SELECT json_agg("primaryEmail")
+           FROM "Group"
+           WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
+        ) AS "unreadMentions"
         FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
         WHERE 'Central Production' = ANY("groupMentions")
           AND "isEmailEvaluated" IS FALSE
@@ -47,12 +53,24 @@ export const handler = async () => {
     //TODO group mentions proper
 
     const itemsToEmailAbout = [
-      // ...missedIndividualMentions, // TODO enable emails for individual mentions
+      ...missedIndividualMentions,
       ...centralProductionMentions,
     ];
 
-    if (itemsToEmailAbout.length === 0) {
+    if (
+      !itemsToEmailAbout.some(
+        (_) => _.unreadMentions && _.unreadMentions.length > 0
+      )
+    ) {
       console.log("No items to email about");
+      /*
+       * not returning early here, because any items in itemsToEmailAbout
+       * will need their isEmailEvaluated flag set to true at the bottom
+       * of this file, so they aren't continually picked up
+       */
+    }
+
+    if (itemsToEmailAbout.length === 0) {
       return;
     }
 
@@ -103,8 +121,7 @@ export const handler = async () => {
                   ...(innerAcc[email]?.[pinboardId]?.items || []),
                   {
                     ...itemFragment,
-                    thumbnailURL:
-                      (payload && JSON.parse(payload)?.thumbnail) || null,
+                    thumbnailURL: payload?.thumbnail || null,
                     timestamp: new Date(timestamp), // TODO improve timezone locality before displaying in emails
                   },
                 ],

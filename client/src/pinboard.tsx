@@ -185,7 +185,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
 
   useEffect(
     () =>
-      initialLastItemSeenByUsersQuery.data &&
+      initialLastItemSeenByUsersQuery.data?.listLastItemSeenByUsers &&
       setLastItemSeenByUserLookup((prevState) =>
         initialLastItemSeenByUsersQuery.data.listLastItemSeenByUsers.reduce(
           (

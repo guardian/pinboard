@@ -1,21 +1,31 @@
 import { STAGE, standardAwsConfig } from "shared/awsIntegration";
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
-import { basicMessage, EmailBody, PerPersonDetails } from "./email";
-import { renderToString } from "preact-render-to-string";
+import { getBasicMessage, buildEmailHTML, PerPersonDetails } from "./email";
 
 const emailer = new SESClient(standardAwsConfig);
 
 export const sendEmail = async (
   email: string,
-  perPersonDetails: PerPersonDetails
+  perPersonDetails: PerPersonDetails,
+  groupMentionRef?: number
 ) => {
   const count = Object.values(perPersonDetails).flatMap((_) => _.items).length;
   if (count === 0) {
     throw new Error("No items to email about");
   }
-  console.log(`Sending email to ${email} about ${count} missed mentions`);
+  console.log(
+    `Sending email to ${email} about ${count} ${
+      groupMentionRef ? "group mention (instant)" : "missed mentions"
+    }`
+  );
 
-  const emailHTML = renderToString(EmailBody(perPersonDetails));
+  const emailHTML = buildEmailHTML(perPersonDetails, !!groupMentionRef);
+
+  const subject = groupMentionRef
+    ? `📌 Your team has just been mentioned in Pinboard (ref:${groupMentionRef})`
+    : `📌 You might have missed ${count} message${
+        count > 1 ? "s" : ""
+      } in Pinboard (ref: ${Date.now()})`; //TODO find an alternate way to prevent threading for missed individual mentions
 
   return emailer.send(
     new SendEmailCommand({
@@ -29,12 +39,10 @@ export const sendEmail = async (
       ReplyToAddresses: ["pinboard@guardian.co.uk"],
       Message: {
         Subject: {
-          Data: `📌 You might have missed ${count} message${
-            count > 1 ? "s" : ""
-          } in Pinboard (ref: ${Date.now()})`, //TODO find an alternate way to prevent threading
+          Data: subject,
         },
         Body: {
-          Text: { Data: basicMessage },
+          Text: { Data: getBasicMessage(!!groupMentionRef) },
           Html: { Data: emailHTML },
         },
       },

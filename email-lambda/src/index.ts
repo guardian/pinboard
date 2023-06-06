@@ -6,6 +6,7 @@ import { WorkflowStub } from "shared/graphql/graphql";
 import { Lambda } from "@aws-sdk/client-lambda";
 import { sendEmail } from "./sendEmail";
 import { PerPersonDetails } from "./email";
+import { Sql } from "shared/database/types";
 
 interface FinalStructure {
   [email: string]: PerPersonDetails;
@@ -13,55 +14,57 @@ interface FinalStructure {
 
 const lambda = new Lambda(standardAwsConfig);
 
-export const handler = async () => {
+function getItemsToEmailAbout(
+  sql: Sql,
+  itemIdWithGroupMention: number | undefined
+) {
+  return itemIdWithGroupMention
+    ? sql`
+      SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
+          SELECT json_agg("primaryEmail")
+          FROM "Group"
+          WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
+      ) AS "emails"
+      FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
+      WHERE "id" = ${itemIdWithGroupMention}
+  `
+    : sql`
+      SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
+          SELECT json_agg("mentionEmail")
+          FROM unnest("mentions") as "mentionEmail"
+          WHERE NOT EXISTS( /* this approach captures BOTH when the last thing they saw was before the mention in question AND when they've never seen the pinboard at all */
+              SELECT 1
+              FROM "LastItemSeenByUser"
+              WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+                AND "LastItemSeenByUser"."userEmail" = "mentionEmail"
+                AND "LastItemSeenByUser"."itemID" >= "Item"."id"
+          )
+      ) AS "emails"
+      FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
+      WHERE "mentions" != '{}' /* i.e. not empty */
+        AND "mentions" IS NOT NULL
+        AND "isEmailEvaluated" IS FALSE
+        AND "timestamp" < (NOW() - INTERVAL '1 hour')
+  `;
+}
+
+export const handler = async (maybeSendImmediatelyDetail?: {
+  itemId: number;
+  maybeRelatedItemId?: number;
+}) => {
+  const itemIdWithGroupMention = maybeSendImmediatelyDetail?.itemId;
+  const groupMentionRef =
+    maybeSendImmediatelyDetail?.maybeRelatedItemId || itemIdWithGroupMention; // this ensures threading (i.e. claim ends up as reply to the original email)
+
   const sql = await getDatabaseConnection();
 
   try {
-    // find individual mentions which have remained unread for more than an hour (which haven't already been emailed about)
-    const missedIndividualMentions = await sql`
-        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
-            SELECT json_agg("mentionEmail")
-            FROM unnest("mentions") as "mentionEmail"
-            WHERE NOT EXISTS( /* this approach captures BOTH when the last thing they saw was before the mention in question AND when they've never seen the pinboard at all */
-                SELECT 1
-                FROM "LastItemSeenByUser"
-                WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-                  AND "LastItemSeenByUser"."userEmail" = "mentionEmail"
-                  AND "LastItemSeenByUser"."itemID" >= "Item"."id"
-            )
-        ) AS "unreadMentions"
-        FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-        WHERE "mentions" != '{}' /* i.e. not empty */
-          AND "mentions" IS NOT NULL
-          AND "isEmailEvaluated" IS FALSE
-          AND "timestamp" < (NOW() - INTERVAL '1 hour')
+    const itemsToEmailAbout = await getItemsToEmailAbout(
+      sql,
+      itemIdWithGroupMention
+    );
 
-    `;
-
-    // find items where Central Production has been group mentioned (which haven't already been emailed about) so they can be emailed promptly
-    const centralProductionMentions = await sql`
-        SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
-           SELECT json_agg("primaryEmail")
-           FROM "Group"
-           WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
-        ) AS "unreadMentions"
-        FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-        WHERE 'Central Production' = ANY("groupMentions")
-          AND "isEmailEvaluated" IS FALSE
-    `;
-
-    //TODO group mentions proper
-
-    const itemsToEmailAbout = [
-      ...missedIndividualMentions,
-      ...centralProductionMentions,
-    ];
-
-    if (
-      !itemsToEmailAbout.some(
-        (_) => _.unreadMentions && _.unreadMentions.length > 0
-      )
-    ) {
+    if (!itemsToEmailAbout.some((_) => _.emails && _.emails.length > 0)) {
       console.log("No items to email about");
       /*
        * not returning early here, because any items in itemsToEmailAbout
@@ -106,9 +109,9 @@ export const handler = async () => {
     const finalStructure: FinalStructure = itemsToEmailAbout.reduce(
       (
         outerAcc: FinalStructure,
-        { payload, timestamp, pinboardId, unreadMentions, ...itemFragment }
+        { payload, timestamp, pinboardId, emails, ...itemFragment }
       ) =>
-        unreadMentions?.reduce(
+        emails?.reduce(
           (innerAcc: FinalStructure, email: string) => ({
             ...innerAcc,
             [email]: {
@@ -134,22 +137,26 @@ export const handler = async () => {
     );
 
     for (const [email, perPersonDetails] of Object.entries(finalStructure)) {
-      await sendEmail(email, perPersonDetails).catch((error) =>
+      await sendEmail(email, perPersonDetails, groupMentionRef).catch((error) =>
         console.error(
           `Failed to send email to ${email}, which contained items with IDs:`,
           Object.values(perPersonDetails).map((_) => _.items.map((_) => _.id)),
-          "If you need to resend, you can manually reset the 'isEmailEvaluated' cell for these IDs in the Item table in the database",
+          itemIdWithGroupMention
+            ? ""
+            : "If you need to resend, you can manually reset the 'isEmailEvaluated' cell for these IDs in the Item table in the database",
           error
         )
       );
     }
 
     // mark those items as evaluated, so we don't email about them again
-    await sql`
+    if (!itemIdWithGroupMention) {
+      await sql`
         UPDATE "Item"
         SET "isEmailEvaluated" = TRUE
         WHERE "id" IN ${sql(itemsToEmailAbout.map(({ id }) => id))}
     `;
+    }
   } catch (e) {
     console.error(e);
     throw e;

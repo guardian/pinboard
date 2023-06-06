@@ -25,6 +25,7 @@ import {
   APP,
   DATABASE_BRIDGE_LAMBDA_BASENAME,
   getDatabaseBridgeLambdaFunctionName,
+  getEmailLambdaFunctionName,
   getNotificationsLambdaFunctionName,
   getWorkflowBridgeLambdaFunctionName,
   NOTIFICATIONS_LAMBDA_BASENAME,
@@ -107,6 +108,23 @@ export class PinBoardStack extends GuStack {
       publiclyAccessible: false,
       removalPolicy: RemovalPolicy.RETAIN,
     });
+
+    const roleToInvokeLambdaFromRDS = new iam.Role(
+      this,
+      "RoleToInvokeLambdaFromRDS",
+      {
+        assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"),
+        roleName: `${APP}-invoke-lambda-from-RDS-database-${this.stage}`,
+        description: `Give ${APP} RDS Postgres instance permission to invoke certain lambdas`,
+      }
+    );
+
+    (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
+      {
+        featureName: "Lambda",
+        roleArn: roleToInvokeLambdaFromRDS.roleArn,
+      },
+    ];
 
     const databaseProxy = database.addProxy("DatabaseProxy", {
       dbProxyName: getDatabaseProxyName(this.stage as Stage),
@@ -366,23 +384,7 @@ export class PinBoardStack extends GuStack {
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
-    const notificationLambdaInvokeRole = new iam.Role(
-      this,
-      "NotificationLambdaInvokeRole",
-      {
-        assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"),
-        roleName: `${APP}-${pinboardNotificationsLambda.functionName}-database-invoke-${this.stage}`,
-        description: `Give ${APP} RDS Postgres instance permission to invoke ${pinboardNotificationsLambda.functionName}`,
-      }
-    );
-
-    pinboardNotificationsLambda.grantInvoke(notificationLambdaInvokeRole);
-    (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
-      {
-        featureName: "Lambda",
-        roleArn: notificationLambdaInvokeRole.roleArn,
-      },
-    ];
+    pinboardNotificationsLambda.grantInvoke(roleToInvokeLambdaFromRDS);
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 
@@ -591,7 +593,7 @@ export class PinBoardStack extends GuStack {
       app: APP,
       vpc: accountVpc,
       securityGroups: [databaseSecurityGroup],
-      functionName: `pinboard-email-lambda-${this.stage}`,
+      functionName: getEmailLambdaFunctionName(this.stage as Stage),
       runtime: LAMBDA_NODE_VERSION,
       handler: "index.handler",
       environment: {
@@ -620,6 +622,7 @@ export class PinBoardStack extends GuStack {
       ],
     });
     pinboardWorkflowBridgeLambda.grantInvoke(emailLambda);
+    emailLambda.grantInvoke(roleToInvokeLambdaFromRDS);
     databaseProxy.grantConnect(emailLambda);
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";

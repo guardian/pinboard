@@ -21,6 +21,9 @@ export const WORKFLOW_BRIDGE_LAMBDA_BASENAME =
 export const getWorkflowBridgeLambdaFunctionName = (stage: Stage) =>
   `${WORKFLOW_BRIDGE_LAMBDA_BASENAME}-${stage}`;
 
+export const getEmailLambdaFunctionName = (stage: Stage) =>
+  `pinboard-email-lambda-${stage}`;
+
 // FIXME we should probably 'eat' these query params once used (using `history.replaceState`)
 export const OPEN_PINBOARD_QUERY_PARAM = "pinboardId";
 export const PINBOARD_ITEM_ID_QUERY_PARAM = "pinboardItemId";

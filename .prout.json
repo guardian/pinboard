@@ -2,7 +2,7 @@
   "checkpoints": {
     "PROD": {
       "url": "https://pinboard.gutools.co.uk/_prout",
-      "overdue": "5M"
+      "overdue": "8M"
     }
   }
 }

@@ -160,11 +160,6 @@ export function mount({
         )
       ) {
         hasApolloAuthErrorVar(true);
-      } else {
-        pinboardSpecificSentryClient.captureException(
-          "Apollo - Network error",
-          { data: networkError }
-        );
       }
     }
   });

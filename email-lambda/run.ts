@@ -3,9 +3,8 @@ import { createDatabaseTunnel } from "shared/database/local/databaseTunnel";
 import { sendEmail } from "./src/sendEmail";
 import { getYourEmail } from "shared/local/yourEmail";
 import prompts from "prompts";
-import { EmailBody, PerPersonDetails } from "./src/email";
+import { buildEmailHTML, PerPersonDetails } from "./src/email";
 import fs from "fs";
-import { renderToString } from "preact-render-to-string";
 
 const sampleData: PerPersonDetails = {
   "65283": {
@@ -71,7 +70,7 @@ const sampleData: PerPersonDetails = {
     // eslint-disable-next-line no-constant-condition
     true
   ) {
-    const emailHTML = renderToString(EmailBody(sampleData));
+    const emailHTML = buildEmailHTML(sampleData, false);
 
     fs.mkdirSync("dist", { recursive: true });
     fs.writeFileSync("dist/email.html", emailHTML);
@@ -87,7 +86,7 @@ const sampleData: PerPersonDetails = {
         message: "What do you want to do?",
         choices: [
           {
-            title: "send yourself a sample email",
+            title: "send yourself a sample missed individual mentions email",
             value: async () =>
               sendEmail(await getYourEmail(), sampleData).then(console.log),
             selected: true,
@@ -97,6 +96,15 @@ const sampleData: PerPersonDetails = {
             value: async () => {
               await createDatabaseTunnel({ stage: "CODE" });
               await handler();
+            },
+          },
+          {
+            title:
+              "resend a @digicms group mention email followed by claim email",
+            value: async () => {
+              await createDatabaseTunnel({ stage: "CODE" });
+              await handler({ itemId: 2723 });
+              await handler({ itemId: 2724, maybeRelatedItemId: 2723 });
             },
           },
         ],

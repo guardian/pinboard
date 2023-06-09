@@ -1,8 +1,8 @@
 import { handler, UserWithWebPushSubscription } from "./src";
-import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
-import { getDatabaseConnection } from "../shared/database/databaseConnection";
-import { getYourEmail } from "../shared/local/yourEmail";
-import { Item } from "../shared/graphql/graphql";
+import { createDatabaseTunnel } from "shared/database/local/databaseTunnel";
+import { getDatabaseConnection } from "shared/database/databaseConnection";
+import { getYourEmail } from "shared/local/yourEmail";
+import { Item } from "shared/graphql/graphql";
 
 (async () => {
   const yourEmail = await getYourEmail();
@@ -40,7 +40,7 @@ import { Item } from "../shared/graphql/graphql";
       relatedItemId: null,
       editHistory: null,
       deletedAt: null,
-    } as Item,
+    } satisfies Item,
     users: [yourUser as UserWithWebPushSubscription],
   });
 })().catch(console.error);

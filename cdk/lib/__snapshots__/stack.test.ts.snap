@@ -451,7 +451,7 @@ Object {
             "FeatureName": "Lambda",
             "RoleArn": Object {
               "Fn::GetAtt": Array [
-                "NotificationLambdaInvokeRoleFE403E3F",
+                "RoleToInvokeLambdaFromRDSBC4A09D0",
                 "Arn",
               ],
             },
@@ -1655,106 +1655,6 @@ Object {
       },
       "Type": "AWS::IAM::Policy",
     },
-    "NotificationLambdaInvokeRoleDefaultPolicy45F27235": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "lambda:InvokeFunction",
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardnotificationslambdaC35CECF7",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "pinboardnotificationslambdaC35CECF7",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "NotificationLambdaInvokeRoleDefaultPolicy45F27235",
-        "Roles": Array [
-          Object {
-            "Ref": "NotificationLambdaInvokeRoleFE403E3F",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "NotificationLambdaInvokeRoleFE403E3F": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "rds.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "Description": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "Give pinboard RDS Postgres instance permission to invoke ",
-              Object {
-                "Ref": "pinboardnotificationslambdaC35CECF7",
-              },
-            ],
-          ],
-        },
-        "RoleName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "pinboard-",
-              Object {
-                "Ref": "pinboardnotificationslambdaC35CECF7",
-              },
-              "-database-invoke-TEST",
-            ],
-          ],
-        },
-        "Tags": Array [
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "49.5.0",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
     "ParameterStoreReadPinboard2639F7F2": Object {
       "Properties": Object {
         "PolicyDocument": Object {
@@ -1855,6 +1755,111 @@ Object {
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
+    },
+    "RoleToInvokeLambdaFromRDSBC4A09D0": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "rds.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "Give pinboard RDS Postgres instance permission to invoke certain lambdas",
+        "RoleName": "pinboard-invoke-lambda-from-RDS-database-TEST",
+        "Tags": Array [
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.5.0",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "RoleToInvokeLambdaFromRDSDefaultPolicyE1933D63": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardnotificationslambdaC35CECF7",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "pinboardnotificationslambdaC35CECF7",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "EmailLambda93E95E21",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "EmailLambda93E95E21",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "RoleToInvokeLambdaFromRDSDefaultPolicyE1933D63",
+        "Roles": Array [
+          Object {
+            "Ref": "RoleToInvokeLambdaFromRDSBC4A09D0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "WazuhSecurityGroup": Object {
       "Properties": Object {

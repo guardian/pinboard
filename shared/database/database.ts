@@ -15,3 +15,5 @@ export const getDatabaseJumpHostAsgName = (stage: Stage) =>
 
 export const NOTIFICATIONS_DATABASE_TRIGGER_NAME =
   "trigger_notifications_lambda_after_item_insert_if_applicable";
+export const EMAIL_DATABASE_TRIGGER_NAME =
+  "trigger_email_lambda_after_item_insert_if_applicable";

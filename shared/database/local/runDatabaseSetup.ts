@@ -1,8 +1,14 @@
 import { createDatabaseTunnel } from "./databaseTunnel";
 import { getDatabaseConnection } from "../databaseConnection";
 import prompts from "prompts";
-import { getNotificationsLambdaFunctionName } from "../../constants";
-import { NOTIFICATIONS_DATABASE_TRIGGER_NAME } from "../database";
+import {
+  getEmailLambdaFunctionName,
+  getNotificationsLambdaFunctionName,
+} from "../../constants";
+import {
+  EMAIL_DATABASE_TRIGGER_NAME,
+  NOTIFICATIONS_DATABASE_TRIGGER_NAME,
+} from "../database";
 import { AWS_REGION } from "../../awsRegion";
 
 import { readFileSync } from "fs";
@@ -11,6 +17,21 @@ import * as path from "path";
 
 const runSetupSqlFile = (sql: Sql, fileName: string) =>
   sql.file(path.join("./shared/database/local/setup", fileName));
+
+const runSetupTriggerSqlFile = (
+  sql: Sql,
+  fileName: string,
+  functionName: string,
+  triggerName: string
+) =>
+  sql.unsafe(
+    // TODO ideally we could do this with sql.file() but it doesn't seem to work
+    readFileSync(path.join("./shared/database/local/setup", fileName), "utf8")
+      .replace("$lambdaFunctionName", functionName)
+      .replace("$awsRegion", AWS_REGION)
+      .replace("$triggerName", triggerName)
+      .replace("$triggerName", triggerName)
+  );
 
 (async () => {
   const stage: "CODE" | "PROD" = await createDatabaseTunnel();
@@ -28,20 +49,12 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
     "enable Lambda invocation from within RDS DB": () =>
       runSetupSqlFile(sql, "006-EnableLambdaInvocation.sql"),
     "create/update 'after insert' trigger on Item table (to invoke notifications-lambda if applicable)":
-      async () =>
-        // TODO ideally we could do this with sql.file() but it doesn't seem to work
-        sql.unsafe(
-          readFileSync(
-            "./shared/database/local/setup/007-TriggerNotificationsLambdaAfterItemInsert.sql",
-            "utf8"
-          )
-            .replace(
-              "$notificationLambdaFunctionName",
-              getNotificationsLambdaFunctionName(stage)
-            )
-            .replace("$awsRegion", AWS_REGION)
-            .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
-            .replace("$triggerName", NOTIFICATIONS_DATABASE_TRIGGER_NAME)
+      () =>
+        runSetupTriggerSqlFile(
+          sql,
+          "007-TriggerNotificationsLambdaAfterItemInsert.sql",
+          getNotificationsLambdaFunctionName(stage),
+          NOTIFICATIONS_DATABASE_TRIGGER_NAME
         ),
     "add googleID column to User table": () =>
       runSetupSqlFile(sql, "008-AddGoogleIDToUserTable.sql"),
@@ -64,6 +77,14 @@ const runSetupSqlFile = (sql: Sql, fileName: string) =>
       runSetupSqlFile(sql, "017-AddVisitedTourStepsColumnToUserTable.sql"),
     "add isEmailEvaluated column to Item table": () =>
       runSetupSqlFile(sql, "018-AddIsEmailEvaluatedColumnToItemTable.sql"),
+    "create/update 'after insert' trigger on Item table (to invoke email-lambda if applicable)":
+      () =>
+        runSetupTriggerSqlFile(
+          sql,
+          "019-TriggerEmailLambdaAfterItemInsert.sql",
+          getEmailLambdaFunctionName(stage),
+          EMAIL_DATABASE_TRIGGER_NAME
+        ),
   };
 
   const allSteps = async () => {

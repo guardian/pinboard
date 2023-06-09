@@ -39,7 +39,7 @@ BEGIN
     IF users_to_notify IS NOT NULL THEN
         PERFORM * FROM aws_lambda.invoke(
                 aws_commons.create_lambda_function_arn(
-                        '$notificationLambdaFunctionName',
+                        '$lambdaFunctionName',
                         '$awsRegion'
                     ),
                 json_build_object(

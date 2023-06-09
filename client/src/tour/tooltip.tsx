@@ -74,6 +74,7 @@ export const Tooltip = ({
       backgroundColor: `${palette.neutral[100]}`,
       lineHeight: "150%",
       borderRadius: `${space[2]}px`,
+      color: `${palette.neutral[0]}`,
     }}
   >
     <div

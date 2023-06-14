@@ -77,3 +77,15 @@ export const throttled = <E>(
 };
 
 export const useThrottle = throttled;
+
+export const readAndThenSilentlyDropQueryParamFromURL = (param: string) => {
+  const url = new URL(window.location.href);
+  const value = url.searchParams.get(param);
+  url.searchParams.delete(param);
+  window.history.replaceState(
+    window.history.state,
+    document.title,
+    url.toString()
+  );
+  return value;
+};

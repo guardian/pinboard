@@ -128,6 +128,8 @@ interface ItemInputBoxProps {
     options?: Partial<LazyQueryHookOptions<{ asGridPayload: string | null }>>
   ) => unknown;
   isAsGridPayloadLoading: boolean;
+  maybeReplyingToElement?: JSX.Element | null;
+  clearReplyingToItemId?: () => void;
 }
 
 export const ItemInputBox = ({
@@ -142,6 +144,7 @@ export const ItemInputBox = ({
   isSending,
   asGridPayload,
   isAsGridPayloadLoading,
+  maybeReplyingToElement,
 }: ItemInputBoxProps) => {
   const sendTelemetryEvent = useContext(TelemetryContext);
 
@@ -225,6 +228,7 @@ export const ItemInputBox = ({
         ${rtaStyles}
       `}
     >
+      {maybeReplyingToElement}
       <ReactTextareaAutocomplete<User | Group>
         innerRef={(element) => (textAreaRef.current = element)}
         disabled={isSending}

@@ -8,6 +8,7 @@ import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
+import { FloatingClearButton } from "./floatingClearButton";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -80,34 +81,7 @@ export const PayloadDisplay = ({
         )}
 
         {clearPayloadToBeSent && (
-          <div
-            css={css`
-              height: ${space[5]}px;
-              width: ${space[5]}px;
-              border-radius: ${space[5]}px;
-              ${buttonBackground(palette.neutral[60])};
-              background-color: ${palette.neutral[46]};
-              fill: ${palette.neutral[100]};
-
-              &:hover {
-                background-color: ${palette.neutral[20]};
-              }
-
-              &:active {
-                background-color: ${palette.neutral[86]};
-                fill: ${palette.neutral[20]};
-              }
-              position: absolute;
-              right: ${space[2]}px;
-              top: ${space[2]}px;
-            `}
-            onClick={(event) => {
-              event.stopPropagation();
-              clearPayloadToBeSent();
-            }}
-          >
-            <SvgCross />
-          </div>
+          <FloatingClearButton clear={clearPayloadToBeSent} />
         )}
       </div>
     </div>

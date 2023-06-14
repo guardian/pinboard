@@ -50,6 +50,7 @@ interface ScrollableItemsProps {
   setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
   maybeEditingItemId: string | null;
   setMaybeEditingItemId: (itemId: string | null) => void;
+  setMaybeReplyingToItemId: (itemId: string | null) => void;
 }
 
 export const ScrollableItems = ({
@@ -72,6 +73,7 @@ export const ScrollableItems = ({
   setMaybeDeleteItemModalElement,
   maybeEditingItemId,
   setMaybeEditingItemId,
+  setMaybeReplyingToItemId,
 }: ScrollableItemsProps) => {
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
@@ -291,6 +293,7 @@ export const ScrollableItems = ({
                 setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
                 maybeEditingItemId={maybeEditingItemId}
                 setMaybeEditingItemId={setMaybeEditingItemId}
+                setMaybeReplyingToItemId={setMaybeReplyingToItemId}
               />
             ),
             [

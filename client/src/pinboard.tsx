@@ -20,6 +20,7 @@ import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
+import { Reply } from "./reply";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -303,8 +304,27 @@ export const Pinboard: React.FC<PinboardProps> = ({
     }
   }, [maybeEditingItemId]);
 
+  const [maybeReplyingToItemId, setMaybeReplyingToItemId] = useState<
+    string | null
+  >(null);
+  const clearMaybeReplyingToItemId = () => setMaybeReplyingToItemId(null);
+
   const [maybeDeleteItemModalElement, setMaybeDeleteItemModalElement] =
     useState<JSX.Element | null>(null);
+
+  const maybeReplyingToItem =
+    (maybeReplyingToItemId && itemsMap[maybeReplyingToItemId]) || null;
+  const maybeReplyingToElement = useMemo(
+    () =>
+      maybeReplyingToItem && (
+        <Reply
+          item={maybeReplyingToItem}
+          maybeUser={userLookup[maybeReplyingToItem.userEmail]}
+          clearMaybeReplyingToItemId={() => setMaybeReplyingToItemId(null)}
+        />
+      ),
+    [maybeReplyingToItemId]
+  );
 
   return !isSelected ? null : (
     <React.Fragment>
@@ -340,6 +360,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
           setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
           maybeEditingItemId={maybeEditingItemId}
           setMaybeEditingItemId={setMaybeEditingItemId}
+          setMaybeReplyingToItemId={setMaybeReplyingToItemId}
         />
       )}
       {activeTab === "asset" && initialItemsQuery.data && (
@@ -364,6 +385,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
             pinboardId={pinboardId}
             composerId={composerId}
             panelElement={panelElement}
+            maybeReplyingToItemId={maybeReplyingToItemId}
+            maybeReplyingToElement={maybeReplyingToElement}
+            clearReplyingToItemId={clearMaybeReplyingToItemId}
           />
         </div>
       )}

@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React from "react";
-import { Item, User } from "../../shared/graphql/graphql";
+import { Item, User } from "shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
 import { formatMentionHandlesInText } from "./mentionsUtil";
 import { FormattedDateTime } from "./formattedDateTime";
@@ -10,13 +10,13 @@ import { agateSans } from "../fontNormaliser";
 interface NestedItemDisplayProps {
   item: Item;
   maybeUser: User | undefined;
-  scrollToItem: (itemID: string) => void;
+  maybeScrollToItem?: (itemID: string) => void;
 }
 
 export const NestedItemDisplay = ({
   item,
   maybeUser,
-  scrollToItem,
+  maybeScrollToItem,
 }: NestedItemDisplayProps) => {
   const formattedMessage =
     item.message &&
@@ -28,7 +28,6 @@ export const NestedItemDisplay = ({
     <div
       css={css`
         user-select: none;
-        margin-top: ${space[2]}px;
         color: ${palette.neutral[46]};
         mix-blend-mode: multiply;
         ${agateSans.xxsmall()}
@@ -38,12 +37,16 @@ export const NestedItemDisplay = ({
         max-height: 75px;
         overflow: hidden;
         text-overflow: ellipsis;
-        cursor: pointer;
-        &:hover {
-          background-color: ${palette.neutral["93"]};
-        }
+        ${maybeScrollToItem
+          ? css`
+              cursor: pointer;
+              &:hover {
+                background-color: ${palette.neutral["93"]};
+              }
+            `
+          : ""}
       `}
-      onClick={() => scrollToItem(item.id)}
+      onClick={maybeScrollToItem && (() => maybeScrollToItem(item.id))}
     >
       <div
         css={css`
@@ -70,6 +73,7 @@ export const NestedItemDisplay = ({
       >
         <FormattedDateTime timestamp={new Date(item.timestamp).valueOf()} />
         <div>{formattedMessage}</div>
+        {/* TODO add support for payloads*/}
       </div>
     </div>
   );

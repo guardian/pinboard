@@ -22,7 +22,7 @@ import { ItemsMap, LastItemSeenByUserLookup } from "./pinboard";
 import { scrollbarsCss } from "./styling";
 import { SvgArrowDownStraight } from "@guardian/source-react-components";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
-import { useThrottle } from "./util";
+import { readAndThenSilentlyDropQueryParamFromURL, useThrottle } from "./util";
 import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
@@ -238,8 +238,10 @@ export const ScrollableItems = ({
           scrollToItem(itemIdToScrollTo);
         }, 1000);
         setHasProcessedItemIdInURL(true);
+        readAndThenSilentlyDropQueryParamFromURL(PINBOARD_ITEM_ID_QUERY_PARAM);
       } else if (Object.keys(refMap.current).length > 0) {
         setHasProcessedItemIdInURL(true);
+        readAndThenSilentlyDropQueryParamFromURL(PINBOARD_ITEM_ID_QUERY_PARAM);
       }
     }
   });

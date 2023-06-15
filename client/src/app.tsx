@@ -49,6 +49,7 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
+import { readAndThenSilentlyDropQueryParamFromURL } from "./util";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -72,11 +73,10 @@ export const PinBoardApp = ({
     HTMLElement[]
   >([]);
 
-  const queryParams = new URLSearchParams(window.location.search);
   // using state here but without setter, because host application/SPA might change url
   // and lose the query param, but we don't want to lose the preselection
   const [openPinboardIdBasedOnQueryParam] = useState(
-    queryParams.get(OPEN_PINBOARD_QUERY_PARAM)
+    readAndThenSilentlyDropQueryParamFromURL(OPEN_PINBOARD_QUERY_PARAM)
   );
 
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
@@ -87,7 +87,9 @@ export const PinBoardApp = ({
 
   const [isExpanded, setIsExpanded] = useState<boolean>(
     !!openPinboardIdBasedOnQueryParam || // expand by default when preselected via url query param
-      queryParams.get(EXPAND_PINBOARD_QUERY_PARAM)?.toLowerCase() === "true"
+      readAndThenSilentlyDropQueryParamFromURL(
+        EXPAND_PINBOARD_QUERY_PARAM
+      )?.toLowerCase() === "true"
   );
   const expandFloaty = () => setIsExpanded(true);
 

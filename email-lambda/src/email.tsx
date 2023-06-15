@@ -1,6 +1,7 @@
 import React from "react";
 import {
   EXPAND_PINBOARD_QUERY_PARAM,
+  OPEN_PINBOARD_QUERY_PARAM,
   PINBOARD_ITEM_ID_QUERY_PARAM,
 } from "shared/constants";
 import { STAGE } from "shared/awsIntegration";
@@ -31,6 +32,8 @@ const toolsDomain =
 
 const AVATAR_SIZE = 25;
 const AVATAR_GAP = 3;
+
+const linkColour = "#007ABC"; // composer.primary.300
 
 export const getBasicMessage = (isGroupMentionEmail: boolean) =>
   isGroupMentionEmail ? "" : "You might have missed...";
@@ -125,25 +128,47 @@ export const buildEmailHTML = (
                     >
                       {message}
                       {type === "claim" && <em>...claimed the request</em>}
-                      <a
-                        href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
+                      {thumbnailURL && (
+                        <img
+                          style={{
+                            display: "block",
+                            maxWidth: "200px",
+                            maxHeight: "100px",
+                            padding: "3px",
+                            border: "1px solid #DCDCDC",
+                            borderRadius: "4px",
+                            backgroundColor: "#FFFFFF",
+                          }}
+                          src={thumbnailURL}
+                        />
+                      )}
+                      <div
+                        style={{
+                          color: linkColour,
+                        }}
                       >
-                        {thumbnailURL && (
-                          <img
-                            style={{
-                              display: "block",
-                              maxWidth: "200px",
-                              maxHeight: "100px",
-                              padding: "3px",
-                              border: "1px solid #DCDCDC",
-                              borderRadius: "4px",
-                              backgroundColor: "#FFFFFF",
-                            }}
-                            src={thumbnailURL}
-                          />
-                        )}
-                        <div>Jump to this message</div>
-                      </a>
+                        Open message in{" "}
+                        <a
+                          style={{
+                            color: linkColour,
+                          }}
+                          href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
+                        >
+                          Composer
+                        </a>{" "}
+                        or{" "}
+                        <a
+                          style={{
+                            color: linkColour,
+                          }}
+                          href={`https://media.${toolsDomain}/search?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`.replace(
+                            ".code.",
+                            ".test."
+                          )}
+                        >
+                          Grid
+                        </a>
+                      </div>
                     </div>
                   </li>
                 )

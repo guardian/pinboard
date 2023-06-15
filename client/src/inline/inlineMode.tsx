@@ -89,6 +89,7 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
         ReactDOM.createPortal(
           <InlineModePanel
             pinboardId={maybeSelectedPinboardId}
+            composerId={maybeSelectedNode.dataset.composerId || null}
             closePanel={() => setMaybeSelectedPinboardId(null)}
             workingTitle={maybeSelectedNode.dataset.workingTitle || null}
             headline={maybeSelectedNode.dataset.headline || null}

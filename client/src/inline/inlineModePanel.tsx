@@ -14,6 +14,7 @@ export const INLINE_PANEL_WIDTH = 260;
 
 interface InlineModePanelProps {
   pinboardId: string;
+  composerId: string | null;
   closePanel: () => void;
   workingTitle: string | null;
   headline: string | null;
@@ -21,6 +22,7 @@ interface InlineModePanelProps {
 
 export const InlineModePanel = ({
   pinboardId,
+  composerId,
   closePanel,
   workingTitle,
   headline,
@@ -85,6 +87,7 @@ export const InlineModePanel = ({
         </Navigation>
         <Pinboard
           pinboardId={pinboardId}
+          composerId={composerId}
           isSelected
           isExpanded
           panelElement={panelRef.current}

@@ -1,10 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
-import {
-  Claimed,
-  Item,
-  LastItemSeenByUser,
-} from "../../shared/graphql/graphql";
+import { Claimed, Item, LastItemSeenByUser } from "shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { PendingItem } from "./types/PendingItem";
 import {
@@ -34,6 +30,7 @@ export interface LastItemSeenByUserLookup {
 
 interface PinboardProps {
   pinboardId: string;
+  composerId: string | null;
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
@@ -41,6 +38,7 @@ interface PinboardProps {
 
 export const Pinboard: React.FC<PinboardProps> = ({
   pinboardId,
+  composerId,
   isExpanded,
   isSelected,
   panelElement,
@@ -364,6 +362,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
             onError={(error) => setError(pinboardId, error)}
             userEmail={userEmail}
             pinboardId={pinboardId}
+            composerId={composerId}
             panelElement={panelElement}
           />
         </div>

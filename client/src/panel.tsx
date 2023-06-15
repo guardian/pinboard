@@ -288,6 +288,12 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           <Pinboard
             key={pinboardId}
             pinboardId={pinboardId}
+            composerId={useMemo(
+              () =>
+                activePinboards.find((_) => _.id === pinboardId)?.composerId ||
+                null,
+              [activePinboards, pinboardId]
+            )}
             isExpanded={pinboardId === selectedPinboardId && isExpanded}
             isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
@@ -298,6 +304,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
       {maybePeekingAtPinboard && (
         <Pinboard
           pinboardId={maybePeekingAtPinboard.id}
+          composerId={maybePeekingAtPinboard.composerId}
           isExpanded={isExpanded}
           isSelected={true}
           panelElement={panelRef.current}

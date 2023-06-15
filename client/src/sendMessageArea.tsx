@@ -2,7 +2,7 @@ import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
-import { Group, Item, User } from "../../shared/graphql/graphql";
+import { Group, Item, User } from "shared/graphql/graphql";
 import { gqlAsGridPayload, gqlCreateItem } from "../gql";
 import { ItemInputBox } from "./itemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -12,7 +12,7 @@ import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { isGroup, isUser } from "../../shared/graphql/extraTypes";
+import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
@@ -25,6 +25,7 @@ interface SendMessageAreaProps {
   onError: (error: ApolloError) => void;
   userEmail: string;
   pinboardId: string;
+  composerId: string | null;
   panelElement: HTMLDivElement | null;
 }
 
@@ -35,6 +36,7 @@ export const SendMessageArea = ({
   onSuccessfulSend,
   onError,
   pinboardId,
+  composerId,
   panelElement,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
@@ -84,6 +86,7 @@ export const SendMessageArea = ({
         hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
         hasGroupMentions: !!verifiedGroupMentionShorthands.length,
         isClaimable: sendMessageResult.createItem.claimable,
+        ...(composerId ? { composerId } : {}),
       });
       setMessage("");
       clearPayloadToBeSent();

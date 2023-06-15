@@ -81,6 +81,7 @@ export const useThrottle = throttled;
 export const readAndThenSilentlyDropQueryParamFromURL = (param: string) => {
   const url = new URL(window.location.href);
   const value = url.searchParams.get(param);
+  if (!value) return value;
   url.searchParams.delete(param);
   window.history.replaceState(
     window.history.state,

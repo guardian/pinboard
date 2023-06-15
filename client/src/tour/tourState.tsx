@@ -215,6 +215,8 @@ export const TourStateProvider: React.FC = ({ children }) => {
   const sendTelemetryEvent = useContext(TelemetryContext);
 
   useLayoutEffect(() => {
+    if (!isRunning) return;
+
     const tourStepId = tourStepIDs[stepIndex - 1]; // -1 is to account for the contents step
 
     if (stepIndex < 1) {
@@ -224,7 +226,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
         ? clearSelectedPinboard()
         : openPinboard(true)(demoPinboardData, false);
     }
-  }, [stepIndex]);
+  }, [stepIndex, isRunning]);
 
   const continueTourTo = (nextStepIndex: number) => {
     setTourState({ ...tourState, isRunning: false });

@@ -22,9 +22,14 @@ const formatChip = (chip: GridBadgeData) => {
   }
 };
 
+type GridDynamicSearchDisplayProps = Pick<DynamicGridPayload, "payload"> & {
+  shouldNotBeClickable?: true;
+};
+
 export const GridDynamicSearchDisplay = ({
   payload,
-}: Pick<DynamicGridPayload, "payload">) => {
+  shouldNotBeClickable,
+}: GridDynamicSearchDisplayProps) => {
   const [gridSearchSummaryLastChecked, setGridSearchSummaryLastChecked] =
     useState<number>();
 
@@ -152,8 +157,12 @@ export const GridDynamicSearchDisplay = ({
                 right: ${space[1]}px;
                 border: none;
                 padding: 0;
-                cursor: pointer;
                 background: none;
+                ${shouldNotBeClickable
+                  ? ""
+                  : css`
+                      cursor: pointer;
+                    `}
 
                 /* https://stackoverflow.com/a/54095811 */
                 transform: rotate(360deg);
@@ -164,10 +173,14 @@ export const GridDynamicSearchDisplay = ({
                   transition: 0s;
                 }
               `}
-              onClick={(event) => {
-                event.stopPropagation();
-                getGridSearchSummaryQuery.refetch();
-              }}
+              onClick={
+                shouldNotBeClickable
+                  ? undefined
+                  : (event) => {
+                      event.stopPropagation();
+                      getGridSearchSummaryQuery.refetch();
+                    }
+              }
             >
               <SvgReload size="xsmall" />
             </button>

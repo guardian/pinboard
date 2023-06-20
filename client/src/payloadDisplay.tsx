@@ -2,8 +2,6 @@ import React, { useContext } from "react";
 import { css } from "@emotion/react";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { neutral, palette, space } from "@guardian/source-foundations";
-import { SvgCross } from "@guardian/source-react-components";
-import { buttonBackground } from "./styling";
 import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
@@ -14,12 +12,14 @@ interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
   clearPayloadToBeSent?: () => void;
   tab?: Tab;
+  shouldNotBeClickable?: true;
 }
 
 export const PayloadDisplay = ({
   payloadAndType,
   clearPayloadToBeSent,
   tab,
+  shouldNotBeClickable,
 }: PayloadDisplayProps) => {
   const { payload } = payloadAndType;
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -32,7 +32,11 @@ export const PayloadDisplay = ({
         max-width: fit-content;
         background-color: ${neutral[93]};
         &:hover {
-          background-color: ${neutral[86]};
+          ${shouldNotBeClickable
+            ? ""
+            : css`
+                background-color: ${neutral[86]};
+              `}
         }
       `}
     >
@@ -45,9 +49,13 @@ export const PayloadDisplay = ({
           max-width: 192px;
           max-height: 350px;
           color: ${palette.neutral["20"]};
-          cursor: pointer;
+          ${shouldNotBeClickable
+            ? ""
+            : css`
+                cursor: pointer;
+              `}
         `}
-        draggable
+        draggable={!shouldNotBeClickable}
         onDragStart={(event) => {
           event.dataTransfer.setData("URL", payload.embeddableUrl);
           event.dataTransfer.setData(
@@ -60,13 +68,20 @@ export const PayloadDisplay = ({
             ...(tab && { tab }),
           });
         }}
-        onClick={() => {
-          window.open(payload.embeddableUrl, "_blank");
-          sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED, {
-            assetType: payloadAndType?.type,
-            tab: tab as Tab,
-          });
-        }}
+        onClick={
+          shouldNotBeClickable
+            ? undefined
+            : () => {
+                window.open(payload.embeddableUrl, "_blank");
+                sendTelemetryEvent?.(
+                  PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED,
+                  {
+                    assetType: payloadAndType?.type,
+                    tab: tab as Tab,
+                  }
+                );
+              }
+        }
       >
         {(payloadAndType.type === "grid-crop" ||
           payloadAndType.type === "grid-original") && (
@@ -77,7 +92,10 @@ export const PayloadDisplay = ({
         )}
 
         {payloadAndType.type === "grid-search" && (
-          <GridDynamicSearchDisplay payload={payloadAndType.payload} />
+          <GridDynamicSearchDisplay
+            payload={payloadAndType.payload}
+            shouldNotBeClickable={shouldNotBeClickable}
+          />
         )}
 
         {clearPayloadToBeSent && (

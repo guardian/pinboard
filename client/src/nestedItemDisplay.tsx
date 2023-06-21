@@ -118,19 +118,17 @@ export const NestedItemDisplay = ({
               text-overflow: ellipsis;
             `}
           >
-            {item.deletedAt ? (
-              <span
-                css={css`
-                  font-style: italic;
-                  color: ${palette.neutral["46"]};
-                  font-size: 12px;
-                `}
-              >
-                ITEM DELETED
-              </span>
-            ) : (
-              formattedMessage
-            )}
+            <span
+              css={css`
+                font-style: italic;
+                color: ${palette.neutral["46"]};
+                font-size: 12px;
+              `}
+            >
+              {item.deletedAt && "ITEM DELETED"}
+              {item.type === "claim" && "...claimed a request"}
+            </span>
+            {formattedMessage}
           </div>
         </div>
       </div>

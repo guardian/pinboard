@@ -104,6 +104,10 @@ export const NestedItemDisplay = ({
           `}
         >
           <FormattedDateTime timestamp={new Date(item.timestamp).valueOf()} />
+          {item.editHistory && item.editHistory.length > 0 && (
+            <span> - Edited</span>
+          )}
+          {item.relatedItemId && item.type !== "claim" && <span> - Reply</span>}
           <div
             css={css`
               max-height: 35px;
@@ -114,7 +118,19 @@ export const NestedItemDisplay = ({
               text-overflow: ellipsis;
             `}
           >
-            {formattedMessage}
+            {item.deletedAt ? (
+              <span
+                css={css`
+                  font-style: italic;
+                  color: ${palette.neutral["46"]};
+                  font-size: 12px;
+                `}
+              >
+                ITEM DELETED
+              </span>
+            ) : (
+              formattedMessage
+            )}
           </div>
         </div>
       </div>

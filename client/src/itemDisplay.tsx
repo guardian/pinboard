@@ -244,7 +244,11 @@ export const ItemDisplay = ({
                         maybeScrollToItem={scrollToItem}
                       />
                     ),
-                    [maybeRelatedItem.id]
+                    [
+                      maybeRelatedItem.id,
+                      maybeRelatedItem.editHistory,
+                      maybeRelatedItem.deletedAt,
+                    ]
                   )}
                 {formattedMessage}
               </>

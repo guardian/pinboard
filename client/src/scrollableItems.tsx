@@ -306,6 +306,8 @@ export const ScrollableItems = ({
               userLookup,
               lastItemSeenByUsersForItemIDLookup,
               scrollToItem,
+              item.relatedItemId && itemsMap[item.relatedItemId]?.editHistory,
+              item.relatedItemId && itemsMap[item.relatedItemId]?.deletedAt,
             ]
           )
         )}

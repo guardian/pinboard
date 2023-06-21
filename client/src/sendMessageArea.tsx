@@ -92,6 +92,7 @@ export const SendMessageArea = ({
         hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
         hasGroupMentions: !!verifiedGroupMentionShorthands.length,
         isClaimable: sendMessageResult.createItem.claimable,
+        isReply: !!sendMessageResult.createItem.relatedItemId,
         ...(composerId ? { composerId } : {}),
       });
       setMessage("");

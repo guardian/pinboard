@@ -165,7 +165,7 @@ export const buildEmailHTML = (
                         >
                           MAM
                         </a>
-                        or{" "}
+                        {" or "}
                         <a
                           style={{
                             color: linkColour,

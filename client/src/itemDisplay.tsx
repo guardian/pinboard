@@ -23,6 +23,7 @@ import { composer } from "../colours";
 import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
 import { EditItem } from "./editItem";
+import { Reply } from "./reply";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -37,6 +38,7 @@ interface ItemDisplayProps {
   setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
   maybeEditingItemId: string | null;
   setMaybeEditingItemId: (itemId: string | null) => void;
+  setMaybeReplyingToItemId: (itemId: string | null) => void;
 }
 
 export const ItemDisplay = ({
@@ -52,6 +54,7 @@ export const ItemDisplay = ({
   setMaybeDeleteItemModalElement,
   maybeEditingItemId,
   setMaybeEditingItemId,
+  setMaybeReplyingToItemId,
 }: ItemDisplayProps) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -151,18 +154,17 @@ export const ItemDisplay = ({
           `}
         >
           <FormattedDateTime timestamp={dateInMillisecs} />
-          {isEdited && (
-            <span>
-              &nbsp;-&nbsp;<em>Edited</em>
-            </span>
+          {isEdited && <span>&nbsp;-&nbsp;Edited</span>}
+          {maybeRelatedItem && item.type !== "claim" && (
+            <span>&nbsp;-&nbsp;Reply</span>
           )}
-          {isMutable && (
-            <ItemHoverMenu
-              item={item}
-              enterEditMode={() => setMaybeEditingItemId(item.id)}
-              setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
-            />
-          )}
+          <ItemHoverMenu
+            item={item}
+            isMutable={isMutable}
+            enterEditMode={() => setMaybeEditingItemId(item.id)}
+            setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+            setMaybeReplyingToItemId={setMaybeReplyingToItemId}
+          />
         </div>
 
         {isDeleted ? (
@@ -215,18 +217,41 @@ export const ItemDisplay = ({
                     !isImmediatelyFollowingRelatedItem &&
                     useMemo(
                       () => (
-                        <NestedItemDisplay
-                          item={maybeRelatedItem}
-                          maybeUser={userLookup[maybeRelatedItem.userEmail]}
-                          scrollToItem={scrollToItem}
-                        />
+                        <div
+                          css={css`
+                            margin-top: ${space[2]}px;
+                          `}
+                        >
+                          <NestedItemDisplay
+                            item={maybeRelatedItem}
+                            maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                            maybeScrollToItem={scrollToItem}
+                          />
+                        </div>
                       ),
                       [maybeRelatedItem.id]
                     )}
                 </div>
               </div>
             ) : (
-              formattedMessage
+              <>
+                {maybeRelatedItem &&
+                  useMemo(
+                    () => (
+                      <Reply
+                        item={maybeRelatedItem}
+                        maybeUser={userLookup[maybeRelatedItem.userEmail]}
+                        maybeScrollToItem={scrollToItem}
+                      />
+                    ),
+                    [
+                      maybeRelatedItem.id,
+                      maybeRelatedItem.editHistory,
+                      maybeRelatedItem.deletedAt,
+                    ]
+                  )}
+                {formattedMessage}
+              </>
             )}
           </div>
         )}

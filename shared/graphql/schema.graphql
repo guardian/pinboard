@@ -145,6 +145,7 @@ input CreateItemInput {
   mentions: [String!]
   groupMentions: [String!]
   claimable: Boolean
+  relatedItemId: String
 }
 
 input EditItemInput {

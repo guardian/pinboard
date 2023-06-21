@@ -2,7 +2,7 @@ import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
-import { Group, Item, User } from "shared/graphql/graphql";
+import { CreateItemInput, Group, Item, User } from "shared/graphql/graphql";
 import { gqlAsGridPayload, gqlCreateItem } from "../gql";
 import { ItemInputBox } from "./itemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -27,6 +27,9 @@ interface SendMessageAreaProps {
   pinboardId: string;
   composerId: string | null;
   panelElement: HTMLDivElement | null;
+  maybeReplyingToItemId: string | null;
+  maybeReplyingToElement: JSX.Element | null;
+  clearReplyingToItemId: () => void;
 }
 
 export const SendMessageArea = ({
@@ -38,6 +41,9 @@ export const SendMessageArea = ({
   pinboardId,
   composerId,
   panelElement,
+  maybeReplyingToItemId,
+  maybeReplyingToElement,
+  clearReplyingToItemId,
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
   const [unverifiedMentions, setUnverifiedMentions] = useState<
@@ -86,10 +92,12 @@ export const SendMessageArea = ({
         hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
         hasGroupMentions: !!verifiedGroupMentionShorthands.length,
         isClaimable: sendMessageResult.createItem.claimable,
+        isReply: !!sendMessageResult.createItem.relatedItemId,
         ...(composerId ? { composerId } : {}),
       });
       setMessage("");
       clearPayloadToBeSent();
+      clearReplyingToItemId();
       setUnverifiedMentions([]);
     },
     onError,
@@ -129,7 +137,8 @@ export const SendMessageArea = ({
               mentions: verifiedIndividualMentionEmails,
               groupMentions: verifiedGroupMentionShorthands,
               claimable,
-            },
+              relatedItemId: maybeReplyingToItemId,
+            } satisfies CreateItemInput,
           },
         };
         if (tourProgress.isRunning) {
@@ -139,6 +148,7 @@ export const SendMessageArea = ({
           tourProgress.sendItem(() => {
             setMessage("");
             clearPayloadToBeSent();
+            clearReplyingToItemId();
             setUnverifiedMentions([]);
           })(messageItem);
         } else {
@@ -175,6 +185,7 @@ export const SendMessageArea = ({
         isSending={isItemSending}
         asGridPayload={asGridPayload}
         isAsGridPayloadLoading={isAsGridPayloadLoading}
+        maybeReplyingToElement={maybeReplyingToElement}
       />
       <button
         css={css`

@@ -1,6 +1,7 @@
 import { css } from "@emotion/react";
 import React, { useContext, useEffect } from "react";
 import { palette, space } from "@guardian/source-foundations";
+import ReplyIcon from "../icons/reply.svg";
 import PencilIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
 import { useConfirmModal } from "./modal";
@@ -8,7 +9,7 @@ import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
 import { gqlDeleteItem } from "../gql";
-import { Item } from "../../shared/graphql/graphql";
+import { Item } from "shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
 
@@ -16,14 +17,18 @@ export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
 interface ItemHoverMenuProps {
   item: Item;
+  isMutable: boolean;
   enterEditMode: () => void;
   setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  setMaybeReplyingToItemId: (itemId: string | null) => void;
 }
 
 export const ItemHoverMenu = ({
   item,
+  isMutable,
   enterEditMode,
   setMaybeDeleteItemModalElement,
+  setMaybeReplyingToItemId,
 }: ItemHoverMenuProps) => {
   const [deleteConfirmModalElement, confirmDelete] = useConfirmModal(
     <React.Fragment>
@@ -128,12 +133,20 @@ export const ItemHoverMenu = ({
         }
       `}
     >
-      <button onClick={enterEditMode}>
-        <PencilIcon />
+      {/*TODO starred messages*/}
+      <button onClick={() => setMaybeReplyingToItemId(item.id)} title="Reply">
+        <ReplyIcon />
       </button>
-      <button onClick={onClickDeleteItem} css={css``}>
-        <BinIcon />
-      </button>
+      {isMutable && (
+        <>
+          <button onClick={enterEditMode} title="Edit">
+            <PencilIcon />
+          </button>
+          <button onClick={onClickDeleteItem} title="Delete">
+            <BinIcon />
+          </button>
+        </>
+      )}
     </div>
   );
 };

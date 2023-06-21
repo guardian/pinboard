@@ -248,6 +248,7 @@ export const ItemDisplay = ({
                       maybeRelatedItem.id,
                       maybeRelatedItem.editHistory,
                       maybeRelatedItem.deletedAt,
+                      userLookup,
                     ]
                   )}
                 {formattedMessage}

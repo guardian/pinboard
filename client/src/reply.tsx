@@ -4,7 +4,6 @@ import { space } from "@guardian/source-foundations";
 import React from "react";
 import { NestedItemDisplay } from "./nestedItemDisplay";
 import { FloatingClearButton } from "./floatingClearButton";
-import { agateSans } from "../fontNormaliser";
 
 interface ReplyProps {
   item: Item;

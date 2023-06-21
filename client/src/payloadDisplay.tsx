@@ -7,6 +7,7 @@ import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
 import { FloatingClearButton } from "./floatingClearButton";
+import { MamVideoDisplay } from "./mam/mamVideoDisplay";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -95,6 +96,13 @@ export const PayloadDisplay = ({
           <GridDynamicSearchDisplay
             payload={payloadAndType.payload}
             shouldNotBeClickable={shouldNotBeClickable}
+          />
+        )}
+
+        {payloadAndType.type === "mam-video" && (
+          <MamVideoDisplay
+            type={payloadAndType.type}
+            payload={payloadAndType.payload}
           />
         )}
 

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
-import { PayloadAndType } from "./types/PayloadAndType";
+import { PayloadAndType, PayloadWithExternalUrl } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { Group, User } from "shared/graphql/graphql";
@@ -16,6 +16,7 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 
 interface WithEntity<E> {
   entity: E & {
@@ -110,8 +111,10 @@ const gridDomain =
   hostname.includes(".test.")
     ? "test.dev-gutools.co.uk"
     : "gutools.co.uk";
+const mamDomain = gridDomain.replace("test.", "code.");
 
 const gridBaseUrl = `https://media.${gridDomain}`;
+const mamBaseUrl = `https://video.${mamDomain}`;
 
 interface ItemInputBoxProps {
   payloadToBeSent: PayloadAndType | null;
@@ -215,6 +218,33 @@ export const ItemInputBox = ({
           }
         },
       }); //TODO add error handling
+    } else if (pastedText?.startsWith(mamBaseUrl)) {
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MAM_LINK_PASTED);
+      const apiUrl = pastedText?.replace("/videos/", "/api/atoms/");
+      fetch(apiUrl, { credentials: "include" })
+        .then((res) => res.json())
+        .then((atom) => {
+          const youtubeId = atom.assets.find(
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            (asset) => asset.platform === "Youtube"
+          )?.id;
+          setPayloadToBeSent({
+            type: `mam-video`,
+            payload: {
+              externalUrl:
+                youtubeId &&
+                `https://www.youtube.com/embed/${youtubeId}?showinfo=0&rel=0`,
+              embeddableUrl: pastedText,
+              thumbnail: atom.posterImage?.assets?.sort(
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                (a, b) => a.size - b.size
+              )?.[0]?.file,
+            },
+          });
+          setMessage(message.replace(pastedText, "")); // remove the link from the message
+        });
     }
   };
 

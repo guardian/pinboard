@@ -31,12 +31,10 @@ jobs:
           role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           aws-region: eu-west-1
 
-      # Setup Node, checking common Node config files to determine the version of Node to use.
-      # See https://github.com/guardian/actions-setup-node
       - name: Setup Node
-        uses: guardian/actions-setup-node@v2.4.1
+        uses: actions/setup-node@v3
         with:
-          cache: "yarn"
+          node-version-file: ".nvmrc"
 
       - name: install dependencies
         run: yarn install

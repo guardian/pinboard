@@ -107,12 +107,10 @@ export const ScrollableItems = ({
     (node) => node && setScrollableArea(node),
     []
   );
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (hasPinboardNeverBeenExpanded && scrollableArea && isExpanded) {
       scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
-      setTimeout(() => {
-        scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
-      }, 100);
+      scrollableArea.scroll(0, Number.MAX_SAFE_INTEGER);
       setHasPinboardNeverBeenExpanded(false);
     }
   }, [scrollableArea, isExpanded]);

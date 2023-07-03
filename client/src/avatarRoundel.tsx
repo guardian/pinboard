@@ -34,7 +34,7 @@ export const AvatarRoundel = ({
         width: ${size}px;
         height: ${size}px;
         border-radius: 50%;
-        border: 1px solid ${neutral[93]};
+        box-shadow: 0 0 1px ${neutral[93]};
         background-color: ${composer.primary[300]};
         color: ${neutral[100]};
         display: flex;

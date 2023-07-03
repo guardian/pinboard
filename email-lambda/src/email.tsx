@@ -155,7 +155,16 @@ export const buildEmailHTML = (
                           href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
                         >
                           Composer
-                        </a>{" "}
+                        </a>
+                        {", "}
+                        <a
+                          style={{
+                            color: linkColour,
+                          }}
+                          href={`https://video.${toolsDomain}/videos?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
+                        >
+                          MAM
+                        </a>
                         or{" "}
                         <a
                           style={{

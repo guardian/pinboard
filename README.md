@@ -17,6 +17,7 @@ We use [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) to bre
 - [`database-bridge-lambda`](database-bridge-lambda)
 - [`grid-bridge-lambda`](grid-bridge-lambda)
 - [`archiver-lambda`](archiver-lambda)
+- [`email-lambda`](email-lambda)
 - [`cdk`](cdk)
 
 ... PLUS a [`shared`](shared) directory for sharing constants and logic between the other sub-projects.

@@ -49,7 +49,7 @@ export const ClaimableItem = ({
         display: flex;
         align-items: center;
         gap: ${space[1]}px;
-        ${agateSans.xxsmall({ lineHeight: "tight" })};
+        ${agateSans.xxsmall()};
         margin-top: ${space[1]}px;
       `}
     >

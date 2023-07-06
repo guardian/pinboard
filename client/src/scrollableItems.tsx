@@ -107,19 +107,18 @@ export const ScrollableItems = ({
     (node) => node && setScrollableArea(node),
     []
   );
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (hasPinboardNeverBeenExpanded && scrollableArea && isExpanded) {
-      scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
-      setTimeout(() => {
-        scrollableArea.scrollTop = Number.MAX_SAFE_INTEGER;
-      }, 100);
+      // Firefox on OSX 10.15 cannot handle having its scrollTop set to Number.MAX_SAFE_INTEGER, just reverts to zero
+      scrollableArea.scrollTop = scrollableArea.scrollHeight + 999999;
+      scrollableArea.scroll(0, scrollableArea.scrollHeight + 999999);
       setHasPinboardNeverBeenExpanded(false);
     }
   }, [scrollableArea, isExpanded]);
 
   const scrollToLastItem = () => {
     scrollableArea?.scroll({
-      top: Number.MAX_SAFE_INTEGER,
+      top: scrollableArea.scrollHeight + 999999,
       behavior: "smooth",
     });
     onScroll();

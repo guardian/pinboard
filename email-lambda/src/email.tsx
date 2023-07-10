@@ -163,7 +163,7 @@ export const buildEmailHTML = (
                           }}
                           href={`https://video.${toolsDomain}/videos?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
                         >
-                          MAM
+                          Video
                         </a>
                         {" or "}
                         <a

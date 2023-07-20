@@ -565,8 +565,9 @@ export class PinBoardStack extends GuStack {
         [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
       },
       monitoringConfiguration: {
-        noMonitoring: true,
-        // toleratedErrorPercentage: 0 TODO consider alarming on errors (need to provide sns topic which is sad since GuAlarm finds it for you)
+        toleratedErrorPercentage: 0,
+        snsTopicName: ALARM_SNS_TOPIC_NAME,
+        okAction: true,
       },
       fileName: "pinboard-archiver-lambda.zip",
       rules: [

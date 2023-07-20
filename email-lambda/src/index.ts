@@ -77,12 +77,24 @@ export const handler = async (maybeSendImmediatelyDetail?: {
       return;
     }
 
-    const pinboardIds = new Set<string>(
-      itemsToEmailAbout.map(({ pinboardId }) => pinboardId)
+    const pinboardIds = itemsToEmailAbout.reduce<string[]>(
+      (accumulator, item) => {
+        if (accumulator.includes(item.pinboardId)) {
+          return accumulator; // don't add duplicates
+        }
+        try {
+          parseInt(item.pinboardId);
+          return [...accumulator, item.pinboardId];
+        } catch (e) {
+          console.error("Invalid pinboard ID", item.pinboardId, item);
+          return accumulator;
+        }
+      },
+      []
     );
 
     const workflowLookupRequestPayload = {
-      arguments: { ids: [...pinboardIds] },
+      arguments: { ids: pinboardIds },
     };
 
     // lookup working titles & headlines for all the Pinboard IDs

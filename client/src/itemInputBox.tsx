@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useLayoutEffect, useRef } from "react";
 import { css } from "@emotion/react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
-import { PayloadAndType, PayloadWithExternalUrl } from "./types/PayloadAndType";
+import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
 import { Group, User } from "shared/graphql/graphql";
@@ -16,7 +16,6 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
-import { ASSET_HANDLE_HTML_TAG } from "./addToPinboardButton";
 
 interface WithEntity<E> {
   entity: E & {

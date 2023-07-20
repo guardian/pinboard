@@ -12,6 +12,7 @@ import { gqlDeleteItem } from "../gql";
 import { Item } from "shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
+import { demoPinboardData } from "./tour/tourConstants";
 
 export const ITEM_HOVER_MENU_CLASS_NAME = "item-hover-menu";
 
@@ -80,6 +81,10 @@ export const ItemHoverMenu = ({
         // TODO show spinner whilst deleting
         if (tourProgress.isRunning) {
           setTimeout(() => tourProgress.deleteItem(item.id), 50);
+        } else if (item.pinboardId === demoPinboardData.id) {
+          throw new Error(
+            "Demo/Tour NOT running, but delete attempt on 'demo' pinboard"
+          );
         } else {
           deleteItem({ variables: { itemId: item.id } });
           sendTelemetryEvent?.(

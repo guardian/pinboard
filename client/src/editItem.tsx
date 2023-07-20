@@ -10,6 +10,7 @@ import { agateSans } from "../fontNormaliser";
 import { composer } from "../colours";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
+import { demoPinboardData } from "./tour/tourConstants";
 
 interface EditItemProps {
   item: Item;
@@ -53,8 +54,8 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
     },
   });
 
-  const editItem = () =>
-    (tourProgress.isRunning ? tourProgress.editItem(cancel) : _editItem)({
+  const editItem = () => {
+    const theUpdate = {
       variables: {
         itemId: item.id,
         input: {
@@ -63,7 +64,17 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
           type,
         },
       },
-    });
+    };
+    if (tourProgress.isRunning) {
+      return tourProgress.editItem(cancel)(theUpdate);
+    } else if (item.pinboardId === demoPinboardData.id) {
+      throw new Error(
+        "Demo/Tour NOT running, but message edit attempt on 'demo' pinboard"
+      );
+    } else {
+      return _editItem(theUpdate);
+    }
+  };
 
   const canUpdate = message || payloadToBeSent;
 

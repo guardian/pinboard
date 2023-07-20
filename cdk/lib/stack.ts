@@ -60,6 +60,8 @@ import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
 
+const ALARM_SNS_TOPIC_NAME = "Cloudwatch-Alerts";
+
 interface PinBoardStackProps extends GuStackProps {
   domainName: string;
 }
@@ -344,7 +346,7 @@ export class PinBoardStack extends GuStack {
     );
     new GuAlarm(this, "DatabaseJumpHostOverrunningAlarm", {
       app: APP,
-      snsTopicName: "Cloudwatch-Alerts",
+      snsTopicName: ALARM_SNS_TOPIC_NAME,
       alarmName: `${databaseJumpHostASG.autoScalingGroupName} instance running for more than 12 hours`,
       alarmDescription: `The ${APP} database 'jump host' should not run for more than 12 hours as it suggests the mechanism to shut it down when it's idle looks to be broken`,
       metric: new cloudwatch.Metric({
@@ -600,8 +602,9 @@ export class PinBoardStack extends GuStack {
         [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
       },
       monitoringConfiguration: {
-        noMonitoring: true,
-        // toleratedErrorPercentage: 0 TODO consider alarming on errors (need to provide sns topic which is sad since GuAlarm finds it for you)
+        toleratedErrorPercentage: 0,
+        snsTopicName: ALARM_SNS_TOPIC_NAME,
+        okAction: true,
       },
       fileName: "pinboard-email-lambda.zip",
       rules: [

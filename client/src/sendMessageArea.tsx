@@ -16,6 +16,7 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
+import { demoPinboardData } from "./tour/tourConstants";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -151,6 +152,12 @@ export const SendMessageArea = ({
             clearReplyingToItemId();
             setUnverifiedMentions([]);
           })(messageItem);
+        } else if (
+          messageItem.variables.input.pinboardId === demoPinboardData.id
+        ) {
+          throw new Error(
+            "Demo/Tour NOT running, but message send attempt on 'demo' pinboard"
+          );
         } else {
           _sendItem(messageItem);
         }

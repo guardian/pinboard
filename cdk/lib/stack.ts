@@ -55,7 +55,7 @@ import {
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
-import { GuCname } from "@guardian/cdk/lib/constructs/dns";
+import { GuCname, GuDnsRecordSet } from "@guardian/cdk/lib/constructs/dns";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
@@ -591,6 +591,14 @@ export class PinBoardStack extends GuStack {
         resourceRecord: value,
         ttl: Duration.hours(1),
       });
+    });
+    new GuDnsRecordSet(this, "ReceiveEmailMXRecord", {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- TODO add 'MX' RecordType enum in GuDnsRecordSet
+      // @ts-ignore
+      recordType: "MX",
+      name: domainName,
+      ttl: Duration.hours(1),
+      resourceRecords: ["inbound-smtp.eu-west-1.amazonaws.com"],
     });
     const emailLambda = new GuScheduledLambda(this, "EmailLambda", {
       app: APP,

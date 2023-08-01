@@ -23,6 +23,7 @@ Object {
       "GuCname",
       "GuCname",
       "GuCname",
+      "GuDnsRecordSet",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
     ],
@@ -2009,6 +2010,18 @@ Object {
       },
       "Type": "AWS::SecretsManager::Secret",
       "UpdateReplacePolicy": "Delete",
+    },
+    "ReceiveEmailMXRecord": Object {
+      "Properties": Object {
+        "Name": "pinboard.test.dev-gutools.co.uk",
+        "RecordType": "MX",
+        "ResourceRecords": Array [
+          "inbound-smtp.eu-west-1.amazonaws.com",
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
     },
     "RoleToInvokeLambdaFromRDSBC4A09D0": Object {
       "Properties": Object {

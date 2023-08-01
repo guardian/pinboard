@@ -13,6 +13,7 @@ import {
   aws_s3 as S3,
   aws_ssm as ssm,
   aws_ses as ses,
+  aws_ses_actions as sesActions,
   CfnOutput,
   Duration,
   Fn,
@@ -56,6 +57,7 @@ import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname, GuDnsRecordSet } from "@guardian/cdk/lib/constructs/dns";
+import { LambdaInvocationType } from "aws-cdk-lib/aws-ses-actions/lib/lambda";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
@@ -592,14 +594,6 @@ export class PinBoardStack extends GuStack {
         ttl: Duration.hours(1),
       });
     });
-    new GuDnsRecordSet(this, "ReceiveEmailMXRecord", {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- TODO add 'MX' RecordType enum in GuDnsRecordSet
-      // @ts-ignore
-      recordType: "MX",
-      name: domainName,
-      ttl: Duration.hours(1),
-      resourceRecords: ["inbound-smtp.eu-west-1.amazonaws.com"],
-    });
     const emailLambda = new GuScheduledLambda(this, "EmailLambda", {
       app: APP,
       vpc: accountVpc,
@@ -636,6 +630,36 @@ export class PinBoardStack extends GuStack {
     pinboardWorkflowBridgeLambda.grantInvoke(emailLambda);
     emailLambda.grantInvoke(roleToInvokeLambdaFromRDS);
     databaseProxy.grantConnect(emailLambda);
+    new GuDnsRecordSet(this, "ReceiveEmailMXRecord", {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- TODO add 'MX' RecordType enum in GuDnsRecordSet
+      // @ts-ignore
+      recordType: "MX",
+      name: domainName,
+      ttl: Duration.hours(1),
+      resourceRecords: ["inbound-smtp.eu-west-1.amazonaws.com"],
+    });
+    const emailReceiptRuleOptions = {
+      receiptRuleName: domainName,
+      actions: [
+        new sesActions.Lambda({
+          function: emailLambda,
+          invocationType: LambdaInvocationType.REQUEST_RESPONSE,
+        }),
+      ],
+    };
+    const emailReceiptRuleSet = new ses.ReceiptRuleSet(
+      this,
+      "EmailReceiptRuleSet",
+      {
+        receiptRuleSetName: domainName,
+        rules: [emailReceiptRuleOptions],
+      }
+    );
+    emailLambda.grantInvoke(
+      new iam.ArnPrincipal(
+        `arn:aws:ses:${region}:${account}:receipt-rule-set/${emailReceiptRuleSet.receiptRuleSetName}:receipt-rule/${emailReceiptRuleOptions.receiptRuleName}`
+      )
+    );
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;

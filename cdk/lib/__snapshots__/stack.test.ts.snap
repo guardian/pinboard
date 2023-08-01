@@ -23,9 +23,9 @@ Object {
       "GuCname",
       "GuCname",
       "GuCname",
-      "GuDnsRecordSet",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
+      "GuDnsRecordSet",
     ],
     "gu:cdk:version": "49.5.0",
   },
@@ -1238,6 +1238,22 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
+    "EmailLambdaAllowSesF4B56FCC": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "EmailLambda93E95E21",
+            "Arn",
+          ],
+        },
+        "Principal": "ses.amazonaws.com",
+        "SourceAccount": Object {
+          "Ref": "AWS::AccountId",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "EmailLambdaEmailLambdarate5minutes0AllowEventRulePinBoardStackTESTEmailLambdaA8A9241C239D7601": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
@@ -1401,6 +1417,38 @@ Object {
         "TreatMissingData": "notBreaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
+    },
+    "EmailLambdaInvokeXqnJuNMWpUFsRhRCXsWa4yOW19FP8xr0uTAd7aw4M1E01C4F3": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "EmailLambda93E95E21",
+            "Arn",
+          ],
+        },
+        "Principal": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:aws:ses:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":receipt-rule-set/",
+              Object {
+                "Ref": "EmailReceiptRuleSet45DC1ECE",
+              },
+              ":receipt-rule/pinboard.test.dev-gutools.co.uk",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "EmailLambdaServiceRoleCBE95916": Object {
       "Properties": Object {
@@ -1660,6 +1708,40 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "EmailReceiptRuleSet45DC1ECE": Object {
+      "Properties": Object {
+        "RuleSetName": "pinboard.test.dev-gutools.co.uk",
+      },
+      "Type": "AWS::SES::ReceiptRuleSet",
+    },
+    "EmailReceiptRuleSetRule06AE7F2A5": Object {
+      "DependsOn": Array [
+        "EmailLambdaAllowSesF4B56FCC",
+      ],
+      "Properties": Object {
+        "Rule": Object {
+          "Actions": Array [
+            Object {
+              "LambdaAction": Object {
+                "FunctionArn": Object {
+                  "Fn::GetAtt": Array [
+                    "EmailLambda93E95E21",
+                    "Arn",
+                  ],
+                },
+                "InvocationType": "RequestResponse",
+              },
+            },
+          ],
+          "Enabled": true,
+          "Name": "pinboard.test.dev-gutools.co.uk",
+        },
+        "RuleSetName": Object {
+          "Ref": "EmailReceiptRuleSet45DC1ECE",
+        },
+      },
+      "Type": "AWS::SES::ReceiptRule",
     },
     "GetDistributablePolicyPinboard553D3662": Object {
       "Properties": Object {

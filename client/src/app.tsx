@@ -21,7 +21,7 @@ import {
   gqlOnManuallyOpenedPinboardIdsChanged,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
-import { Item, MyUser, User } from "../../shared/graphql/graphql";
+import { Item, MyUser, User } from "shared/graphql/graphql";
 import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
 import { HiddenIFrameForServiceWorker } from "./pushNotificationPreferences";
 import { GlobalStateProvider } from "./globalState";
@@ -35,10 +35,6 @@ import {
   TelemetryContext,
 } from "./types/Telemetry";
 import { IUserTelemetryEvent } from "@guardian/user-telemetry-client";
-import {
-  EXPAND_PINBOARD_QUERY_PARAM,
-  OPEN_PINBOARD_QUERY_PARAM,
-} from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import {
   InlineMode,
@@ -49,7 +45,6 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
-import { readAndThenSilentlyDropQueryParamFromURL } from "./util";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -73,25 +68,13 @@ export const PinBoardApp = ({
     HTMLElement[]
   >([]);
 
-  // using state here but without setter, because host application/SPA might change url
-  // and lose the query param, but we don't want to lose the preselection
-  const [openPinboardIdBasedOnQueryParam] = useState(
-    readAndThenSilentlyDropQueryParamFromURL(OPEN_PINBOARD_QUERY_PARAM)
-  );
-
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
     string | null | undefined
   >(null);
 
   const [composerSection, setComposerSection] = useState<string | undefined>();
 
-  const [isExpanded, setIsExpanded] = useState<boolean>(
-    !!openPinboardIdBasedOnQueryParam || // expand by default when preselected via url query param
-      readAndThenSilentlyDropQueryParamFromURL(
-        EXPAND_PINBOARD_QUERY_PARAM
-      )?.toLowerCase() === "true"
-  );
-  const expandFloaty = () => setIsExpanded(true);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const refreshAssetHandleNodes = () =>
     setAssetHandles(
@@ -374,7 +357,6 @@ export const PinBoardApp = ({
           hasApolloAuthError={hasApolloAuthError}
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
-          openPinboardIdBasedOnQueryParam={openPinboardIdBasedOnQueryParam}
           preselectedComposerId={preSelectedComposerId}
           payloadToBeSent={payloadToBeSent}
           setPayloadToBeSent={setPayloadToBeSent}
@@ -443,7 +425,7 @@ export const PinBoardApp = ({
                 key={index}
                 node={node}
                 setPayloadToBeSent={setPayloadToBeSent}
-                expand={expandFloaty}
+                expand={() => setIsExpanded(true)}
               />
             ))}
           </TourStateProvider>

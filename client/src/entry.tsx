@@ -26,6 +26,8 @@ import {
 } from "@guardian/user-telemetry-client";
 import { IPinboardEventTags, TelemetryContext } from "./types/Telemetry";
 import { APP } from "../../shared/constants";
+import { CacheProvider } from "@emotion/react";
+import createCache from "@emotion/cache";
 
 const SENTRY_REROUTED_FLAG = "rerouted";
 
@@ -220,13 +222,18 @@ export function mount({
 
   document.body.appendChild(element);
 
+  // to ensure no conflict with host application's emotion cache
+  const emotionCache = createCache({ key: "pinboard-emotion-cache" });
+
   render(
     <TelemetryContext.Provider value={sendTelemetryEvent}>
-      <PinBoardApp
-        apolloClient={apolloClient}
-        userEmail={userEmail}
-        hasApolloAuthErrorVar={hasApolloAuthErrorVar}
-      />
+      <CacheProvider value={emotionCache}>
+        <PinBoardApp
+          apolloClient={apolloClient}
+          userEmail={userEmail}
+          hasApolloAuthErrorVar={hasApolloAuthErrorVar}
+        />
+      </CacheProvider>
     </TelemetryContext.Provider>,
     element
   );

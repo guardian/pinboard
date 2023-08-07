@@ -50,7 +50,10 @@ module.exports = (env, argv) => {
             options: {
               presets: [
                 "@babel/preset-typescript",
-                "@emotion/babel-preset-css-prop", // replaces @babel/preset-react
+                [
+                  "@emotion/babel-preset-css-prop", // replaces @babel/preset-react
+                  { autoLabel: "always" },
+                ],
                 "@babel/preset-env",
               ],
             },

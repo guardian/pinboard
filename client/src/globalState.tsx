@@ -20,9 +20,13 @@ import type { PreselectedPinboard } from "../../shared/graphql/extraTypes";
 import { ChatTab, Tab } from "./types/Tab";
 import { ControlPosition } from "react-draggable";
 import { bottom, top, floatySize, right } from "./styling";
-import { EXPAND_PINBOARD_QUERY_PARAM } from "../../shared/constants";
+import {
+  EXPAND_PINBOARD_QUERY_PARAM,
+  OPEN_PINBOARD_QUERY_PARAM,
+} from "../../shared/constants";
 import { UserLookup } from "./types/UserLookup";
 import { demoPinboardData } from "./tour/tourConstants";
+import { readAndThenSilentlyDropQueryParamFromURL } from "./util";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -105,7 +109,6 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 interface GlobalStateProviderProps {
   hasApolloAuthError: boolean;
   userEmail: string;
-  openPinboardIdBasedOnQueryParam: string | null;
   preselectedComposerId: string | null | undefined;
   payloadToBeSent: PayloadAndType | null;
   setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
@@ -125,7 +128,6 @@ interface GlobalStateProviderProps {
 export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   hasApolloAuthError,
   userEmail,
-  openPinboardIdBasedOnQueryParam,
   preselectedComposerId,
   presetUnreadNotificationCount,
   payloadToBeSent,
@@ -172,8 +174,30 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   const preselectedPinboardId =
     isPinboardData(preselectedPinboard) && preselectedPinboard.id;
 
+  const [
+    maybeOpenPinboardIdBasedOnQueryParam,
+    setMaybeOpenPinboardIdBasedOnQueryParam,
+  ] = useState<string | null>(null);
+
+  useEffect(() => {
+    const openPinboardIdBasedOnQueryParam =
+      readAndThenSilentlyDropQueryParamFromURL(OPEN_PINBOARD_QUERY_PARAM);
+    const shouldExpandPinboardBasedOnQueryParam =
+      readAndThenSilentlyDropQueryParamFromURL(
+        EXPAND_PINBOARD_QUERY_PARAM
+      )?.toLowerCase() === "true";
+    if (shouldExpandPinboardBasedOnQueryParam) {
+      setIsExpanded(true);
+    }
+    if (openPinboardIdBasedOnQueryParam) {
+      setIsExpanded(true);
+      setSelectedPinboardId(openPinboardIdBasedOnQueryParam);
+      setMaybeOpenPinboardIdBasedOnQueryParam(openPinboardIdBasedOnQueryParam);
+    }
+  }, []);
+
   const [selectedPinboardId, setSelectedPinboardId] = useState<string | null>(
-    openPinboardIdBasedOnQueryParam
+    maybeOpenPinboardIdBasedOnQueryParam
   );
 
   const isDemoSelectedPinboard = selectedPinboardId === demoPinboardData.id;
@@ -182,12 +206,13 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
     ? [demoPinboardData.id]
     : [
         ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-        ...(openPinboardIdBasedOnQueryParam
-          ? [openPinboardIdBasedOnQueryParam]
+        ...(maybeOpenPinboardIdBasedOnQueryParam
+          ? [maybeOpenPinboardIdBasedOnQueryParam]
           : []),
         ...manuallyOpenedPinboardIds?.filter(
           (_) =>
-            _ !== preselectedPinboardId && _ !== openPinboardIdBasedOnQueryParam
+            _ !== preselectedPinboardId &&
+            _ !== maybeOpenPinboardIdBasedOnQueryParam
         ),
       ];
 
@@ -380,6 +405,9 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   }>(gqlRemoveManuallyOpenedPinboardIds);
 
   const closePinboard = (pinboardIdToClose: string) => {
+    if (maybeOpenPinboardIdBasedOnQueryParam === pinboardIdToClose) {
+      setMaybeOpenPinboardIdBasedOnQueryParam(null);
+    }
     if (activePinboardIds.includes(pinboardIdToClose)) {
       removeManuallyOpenedPinboardIds({
         variables: { pinboardIdToClose },

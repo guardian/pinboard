@@ -21,6 +21,9 @@ import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import { Reply } from "./reply";
+import { isPinboardData } from "shared/graphql/extraTypes";
+import { StarredMessagesPortal } from "./starred/starredMessages";
+
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -66,6 +69,9 @@ export const Pinboard = ({
     setUnreadFlag,
 
     addManuallyOpenedPinboardId,
+
+    maybeStarredMessagesArea,
+    preselectedPinboard,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -227,8 +233,8 @@ export const Pinboard = ({
       setError(
         pinboardId,
         initialItemsQuery.error ||
-          itemSubscription.error ||
-          claimSubscription.error
+        itemSubscription.error ||
+        claimSubscription.error
       ),
     [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
   );
@@ -394,6 +400,9 @@ export const Pinboard = ({
             clearReplyingToItemId={clearMaybeReplyingToItemId}
           />
         </div>
+      )}
+      {isPinboardData(preselectedPinboard) && preselectedPinboard.id === pinboardId && maybeStarredMessagesArea && (
+        <StarredMessagesPortal node={maybeStarredMessagesArea} />
       )}
     </React.Fragment>
   );

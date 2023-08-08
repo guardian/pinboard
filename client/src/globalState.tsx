@@ -98,6 +98,8 @@ interface GlobalStateContextShape {
   setExplicitPositionTranslation: (newPosition: ControlPosition) => void;
   boundedPositionTranslation: ControlPosition;
   updateBoundedPositionTranslation: (newPosition: ControlPosition) => void;
+
+  maybeStarredMessagesArea: Element | null;
 }
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
   null
@@ -130,6 +132,7 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
+  maybeStarredMessagesArea: Element | null;
 }
 
 export const GlobalStateProvider = ({
@@ -151,6 +154,7 @@ export const GlobalStateProvider = ({
   hasEverUsedTour,
   visitTourStep,
   children,
+  maybeStarredMessagesArea,
 }: PropsWithChildren<GlobalStateProviderProps>) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
@@ -212,16 +216,16 @@ export const GlobalStateProvider = ({
   const activePinboardIds = isDemoSelectedPinboard
     ? [demoPinboardData.id]
     : [
-        ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-        ...(maybeOpenPinboardIdBasedOnQueryParam
-          ? [maybeOpenPinboardIdBasedOnQueryParam]
-          : []),
-        ...manuallyOpenedPinboardIds?.filter(
-          (_) =>
-            _ !== preselectedPinboardId &&
-            _ !== maybeOpenPinboardIdBasedOnQueryParam
-        ),
-      ];
+      ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+      ...(maybeOpenPinboardIdBasedOnQueryParam
+        ? [maybeOpenPinboardIdBasedOnQueryParam]
+        : []),
+      ...manuallyOpenedPinboardIds?.filter(
+        (_) =>
+          _ !== preselectedPinboardId &&
+          _ !== maybeOpenPinboardIdBasedOnQueryParam
+      ),
+    ];
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -276,14 +280,14 @@ export const GlobalStateProvider = ({
     (
       isDemo: false // this asks the compiler to ensure we never call this in demo mode
     ) =>
-    (pinboardId: string, maybeEmailOverride?: string) =>
-      !isDemo &&
-      addManuallyOpenedPinboardIds({
-        variables: {
-          pinboardId,
-          maybeEmailOverride,
-        },
-      });
+      (pinboardId: string, maybeEmailOverride?: string) =>
+        !isDemo &&
+        addManuallyOpenedPinboardIds({
+          variables: {
+            pinboardId,
+            maybeEmailOverride,
+          },
+        });
 
   const [interTabChannel] = useState<BroadcastChannel>(
     new BroadcastChannel("pinboard-inter-tab-communication")
@@ -315,13 +319,12 @@ export const GlobalStateProvider = ({
       const hostname = window.location.hostname;
       const composerDomain =
         hostname.includes(".local.") ||
-        hostname.includes(".code.") ||
-        hostname.includes(".test.")
+          hostname.includes(".code.") ||
+          hostname.includes(".test.")
           ? "code.dev-gutools.co.uk"
           : "gutools.co.uk";
-      const composerUrl = `https://composer.${composerDomain}/content/${
-        pinboardData.composerId || ".."
-      }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
+      const composerUrl = `https://composer.${composerDomain}/content/${pinboardData.composerId || ".."
+        }?${EXPAND_PINBOARD_QUERY_PARAM}=true`;
 
       window?.open(composerUrl, "_blank")?.focus();
     }, 500);
@@ -333,7 +336,7 @@ export const GlobalStateProvider = ({
           clearTimeout(openInNewTabTimeoutId);
           alert(
             "The composer file you want to see is already open in another tab.\n\n" +
-              "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
+            "You can see an alert message on that tab too to make it easier to find but, unfortunately, you’ll need to select the tab manually."
           );
         }
       },
@@ -348,26 +351,26 @@ export const GlobalStateProvider = ({
 
   const openPinboard =
     (isDemo: boolean) =>
-    (pinboardData: PinboardData, isOpenInNewTab: boolean) => {
-      if (!isDemo && !activePinboardIds.includes(pinboardData.id)) {
-        addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
-          (result) =>
-            result.data
-              ? setManuallyOpenedPinboardIds(
+      (pinboardData: PinboardData, isOpenInNewTab: boolean) => {
+        if (!isDemo && !activePinboardIds.includes(pinboardData.id)) {
+          addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
+            (result) =>
+              result.data
+                ? setManuallyOpenedPinboardIds(
                   result.data.addManuallyOpenedPinboardIds
                 )
-              : console.error(
+                : console.error(
                   "addManuallyOpenedPinboardIds did not return any data"
                 ) // TODO probably report to Sentry
-        );
-      }
+          );
+        }
 
-      if (isOpenInNewTab) {
-        openPinboardInNewTab(pinboardData);
-      } else {
-        setSelectedPinboardId(pinboardData.id);
-      }
-    };
+        if (isOpenInNewTab) {
+          openPinboardInNewTab(pinboardData);
+        } else {
+          setSelectedPinboardId(pinboardData.id);
+        }
+      };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 
@@ -422,11 +425,11 @@ export const GlobalStateProvider = ({
         (result) =>
           result.data
             ? setManuallyOpenedPinboardIds(
-                result.data.removeManuallyOpenedPinboardIds
-              )
+              result.data.removeManuallyOpenedPinboardIds
+            )
             : console.error(
-                "removeManuallyOpenedPinboardIds did not return any data"
-              ) // TODO probably report to Sentry
+              "removeManuallyOpenedPinboardIds did not return any data"
+            ) // TODO probably report to Sentry
       );
     }
     setSelectedPinboardId(null);
@@ -468,13 +471,13 @@ export const GlobalStateProvider = ({
       x: isTooFarLeft
         ? 10 + floatySize - viewportWidth
         : isTooFarRight
-        ? -10
-        : positionTranslation.x,
+          ? -10
+          : positionTranslation.x,
       y: isTooHigh
         ? top + floatySize - viewportHeight
         : isTooLow
-        ? -10
-        : positionTranslation.y,
+          ? -10
+          : positionTranslation.y,
     };
   };
 
@@ -505,7 +508,7 @@ export const GlobalStateProvider = ({
   useEffect(() => {
     const savedExplicitPositionTranslation = JSON.parse(
       window.localStorage.getItem(LOCAL_STORAGE_KEY_EXPLICIT_POSITION) ||
-        JSON.stringify({ x: 0 - right, y: 0 - bottom })
+      JSON.stringify({ x: 0 - right, y: 0 - bottom })
     );
     setExplicitPositionTranslation(savedExplicitPositionTranslation);
     updateBoundedPositionTranslation(savedExplicitPositionTranslation);
@@ -588,6 +591,8 @@ export const GlobalStateProvider = ({
     setExplicitPositionTranslation,
     boundedPositionTranslation,
     updateBoundedPositionTranslation,
+
+    maybeStarredMessagesArea,
   };
 
   return (

@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.5",
-    "@emotion/react": "^11.1.4",
+    "@emotion/react": "11.11.1",
     "@guardian/source-foundations": "^4.1.0",
     "@guardian/source-react-components": "^4.4.0",
     "@guardian/user-telemetry-client": "^1.1.0",

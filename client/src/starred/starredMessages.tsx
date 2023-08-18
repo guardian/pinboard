@@ -3,21 +3,17 @@ import ReactDOM from "react-dom";
 
 export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 
-interface StarredMessagesProps {
+interface StarredMessagesProps {}
 
-}
-
-const StarredMessages = (props: StarredMessagesProps) => <div>
+const StarredMessages = (props: StarredMessagesProps) => (
+  <div>
     <p>Starred Messages</p>
-</div>;
+  </div>
+);
 
 interface StarredMessagesPortalProps {
-    node: Element;
+  node: Element;
 }
 
-export const StarredMessagesPortal = ({
-    node
-}: StarredMessagesPortalProps) => ReactDOM.createPortal(
-    <StarredMessages />,
-    node
-);
+export const StarredMessagesPortal = ({ node }: StarredMessagesPortalProps) =>
+  ReactDOM.createPortal(<StarredMessages />, node);

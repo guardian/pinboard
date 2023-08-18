@@ -45,7 +45,10 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
-import { STARRED_MESSAGES_HTML_TAG, StarredMessagesPortal } from "./starred/starredMessages";
+import {
+  STARRED_MESSAGES_HTML_TAG,
+  StarredMessagesPortal,
+} from "./starred/starredMessages";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -65,7 +68,8 @@ export const PinBoardApp = ({
     null
   );
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
-  const [starredMessagesArea, setStarredMessagesArea] = useState<Element | null>(null);
+  const [starredMessagesArea, setStarredMessagesArea] =
+    useState<Element | null>(null);
 
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
@@ -92,9 +96,7 @@ export const PinBoardApp = ({
     );
 
   const refreshStarredMessagesAreaNodes = () =>
-    setStarredMessagesArea(
-      document.querySelector(STARRED_MESSAGES_HTML_TAG)
-    );
+    setStarredMessagesArea(document.querySelector(STARRED_MESSAGES_HTML_TAG));
 
   const refreshWorkflowPinboardElements = () =>
     setWorkflowPinboardElements(
@@ -343,10 +345,10 @@ export const PinBoardApp = ({
     const newTags =
       preSelectedComposerId && composerSection
         ? {
-          composerId: preSelectedComposerId,
-          composerSection,
-          ...(tags || {}),
-        }
+            composerId: preSelectedComposerId,
+            composerSection,
+            ...(tags || {}),
+          }
         : tags;
     basicSendTelemetryEvent?.(type, newTags, value);
   };
@@ -356,9 +358,9 @@ export const PinBoardApp = ({
       PINBOARD_TELEMETRY_TYPE.PINBOARD_LOADED,
       preSelectedComposerId && composerSection
         ? {
-          composerId: preSelectedComposerId,
-          composerSection: composerSection,
-        }
+            composerId: preSelectedComposerId,
+            composerSection: composerSection,
+          }
         : {}
     );
   }, [preSelectedComposerId, composerSection]);

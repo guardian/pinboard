@@ -140,7 +140,10 @@ export const ItemHoverMenu = ({
         }
       `}
     >
-      <button onClick={() => setIsStarred(isStarred => !isStarred)} title={isStarred ? "Unstar" : "Star"}>
+      <button
+        onClick={() => setIsStarred((isStarred) => !isStarred)}
+        title={isStarred ? "Unstar" : "Star"}
+      >
         {isStarred ? <SvgStar /> : <SvgStarOutline />}
       </button>
       <button onClick={() => setMaybeReplyingToItemId(item.id)} title="Reply">

@@ -233,8 +233,8 @@ export const Pinboard = ({
       setError(
         pinboardId,
         initialItemsQuery.error ||
-        itemSubscription.error ||
-        claimSubscription.error
+          itemSubscription.error ||
+          claimSubscription.error
       ),
     [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
   );
@@ -401,9 +401,11 @@ export const Pinboard = ({
           />
         </div>
       )}
-      {isPinboardData(preselectedPinboard) && preselectedPinboard.id === pinboardId && maybeStarredMessagesArea && (
-        <StarredMessagesPortal node={maybeStarredMessagesArea} />
-      )}
+      {isPinboardData(preselectedPinboard) &&
+        preselectedPinboard.id === pinboardId &&
+        maybeStarredMessagesArea && (
+          <StarredMessagesPortal node={maybeStarredMessagesArea} />
+        )}
     </React.Fragment>
   );
 };

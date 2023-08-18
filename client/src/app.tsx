@@ -68,6 +68,13 @@ export const PinBoardApp = ({
     HTMLElement[]
   >([]);
 
+  const [maybeInlineSelectedPinboardId, _setMaybeInlineSelectedPinboardId] =
+    useState<string | null>(null);
+  const setMaybeInlineSelectedPinboardId = (pinboardId: string | null) => {
+    _setMaybeInlineSelectedPinboardId(null); // trigger unmount first
+    setTimeout(() => _setMaybeInlineSelectedPinboardId(pinboardId), 1);
+  };
+
   const [preSelectedComposerId, setPreselectedComposerId] = useState<
     string | null | undefined
   >(null);
@@ -408,15 +415,24 @@ export const PinBoardApp = ({
               }}
             >
               <TickContext.Provider value={lastTickTimestamp}>
-                {useMemo(isInlineMode, []) ? (
+                <Floaty isDropTarget={isDropTarget} />
+                <Panel
+                  isDropTarget={isDropTarget}
+                  workflowPinboardElements={workflowPinboardElements}
+                  setMaybeInlineSelectedPinboardId={
+                    setMaybeInlineSelectedPinboardId
+                  }
+                />
+                {useMemo(isInlineMode, []) && (
                   <InlineMode
                     workflowPinboardElements={workflowPinboardElements}
+                    maybeInlineSelectedPinboardId={
+                      maybeInlineSelectedPinboardId
+                    }
+                    setMaybeInlineSelectedPinboardId={
+                      setMaybeInlineSelectedPinboardId
+                    }
                   />
-                ) : (
-                  <React.Fragment>
-                    <Floaty isDropTarget={isDropTarget} />
-                    <Panel isDropTarget={isDropTarget} />
-                  </React.Fragment>
                 )}
               </TickContext.Provider>
             </root.div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { css, CSSObject } from "@emotion/react";
 import { standardPanelContainerCss } from "./styling";
@@ -31,6 +31,12 @@ import { Feedback } from "./feedback";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import { demoPinboardData } from "./tour/tourConstants";
 import { ComposerIcon } from "./navigation/icon";
+import {
+  getWorkflowTitleElementLookup,
+  isInlineMode,
+  isPinboardColumnTurnedOn,
+} from "./inline/inlineMode";
+import { WorkflowColumnInstructions } from "./inline/workflowColumnInstructions";
 
 const textMarginCss: CSSObject = {
   margin: `${space["1"]}px ${space["2"]}px`,
@@ -50,6 +56,8 @@ interface SelectPinboardProps {
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
+  workflowPinboardElements: HTMLElement[];
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
 export const SelectPinboard = ({
@@ -58,6 +66,8 @@ export const SelectPinboard = ({
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
+  workflowPinboardElements,
+  setMaybeInlineSelectedPinboardId,
 }: SelectPinboardProps) => {
   const {
     isLoadingActivePinboardList,
@@ -79,6 +89,13 @@ export const SelectPinboard = ({
 
     unreadFlags,
   } = useGlobalStateContext();
+
+  const isInline = useMemo(isInlineMode, []);
+  const hasPinboardColumn = useMemo(isPinboardColumnTurnedOn, []);
+  const workflowTitleElementLookup = useMemo(
+    () => getWorkflowTitleElementLookup(workflowPinboardElements),
+    [workflowPinboardElements]
+  );
 
   const [searchText, setSearchText] = useState<string>("");
 
@@ -164,7 +181,11 @@ export const SelectPinboard = ({
       isPinboardData(preselectedPinboard) &&
       pinboardData.id === preselectedPinboard.id;
 
+    const maybePinboardWorkflowElement =
+      isInline && workflowTitleElementLookup[pinboardData.id];
+
     const isOpenInNewTab =
+      (isInline && !maybePinboardWorkflowElement) ||
       isShiftKeyDown ||
       preselectedPinboard === "notTrackedInWorkflow" ||
       (isPinboardData(preselectedPinboard) &&
@@ -173,11 +194,19 @@ export const SelectPinboard = ({
     const isTeamPinboard = isPinboardDataWithClaimCounts(pinboardData);
 
     const onClick = () => {
-      isTeamPinboard || isShiftKeyDown
-        ? isOpenInNewTab
-          ? openPinboardInNewTab(pinboardData)
-          : peekAtPinboard(pinboardData)
-        : openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
+      if (isInline && maybePinboardWorkflowElement) {
+        maybePinboardWorkflowElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        setMaybeInlineSelectedPinboardId(pinboardData.id);
+      } else if (isOpenInNewTab || isInline) {
+        openPinboardInNewTab(pinboardData);
+      } else if (isTeamPinboard) {
+        peekAtPinboard(pinboardData);
+      } else {
+        openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
+      }
     };
 
     const secondaryInformation = isTeamPinboard && (
@@ -379,6 +408,7 @@ export const SelectPinboard = ({
         }}
       >
         <Feedback />
+        {isInline && !hasPinboardColumn && <WorkflowColumnInstructions />}
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />
         )}

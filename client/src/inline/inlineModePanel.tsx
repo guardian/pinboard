@@ -18,6 +18,7 @@ interface InlineModePanelProps {
   closePanel: () => void;
   workingTitle: string | null;
   headline: string | null;
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
 export const InlineModePanel = ({
@@ -26,6 +27,7 @@ export const InlineModePanel = ({
   closePanel,
   workingTitle,
   headline,
+  setMaybeInlineSelectedPinboardId,
 }: InlineModePanelProps) => {
   const { hasError, activeTab, setActiveTab } = useGlobalStateContext();
 
@@ -91,6 +93,7 @@ export const InlineModePanel = ({
           isSelected
           isExpanded
           panelElement={panelRef.current}
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
       </div>
     </root.div>

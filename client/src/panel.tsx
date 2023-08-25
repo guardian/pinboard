@@ -310,6 +310,7 @@ export const Panel: React.FC<PanelProps> = ({
             isExpanded={pinboardId === selectedPinboardId && isExpanded}
             isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
+            setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
           />
         ))
       }
@@ -321,6 +322,7 @@ export const Panel: React.FC<PanelProps> = ({
           isExpanded={isExpanded}
           isSelected={true}
           panelElement={panelRef.current}
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
       )}
     </div>

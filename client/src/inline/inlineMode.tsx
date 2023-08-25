@@ -104,6 +104,7 @@ export const InlineMode = ({
             closePanel={() => setMaybeInlineSelectedPinboardId(null)}
             workingTitle={maybeSelectedNode.dataset.workingTitle || null}
             headline={maybeSelectedNode.dataset.headline || null}
+            setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
           />,
           pinboardArea
         )}

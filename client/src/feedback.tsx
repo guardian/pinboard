@@ -8,14 +8,22 @@ import UpChevron from "../icons/chevron-up.svg";
 import { agateSans } from "../fontNormaliser";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
-import { isInlineMode } from "./inline/inlineMode";
+import { useGlobalStateContext } from "./globalState";
 
-export const Feedback = () => {
+interface FeedbackProps {
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
+}
+export const Feedback = ({
+  setMaybeInlineSelectedPinboardId,
+}: FeedbackProps) => {
+  const { setIsExpanded } = useGlobalStateContext();
   const sendTelemetryEvent = useContext(TelemetryContext);
   const [isOpen, setIsOpen] = useState(false);
   const tourProgress = useTourProgress();
 
   const handleTourStart = () => {
+    setMaybeInlineSelectedPinboardId(null); // ensure inlineModePanel is closed when tour starts to avoid confusion
+    setIsExpanded(true); // ensures pinboard is expanded when opened from inlineModePanel
     tourProgress.start();
     sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
       tourEvent: "start_tour",
@@ -173,7 +181,7 @@ export const Feedback = () => {
             />
           </div>
         )}
-        {!tourProgress.isRunning && !isInlineMode() && (
+        {!tourProgress.isRunning && (
           <div
             css={css`
               color: white;

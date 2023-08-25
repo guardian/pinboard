@@ -407,7 +407,9 @@ export const SelectPinboard = ({
           outline: "none",
         }}
       >
-        <Feedback />
+        <Feedback
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
+        />
         {isInline && !hasPinboardColumn && <WorkflowColumnInstructions />}
         {preselectedPinboard === "notTrackedInWorkflow" && (
           <NotTrackedInWorkflow />

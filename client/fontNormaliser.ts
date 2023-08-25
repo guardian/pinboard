@@ -18,15 +18,17 @@ const agateFontNameVariants = [
   "GuardianAgateSans1Web",
 ];
 
+export const agateFontFamily = `${agateFontNameVariants
+  .map((_) => `"${_}"`)
+  .join(",")}, Arial, sans-serif;`;
+
 // source foundations will give us Guardian Text Sans, but we usually want Guardian Agate Sans, so as to fit in with
 // the tools hosting pinboard.
 const overrideToAgateSans: FontOverride =
   (originalFunc: FontScaleFunctionStr) => (options?: FontScaleArgs) =>
     `
   ${originalFunc(options)};
-  font-family: ${agateFontNameVariants
-    .map((_) => `"${_}"`)
-    .join(",")}, Arial, sans-serif;
+  font-family: ${agateFontFamily};
 `;
 
 const defaultToPx: FontOverride =

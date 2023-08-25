@@ -4,8 +4,12 @@ exports[`PinBoardStack's generated CloudFormation matches the snapshot 1`] = `
 Object {
   "Metadata": Object {
     "gu:cdk:constructs": Array [
+      "GuStringParameter",
       "GuSubnetListParameter",
       "GuVpcParameter",
+      "GuSecurityGroup",
+      "GuSecurityGroup",
+      "GuStringParameter",
       "GuAmiParameter",
       "GuDistributionBucketParameter",
       "GuInstanceRole",
@@ -70,6 +74,10 @@ Object {
       "Description": "Amazon Machine Image ID for the app pinboard. Use this in conjunction with AMIgo to keep AMIs up to date.",
       "Type": "AWS::EC2::Image::Id",
     },
+    "AccountVpcCidrBlock": Object {
+      "Default": "/account/vpc/primary/vpcCidrBlock",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
     "DistributionBucketName": Object {
       "Default": "/account/services/artifact.bucket",
       "Description": "SSM parameter containing the S3 bucket name holding distribution artifacts",
@@ -78,6 +86,10 @@ Object {
     "LoggingStreamName": Object {
       "Default": "/account/services/logging.stream.name",
       "Description": "SSM parameter containing the Name (not ARN) on the kinesis stream",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "OctopusImagingApiSecurityGroup": Object {
+      "Default": "/pinboard/octopusImagingApi/TEST/vpcEndpointServiceName",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
     "SsmParameterValuepinboardsentryDSNC96584B6F00A464EAD1953AFF4B05118Parameter": Object {
@@ -96,6 +108,30 @@ Object {
     },
   },
   "Resources": Object {
+    "AccountVPCpinboardoctopusimagingapiTESTendpoint9D3189B5": Object {
+      "Properties": Object {
+        "PrivateDnsEnabled": false,
+        "SecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "OctopusImagingApiEndpointSecurityGroupPinboard1D5F2A86",
+              "GroupId",
+            ],
+          },
+        ],
+        "ServiceName": Object {
+          "Ref": "OctopusImagingApiSecurityGroup",
+        },
+        "SubnetIds": Object {
+          "Ref": "pinboardPrivateSubnets",
+        },
+        "VpcEndpointType": "Interface",
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::VPCEndpoint",
+    },
     "ArchiverLambda63644BDF": Object {
       "DependsOn": Array [
         "ArchiverLambdaServiceRoleDefaultPolicyF9A2D388",
@@ -1908,6 +1944,109 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "OctopusImagingApiEndpointSecurityGroupPinboard1D5F2A86": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack-TEST/OctopusImagingApiEndpointSecurityGroupPinboard",
+        "GroupName": "pinboard-octopus-imaging-api-endpoint-SG-TEST",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "255.255.255.255/32",
+            "Description": "Disallow all traffic",
+            "FromPort": 252,
+            "IpProtocol": "icmp",
+            "ToPort": 86,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.5.0",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "OctopusImagingApiEndpointSecurityGroupPinboardfromPinBoardStackTESTOctopusImagingApiLambdaSecurityGroupPinboard991C077344384348F4E": Object {
+      "Properties": Object {
+        "Description": "Allow Lambda to access Octopus Imaging API",
+        "FromPort": 443,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "OctopusImagingApiEndpointSecurityGroupPinboard1D5F2A86",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "OctopusImagingApiLambdaSecurityGroupPinboard5ECB9CD9",
+            "GroupId",
+          ],
+        },
+        "ToPort": 443,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "OctopusImagingApiLambdaSecurityGroupPinboard5ECB9CD9": Object {
+      "Properties": Object {
+        "GroupDescription": "PinBoardStack-TEST/OctopusImagingApiLambdaSecurityGroupPinboard",
+        "GroupName": "pinboard-octopus-imaging-api-lambda-SG-TEST",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "255.255.255.255/32",
+            "Description": "Disallow all traffic",
+            "FromPort": 252,
+            "IpProtocol": "icmp",
+            "ToPort": 86,
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "49.5.0",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "VpcId",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
     },
     "ParameterStoreReadPinboard2639F7F2": Object {
       "Properties": Object {
@@ -3982,6 +4121,27 @@ $util.toJson($ctx.result)",
                 "Endpoint",
               ],
             },
+            "OCTOPUS_IMAGING_API_VPC_ENDPOINT": Object {
+              "Fn::Select": Array [
+                1,
+                Object {
+                  "Fn::Split": Array [
+                    ":",
+                    Object {
+                      "Fn::Select": Array [
+                        0,
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "AccountVPCpinboardoctopusimagingapiTESTendpoint9D3189B5",
+                            "DnsEntries",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
             "STACK": "workflow",
             "STAGE": "TEST",
           },
@@ -4020,6 +4180,12 @@ $util.toJson($ctx.result)",
             Object {
               "Fn::GetAtt": Array [
                 "DatabaseSecurityGroup7319C0F6",
+                "GroupId",
+              ],
+            },
+            Object {
+              "Fn::GetAtt": Array [
+                "OctopusImagingApiLambdaSecurityGroupPinboard5ECB9CD9",
                 "GroupId",
               ],
             },

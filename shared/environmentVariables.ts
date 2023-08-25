@@ -3,6 +3,7 @@ export const ENVIRONMENT_VARIABLE_KEYS = {
   graphqlEndpoint: "GRAPHQL_ENDPOINT",
   sentryDSN: "SENTRY_DSN",
   databaseHostname: "DATABASE_HOSTNAME",
+  octopusImagingApiVpcEndpoint: "OCTOPUS_IMAGING_API_VPC_ENDPOINT",
 };
 
 export const getEnvironmentVariableOrThrow = (

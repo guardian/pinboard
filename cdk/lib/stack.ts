@@ -18,6 +18,7 @@ import {
   Fn,
   RemovalPolicy,
   Stack,
+  Tags,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -46,8 +47,13 @@ import {
   GuAmiParameter,
   GuStack,
   GuStackProps,
+  GuStringParameter,
 } from "@guardian/cdk/lib/constructs/core";
-import { GuVpc, SubnetType } from "@guardian/cdk/lib/constructs/ec2";
+import {
+  GuSecurityGroup,
+  GuVpc,
+  SubnetType,
+} from "@guardian/cdk/lib/constructs/ec2";
 import {
   GuAutoScalingGroup,
   GuUserData,
@@ -56,6 +62,7 @@ import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
+import { Port } from "aws-cdk-lib/aws-ec2";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
@@ -82,6 +89,10 @@ export class PinBoardStack extends GuStack {
 
     const accountVpc = GuVpc.fromIdParameter(this, "AccountVPC", {
       availabilityZones: Fn.getAzs(region),
+      vpcCidrBlock: new GuStringParameter(this, "AccountVpcCidrBlock", {
+        fromSSM: true,
+        default: "/account/vpc/primary/vpcCidrBlock",
+      }).valueAsString,
       privateSubnetIds: GuVpc.subnetsFromParameter(this, {
         app: APP,
         type: SubnetType.PRIVATE,
@@ -248,6 +259,79 @@ export class PinBoardStack extends GuStack {
       }
     );
 
+    const octopusImagingApiLambdaSecurityGroup = new GuSecurityGroup(
+      this,
+      `OctopusImagingApiLambdaSecurityGroup`,
+      {
+        app: APP,
+        vpc: accountVpc,
+        securityGroupName: `${APP}-octopus-imaging-api-lambda-SG-${this.stage}`,
+        allowAllOutbound: false,
+      }
+    );
+    const octopusImagingApiEndpointSecurityGroup = new GuSecurityGroup(
+      this,
+      `OctopusImagingApiEndpointSecurityGroup`,
+      {
+        app: APP,
+        vpc: accountVpc,
+        securityGroupName: `${APP}-octopus-imaging-api-endpoint-SG-${this.stage}`,
+        allowAllOutbound: false,
+        ingresses: [
+          {
+            range: octopusImagingApiLambdaSecurityGroup,
+            port: 443,
+            description: "Allow Lambda to access Octopus Imaging API",
+          },
+        ],
+      }
+    );
+
+    const octopusImagingApiVpcEndpointServiceName = new GuStringParameter(
+      this,
+      `OctopusImagingApiSecurityGroup`,
+      {
+        fromSSM: true,
+        default: `/pinboard/octopusImagingApi/${this.stage}/vpcEndpointServiceName`,
+      }
+    ).valueAsString;
+
+    const octopusImagingApiVpcEndpointID = `pinboard-octopus-imaging-api-${this.stage}-endpoint`;
+    const octopusImagingApiVpcEndpoint = accountVpc.addInterfaceEndpoint(
+      octopusImagingApiVpcEndpointID,
+      {
+        service: {
+          name: octopusImagingApiVpcEndpointServiceName,
+          port: 443,
+        },
+        privateDnsEnabled: false,
+        open: false,
+        subnets: {
+          subnets: accountVpc.privateSubnets,
+        },
+        securityGroups: [octopusImagingApiEndpointSecurityGroup],
+      }
+    );
+    // AWS::EC2::VPCEndpoint does not support the 'Name' property, see issues:
+    // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/196
+    // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/202
+    // therefore the below line has no effect but have tagged it manually via AWS console so leaving this to match
+    Tags.of(octopusImagingApiVpcEndpoint).add(
+      "Name",
+      octopusImagingApiVpcEndpointID
+    );
+
+    // vpcEndpointDnsEntries typically contains four entries,
+    // the first is the regional DNS (nicest option) the others are AZ specific
+    const composerZoneAndDNS = Fn.select(
+      0,
+      octopusImagingApiVpcEndpoint.vpcEndpointDnsEntries
+    );
+    const octopusImagingApiVpcEndpointDNS = Fn.select(
+      1,
+      Fn.split(":", composerZoneAndDNS)
+    );
+
     const databaseSecurityGroupName = `PinboardDatabaseSecurityGroup${this.stage}`;
     const databaseSecurityGroup = new ec2.SecurityGroup(
       this,
@@ -286,6 +370,8 @@ export class PinBoardStack extends GuStack {
           STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
+          [ENVIRONMENT_VARIABLE_KEYS.octopusImagingApiVpcEndpoint]:
+            octopusImagingApiVpcEndpointDNS,
         },
         functionName: getDatabaseBridgeLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
@@ -294,7 +380,10 @@ export class PinBoardStack extends GuStack {
         ),
         initialPolicy: [],
         vpc: accountVpc,
-        securityGroups: [databaseSecurityGroup],
+        securityGroups: [
+          databaseSecurityGroup,
+          octopusImagingApiLambdaSecurityGroup,
+        ],
       }
     );
     databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);

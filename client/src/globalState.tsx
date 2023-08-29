@@ -4,7 +4,13 @@ import {
   useMutation,
   useQuery,
 } from "@apollo/client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Item, MyUser } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
@@ -124,8 +130,10 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
+  children: ReactNode;
 }
-export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
+
+export const GlobalStateProvider = ({
   hasApolloAuthError,
   userEmail,
   preselectedComposerId,
@@ -144,7 +152,7 @@ export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({
   hasEverUsedTour,
   visitTourStep,
   children,
-}) => {
+}: GlobalStateProviderProps) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
   useEffect(() => {

@@ -25,13 +25,13 @@ interface NavButtonProps {
   unreadCount?: number | null;
   title?: string;
 }
-export const NavButton: React.FC<NavButtonProps> = ({
+export const NavButton = ({
   onClick,
   icon: Icon,
   hoverParent,
   unreadCount,
   title,
-}) => (
+}: NavButtonProps) => (
   <span
     title={title}
     onClick={onClick}

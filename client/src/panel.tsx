@@ -28,6 +28,7 @@ import { ErrorOverlay } from "./errorOverlay";
 import { Tour } from "./tour/tour";
 import { useTourProgress } from "./tour/tourState";
 import { demoPinboardsWithClaimCounts } from "./tour/tourConstants";
+import { isInlineMode } from "./inline/inlineMode";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,
@@ -45,7 +46,16 @@ const teamPinboardsSortFunction = (
   );
 };
 
-export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
+interface PanelProps extends IsDropTargetProps {
+  workflowPinboardElements: HTMLElement[];
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
+}
+
+export const Panel: React.FC<PanelProps> = ({
+  isDropTarget,
+  workflowPinboardElements,
+  setMaybeInlineSelectedPinboardId,
+}) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const {
     hasError,
@@ -62,14 +72,15 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
 
   const tourProgress = useTourProgress();
 
+  const isInline = useMemo(isInlineMode, []);
+
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
   const [_maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
     useState<PinboardData | null>(null);
-  const maybePeekingAtPinboard = tourProgress.isRunning
-    ? null
-    : _maybePeekingAtPinboard;
+  const maybePeekingAtPinboard =
+    tourProgress.isRunning || isInline ? null : _maybePeekingAtPinboard;
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -276,6 +287,8 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
+          workflowPinboardElements={workflowPinboardElements}
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
       )}
 
@@ -297,6 +310,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
             isExpanded={pinboardId === selectedPinboardId && isExpanded}
             isSelected={pinboardId === selectedPinboardId}
             panelElement={panelRef.current}
+            setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
           />
         ))
       }
@@ -308,6 +322,7 @@ export const Panel: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
           isExpanded={isExpanded}
           isSelected={true}
           panelElement={panelRef.current}
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
       )}
     </div>

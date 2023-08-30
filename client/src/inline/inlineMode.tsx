@@ -13,26 +13,41 @@ export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
 export const isInlineMode = () =>
   window.location.hostname.startsWith("workflow.");
 
+const getPinboardColumnHeadingElement = () =>
+  document.querySelector(".content-list-head__heading--pinboard");
+export const isPinboardColumnTurnedOn = () =>
+  !!getPinboardColumnHeadingElement();
+
+export const getWorkflowTitleElementLookup = (
+  workflowPinboardElements: HTMLElement[]
+) =>
+  workflowPinboardElements.reduce((acc, node) => {
+    const { pinboardId } = node.dataset;
+    return pinboardId ? { ...acc, [pinboardId]: node } : acc;
+  }, {} as Record<string, HTMLElement>);
+
 interface InlineModeProps {
   workflowPinboardElements: HTMLElement[];
+  maybeInlineSelectedPinboardId: string | null;
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
-export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
+export const InlineMode = ({
+  workflowPinboardElements,
+  maybeInlineSelectedPinboardId,
+  setMaybeInlineSelectedPinboardId,
+}: InlineModeProps) => {
   const pinboardArea = useMemo(
     () => document.getElementById("pinboard-area"),
     []
   );
   const pinboardColumnHeadingElement = useMemo(
-    () => document.querySelector(".content-list-head__heading--pinboard"),
+    getPinboardColumnHeadingElement,
     []
   );
 
   const workflowTitleElementLookup = useMemo(
-    () =>
-      workflowPinboardElements.reduce((acc, node) => {
-        const { pinboardId } = node.dataset;
-        return pinboardId ? { ...acc, [pinboardId]: node } : acc;
-      }, {} as Record<string, HTMLElement>),
+    () => getWorkflowTitleElementLookup(workflowPinboardElements),
     [workflowPinboardElements]
   );
 
@@ -69,13 +84,9 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
     }
   }, [workflowTitleElementLookup]);
 
-  const [maybeSelectedPinboardId, setMaybeSelectedPinboardId] = useState<
-    string | null
-  >(null);
-
   const maybeSelectedNode =
-    maybeSelectedPinboardId &&
-    workflowTitleElementLookup[maybeSelectedPinboardId];
+    maybeInlineSelectedPinboardId &&
+    workflowTitleElementLookup[maybeInlineSelectedPinboardId];
 
   return (
     <React.Fragment>
@@ -88,11 +99,12 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
         pinboardArea &&
         ReactDOM.createPortal(
           <InlineModePanel
-            pinboardId={maybeSelectedPinboardId}
+            pinboardId={maybeInlineSelectedPinboardId}
             composerId={maybeSelectedNode.dataset.composerId || null}
-            closePanel={() => setMaybeSelectedPinboardId(null)}
+            closePanel={() => setMaybeInlineSelectedPinboardId(null)}
             workingTitle={maybeSelectedNode.dataset.workingTitle || null}
             headline={maybeSelectedNode.dataset.headline || null}
+            setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
           />,
           pinboardArea
         )}
@@ -103,11 +115,8 @@ export const InlineMode = ({ workflowPinboardElements }: InlineModeProps) => {
             node={node}
             pinboardId={pinboardId}
             counts={itemCountsLookup[pinboardId]}
-            isSelected={pinboardId === maybeSelectedPinboardId}
-            setMaybeSelectedPinboardId={(pinboardId: string | null) => {
-              setMaybeSelectedPinboardId(null); // trigger unmount first
-              setTimeout(() => setMaybeSelectedPinboardId(pinboardId), 1);
-            }}
+            isSelected={pinboardId === maybeInlineSelectedPinboardId}
+            setMaybeSelectedPinboardId={setMaybeInlineSelectedPinboardId}
           />
         )
       )}

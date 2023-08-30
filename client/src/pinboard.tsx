@@ -35,6 +35,7 @@ interface PinboardProps {
   isExpanded: boolean;
   isSelected: boolean;
   panelElement: HTMLDivElement | null;
+  setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
 export const Pinboard: React.FC<PinboardProps> = ({
@@ -43,6 +44,7 @@ export const Pinboard: React.FC<PinboardProps> = ({
   isExpanded,
   isSelected,
   panelElement,
+  setMaybeInlineSelectedPinboardId,
 }) => {
   const {
     hasBrowserFocus,
@@ -331,7 +333,9 @@ export const Pinboard: React.FC<PinboardProps> = ({
       <div>{maybeDeleteItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
       <div ref={useTourStepRef("feedback")}>
-        <Feedback />
+        <Feedback
+          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
+        />
       </div>
       {initialItemsQuery.loading && "Loading..."}
       <div // push chat messages to bottom of panel if they do not fill

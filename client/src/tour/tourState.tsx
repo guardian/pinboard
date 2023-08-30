@@ -243,9 +243,11 @@ export const TourStateProvider: React.FC = ({ children }) => {
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {
         tourEvent: "complete_tour",
       });
+      clearSelectedPinboard();
     } else if (action === ACTIONS.CLOSE) {
       setTourState({ isRunning: false, stepIndex: -1 });
       !hasEverUsedTour && visitTourStep("DISMISSED");
+      clearSelectedPinboard();
 
       lifecycle === LIFECYCLE.COMPLETE && // Prevent 'CLOSE' action being logged multiple times
         sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.INTERACTIVE_TOUR, {

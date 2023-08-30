@@ -5,11 +5,12 @@ import { composer } from "../../colours";
 import { tourStepIDs } from "./tourStepMap";
 import { SvgCross } from "@guardian/source-react-components";
 import root from "react-shadow/emotion";
+import { agateFontFamily } from "../../fontNormaliser";
 
 export const tourButtonStyles = {
   display: "flex",
   alignItems: "flex-start",
-  fontFamily: "Guardian Agate Sans",
+  fontFamily: agateFontFamily,
   border: `${composer.primary[300]} 1px solid`,
   borderRadius: `${space[1]}px`,
   fontSize: `${space[3]}px`,
@@ -67,7 +68,7 @@ export const Tooltip = ({
   <root.div
     {...tooltipProps}
     style={{
-      fontFamily: "Guardian Agate Sans",
+      fontFamily: agateFontFamily,
       fontSize: 15,
       padding: `${space[2]}px ${space[3]}px ${space[3]}px`,
       width: 253,

@@ -45,7 +45,7 @@ export const Pinboard = ({
   isSelected,
   panelElement,
   setMaybeInlineSelectedPinboardId,
-}) => {
+}: PinboardProps) => {
   const {
     hasBrowserFocus,
 

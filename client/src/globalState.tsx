@@ -5,7 +5,7 @@ import {
   useQuery,
 } from "@apollo/client";
 import React, {
-  ReactNode,
+  PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
@@ -130,7 +130,6 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
-  children: ReactNode;
 }
 
 export const GlobalStateProvider = ({
@@ -152,7 +151,7 @@ export const GlobalStateProvider = ({
   hasEverUsedTour,
   visitTourStep,
   children,
-}: GlobalStateProviderProps) => {
+}: PropsWithChildren<GlobalStateProviderProps>) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
   useEffect(() => {

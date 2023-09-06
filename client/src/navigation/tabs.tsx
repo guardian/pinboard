@@ -11,11 +11,12 @@ interface TabsProps {
   setActiveTab: (tab: Tab) => void;
   unreadMessages: number | null;
 }
-export const Tabs: React.FC<TabsProps> = ({
+
+export const Tabs = ({
   activeTab,
   setActiveTab,
   unreadMessages,
-}) => (
+}: TabsProps) => (
   <div
     css={css`
       display: flex;

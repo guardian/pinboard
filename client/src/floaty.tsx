@@ -39,7 +39,7 @@ const FloatyNotificationsBubble = ({
   </div>
 );
 
-export const Floaty: React.FC<IsDropTargetProps> = ({ isDropTarget }) => {
+export const Floaty = ({ isDropTarget }: IsDropTargetProps) => {
   const {
     presetUnreadNotificationCount,
     isExpanded,

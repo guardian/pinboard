@@ -38,14 +38,14 @@ interface PinboardProps {
   setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
-export const Pinboard: React.FC<PinboardProps> = ({
+export const Pinboard = ({
   pinboardId,
   composerId,
   isExpanded,
   isSelected,
   panelElement,
   setMaybeInlineSelectedPinboardId,
-}) => {
+}: PinboardProps) => {
   const {
     hasBrowserFocus,
 

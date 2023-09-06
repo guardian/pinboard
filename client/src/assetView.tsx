@@ -7,11 +7,11 @@ import { PayloadDisplay } from "./payloadDisplay";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import * as Sentry from "@sentry/react";
 
-interface AssetView {
+interface AssetViewProps {
   items: Item[];
 }
 
-export const AssetView: React.FC<AssetView> = ({ items }) => {
+export const AssetView = ({ items }: AssetViewProps) => {
   const payloadsMap: PayloadAndType[] = items
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     .reduce<PayloadAndType[]>((accumulator, item) => {

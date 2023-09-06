@@ -51,11 +51,11 @@ interface PanelProps extends IsDropTargetProps {
   setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
-export const Panel: React.FC<PanelProps> = ({
+export const Panel = ({
   isDropTarget,
   workflowPinboardElements,
   setMaybeInlineSelectedPinboardId,
-}) => {
+}: PanelProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const {
     hasError,

@@ -26,7 +26,7 @@ export const searchMentionableUsers = async (
         AND "GroupMember"."userGoogleID" = "User"."googleID"
         ), '[]') AS "memberEmails"
     FROM "Group"
-    WHERE "shorthand" ILIKE ${args.prefix + "%"}
+    WHERE "shorthand" ILIKE ${"%" + args.prefix + "%"}
     OR "name" ILIKE ${"%" + args.prefix + "%"}
     OR "primaryEmail" ILIKE ${"%" + args.prefix + "%"}
     OR EXISTS(

@@ -68,6 +68,7 @@ const itemReturnFields = `
   relatedItemId
   editHistory
   deletedAt
+  isStarred
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
@@ -238,6 +239,14 @@ export const gqlClaimItem = gql`
 export const gqlOnClaimItem = (pinboardId: string) => gql`
     subscription OnClaimItem {
         onClaimItem(pinboardId: "${pinboardId}") { ${claimedReturnFields} }
+    }
+`;
+
+export const gqlSetIsStarred = gql`
+    mutation SetIsStarred($itemId: String!, $isStarred: Boolean!) {
+        setIsStarred(itemId: $itemId, isStarred: $isStarred) {
+            ${itemReturnFields}
+        }
     }
 `;
 

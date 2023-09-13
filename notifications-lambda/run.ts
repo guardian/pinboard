@@ -40,6 +40,7 @@ import { Item } from "shared/graphql/graphql";
       relatedItemId: null,
       editHistory: null,
       deletedAt: null,
+      isStarred: false,
     } satisfies Item,
     users: [yourUser as UserWithWebPushSubscription],
   });

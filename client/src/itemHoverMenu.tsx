@@ -9,7 +9,7 @@ import { useConfirmModal } from "./modal";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
-import { gqlDeleteItem } from "../gql";
+import { gqlDeleteItem, gqlSetIsStarred } from "../gql";
 import { Item } from "shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
@@ -55,7 +55,12 @@ export const ItemHoverMenu = ({
       </div>
     </React.Fragment>
   );
-  const [isStarred, setIsStarred] = React.useState(false);
+
+  const isStarred = item.isStarred;
+  const [setIsStarred] = useMutation(gqlSetIsStarred);
+  const toggleIsStarred = () => {
+    setIsStarred({ variables: { itemId: item.id, isStarred: !isStarred } });
+  };
 
   useEffect(
     () => setMaybeDeleteItemModalElement(deleteConfirmModalElement),
@@ -141,7 +146,7 @@ export const ItemHoverMenu = ({
       `}
     >
       <button
-        onClick={() => setIsStarred((isStarred) => !isStarred)}
+        onClick={toggleIsStarred}
         title={isStarred ? "Unstar" : "Star"}
       >
         {isStarred ? <SvgStar /> : <SvgStarOutline />}

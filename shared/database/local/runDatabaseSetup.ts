@@ -85,6 +85,8 @@ const runSetupTriggerSqlFile = (
           getEmailLambdaFunctionName(stage),
           EMAIL_DATABASE_TRIGGER_NAME
         ),
+    "add isStarred column to Item table": () =>
+      runSetupSqlFile(sql, "020-AddIsStarredColumnToItemTable.sql"),
   };
 
   const allSteps = async () => {

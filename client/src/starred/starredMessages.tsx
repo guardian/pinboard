@@ -3,9 +3,9 @@ import ReactDOM from "react-dom";
 
 export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 
-interface StarredMessagesProps {}
+// interface StarredMessagesProps {}
 
-const StarredMessages = (props: StarredMessagesProps) => (
+const StarredMessages = (/* props: StarredMessagesProps */) => (
   <div>
     <p>Starred Messages</p>
   </div>

@@ -33,6 +33,7 @@ export const MUTATIONS = {
     "editItem",
     "deleteItem",
     "claimItem",
+    "setIsStarred",
     "seenItem",
     "setWebPushSubscriptionForUser",
     "addManuallyOpenedPinboardIds",

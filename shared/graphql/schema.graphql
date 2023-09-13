@@ -27,6 +27,7 @@ type Mutation {
   editItem(itemId: String!, input: EditItemInput!): Item
   deleteItem(itemId: String!): Item
   claimItem(itemId: String!): Claimed
+  setIsStarred(itemId: String!, isStarred: Boolean!): Item
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
   setWebPushSubscriptionForUser(webPushSubscription: AWSJSON): MyUser
   addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
@@ -37,7 +38,7 @@ type Mutation {
 type Subscription {
   onMutateItem(
     pinboardId: String
-  ): Item @aws_subscribe(mutations: ["createItem", "editItem", "deleteItem"])
+  ): Item @aws_subscribe(mutations: ["createItem", "editItem", "deleteItem", "setIsStarred"])
 
   onClaimItem(
     pinboardId: String
@@ -72,6 +73,7 @@ type Item {
   relatedItemId: String
   editHistory: [AWSDateTime!]
   deletedAt: AWSDateTime
+  isStarred: Boolean!
 }
 
 type LastItemSeenByUser {

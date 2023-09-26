@@ -24,6 +24,10 @@ import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
 import { EditItem } from "./editItem";
 import { Reply } from "./reply";
+import {
+  StarredControl,
+  STARRED_CONTROL_CLASS_NAME,
+} from "./starred/starredControl";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -107,9 +111,15 @@ export const ItemDisplay = ({
         ${agateSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
+        .${STARRED_CONTROL_CLASS_NAME} {
+          display: ${item.isStarred ? "block" : "none"};
+        }
         &:hover {
           .${ITEM_HOVER_MENU_CLASS_NAME} {
             display: flex;
+          }
+          .${STARRED_CONTROL_CLASS_NAME} {
+            display: block;
           }
         }
       `}
@@ -139,6 +149,15 @@ export const ItemDisplay = ({
             </span>
           </React.Fragment>
         )}
+      </div>
+      <div
+        css={css`
+          position: absolute;
+          margin-top: 5px;
+          margin-left: 2px;
+        `}
+      >
+        <StarredControl itemId={item.id} isStarred={item.isStarred} />
       </div>
       <div
         css={css`

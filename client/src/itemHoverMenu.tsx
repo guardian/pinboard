@@ -1,7 +1,6 @@
 import { css } from "@emotion/react";
 import React, { useContext, useEffect } from "react";
 import { palette, space } from "@guardian/source-foundations";
-import { SvgStar, SvgStarOutline } from "@guardian/source-react-components";
 import ReplyIcon from "../icons/reply.svg";
 import PencilIcon from "../icons/pencil.svg";
 import BinIcon from "../icons/bin.svg";
@@ -9,7 +8,7 @@ import { useConfirmModal } from "./modal";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
-import { gqlDeleteItem, gqlSetIsStarred } from "../gql";
+import { gqlDeleteItem } from "../gql";
 import { Item } from "shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { useTourProgress } from "./tour/tourState";
@@ -55,12 +54,6 @@ export const ItemHoverMenu = ({
       </div>
     </React.Fragment>
   );
-
-  const isStarred = item.isStarred;
-  const [setIsStarred] = useMutation(gqlSetIsStarred);
-  const toggleIsStarred = () => {
-    setIsStarred({ variables: { itemId: item.id, isStarred: !isStarred } });
-  };
 
   useEffect(
     () => setMaybeDeleteItemModalElement(deleteConfirmModalElement),
@@ -145,12 +138,6 @@ export const ItemHoverMenu = ({
         }
       `}
     >
-      <button
-        onClick={toggleIsStarred}
-        title={isStarred ? "Unstar" : "Star"}
-      >
-        {isStarred ? <SvgStar /> : <SvgStarOutline />}
-      </button>
       <button onClick={() => setMaybeReplyingToItemId(item.id)} title="Reply">
         <ReplyIcon />
       </button>

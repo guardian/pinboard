@@ -301,6 +301,7 @@ export const ScrollableItems = ({
               item.claimedByEmail,
               item.editHistory,
               item.deletedAt,
+              item.isStarred,
               "pending" in item,
               userLookup,
               lastItemSeenByUsersForItemIDLookup,

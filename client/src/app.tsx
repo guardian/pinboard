@@ -45,10 +45,7 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
-import {
-  STARRED_MESSAGES_HTML_TAG,
-  StarredMessagesPortal,
-} from "./starred/starredMessages";
+import { STARRED_MESSAGES_HTML_TAG } from "./starred/starredMessages";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";

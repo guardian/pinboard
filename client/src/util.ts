@@ -13,11 +13,15 @@ export const getTooltipText = (
 ) => `WT: ${workingTitle}` + (headline ? `\nHL: ${headline}` : "");
 
 export const formatDateTime = (
-  timestamp: number,
-  isPartOfSentence?: true,
-  withAgo?: true
+  timestampStringOrEpochMillis: number | string,
+  isPartOfSentence?: boolean,
+  withAgo?: boolean
 ): string => {
   const now = Date.now();
+  const timestamp =
+    typeof timestampStringOrEpochMillis === "string"
+      ? new Date(timestampStringOrEpochMillis).valueOf()
+      : timestampStringOrEpochMillis;
   if (isThisYear(timestamp)) {
     if (isToday(timestamp)) {
       if (differenceInMinutes(now, timestamp) < 1) {
@@ -32,7 +36,7 @@ export const formatDateTime = (
         return (
           formatDistanceStrict(timestamp, now, {
             roundingMethod: "floor",
-          }).slice(0, -4) + (withAgo ? " ago" : "")
+          }).slice(0, -4) + (withAgo ? "s ago" : "")
         );
       }
       return format(timestamp, "HH:mm");

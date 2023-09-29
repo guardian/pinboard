@@ -404,7 +404,11 @@ export const Pinboard = ({
       {isPinboardData(preselectedPinboard) &&
         preselectedPinboard.id === pinboardId &&
         maybeStarredMessagesArea && (
-          <StarredMessagesPortal node={maybeStarredMessagesArea} />
+          <StarredMessagesPortal
+            node={maybeStarredMessagesArea}
+            items={items}
+            userLookup={userLookup}
+          />
         )}
     </React.Fragment>
   );

@@ -78,8 +78,6 @@ export const ItemDisplay = ({
     [item.id, item.message]
   );
 
-  const dateInMillisecs = new Date(item.timestamp).valueOf();
-
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
@@ -150,15 +148,17 @@ export const ItemDisplay = ({
           </React.Fragment>
         )}
       </div>
-      <div
-        css={css`
-          position: absolute;
-          margin-top: 5px;
-          margin-left: 2px;
-        `}
-      >
-        <StarredControl itemId={item.id} isStarred={item.isStarred} />
-      </div>
+      {!isDeleted && (
+        <div
+          css={css`
+            position: absolute;
+            margin-top: 5px;
+            margin-left: 2px;
+          `}
+        >
+          <StarredControl itemId={item.id} isStarred={item.isStarred} />
+        </div>
+      )}
       <div
         css={css`
           margin-left: ${space[9] - 4}px;
@@ -172,7 +172,7 @@ export const ItemDisplay = ({
             margin-bottom: 2px;
           `}
         >
-          <FormattedDateTime timestamp={dateInMillisecs} />
+          <FormattedDateTime timestamp={item.timestamp} />
           {isEdited && <span>&nbsp;-&nbsp;Edited</span>}
           {maybeRelatedItem && item.type !== "claim" && (
             <span>&nbsp;-&nbsp;Reply</span>

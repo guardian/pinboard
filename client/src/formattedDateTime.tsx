@@ -4,7 +4,7 @@ import { formatDateTime } from "./util";
 export const TickContext = React.createContext<number>(Date.now());
 
 interface FormattedDateTimeProps {
-  timestamp: number;
+  timestamp: number | string;
   isPartOfSentence?: true;
   withAgo?: true;
 }

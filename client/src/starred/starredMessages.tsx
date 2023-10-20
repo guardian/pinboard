@@ -7,6 +7,7 @@ import { FormattedDateTime } from "../formattedDateTime";
 import { css } from "@emotion/react";
 import { agateSans } from "../../fontNormaliser";
 import { neutral, space } from "@guardian/source-foundations";
+import { pinboard } from "../../colours";
 
 export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 
@@ -29,6 +30,13 @@ const StarredItemDisplay = ({
         align-items: flex-end;
         gap: ${space[1]}px;
         color: ${neutral[20]};
+        cursor: pointer;
+        position: relative;
+        border-radius: 6px;
+        &:hover {
+          background-color: ${pinboard[500]};
+          outline: 5px solid ${pinboard[500]};
+        }
       `}
     >
       <span
@@ -56,11 +64,24 @@ const StarredMessages = ({ items, userLookup }: StarredMessagesProps) => {
   const starredMessages = items.filter(
     (item) => item.isStarred && !item.deletedAt
   );
-  return (
+  return starredMessages.length === 0 ? null : (
     <root.div>
-      {starredMessages.map((item) => (
-        <StarredItemDisplay key={item.id} item={item} userLookup={userLookup} />
-      ))}
+      <div
+        css={css`
+          outline: 15px solid ${pinboard[800]};
+          border-radius: 6px;
+          background-color: ${pinboard[800]};
+          margin-bottom: 20px;
+        `}
+      >
+        {starredMessages.map((item) => (
+          <StarredItemDisplay
+            key={item.id}
+            item={item}
+            userLookup={userLookup}
+          />
+        ))}
+      </div>
     </root.div>
   );
 };

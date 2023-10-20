@@ -76,7 +76,7 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
     }
   };
 
-  const canUpdate = message || payloadToBeSent;
+  const canUpdate = message?.trim() || payloadToBeSent;
 
   const ref = useRef<HTMLDivElement | null>(null);
 

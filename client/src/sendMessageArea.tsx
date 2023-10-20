@@ -219,7 +219,7 @@ export const SendMessageArea = ({
         disabled={
           isItemSending ||
           isAsGridPayloadLoading ||
-          !(message || payloadToBeSent)
+          !(message?.trim() || payloadToBeSent)
         }
       >
         {isItemSending ? (

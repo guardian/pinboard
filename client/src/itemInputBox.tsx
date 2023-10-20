@@ -295,7 +295,10 @@ export const ItemInputBox = ({
           ((event) => {
             event.stopPropagation();
             if (isHardReturn(event)) {
-              if (!isAsGridPayloadLoading && (message || payloadToBeSent)) {
+              if (
+                !isAsGridPayloadLoading &&
+                (message?.trim() || payloadToBeSent)
+              ) {
                 sendItem();
               }
               event.preventDefault();

@@ -251,7 +251,13 @@ export const ItemDisplay = ({
                       userLookup,
                     ]
                   )}
-                {formattedMessage}
+                <span
+                  css={css`
+                    white-space: pre-line;
+                  `}
+                >
+                  {formattedMessage}
+                </span>
               </>
             )}
           </div>

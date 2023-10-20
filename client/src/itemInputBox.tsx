@@ -100,8 +100,10 @@ const Suggestion = ({
   </div>
 );
 
-const isEnterKey = (event: React.KeyboardEvent<HTMLElement>) =>
-  event.key === "Enter" || event.keyCode === 13;
+const isHardReturn = (event: React.KeyboardEvent<HTMLElement>) =>
+  (event.key === "Enter" || event.keyCode === 13) &&
+  !event.shiftKey &&
+  !event.altKey;
 
 const hostname = window?.location.hostname || ".test.";
 const gridDomain =
@@ -292,7 +294,7 @@ export const ItemInputBox = ({
           sendItem &&
           ((event) => {
             event.stopPropagation();
-            if (isEnterKey(event)) {
+            if (isHardReturn(event)) {
               if (!isAsGridPayloadLoading && (message || payloadToBeSent)) {
                 sendItem();
               }

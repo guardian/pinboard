@@ -59,7 +59,7 @@ export const EditItem = ({ item, cancel }: EditItemProps) => {
       variables: {
         itemId: item.id,
         input: {
-          message: message || null,
+          message: message?.trim() || null,
           payload,
           type,
         },

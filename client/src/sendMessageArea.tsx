@@ -131,7 +131,7 @@ export const SendMessageArea = ({
           variables: {
             input: {
               type: payloadToBeSent?.type || "message-only",
-              message,
+              message: message?.trim(),
               payload:
                 payloadToBeSent && JSON.stringify(payloadToBeSent.payload),
               pinboardId,
@@ -219,7 +219,7 @@ export const SendMessageArea = ({
         disabled={
           isItemSending ||
           isAsGridPayloadLoading ||
-          !(message || payloadToBeSent)
+          !(message?.trim() || payloadToBeSent)
         }
       >
         {isItemSending ? (

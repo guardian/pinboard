@@ -14,9 +14,11 @@ export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 const StarredItemDisplay = ({
   item,
   userLookup,
+  maybeScrollToItem,
 }: {
   item: Item;
   userLookup: UserLookup;
+  maybeScrollToItem: ((itemId: string) => void) | undefined;
 }) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
@@ -38,6 +40,12 @@ const StarredItemDisplay = ({
           outline: 5px solid ${pinboard[500]};
         }
       `}
+      onClick={(event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        console.log(item, maybeScrollToItem);
+        maybeScrollToItem?.(item.id);
+      }}
     >
       <span
         css={css`
@@ -56,14 +64,16 @@ const StarredItemDisplay = ({
 };
 
 interface StarredMessagesProps {
-  items: Item[];
+  starredMessages: Item[];
   userLookup: UserLookup;
+  maybeScrollToItem: ((itemId: string) => void) | undefined;
 }
 
-const StarredMessages = ({ items, userLookup }: StarredMessagesProps) => {
-  const starredMessages = items.filter(
-    (item) => item.isStarred && !item.deletedAt
-  );
+const StarredMessages = ({
+  starredMessages,
+  userLookup,
+  maybeScrollToItem,
+}: StarredMessagesProps) => {
   return starredMessages.length === 0 ? null : (
     <root.div>
       <div
@@ -79,6 +89,7 @@ const StarredMessages = ({ items, userLookup }: StarredMessagesProps) => {
             key={item.id}
             item={item}
             userLookup={userLookup}
+            maybeScrollToItem={maybeScrollToItem}
           />
         ))}
       </div>

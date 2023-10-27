@@ -45,7 +45,10 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
-import { STARRED_MESSAGES_HTML_TAG } from "./starred/starredMessages";
+import {
+  StarredMessagesPortal,
+  STARRED_MESSAGES_HTML_TAG,
+} from "./starred/starredMessages";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -65,7 +68,7 @@ export const PinBoardApp = ({
     null
   );
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
-  const [starredMessagesArea, setStarredMessagesArea] =
+  const [maybeStarredMessagesArea, setMaybeStarredMessagesArea] =
     useState<Element | null>(null);
 
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
@@ -93,7 +96,9 @@ export const PinBoardApp = ({
     );
 
   const refreshStarredMessagesAreaNodes = () =>
-    setStarredMessagesArea(document.querySelector(STARRED_MESSAGES_HTML_TAG));
+    setMaybeStarredMessagesArea(
+      document.querySelector(STARRED_MESSAGES_HTML_TAG)
+    );
 
   const refreshWorkflowPinboardElements = () =>
     setWorkflowPinboardElements(
@@ -366,6 +371,10 @@ export const PinBoardApp = ({
 
   const hasApolloAuthError = useReactiveVar(hasApolloAuthErrorVar);
 
+  const [starredMessages, setStarredMessages] = useState<Item[]>([]);
+  const [maybeScrollToItem, setMaybeScrollToItem] =
+    useState<(itemId: string) => void>();
+
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
@@ -389,7 +398,8 @@ export const PinBoardApp = ({
           }
           hasEverUsedTour={me?.hasEverUsedTour}
           visitTourStep={visitTourStep}
-          maybeStarredMessagesArea={starredMessagesArea}
+          setStarredMessages={setStarredMessages}
+          setMaybeScrollToItem={setMaybeScrollToItem}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />
@@ -454,6 +464,14 @@ export const PinBoardApp = ({
                 expand={() => setIsExpanded(true)}
               />
             ))}
+            {maybeStarredMessagesArea && (
+              <StarredMessagesPortal
+                node={maybeStarredMessagesArea}
+                starredMessages={starredMessages}
+                userLookup={userLookup}
+                maybeScrollToItem={maybeScrollToItem}
+              />
+            )}
           </TourStateProvider>
         </GlobalStateProvider>
       </ApolloProvider>

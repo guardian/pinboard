@@ -371,7 +371,7 @@ export const PinBoardApp = ({
 
   const hasApolloAuthError = useReactiveVar(hasApolloAuthErrorVar);
 
-  const [starredMessages, setStarredMessages] = useState<Item[]>([]);
+  const [maybeStarredMessages, setMaybeStarredMessages] = useState<Item[]>();
   const [maybeScrollToItem, setMaybeScrollToItem] =
     useState<(itemId: string) => void>();
 
@@ -398,7 +398,7 @@ export const PinBoardApp = ({
           }
           hasEverUsedTour={me?.hasEverUsedTour}
           visitTourStep={visitTourStep}
-          setStarredMessages={setStarredMessages}
+          setStarredMessages={setMaybeStarredMessages}
           setMaybeScrollToItem={setMaybeScrollToItem}
         >
           <TourStateProvider>
@@ -467,7 +467,7 @@ export const PinBoardApp = ({
             {maybeStarredMessagesArea && (
               <StarredMessagesPortal
                 node={maybeStarredMessagesArea}
-                starredMessages={starredMessages}
+                maybeStarredMessages={maybeStarredMessages}
                 userLookup={userLookup}
                 maybeScrollToItem={maybeScrollToItem}
               />

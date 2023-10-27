@@ -9,6 +9,7 @@ import { agateSans } from "../../fontNormaliser";
 import { neutral, space } from "@guardian/source-foundations";
 import { pinboard } from "../../colours";
 import { useGlobalStateContext } from "../globalState";
+import { SvgStar } from "@guardian/source-react-components";
 
 export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 
@@ -21,7 +22,6 @@ const StarredItemDisplay = ({
   userLookup: UserLookup;
   maybeScrollToItem: ((itemId: string) => void) | undefined;
 }) => {
-  const { setIsExpanded, setActiveTab } = useGlobalStateContext();
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
     ? `${user.firstName} ${user.lastName}`
@@ -29,7 +29,6 @@ const StarredItemDisplay = ({
   return (
     <div
       css={css`
-        ${agateSans.xsmall()};
         display: flex;
         align-items: flex-end;
         gap: ${space[1]}px;
@@ -47,8 +46,6 @@ const StarredItemDisplay = ({
         ((event) => {
           event.stopPropagation();
           event.preventDefault();
-          setIsExpanded(true);
-          setActiveTab("chat");
           setTimeout(() => maybeScrollToItem(item.id), 250);
         })
       }
@@ -70,32 +67,59 @@ const StarredItemDisplay = ({
 };
 
 interface StarredMessagesProps {
-  starredMessages: Item[];
+  maybeStarredMessages: Item[] | undefined;
   userLookup: UserLookup;
   maybeScrollToItem: ((itemId: string) => void) | undefined;
 }
 
 const StarredMessages = ({
-  starredMessages,
+  maybeStarredMessages,
   userLookup,
   maybeScrollToItem,
 }: StarredMessagesProps) => {
-  return starredMessages.length === 0 ? null : (
+  const { setIsExpanded, setActiveTab } = useGlobalStateContext();
+  return !maybeStarredMessages ? null : (
     <root.div>
       <div
         css={css`
+          ${agateSans.xsmall()};
           outline: 15px solid ${pinboard[800]};
           border-radius: 6px;
           background-color: ${pinboard[800]};
           margin-bottom: 20px;
         `}
       >
-        {starredMessages.map((item) => (
+        {maybeStarredMessages.length === 0 && (
+          <span
+            css={css`
+              cursor: pointer;
+            `}
+            onClick={() => setIsExpanded(true)}
+          >
+            <strong>
+              If you need to leave an important message please use Pinboard
+              &apos;Starred Messages&apos; rather than notes.{" "}
+            </strong>
+            <br />
+            Click here to open Pinboard, then simply send a message and then
+            click the <SvgStar size="xsmall" /> to the left of your message. You
+            can also star other&apos;s messages if you think they&apos;re
+            important.
+          </span>
+        )}
+        {maybeStarredMessages.map((item) => (
           <StarredItemDisplay
             key={item.id}
             item={item}
             userLookup={userLookup}
-            maybeScrollToItem={maybeScrollToItem}
+            maybeScrollToItem={
+              maybeScrollToItem &&
+              ((itemId: string) => {
+                setIsExpanded(true);
+                setActiveTab("chat");
+                maybeScrollToItem(itemId);
+              })
+            }
           />
         ))}
       </div>

@@ -8,6 +8,7 @@ import { css } from "@emotion/react";
 import { agateSans } from "../../fontNormaliser";
 import { neutral, space } from "@guardian/source-foundations";
 import { pinboard } from "../../colours";
+import { useGlobalStateContext } from "../globalState";
 
 export const STARRED_MESSAGES_HTML_TAG = "pinboard-starred-messages";
 
@@ -20,6 +21,7 @@ const StarredItemDisplay = ({
   userLookup: UserLookup;
   maybeScrollToItem: ((itemId: string) => void) | undefined;
 }) => {
+  const { setIsExpanded, setActiveTab } = useGlobalStateContext();
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
     ? `${user.firstName} ${user.lastName}`
@@ -32,7 +34,7 @@ const StarredItemDisplay = ({
         align-items: flex-end;
         gap: ${space[1]}px;
         color: ${neutral[20]};
-        cursor: pointer;
+        cursor: ${maybeScrollToItem ? "pointer" : "initial"};
         position: relative;
         border-radius: 6px;
         &:hover {
@@ -40,12 +42,16 @@ const StarredItemDisplay = ({
           outline: 5px solid ${pinboard[500]};
         }
       `}
-      onClick={(event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        console.log(item, maybeScrollToItem);
-        maybeScrollToItem?.(item.id);
-      }}
+      onClick={
+        maybeScrollToItem &&
+        ((event) => {
+          event.stopPropagation();
+          event.preventDefault();
+          setIsExpanded(true);
+          setActiveTab("chat");
+          setTimeout(() => maybeScrollToItem(item.id), 250);
+        })
+      }
     >
       <span
         css={css`

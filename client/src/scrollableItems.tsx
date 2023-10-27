@@ -27,8 +27,6 @@ import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
 import { useTourProgress } from "./tour/tourState";
-import { isPinboardData } from "shared/graphql/extraTypes";
-import { StarredMessagesPortal } from "./starred/starredMessages";
 import { useGlobalStateContext } from "./globalState";
 
 interface ScrollableItemsProps {
@@ -238,7 +236,13 @@ export const ScrollableItems = ({
     [refMap.current]
   );
 
-  useEffect(() => setMaybeScrollToItem(scrollToItem), [scrollToItem]);
+  useEffect(
+    () =>
+      setMaybeScrollToItem(
+        () => scrollToItem // since this is a setState, we need to wrap it in a function to avoid it evaluating immediately because of setState's overloaded signature
+      ),
+    [scrollToItem]
+  );
 
   useLayoutEffect(() => {
     if (

@@ -24,14 +24,11 @@ const StarredItemDisplay = ({
 }) => {
   const user = userLookup?.[item.userEmail];
   const userDisplayName = user
-    ? `${user.firstName} ${user.lastName}`
+    ? `${user.firstName} ${user.lastName}` // TODO: Non-breaking space
     : item.userEmail;
   return (
     <div
       css={css`
-        display: flex;
-        align-items: flex-end;
-        gap: ${space[1]}px;
         color: ${neutral[20]};
         cursor: ${maybeScrollToItem ? "pointer" : "initial"};
         position: relative;
@@ -54,6 +51,7 @@ const StarredItemDisplay = ({
         css={css`
           color: ${neutral[0]};
           ${agateSans.medium()};
+          white-space: pre-line;
         `}
       >
         {item.message}
@@ -87,6 +85,9 @@ const StarredMessages = ({
           border-radius: 6px;
           background-color: ${pinboard[800]};
           margin-bottom: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: ${space[3]}px;
         `}
       >
         {maybeStarredMessages.length === 0 && (
@@ -102,8 +103,9 @@ const StarredMessages = ({
             </strong>
             <br />
             Click here to open Pinboard, then simply send a message and then
-            click the <SvgStar size="xsmall" /> to the left of your message. You
-            can also star other&apos;s messages if you think they&apos;re
+            click the <SvgStar size="xsmall" /> to the left of your message.
+            <br />
+            You can also star other&apos;s messages if you think they&apos;re
             important.
           </span>
         )}

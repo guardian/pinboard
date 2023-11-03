@@ -156,7 +156,7 @@ export const ItemDisplay = ({
             margin-left: 2px;
           `}
         >
-          <StarredControl itemId={item.id} isStarred={item.isStarred} />
+          <StarredControl item={item} />
         </div>
       )}
       <div

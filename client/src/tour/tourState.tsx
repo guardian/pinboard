@@ -303,6 +303,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
           isMe: false,
         })),
         groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
+        chatBotMentions: [], //TODO - map variables.input.chatBotMentions to mention handle,
         claimable: variables.input.claimable || false,
       };
       setSuccessfulSends((prevSuccessfulSends) => [

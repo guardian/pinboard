@@ -4,7 +4,7 @@ import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { palette, space } from "@guardian/source-foundations";
 import { PayloadDisplay } from "./payloadDisplay";
-import { Group, User } from "shared/graphql/graphql";
+import { ChatBot, Group, User } from "shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
@@ -12,14 +12,17 @@ import { composer } from "../colours";
 import { LazyQueryHookOptions, useApolloClient } from "@apollo/client";
 import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { isGroup, isUser } from "shared/graphql/extraTypes";
-import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
+import { isChatBot, isGroup, isUser } from "shared/graphql/extraTypes";
+import {
+  groupOrChatBotToMentionHandle,
+  userToMentionHandle,
+} from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 
 interface WithEntity<E> {
   entity: E & {
-    heading?: string;
+    maybeHeading?: string;
   };
 }
 
@@ -40,10 +43,10 @@ const LoadingSuggestions = () => (
 );
 
 const Suggestion = ({
-  entity: { heading, ...userOrGroup },
-}: WithEntity<User | Group>) => (
+  entity: { maybeHeading, ...userOrGroupOrChatBot },
+}: WithEntity<User | Group | ChatBot>) => (
   <div>
-    {heading && (
+    {maybeHeading && (
       <div
         css={css`
           cursor: default;
@@ -55,12 +58,16 @@ const Suggestion = ({
         `}
         onClick={(e) => e.stopPropagation()}
       >
-        {heading}
+        {maybeHeading}
       </div>
     )}
     <div
       title={
-        isGroup(userOrGroup) ? userOrGroup.memberEmails?.join("\n") : undefined
+        isGroup(userOrGroupOrChatBot)
+          ? userOrGroupOrChatBot.memberEmails?.join("\n")
+          : isChatBot(userOrGroupOrChatBot)
+          ? userOrGroupOrChatBot.description
+          : undefined
       }
       css={css`
         display: flex;
@@ -70,9 +77,15 @@ const Suggestion = ({
     >
       <div css={{ paddingRight: `${space[1]}px` }}>
         <AvatarRoundel
-          maybeUserOrGroup={userOrGroup}
+          maybeUserOrGroupOrChatBot={userOrGroupOrChatBot}
           size={28}
-          fallback={isUser(userOrGroup) ? userOrGroup.email : userOrGroup.name}
+          fallback={
+            isUser(userOrGroupOrChatBot)
+              ? userOrGroupOrChatBot.email
+              : isGroup(userOrGroupOrChatBot)
+              ? userOrGroupOrChatBot.name
+              : userOrGroupOrChatBot.shorthand
+          }
         />
       </div>
       <div>
@@ -84,16 +97,20 @@ const Suggestion = ({
             }),
           }}
         >
-          {isUser(userOrGroup)
-            ? `${userOrGroup.firstName} ${userOrGroup.lastName}`
-            : userOrGroup.shorthand}
+          {isUser(userOrGroupOrChatBot)
+            ? `${userOrGroupOrChatBot.firstName} ${userOrGroupOrChatBot.lastName}`
+            : userOrGroupOrChatBot.shorthand}
         </div>
         <div
           css={{
             fontFamily: agateSans.xxsmall({ lineHeight: "tight" }),
           }}
         >
-          {isUser(userOrGroup) ? userOrGroup.email : userOrGroup.name}
+          {isUser(userOrGroupOrChatBot)
+            ? userOrGroupOrChatBot.email
+            : isGroup(userOrGroupOrChatBot)
+            ? userOrGroupOrChatBot.name
+            : userOrGroupOrChatBot.description}
         </div>
       </div>
     </div>
@@ -125,7 +142,7 @@ interface ItemInputBoxProps {
   message: string;
   setMessage: (newMessage: string) => void;
   sendItem?: () => void;
-  addUnverifiedMention?: (userOrGroup: User | Group) => void;
+  addUnverifiedMention?: (userOrGroupOrChatBot: User | Group | ChatBot) => void;
   panelElement: HTMLElement | null;
   isSending: boolean;
   asGridPayload: (
@@ -175,16 +192,20 @@ export const ItemInputBox = ({
           .then(
             ({
               data: {
-                searchMentionableUsers: { users, groups },
+                searchMentionableUsers: { users, groups, chatBots },
               },
             }) => [
               ...users.map((user: User, index: number) => ({
                 ...user,
-                heading: index === 0 ? "INDIVIDUALS" : undefined,
+                maybeHeading: index === 0 ? "INDIVIDUALS" : undefined,
               })),
               ...groups.map((group: Group, index: number) => ({
                 ...group,
-                heading: index === 0 ? "GROUPS" : undefined,
+                maybeHeading: index === 0 ? "GROUPS" : undefined,
+              })),
+              ...chatBots.map((chatBot: ChatBot, index: number) => ({
+                ...chatBot,
+                maybeHeading: index === 0 ? "CHAT BOTS" : undefined,
               })),
             ]
           );
@@ -260,7 +281,7 @@ export const ItemInputBox = ({
       `}
     >
       {maybeReplyingToElement}
-      <ReactTextareaAutocomplete<User | Group>
+      <ReactTextareaAutocomplete<User | Group | ChatBot>
         innerRef={(element) => (textAreaRef.current = element)}
         disabled={isSending}
         trigger={{
@@ -269,13 +290,13 @@ export const ItemInputBox = ({
               ? mentionsDataProvider
               : () => [],
             component: Suggestion,
-            output: (userOrGroup) => ({
-              key: isGroup(userOrGroup)
-                ? userOrGroup.shorthand
-                : userOrGroup.email,
-              text: isGroup(userOrGroup)
-                ? groupToMentionHandle(userOrGroup)
-                : userToMentionHandle(userOrGroup),
+            output: (userOrGroupOrChatBot) => ({
+              key: isUser(userOrGroupOrChatBot)
+                ? userOrGroupOrChatBot.email
+                : userOrGroupOrChatBot.shorthand,
+              text: isUser(userOrGroupOrChatBot)
+                ? userToMentionHandle(userOrGroupOrChatBot)
+                : groupOrChatBotToMentionHandle(userOrGroupOrChatBot),
               caretPosition: "next",
             }),
             allowWhitespace: true,

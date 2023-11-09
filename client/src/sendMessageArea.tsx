@@ -2,7 +2,13 @@ import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import { css } from "@emotion/react";
 import { palette, space } from "@guardian/source-foundations";
 import React, { useContext, useState } from "react";
-import { CreateItemInput, Group, Item, User } from "shared/graphql/graphql";
+import {
+  ChatBot,
+  CreateItemInput,
+  Group,
+  Item,
+  User,
+} from "shared/graphql/graphql";
 import { gqlAsGridPayload, gqlCreateItem } from "../gql";
 import { ItemInputBox } from "./itemInputBox";
 import { PayloadAndType } from "./types/PayloadAndType";
@@ -12,9 +18,12 @@ import SendArrow from "../icons/send.svg";
 import { buttonBackground } from "./styling";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { SvgSpinner } from "@guardian/source-react-components";
-import { isGroup, isUser } from "shared/graphql/extraTypes";
+import { isChatBot, isGroup, isUser } from "shared/graphql/extraTypes";
 import { useConfirmModal } from "./modal";
-import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
+import {
+  groupOrChatBotToMentionHandle,
+  userToMentionHandle,
+} from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { demoPinboardData } from "./tour/tourConstants";
 
@@ -48,10 +57,10 @@ export const SendMessageArea = ({
 }: SendMessageAreaProps) => {
   const [message, setMessage] = useState<string>("");
   const [unverifiedMentions, setUnverifiedMentions] = useState<
-    Array<User | Group>
+    Array<User | Group | ChatBot>
   >([]);
-  const addUnverifiedMention = (userOrGroup: User | Group) =>
-    setUnverifiedMentions((prevState) => [...prevState, userOrGroup]); // TODO: also make user unique in list
+  const addUnverifiedMention = (userOrGroupOrChatBot: User | Group | ChatBot) =>
+    setUnverifiedMentions((prevState) => [...prevState, userOrGroupOrChatBot]); // TODO: also make user unique in list
 
   const verifiedIndividualMentionEmails = Array.from(
     new Set(
@@ -66,8 +75,21 @@ export const SendMessageArea = ({
     new Set(
       unverifiedMentions
         .filter(isGroup)
-        .filter((group) => message.includes(groupToMentionHandle(group)))
+        .filter((group) =>
+          message.includes(groupOrChatBotToMentionHandle(group))
+        )
         .map((group) => group.shorthand)
+    )
+  );
+
+  const verifiedChatBotMentionShorthands = Array.from(
+    new Set(
+      unverifiedMentions
+        .filter(isChatBot)
+        .filter((chatBot) =>
+          message.includes(groupOrChatBotToMentionHandle(chatBot))
+        )
+        .map((chatBot) => chatBot.shorthand)
     )
   );
 
@@ -137,6 +159,7 @@ export const SendMessageArea = ({
               pinboardId,
               mentions: verifiedIndividualMentionEmails,
               groupMentions: verifiedGroupMentionShorthands,
+              chatBotMentions: verifiedChatBotMentionShorthands,
               claimable,
               relatedItemId: maybeReplyingToItemId,
             } satisfies CreateItemInput,

@@ -90,7 +90,7 @@ export const NestedItemDisplay = ({
           `}
         >
           <AvatarRoundel
-            maybeUserOrGroup={maybeUser}
+            maybeUserOrGroupOrChatBot={maybeUser}
             size={18}
             fallback={item.userEmail}
           />

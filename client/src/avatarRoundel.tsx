@@ -1,23 +1,29 @@
 import { css } from "@emotion/react";
 import { neutral } from "@guardian/source-foundations";
 import React from "react";
-import { Group, User } from "../../shared/graphql/graphql";
+import { ChatBot, Group, User } from "../../shared/graphql/graphql";
 import { composer } from "../colours";
 import { agateSans } from "../fontNormaliser";
-import { isUser } from "../../shared/graphql/extraTypes";
+import {
+  hasAvatarUrl,
+  isChatBot,
+  isGroup,
+  isUser,
+} from "../../shared/graphql/extraTypes";
 
 interface AvatarRoundelProps {
-  maybeUserOrGroup: User | Group | undefined;
+  maybeUserOrGroupOrChatBot: User | Group | ChatBot | undefined;
   size: number;
   fallback: string;
 }
 
 export const AvatarRoundel = ({
-  maybeUserOrGroup,
+  maybeUserOrGroupOrChatBot,
   size,
   fallback,
 }: AvatarRoundelProps) =>
-  maybeUserOrGroup && isUser(maybeUserOrGroup) && maybeUserOrGroup.avatarUrl ? (
+  hasAvatarUrl(maybeUserOrGroupOrChatBot) &&
+  maybeUserOrGroupOrChatBot.avatarUrl ? (
     <img
       key={fallback}
       css={css`
@@ -25,7 +31,7 @@ export const AvatarRoundel = ({
         width: ${size}px;
         height: ${size}px;
       `}
-      src={maybeUserOrGroup.avatarUrl}
+      src={maybeUserOrGroupOrChatBot.avatarUrl}
       draggable={false}
     />
   ) : (
@@ -47,17 +53,17 @@ export const AvatarRoundel = ({
         line-height: ${size}px;
       `}
     >
-      {maybeUserOrGroup ? (
-        isUser(maybeUserOrGroup) ? (
-          <React.Fragment>
-            {maybeUserOrGroup.firstName.charAt(0).toUpperCase()}
-            {maybeUserOrGroup.lastName?.charAt(0).toUpperCase()}
-          </React.Fragment>
-        ) : (
-          maybeUserOrGroup.memberEmails?.length
-        )
-      ) : (
-        fallback.charAt(0).toUpperCase()
+      {isUser(maybeUserOrGroupOrChatBot) && (
+        <React.Fragment>
+          {maybeUserOrGroupOrChatBot.firstName.charAt(0).toUpperCase()}
+          {maybeUserOrGroupOrChatBot.lastName?.charAt(0).toUpperCase()}
+        </React.Fragment>
       )}
+      {isGroup(maybeUserOrGroupOrChatBot) &&
+        maybeUserOrGroupOrChatBot.memberEmails?.length}
+      {isChatBot(maybeUserOrGroupOrChatBot) && (
+        <span>🤖</span> /* TODO replace with actual bot SVG */
+      )}
+      {!maybeUserOrGroupOrChatBot && fallback.charAt(0).toUpperCase()}
     </span>
   );

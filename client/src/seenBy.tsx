@@ -60,7 +60,7 @@ export const SeenBy = ({ seenBy, userLookup }: SeenByProps) => {
           `}
         >
           <AvatarRoundel
-            maybeUserOrGroup={userLookup?.[userEmail]}
+            maybeUserOrGroupOrChatBot={userLookup?.[userEmail]}
             size={roundelHeightPx}
             fallback={userEmail}
           />

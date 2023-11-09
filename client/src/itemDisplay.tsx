@@ -123,7 +123,7 @@ export const ItemDisplay = ({
         {isDifferentUserFromPreviousItem && (
           <React.Fragment>
             <AvatarRoundel
-              maybeUserOrGroup={user}
+              maybeUserOrGroupOrChatBot={user}
               size={28}
               fallback={item.userEmail}
             />

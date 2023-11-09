@@ -1,12 +1,19 @@
 import { css } from "@emotion/react";
 import { composer } from "../colours";
 import React, { Fragment } from "react";
-import { Group, MentionHandle, User } from "../../shared/graphql/graphql";
+import {
+  ChatBot,
+  Group,
+  MentionHandle,
+  User,
+} from "../../shared/graphql/graphql";
 
 export const userToMentionHandle = (user: User) =>
   `@${user.firstName} ${user.lastName}`;
 
-export const groupToMentionHandle = (group: Group) => `@${group.shorthand}`;
+export const groupOrChatBotToMentionHandle = (
+  groupOrChatBot: Group | ChatBot
+) => `@${groupOrChatBot.shorthand}`;
 
 const meMentionedCSS = (unread: boolean | undefined) => css`
   color: white;

@@ -6,6 +6,7 @@ import {
 } from "../../../shared/graphql/graphql";
 import { Sql } from "../../../shared/database/types";
 import { Range } from "../../../shared/types/grafanaType";
+import fetch from "node-fetch";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -58,12 +59,53 @@ export const createItem = async (
   sql: Sql,
   args: { input: CreateItemInput },
   userEmail: string
-) =>
-  sql`
+) => {
+  const newItem = await sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
+  // FIXME move out to dedicated lambda (invoked from DB trigger similar to email-lambda & notifications-lambda)
+  if (args.input.chatBotMentions && args.input.chatBotMentions.length > 0) {
+    const allItemsInThisPinboard = await listItems(
+      sql,
+      { pinboardId: args.input.pinboardId },
+      userEmail
+    );
+
+    await Promise.allSettled(
+      args.input.chatBotMentions.map(async (chatBotShorthand) => {
+        const { url, headerKey, headerValue } = {
+          url: "",
+          headerKey: "",
+          headerValue: "",
+        }; //TODO lookup using chatBotShorthand
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            [headerKey]: headerValue,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            {
+              callbackToken: "", //TODO implement single-use callback token mechanism
+              callbackUrl: `https://pinboard.${"domain"}/api/replyToItem/${
+                //FIXME replace domain
+                newItem.pinboardId
+              }/${newItem.id}`,
+              item: newItem,
+              allItemsInThisPinboard: allItemsInThisPinboard,
+            },
+            null,
+            2
+          ),
+        });
+      })
+    );
+  }
+
+  return newItem;
+};
 export const editItem = async (
   sql: Sql,
   args: { itemId: string; input: EditItemInput },

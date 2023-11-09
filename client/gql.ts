@@ -133,6 +133,11 @@ export const gqlSearchMentionableUsers = (prefix: string) => gql`
                 name
                 memberEmails
             }
+            chatBots {
+                shorthand
+                description
+                avatarUrl
+            }
         }
     }
 `;

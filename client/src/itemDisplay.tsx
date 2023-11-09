@@ -66,6 +66,7 @@ export const ItemDisplay = ({
   const mentionHandles = [
     ...(item.mentions || []),
     ...(item.groupMentions || []),
+    ...(item.chatBotMentions || []),
   ];
 
   const formattedMessage = useMemo(
@@ -123,7 +124,7 @@ export const ItemDisplay = ({
         {isDifferentUserFromPreviousItem && (
           <React.Fragment>
             <AvatarRoundel
-              maybeUserOrGroup={user}
+              maybeUserOrGroupOrChatBot={user}
               size={28}
               fallback={item.userEmail}
             />

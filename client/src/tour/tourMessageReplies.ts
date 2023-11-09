@@ -22,6 +22,7 @@ const buildMessageItem = (
   userEmail: user.email,
   groupMentions: null,
   mentions: null,
+  chatBotMentions: null,
   payload: null,
   relatedItemId: null,
   deletedAt: null,

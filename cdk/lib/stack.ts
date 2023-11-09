@@ -13,6 +13,7 @@ import {
   aws_s3 as S3,
   aws_ssm as ssm,
   aws_ses as ses,
+  aws_ram as ram,
   CfnOutput,
   Duration,
   Fn,
@@ -47,6 +48,7 @@ import {
   GuAmiParameter,
   GuStack,
   GuStackProps,
+  GuStringParameter,
 } from "@guardian/cdk/lib/constructs/core";
 import { GuVpc, SubnetType } from "@guardian/cdk/lib/constructs/ec2";
 import {
@@ -296,12 +298,42 @@ export class PinBoardStack extends GuStack {
           deployBucket,
           `${this.stack}/${this.stage}/${DATABASE_BRIDGE_LAMBDA_BASENAME}/${DATABASE_BRIDGE_LAMBDA_BASENAME}.zip`
         ),
-        initialPolicy: [],
+        initialPolicy: [
+          // to lookup chatbots shared from other accounts
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: ["ram:GetResourceShareAssociations"],
+            resources: ["*"],
+          }),
+        ],
         vpc: accountVpc,
         securityGroups: [databaseSecurityGroup],
       }
     );
     databaseProxy.grantConnect(pinboardDatabaseBridgeLambda);
+
+    const databaseBridgeLambdaSsmParam = new ssm.StringParameter(
+      this,
+      "DatabaseBridgeLambdaSsmParam",
+      {
+        tier: ssm.ParameterTier.ADVANCED, // so it can be shared cross-account via AWS RAM
+        parameterName: `/pinboard/${this.stage}/chatBotBrokerLambdaRoleArn`,
+        stringValue: pinboardDatabaseBridgeLambda.role!.roleArn,
+      }
+    );
+
+    // expose the database bridge lambda ARN, so it can be retrieved in GuPinboardChatBot (for lambda resource policy etc.)
+    new ram.CfnResourceShare(this, `PinboardChatBotResourceShare`, {
+      allowExternalPrincipals: false, // Guardian org only
+      name: `PinboardChatBotResourceShare`,
+      resourceArns: [databaseBridgeLambdaSsmParam.parameterArn],
+      principals: [
+        new GuStringParameter(this, `OrganisationId`, {
+          fromSSM: true,
+          default: "/organisation/principalArn",
+        }).valueAsString,
+      ],
+    });
 
     const databaseJumpHostASGName = getDatabaseJumpHostAsgName(
       this.stage as Stage

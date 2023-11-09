@@ -16,7 +16,7 @@ export const standardAwsConfig = {
     : fromNodeProviderChain(),
 };
 
-const ssm = new SSM(standardAwsConfig);
+export const ssm = new SSM(standardAwsConfig);
 
 const paramStorePromiseGetter =
   (WithDecryption: boolean) => (nameSuffix: string) => {

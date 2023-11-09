@@ -25,6 +25,7 @@ import {
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
+import { CreateItemInput } from "shared/graphql/graphql";
 
 const s3 = new S3(standardAwsConfig);
 
@@ -43,6 +44,53 @@ const corsOptions: cors.CorsOptions = {
 
 server.use(express.json());
 server.use(cors(corsOptions));
+
+server.post(
+  "/bot/:pinboardId/:relatedItemId",
+  express.json(),
+  async (request, response) => {
+    //TODO check request for valid auth token
+
+    const botShorthand = "ChatGuPT"; //TODO derive from auth token
+
+    const { pinboardId, relatedItemId } = request.params;
+
+    const appsyncDetails = await generateAppSyncConfig(botShorthand, s3);
+
+    return fetch(
+      "https://6gjyttm6encftmnaocsocog2bm.appsync-api.eu-west-1.amazonaws.com/graphql?_createItem",
+      {
+        headers: {
+          accept: "*/*",
+          authorization: appsyncDetails.authToken,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          operationName: "SendBotMessage",
+          variables: {
+            input: {
+              type: "message-only",
+              message: request.body.message,
+              payload: request.body.payload,
+              pinboardId,
+              mentions: [],
+              groupMentions: [],
+              chatBotMentions: [],
+              claimable: false,
+              relatedItemId,
+            },
+          },
+          query:
+            "mutation SendMessage($input: CreateItemInput!) {\n  createItem(input: $input) {\n    id\n    type\n    userEmail\n    timestamp\n    pinboardId\n    message\n    payload\n    mentions {\n      label\n      isMe\n      isBot\n      __typename\n    }\n    groupMentions {\n      label\n      isMe\n      isBot\n      __typename\n    }\n    chatBotMentions {\n      label\n      isMe\n      isBot\n      __typename\n    }\n    claimedByEmail\n    claimable\n    relatedItemId\n    editHistory\n    deletedAt\n    __typename\n  }\n}\n",
+        }),
+        method: "POST",
+      }
+    )
+      .then(console.log)
+      .catch(console.error)
+      .finally(() => response.send("OK"));
+  }
+);
 
 server.post("/search", getAuthMiddleware(), (_, response) => {
   response.setHeader("Access-Control-Allow-Credentials", "true");

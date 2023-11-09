@@ -9,7 +9,7 @@ type Query {
   listItems(pinboardId: String!): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
-  searchMentionableUsers(prefix: String!): UsersAndGroups
+  searchMentionableUsers(prefix: String!): UsersGroupsAndChatBots
   getUsers(emails: [String!]!): [User]
   getGroupPinboardIds: [PinboardIdWithClaimCounts!]!
   getItemCounts(pinboardIds: [String!]!): [PinboardIdWithItemCounts!]!
@@ -54,7 +54,8 @@ type Subscription {
 
 type MentionHandle {
   label: String!
-  isMe: Boolean!
+  isMe: Boolean
+  isBot: Boolean
 }
 
 type Item {
@@ -67,6 +68,7 @@ type Item {
   pinboardId: String!
   mentions: [MentionHandle!]
   groupMentions: [MentionHandle!]
+  chatBotMentions: [MentionHandle!]
   claimedByEmail: String
   claimable: Boolean!
   relatedItemId: String
@@ -104,9 +106,16 @@ type Group {
   memberEmails: [String!]!
 }
 
-type UsersAndGroups {
+type ChatBot {
+  shorthand: String!
+  description: String!
+  avatarUrl: String
+}
+
+type UsersGroupsAndChatBots {
   users: [User!]!
   groups: [Group!]!
+  chatBots: [ChatBot!]!
 }
 
 type WorkflowStub {
@@ -144,6 +153,7 @@ input CreateItemInput {
   pinboardId: String!
   mentions: [String!]
   groupMentions: [String!]
+  chatBotMentions: [String!]
   claimable: Boolean
   relatedItemId: String
 }

@@ -85,6 +85,8 @@ const runSetupTriggerSqlFile = (
           getEmailLambdaFunctionName(stage),
           EMAIL_DATABASE_TRIGGER_NAME
         ),
+    "add chatBotMentions column to Item table": () =>
+      runSetupSqlFile(sql, "020-AddChatBotMentionsColumnToItemTable.sql"),
   };
 
   const allSteps = async () => {

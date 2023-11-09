@@ -1,4 +1,5 @@
 import { Sql } from "../../../shared/database/types";
+import { getBots } from "../services/chatBotBroker";
 
 const fragmentUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
   sql`"email", "firstName", "lastName", "avatarUrl", "isMentionable"`;
@@ -6,19 +7,19 @@ const fragmentUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
 export const searchMentionableUsers = async (
   sql: Sql,
   args: { prefix: string }
-) => ({
-  users: await sql`
-        SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
-        FROM "User"
-        WHERE "isMentionable" = true AND (
-          "firstName" ILIKE ${args.prefix + "%"}
-            OR "lastName" ILIKE ${args.prefix + "%"}
-            OR CONCAT("firstName", ' ', "lastName") ILIKE ${args.prefix + "%"}
-        )
-        ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
-        LIMIT 5
-    `,
-  groups: await sql`
+) => {
+  const usersPromise = sql`
+    SELECT ${fragmentUserWithoutPushSubscriptionSecrets(sql)}
+    FROM "User"
+    WHERE "isMentionable" = true AND (
+      "firstName" ILIKE ${args.prefix + "%"}
+        OR "lastName" ILIKE ${args.prefix + "%"}
+        OR CONCAT("firstName", ' ', "lastName") ILIKE ${args.prefix + "%"}
+    )
+    ORDER BY "webPushSubscription" IS NOT NULL DESC, "manuallyOpenedPinboardIds" IS NOT NULL DESC, "firstName" 
+    LIMIT 5
+  `;
+  const groupsPromise = sql`
     SELECT "shorthand", "name", COALESCE((
         SELECT json_agg("email")
         FROM "User", "GroupMember"
@@ -36,8 +37,16 @@ export const searchMentionableUsers = async (
     )
     ORDER BY "name"
     LIMIT 3
-  `,
-});
+  `;
+  const chatBotsPromise = (await getBots()).filter((chatBot) =>
+    chatBot.shorthand.toLowerCase().includes(args.prefix.toLowerCase())
+  );
+  return {
+    users: await usersPromise,
+    groups: await groupsPromise,
+    chatBots: await chatBotsPromise,
+  };
+};
 
 export const getUsers = (sql: Sql, args: { emails: string[] }) =>
   sql`

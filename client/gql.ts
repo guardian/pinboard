@@ -58,10 +58,17 @@ const itemReturnFields = `
   mentions {
     label
     isMe
+    isBot
   }
   groupMentions {
     label
     isMe
+    isBot
+  }
+  chatBotMentions {
+    label
+    isMe
+    isBot
   }
   claimedByEmail
   claimable
@@ -132,6 +139,11 @@ export const gqlSearchMentionableUsers = (prefix: string) => gql`
                 shorthand
                 name
                 memberEmails
+            }
+            chatBots {
+                shorthand
+                description
+                avatarUrl
             }
         }
     }

@@ -301,8 +301,10 @@ export const TourStateProvider: React.FC = ({ children }) => {
             .filter((_) => _.email === email)
             .map(userToMentionHandle)[0],
           isMe: false,
+          isBot: false,
         })),
         groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
+        chatBotMentions: [], //TODO - map variables.input.chatBotMentions to mention handle,
         claimable: variables.input.claimable || false,
       };
       setSuccessfulSends((prevSuccessfulSends) => [

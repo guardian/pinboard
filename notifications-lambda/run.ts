@@ -30,6 +30,7 @@ import { Item } from "shared/graphql/graphql";
       payload: null,
       mentions: [],
       groupMentions: [],
+      chatBotMentions: [],
       userEmail: "tom.richards@guardian.co.uk",
       id: "535b86e2-4f01-4f60-a2d0-a5e4f5a7d312",
       message: "testing one two three",

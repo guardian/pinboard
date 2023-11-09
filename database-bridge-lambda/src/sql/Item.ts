@@ -3,9 +3,10 @@ import {
   EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
-} from "../../../shared/graphql/graphql";
-import { Sql } from "../../../shared/database/types";
-import { Range } from "../../../shared/types/grafanaType";
+} from "shared/graphql/graphql";
+import { Sql } from "shared/database/types";
+import { Range } from "shared/types/grafanaType";
+import { processAllBotMentions } from "../services/chatBotBroker";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -41,6 +42,15 @@ const fragmentGroupMentionsToMentionHandles = (
     FROM "Group"
     WHERE "shorthand" = ANY ("groupMentions")
 `;
+const fragmentChatBotMentionsToMentionHandles = (sql: Sql) => sql`
+    SELECT json_agg(
+                   json_build_object(
+                           'label', concat('@', "shorthand"),
+                           'isBot', true
+                   )
+           ) 
+    FROM unnest("chatBotMentions") as "shorthand"
+`;
 
 const fragmentItemFields = (sql: Sql, userEmail: string) => sql`
     *, (
@@ -52,18 +62,42 @@ const fragmentItemFields = (sql: Sql, userEmail: string) => sql`
     ${fragmentGroupMentionsToMentionHandles(sql, userEmail)}
     )
     as
-    "groupMentions"`;
+    "groupMentions",
+    (
+    ${fragmentChatBotMentionsToMentionHandles(sql)}
+    )
+    as
+    "chatBotMentions"
+    `;
 
 export const createItem = async (
   sql: Sql,
   args: { input: CreateItemInput },
   userEmail: string
-) =>
-  sql`
+) => {
+  const newItem = await sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
+  if (args.input.chatBotMentions && args.input.chatBotMentions.length > 0) {
+    const rowsForAllItemsInThisPinboard = await listItems(
+      sql,
+      { pinboardId: args.input.pinboardId },
+      userEmail
+    );
+
+    await Promise.allSettled(
+      processAllBotMentions(
+        [...rowsForAllItemsInThisPinboard] as Item[],
+        newItem as Item,
+        args.input.chatBotMentions
+      )
+    );
+  }
+
+  return newItem;
+};
 export const editItem = async (
   sql: Sql,
   args: { itemId: string; input: EditItemInput },

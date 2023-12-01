@@ -56,8 +56,10 @@ const StarredItemDisplay = ({
       >
         {item.message}
       </span>
-      <span title={item.userEmail}>{userDisplayName}</span>
-      <span>
+      <span css={detailCSS} title={item.userEmail}>
+        {userDisplayName}
+      </span>
+      <span css={detailCSS}>
         <FormattedDateTime timestamp={item.timestamp} withAgo />
       </span>
     </div>
@@ -88,27 +90,10 @@ const StarredMessages = ({
           display: flex;
           flex-direction: column;
           gap: ${space[3]}px;
+          cursor: pointer;
         `}
+        onClick={() => setIsExpanded(true)}
       >
-        {maybeStarredMessages.length === 0 && (
-          <span
-            css={css`
-              cursor: pointer;
-            `}
-            onClick={() => setIsExpanded(true)}
-          >
-            <strong>
-              If you need to leave an important message please use Pinboard
-              &apos;Starred Messages&apos; rather than notes.{" "}
-            </strong>
-            <br />
-            Click here to open Pinboard, then simply send a message and then
-            click the <SvgStar size="xsmall" /> to the left of your message.
-            <br />
-            You can also star other&apos;s messages if you think they&apos;re
-            important.
-          </span>
-        )}
         {maybeStarredMessages.map((item) => (
           <StarredItemDisplay
             key={item.id}
@@ -124,6 +109,18 @@ const StarredMessages = ({
             }
           />
         ))}
+        <span>
+          <strong>
+            If you need to leave an important message please use Pinboard
+            &apos;Starred Messages&apos; rather than notes.{" "}
+          </strong>
+          <br />
+          Click here to open Pinboard, then simply send a message and then click
+          the <SvgStar size="xsmall" /> to the left of your message.
+          <br />
+          You can also star other&apos;s messages if you think they&apos;re
+          important.
+        </span>
       </div>
     </root.div>
   );
@@ -138,3 +135,8 @@ export const StarredMessagesPortal = ({
   ...props
 }: StarredMessagesPortalProps) =>
   ReactDOM.createPortal(<StarredMessages {...props} />, node);
+
+const detailCSS = css`
+  margin-left: 7px;
+  vertical-align: sub;
+`;

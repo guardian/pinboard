@@ -19,7 +19,6 @@ import {
 import { buildUserLookupFromDatabase } from "./google/buildUserLookupFromDatabase";
 import { getGroupMembersFromGoogle } from "./google/getGroupMembersFromGoogle";
 import { getGroupDetailFromGoogle } from "./google/getGroupDetailFromGoogle";
-import { isDefinitelyDifferentAvatar } from "./google/isDefinitelyDifferentAvatar";
 
 const s3 = new S3(standardAwsConfig);
 
@@ -146,11 +145,7 @@ export const handler = async ({
           maybeUserFromDatabase.firstName !== maybeUserFromGoogle.firstName ||
           maybeUserFromDatabase.lastName !== maybeUserFromGoogle.lastName ||
           maybeUserFromDatabase.googleID !== maybeUserFromGoogle.googleID ||
-          (await isDefinitelyDifferentAvatar(
-            email,
-            maybeUserFromDatabase.avatarUrl,
-            maybeAvatarUrl
-          ))
+          maybeUserFromDatabase.avatarUrl !== maybeAvatarUrl // annoyingly these URLs often differ despite the image not changing - thanks Google!!
         ) {
           console.log(`Updating details for user ${email}`);
           await sql`

@@ -103,7 +103,7 @@ export const NestedItemDisplay = ({
             margin-left: ${payloadAndType ? 0 : 10}px;
           `}
         >
-          <FormattedDateTime timestamp={new Date(item.timestamp).valueOf()} />
+          <FormattedDateTime timestamp={item.timestamp} />
           {item.editHistory && item.editHistory.length > 0 && (
             <span> - Edited</span>
           )}

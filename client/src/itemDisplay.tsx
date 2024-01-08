@@ -24,6 +24,10 @@ import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
 import { EditItem } from "./editItem";
 import { Reply } from "./reply";
+import {
+  StarredControl,
+  STARRED_CONTROL_CLASS_NAME,
+} from "./starred/starredControl";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -74,8 +78,6 @@ export const ItemDisplay = ({
     [item.id, item.message]
   );
 
-  const dateInMillisecs = new Date(item.timestamp).valueOf();
-
   const isDifferentUserFromPreviousItem =
     maybePreviousItem?.userEmail !== item.userEmail;
 
@@ -107,9 +109,15 @@ export const ItemDisplay = ({
         ${agateSans.small({ lineHeight: "tight" })};
         color: ${palette.neutral[7]};
         overflow-wrap: anywhere;
+        .${STARRED_CONTROL_CLASS_NAME} {
+          display: ${item.isStarred ? "block" : "none"};
+        }
         &:hover {
           .${ITEM_HOVER_MENU_CLASS_NAME} {
             display: flex;
+          }
+          .${STARRED_CONTROL_CLASS_NAME} {
+            display: block;
           }
         }
       `}
@@ -140,6 +148,17 @@ export const ItemDisplay = ({
           </React.Fragment>
         )}
       </div>
+      {!isDeleted && (
+        <div
+          css={css`
+            position: absolute;
+            margin-top: 5px;
+            margin-left: 2px;
+          `}
+        >
+          <StarredControl item={item} />
+        </div>
+      )}
       <div
         css={css`
           margin-left: ${space[9] - 4}px;
@@ -153,7 +172,7 @@ export const ItemDisplay = ({
             margin-bottom: 2px;
           `}
         >
-          <FormattedDateTime timestamp={dateInMillisecs} />
+          <FormattedDateTime timestamp={item.timestamp} />
           {isEdited && <span>&nbsp;-&nbsp;Edited</span>}
           {maybeRelatedItem && item.type !== "claim" && (
             <span>&nbsp;-&nbsp;Reply</span>

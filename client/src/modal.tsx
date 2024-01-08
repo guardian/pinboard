@@ -79,7 +79,7 @@ export const useConfirmModal = (
       <ModalBackground />
       <div
         css={css`
-          position: absolute;
+          position: fixed;
           left: ${space[2]}px;
           right: ${space[2]}px;
           bottom: 30px;

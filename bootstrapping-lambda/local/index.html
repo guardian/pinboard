@@ -10,31 +10,38 @@
     <a href="?expandPinboard=true"
       >Expand pinboard via query param <code>?expandPinboard=true</code></a
     >
+    <h4>
+      Open Pinboard via query param (for workflow/pinboard ID
+      <code>65299</code>)
+    </h4>
+    <ul>
+      <li>
+        <a href="?pinboardId=65299">?pinboardId=65299</a>
+      </li>
+      <li>
+        <a href="?pinboardId=65299&pinboardItemId=2885"
+          >?pinboardId=65299&pinboardItemId=2885</a
+        >
+      </li>
+      <li>
+        <a href="?"><em>REMOVE QUERY PARAM</em></a>
+      </li>
+    </ul>
     <h3>Pinboard pre-selection</h3>
     <ul>
-      <h4>via query param (for workflow/pinboard ID <code>14748</code>)</h4>
-      <ul>
-        <li>
-          <a href="?pinboardId=14748">?pinboardId=14748</a>
-        </li>
-        <li>
-          <a href="?pinboardId=14748&pinboardItemId=1667"
-            >?pinboardId=14748&pinboardItemId=1667</a
-          >
-        </li>
-        <li>
-          <a href="?"><em>REMOVE QUERY PARAM</em></a>
-        </li>
-      </ul>
-
       <h4>
         via hidden element (for composer ID
-        <code>54f2d2fee4b011581586e710</code>)
+        <code>649975868f08c7d8da8802ff</code>)
       </h4>
       <button id="btn-add-preselection">Add pinboard pre-selection</button>
       <button id="btn-remove-preselection">
         Remove pinboard pre-selection
       </button>
+
+      <h5>Starred messages (requires pinboard pre-selection)</h5>
+      <div style="max-width: 710px">
+        <pinboard-starred-messages></pinboard-starred-messages>
+      </div>
 
       <h4>via hidden element (for invalid/untracked composer ID)</h4>
       <button id="btn-add-invalid-preselection">
@@ -119,7 +126,7 @@
 
     const preSelectPinboardElement =
       document.createElement("pinboard-preselect");
-    preSelectPinboardElement.dataset.composerId = "54f2d2fee4b011581586e710";
+    preSelectPinboardElement.dataset.composerId = "649975868f08c7d8da8802ff";
     document
       .getElementById("btn-add-preselection")
       .addEventListener("click", () => {

@@ -18,6 +18,7 @@ import {
   Fn,
   RemovalPolicy,
   Stack,
+  Tags,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -110,6 +111,7 @@ export class PinBoardStack extends GuStack {
       publiclyAccessible: false,
       removalPolicy: RemovalPolicy.RETAIN,
     });
+    Tags.of(database).add("devx-backup-enabled", "true");
 
     const roleToInvokeLambdaFromRDS = new iam.Role(
       this,

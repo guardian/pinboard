@@ -617,6 +617,10 @@ Object {
         "StorageType": "gp2",
         "Tags": Array [
           Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
+          Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",
           },
@@ -721,6 +725,10 @@ Object {
         },
         "Tags": Array [
           Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
+          Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",
           },
@@ -751,6 +759,10 @@ Object {
           },
         ],
         "Tags": Array [
+          Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
           Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",
@@ -939,6 +951,10 @@ Object {
         ],
         "Tags": Array [
           Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
+          Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",
           },
@@ -1044,6 +1060,10 @@ Object {
           "Ref": "pinboardPrivateSubnets",
         },
         "Tags": Array [
+          Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
           Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",
@@ -1989,6 +2009,10 @@ Object {
           "SecretStringTemplate": "{\\"username\\":\\"pinboard\\"}",
         },
         "Tags": Array [
+          Object {
+            "Key": "devx-backup-enabled",
+            "Value": "true",
+          },
           Object {
             "Key": "gu:cdk:version",
             "Value": "49.5.0",

@@ -111,7 +111,8 @@ export class PinBoardStack extends GuStack {
       publiclyAccessible: false,
       removalPolicy: RemovalPolicy.RETAIN,
     });
-    Tags.of(database).add("devx-backup-enabled", "true");
+    const cfnDbInstance = database.node.defaultChild as rds.CfnDBInstance;
+    Tags.of(cfnDbInstance).add("devx-backup-enabled", "true");
 
     const roleToInvokeLambdaFromRDS = new iam.Role(
       this,
@@ -123,7 +124,7 @@ export class PinBoardStack extends GuStack {
       }
     );
 
-    (database.node.defaultChild as rds.CfnDBInstance).associatedRoles = [
+    cfnDbInstance.associatedRoles = [
       {
         featureName: "Lambda",
         roleArn: roleToInvokeLambdaFromRDS.roleArn,

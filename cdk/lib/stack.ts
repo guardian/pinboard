@@ -109,6 +109,8 @@ export class PinBoardStack extends GuStack {
       ),
       multiAz: isPROD,
       publiclyAccessible: false,
+      deleteAutomatedBackups: false,
+      deletionProtection: true,
       removalPolicy: RemovalPolicy.RETAIN,
     });
     Tags.of(database).add("devx-backup-enabled", "true");

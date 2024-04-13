@@ -66,6 +66,9 @@ const run = (
       return getItemCounts(sql, args, userEmail);
     case "visitTourStep":
       return visitTourStep(sql, args, userEmail);
+
+    case "onMutateItem":
+      return { hello: "world" };
   }
 
   throw Error(

@@ -42,7 +42,11 @@ import {
   getDatabaseProxyName,
 } from "shared/database/database";
 import { Stage } from "shared/types/stage";
-import { MUTATIONS, QUERIES } from "shared/graphql/operations";
+import {
+  MUTATIONS,
+  QUERIES,
+  SUBSCRIPTIONS_WITH_RESOLVERS,
+} from "shared/graphql/operations";
 import {
   GuAmiParameter,
   GuStack,
@@ -478,7 +482,10 @@ export class PinBoardStack extends GuStack {
       );
 
     const createLambdaResolver =
-      (lambdaDS: appsync.LambdaDataSource, typeName: "Query" | "Mutation") =>
+      (
+        lambdaDS: appsync.LambdaDataSource,
+        typeName: "Query" | "Mutation" | "Subscription"
+      ) =>
       (fieldName: string) => {
         lambdaDS.createResolver({
           typeName,
@@ -494,6 +501,12 @@ export class PinBoardStack extends GuStack {
     );
     MUTATIONS.database.forEach(
       createLambdaResolver(pinboardDatabaseBridgeLambdaDataSource, "Mutation")
+    );
+    SUBSCRIPTIONS_WITH_RESOLVERS.database.forEach(
+      createLambdaResolver(
+        pinboardDatabaseBridgeLambdaDataSource,
+        "Subscription"
+      )
     );
 
     QUERIES.workflow.forEach(

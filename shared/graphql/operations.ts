@@ -1,4 +1,4 @@
-import { Query, Mutation } from "./graphql";
+import { Query, Mutation, Subscription } from "./graphql";
 import { assert, Equals } from "tsafe";
 
 export const QUERIES = {
@@ -48,5 +48,14 @@ type MutationsDefinedHere = (typeof allMutations)[number];
 // if the below line fails TSC, it means that the list of Mutations defined in the schema.graphql doesn't match the list defined in `MUTATIONS` above
 assert<Equals<MutationsFromCodeGen, MutationsDefinedHere>>();
 
-const allDatabaseOperations = [...QUERIES.database, ...MUTATIONS.database];
+// only list here subscriptions which need a special resolver
+export const SUBSCRIPTIONS_WITH_RESOLVERS = {
+  database: ["onMutateItem"] as const,
+} as const;
+
+const allDatabaseOperations = [
+  ...QUERIES.database,
+  ...MUTATIONS.database,
+  ...SUBSCRIPTIONS_WITH_RESOLVERS.database,
+];
 export type DatabaseOperation = (typeof allDatabaseOperations)[number];

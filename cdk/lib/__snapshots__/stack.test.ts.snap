@@ -2890,6 +2890,27 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "pinboardappsyncapidatabasebridgelambdadsSubscriptiononMutateItemResolver6A9CE10F": Object {
+      "DependsOn": Array [
+        "pinboardappsyncapidatabasebridgelambdads970CB9A7",
+        "pinboardappsyncapiSchema868D9F5B",
+      ],
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardappsyncapi9D519400",
+            "ApiId",
+          ],
+        },
+        "DataSourceName": "database_bridge_lambda_ds",
+        "FieldName": "onMutateItem",
+        "Kind": "UNIT",
+        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+$util.toJson($ctx.result)",
+        "TypeName": "Subscription",
+      },
+      "Type": "AWS::AppSync::Resolver",
+    },
     "pinboardappsyncapigridbridgelambdads1C89A823": Object {
       "Properties": Object {
         "ApiId": Object {

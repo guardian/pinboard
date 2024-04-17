@@ -105,7 +105,7 @@ export const Panel = ({
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
   const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds, {
-    pollInterval: 5000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
+    pollInterval: 15000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
   });
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(

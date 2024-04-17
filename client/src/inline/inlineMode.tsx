@@ -80,7 +80,7 @@ export const InlineMode = ({
             )
           ),
       });
-      startPolling(5000);
+      startPolling(15000);
     }
   }, [workflowTitleElementLookup]);
 

@@ -41,7 +41,7 @@ jobs:
         run: yarn install
 
       - name: check for duplicate dependencies (if it fails here, then pre-commit hook is not working)
-        run: yarn yarn-deduplicate --fail
+        run: yarn dedupe --fail
 
       - name: generate TS definitions for GraphQL schema
         run: yarn graphql-refresh

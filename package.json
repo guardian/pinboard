@@ -58,7 +58,6 @@
     "tsafe": "^1.0.1",
     "typescript": "^5.0.2",
     "wsrun": "^5.2.4",
-    "yarn-deduplicate": "^3.1.0",
     "yarn-run-all": "^3.1.1"
   },
   "lint-staged": {
@@ -67,5 +66,6 @@
   },
   "engines": {
     "node": ">=14.19.1"
-  }
+  },
+  "packageManager": "yarn@4.2.2"
 }

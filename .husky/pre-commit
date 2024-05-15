@@ -11,7 +11,7 @@ if (git diff --name-only --cached | grep -e 'cdk' -e 'shared/graphql'); then
 fi
 
 if (git diff --name-only --cached | grep 'yarn.lock'); then
-    yarn yarn-deduplicate
+    yarn dedupe
     git add yarn.lock
     yarn workspace client analyze-main-client-bundle
 fi

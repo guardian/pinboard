@@ -13,3 +13,12 @@ cdk.out/
 
 shared/graphql/graphql.ts
 .DS_Store
+
+# See https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

@@ -22,7 +22,7 @@ jobs:
           LAST_TEAMCITY_BUILD=650
           echo "BUILD_NUMBER=$(( $GITHUB_RUN_NUMBER + $LAST_TEAMCITY_BUILD ))" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Setup AWS credentials to enable uploading to S3 for Riff-Raff.
       # See https://github.com/aws-actions/configure-aws-credentials
@@ -31,8 +31,10 @@ jobs:
           role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           aws-region: eu-west-1
 
+      - run: corepack enable
+
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
 
@@ -40,7 +42,7 @@ jobs:
         run: yarn install
 
       - name: check for duplicate dependencies (if it fails here, then pre-commit hook is not working)
-        run: yarn yarn-deduplicate --fail
+        run: yarn dedupe --check
 
       - name: generate TS definitions for GraphQL schema
         run: yarn graphql-refresh

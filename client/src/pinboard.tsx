@@ -21,6 +21,8 @@ import { ModalBackground } from "./modal";
 import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import { Reply } from "./reply";
+import { isPinboardData } from "shared/graphql/extraTypes";
+
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -66,6 +68,9 @@ export const Pinboard = ({
     setUnreadFlag,
 
     addManuallyOpenedPinboardId,
+
+    preselectedPinboard,
+    setStarredMessages,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -144,6 +149,17 @@ export const Pinboard = ({
 
   const lastItemIndex = items.length - 1;
   const lastItem = items[lastItemIndex];
+
+  useEffect(() => {
+    if (
+      isPinboardData(preselectedPinboard) &&
+      preselectedPinboard.id === pinboardId
+    ) {
+      setStarredMessages(
+        items.filter((item) => item.isStarred && !item.deletedAt)
+      );
+    }
+  }, [items, preselectedPinboard]);
 
   const initialLastItemSeenByUsersQuery = useQuery(
     gqlGetLastItemSeenByUsers(pinboardId),

@@ -138,7 +138,6 @@ export const ItemHoverMenu = ({
         }
       `}
     >
-      {/*TODO starred messages*/}
       <button onClick={() => setMaybeReplyingToItemId(item.id)} title="Reply">
         <ReplyIcon />
       </button>

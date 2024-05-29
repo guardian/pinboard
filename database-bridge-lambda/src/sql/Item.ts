@@ -143,6 +143,19 @@ export const claimItem = (
     };
   });
 
+export const setIsStarred = async (
+  sql: Sql,
+  args: { itemId: string; isStarred: boolean },
+  userEmail: string
+) =>
+  sql`
+        UPDATE "Item"
+        SET 
+            "isStarred" = ${args.isStarred}
+        WHERE "id" = ${args.itemId}
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
 export const getGroupPinboardIds = async (
   sql: Sql,
   userEmail: string

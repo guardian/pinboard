@@ -28,6 +28,13 @@ test("display is correct if timestamp is between 2 min and 1 hr ago", () => {
   expect(formatDateTime(twoMinsAgo)).toBe("2 min");
   const lessThanHr = subMinutes(Date.now(), 59).valueOf();
   expect(formatDateTime(lessThanHr)).toBe("59 min");
+  const pluralMinsWithAgo = subMinutes(Date.now(), 3).valueOf();
+  expect(formatDateTime(pluralMinsWithAgo, false, true)).toBe("3 mins ago");
+});
+
+test("display is correct if passed a string", () => {
+  const twoMinsAgoString = subMinutes(Date.now(), 2).toISOString();
+  expect(formatDateTime(twoMinsAgoString)).toBe("2 min");
 });
 
 test("display is correct if timestamp is 1 hr ago exactly", () => {

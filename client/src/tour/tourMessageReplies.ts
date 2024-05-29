@@ -29,6 +29,7 @@ const buildMessageItem = (
   claimedByEmail: null,
   claimable: false,
   pinboardId: demoPinboardData.id,
+  isStarred: false,
 });
 
 export const replyTo = (

@@ -5,7 +5,7 @@ import {
   IMAGINE_REQUEST_TYPES,
   IMAGING_REQUEST_ITEM_TYPE,
   ImagingRequestType,
-} from "../../../shared/octopusImaging";
+} from "shared/octopusImaging";
 import { agateSans } from "../../fontNormaliser";
 import { useGlobalStateContext } from "../globalState";
 import { space } from "@guardian/source-foundations";
@@ -22,39 +22,19 @@ export const OctopusImagingOrderDisplay = ({
   return (
     <div
       css={css`
-        ${agateSans.xxsmall()}
+        display: flex;
+        flex-direction: column;
+        gap: ${space[1]}px;
+        ${agateSans.xxsmall()};
       `}
     >
       <h3
         css={css`
-          margin: 0 0 ${space[1]}px;
+          margin: 0;
         `}
       >
         Imaging Order
       </h3>
-      {isEditable && (
-        <div
-          css={css`
-            padding-right: 25px;
-          `}
-        >
-          <em>
-            {
-              "Don't forget to provide some notes to help Imaging team to understand your request"
-            }
-          </em>
-        </div>
-      )}
-      <img
-        src={payload.thumbnail}
-        css={css`
-          object-fit: contain;
-          width: 100%;
-          height: 100%;
-        `}
-        draggable={false}
-        // TODO: hover for larger thumbnail
-      />
       <div>
         <strong>Request Type: </strong>
         {isEditable ? (
@@ -78,6 +58,16 @@ export const OctopusImagingOrderDisplay = ({
           payload.requestType
         )}
       </div>
+      <img
+        src={payload.thumbnail}
+        css={css`
+          object-fit: contain;
+          width: 100%;
+          height: 100%;
+        `}
+        draggable={false}
+        // TODO: hover for larger thumbnail
+      />
     </div>
   );
 };

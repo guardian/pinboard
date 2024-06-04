@@ -32,7 +32,7 @@ const LoadingSuggestions = () => (
       gap: ${space["2"]}px;
       background: ${palette.neutral["100"]};
       padding: ${space["2"]}px;
-      font-family: ${agateSans.small({ lineHeight: "tight" })};
+      ${agateSans.small({ lineHeight: "tight" })};
     `}
   >
     <SvgSpinner size="xsmall" />
@@ -50,7 +50,7 @@ const Suggestion = ({
           cursor: default;
           padding: ${space[1]}px;
           background: ${palette.neutral["93"]};
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${agateSans.xxsmall({ fontWeight: "bold" })};
           color: ${palette.neutral["46"]};
           user-select: none;
         `}

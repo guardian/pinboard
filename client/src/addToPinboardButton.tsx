@@ -5,16 +5,42 @@ import { css } from "@emotion/react";
 import { pinboard, pinMetal } from "../colours";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
-import { textSans } from "../fontNormaliser";
+import { agateSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import {
   IMAGINE_REQUEST_TYPES,
   IMAGING_REQUEST_ITEM_TYPE,
-} from "../../shared/octopusImaging";
+} from "shared/octopusImaging";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
+
+const buttonCss = css`
+  display: flex;
+  align-items: center;
+  background-color: ${pinboard[500]};
+  ${agateSans.xxsmall({ fontWeight: "bold" })};
+  border: none;
+  border-radius: 100px;
+  padding: 0 6px 0 10px;
+  line-height: 2;
+  cursor: pointer;
+  color: ${pinMetal};
+`;
+
+const pinIcon = (
+  <PinIcon
+    css={css`
+      height: 14px;
+      margin-left: 2px;
+      path {
+        stroke: ${pinMetal};
+        stroke-width: 1px;
+      }
+    `}
+  />
+);
 
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
@@ -46,7 +72,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${agateSans.small()}
       `}
     >
       <button
@@ -57,32 +83,12 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             assetType: payloadToBeSent.type,
           });
         }}
-        css={css`
-          display: flex;
-          align-items: center;
-          background-color: ${pinboard[500]};
-          ${textSans.xsmall()};
-          border: none;
-          border-radius: 100px;
-          padding: 0 ${space[2]}px 0 ${space[3]}px;
-          line-height: 2;
-          cursor: pointer;
-          color: ${pinMetal};
-        `}
+        css={buttonCss}
       >
         {payloadToBeSent.type === "grid-search"
           ? "Add this search to"
           : "Add to"}
-        <PinIcon
-          css={css`
-            height: 18px;
-            margin-left: ${space[1]}px;
-            path {
-              stroke: ${pinMetal};
-              stroke-width: 1px;
-            }
-          `}
-        />{" "}
+        {pinIcon}
       </button>
       {payloadToBeSent.type === "grid-original" && (
         <button
@@ -103,31 +109,13 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             );
           }}
           css={css`
-            display: flex;
-            align-items: center;
+            ${buttonCss};
+            white-space: nowrap;
             margin-top: ${space[1]}px;
-            background-color: ${pinboard[500]};
-            ${textSans.xsmall()};
-            border: none;
-            border-radius: 100px;
-            padding: 0 ${space[2]}px 0 ${space[3]}px;
-            line-height: 2;
-            cursor: pointer;
-            color: ${pinMetal};
-            white-space: nowrap; // TODO this is a hack to stop the button from wrapping, but we should think of wording that fits better
           `}
         >
           Imaging order
-          <PinIcon
-            css={css`
-              height: 18px;
-              margin-left: ${space[1]}px;
-              path {
-                stroke: ${pinMetal};
-                stroke-width: 1px;
-              }
-            `}
-          />{" "}
+          {pinIcon}
         </button>
       )}
     </root.div>

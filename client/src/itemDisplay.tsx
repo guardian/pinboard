@@ -24,6 +24,7 @@ import Pencil from "../icons/pencil.svg";
 import { ITEM_HOVER_MENU_CLASS_NAME, ItemHoverMenu } from "./itemHoverMenu";
 import { EditItem } from "./editItem";
 import { Reply } from "./reply";
+import { IMAGING_REQUEST_ITEM_TYPE } from "shared/octopusImaging";
 
 interface ItemDisplayProps {
   item: Item | PendingItem;
@@ -95,6 +96,7 @@ export const ItemDisplay = ({
     !maybeEditingItemId &&
     item.userEmail === userEmail &&
     item.type !== "claim" &&
+    item.type !== IMAGING_REQUEST_ITEM_TYPE &&
     !item.claimedByEmail;
 
   return (

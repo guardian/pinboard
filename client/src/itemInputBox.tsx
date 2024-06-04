@@ -318,26 +318,25 @@ export const ItemInputBox = ({
                   payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE
                     ? message
                     : message?.trim() || payloadToBeSent;
-                if (!isAsGridPayloadLoading && hasSomethingToSend
-                ) {
-                sendItem();
+                if (!isAsGridPayloadLoading && hasSomethingToSend) {
+                  sendItem();
+                }
+                event.preventDefault();
               }
-              event.preventDefault();
-            }
-          })
-        }
-        onPaste={handlePaste}
-        onItemSelected={({ item }) => addUnverifiedMention?.(item)}
-        rows={1}
-        css={css`
-          box-sizing: border-box;
-          background-color: transparent;
-          border: none;
-          vertical-align: middle;
-          &:focus-visible {
-            outline: none;
+            })
           }
-          /* Firefox needs this hint to get the correct initial height.
+          onPaste={handlePaste}
+          onItemSelected={({ item }) => addUnverifiedMention?.(item)}
+          rows={1}
+          css={css`
+            box-sizing: border-box;
+            background-color: transparent;
+            border: none;
+            vertical-align: middle;
+            &:focus-visible {
+              outline: none;
+            }
+            /* Firefox needs this hint to get the correct initial height.
            Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
             height: 21.1px;
             ${addUnverifiedMention ? "max-height: 74px;" : ""}

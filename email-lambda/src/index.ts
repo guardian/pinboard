@@ -52,6 +52,8 @@ export const handler = async (maybeSendImmediatelyDetail?: {
   itemId: number;
   maybeRelatedItemId?: number;
 }) => {
+  console.log({ maybeSendImmediatelyDetail });
+
   const itemIdWithGroupMention = maybeSendImmediatelyDetail?.itemId;
   const groupMentionRef =
     maybeSendImmediatelyDetail?.maybeRelatedItemId || itemIdWithGroupMention; // this ensures threading (i.e. claim ends up as reply to the original email)

@@ -144,7 +144,7 @@ input CreateItemInput {
   pinboardId: String!
   mentions: [String!]
   groupMentions: [String!]
-  claimable: Boolean
+  claimable: Boolean!
   relatedItemId: String
 }
 

@@ -644,6 +644,7 @@ export class PinBoardStack extends GuStack {
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;
+    const bootstrappingLambdaFunctionName = `${bootstrappingLambdaBasename}-${this.stage}`;
 
     const bootstrappingLambdaFunction = new lambda.Function(
       this,
@@ -665,7 +666,7 @@ export class PinBoardStack extends GuStack {
               "/pinboard/sentryDSN"
             ),
         },
-        functionName: `${bootstrappingLambdaBasename}-${this.stage}`,
+        functionName: bootstrappingLambdaFunctionName,
         code: lambda.Code.fromBucket(
           deployBucket,
           `${this.stack}/${this.stage}/${bootstrappingLambdaApiBaseName}/${bootstrappingLambdaApiBaseName}.zip`
@@ -739,6 +740,12 @@ export class PinBoardStack extends GuStack {
     new CfnOutput(this, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,
+    });
+
+    new CfnOutput(this, `BootstrappingLambdaFunctionName`, {
+      exportName: `${bootstrappingLambdaFunctionName}-function-name`,
+      description: `${bootstrappingLambdaFunctionName} function name`,
+      value: `${bootstrappingLambdaFunction.functionName}`,
     });
   }
 }

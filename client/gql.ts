@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { itemReturnFields } from "shared/itemReturnFields";
 
 const pinboardReturnFields = `
   composerId
@@ -45,29 +46,6 @@ export const gqlGetItemCounts = gql`
       unreadCount
     }
   }
-`;
-
-const itemReturnFields = `
-  id
-  type
-  userEmail
-  timestamp
-  pinboardId
-  message
-  payload
-  mentions {
-    label
-    isMe
-  }
-  groupMentions {
-    label
-    isMe
-  }
-  claimedByEmail
-  claimable
-  relatedItemId
-  editHistory
-  deletedAt
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)

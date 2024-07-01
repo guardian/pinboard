@@ -17,6 +17,7 @@ import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { demoPinboardData } from "./tour/tourConstants";
+import { IMAGING_REQUEST_ITEM_TYPE } from "../../shared/octopusImaging";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -76,24 +77,29 @@ export const SendMessageArea = ({
   const [_sendItem, { loading: isItemSending }] = useMutation<{
     createItem: Item;
   }>(gqlCreateItem, {
-    onCompleted: (sendMessageResult) => {
+    onCompleted: ({ createItem }) => {
+      if (!createItem) {
+        return onError(
+          new ApolloError({ errorMessage: "Item creation failed" })
+        );
+      }
       onSuccessfulSend(
         {
-          ...sendMessageResult.createItem,
+          ...createItem,
           pending: true,
         },
         verifiedIndividualMentionEmails
       );
       sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.MESSAGE_SENT, {
-        pinboardId: sendMessageResult.createItem.pinboardId,
+        pinboardId: createItem.pinboardId,
         messageType: payloadToBeSent?.type || "message-only",
         hasMentions:
           !!verifiedIndividualMentionEmails.length ||
           !!verifiedGroupMentionShorthands.length,
         hasIndividualMentions: !!verifiedIndividualMentionEmails.length,
         hasGroupMentions: !!verifiedGroupMentionShorthands.length,
-        isClaimable: sendMessageResult.createItem.claimable,
-        isReply: !!sendMessageResult.createItem.relatedItemId,
+        isClaimable: createItem.claimable,
+        isReply: !!createItem.relatedItemId,
         ...(composerId ? { composerId } : {}),
       });
       setMessage("");
@@ -219,7 +225,8 @@ export const SendMessageArea = ({
         disabled={
           isItemSending ||
           isAsGridPayloadLoading ||
-          !(message?.trim() || payloadToBeSent)
+          !(message?.trim() || payloadToBeSent) ||
+          (payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE && !message)
         }
       >
         {isItemSending ? (

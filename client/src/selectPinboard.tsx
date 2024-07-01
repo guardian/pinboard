@@ -74,7 +74,7 @@ export const SelectPinboard = ({
     activePinboards,
     activePinboardIds,
     payloadToBeSent,
-    clearPayloadToBeSent,
+    setPayloadToBeSent,
 
     isExpanded,
 
@@ -429,7 +429,7 @@ export const SelectPinboard = ({
 
             <PayloadDisplay
               payloadAndType={payloadToBeSent}
-              clearPayloadToBeSent={clearPayloadToBeSent}
+              clearPayloadToBeSent={() => setPayloadToBeSent(null)}
             />
           </div>
         )}

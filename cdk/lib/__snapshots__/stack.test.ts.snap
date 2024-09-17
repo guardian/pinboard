@@ -29,6 +29,15 @@ Object {
     "gu:cdk:version": "49.5.0",
   },
   "Outputs": Object {
+    "BootstrappingLambdaFunctionName": Object {
+      "Description": "pinboard-bootstrapping-lambda-TEST function name",
+      "Export": Object {
+        "Name": "pinboard-bootstrapping-lambda-TEST-function-name",
+      },
+      "Value": Object {
+        "Ref": "pinboardbootstrappinglambdaD2C487DA",
+      },
+    },
     "pinboardbootstrappinglambdaapiEndpoint4DE1E032": Object {
       "Value": Object {
         "Fn::Join": Array [
@@ -2410,7 +2419,7 @@ input CreateItemInput {
   pinboardId: String!
   mentions: [String!]
   groupMentions: [String!]
-  claimable: Boolean
+  claimable: Boolean!
   relatedItemId: String
 }
 
@@ -2492,7 +2501,7 @@ type PinboardIdWithItemCounts {
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "addManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2513,7 +2522,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "claimItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2534,7 +2543,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "createItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2555,7 +2564,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "deleteItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2576,7 +2585,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "editItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2597,7 +2606,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "removeManuallyOpenedPinboardIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2618,7 +2627,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "seenItem",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2639,7 +2648,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "setWebPushSubscriptionForUser",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2660,7 +2669,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "visitTourStep",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Mutation",
       },
@@ -2681,7 +2690,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getGroupPinboardIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2702,7 +2711,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getItemCounts",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2723,7 +2732,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getMyUser",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2744,7 +2753,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "getUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2765,7 +2774,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listItems",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2786,7 +2795,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "listLastItemSeenByUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2807,7 +2816,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "database_bridge_lambda_ds",
         "FieldName": "searchMentionableUsers",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2932,7 +2941,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "asGridPayload",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -2953,7 +2962,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "grid_bridge_lambda_ds",
         "FieldName": "getGridSearchSummary",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -3078,7 +3087,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardByComposerId",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -3099,7 +3108,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "getPinboardsByIds",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -3120,7 +3129,7 @@ $util.toJson($ctx.result)",
         "DataSourceName": "workflow_bridge_lambda_ds",
         "FieldName": "listPinboards",
         "Kind": "UNIT",
-        "ResponseMappingTemplate": "## schema checksum : aa02bae16942e48366fa36a1cd643d16
+        "ResponseMappingTemplate": "## schema checksum : 0e4764afef6c6f1cfce30ceae9d12a4f
 $util.toJson($ctx.result)",
         "TypeName": "Query",
       },
@@ -4007,6 +4016,39 @@ $util.toJson($ctx.result)",
                 "Endpoint",
               ],
             },
+            "OCTOPUS_API_LAMBDA_FUNCTION_NAME": Object {
+              "Fn::Select": Array [
+                6,
+                Object {
+                  "Fn::Split": Array [
+                    ":",
+                    Object {
+                      "Fn::Join": Array [
+                        "",
+                        Array [
+                          "arn:",
+                          Object {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          Object {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          Object {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:",
+                          Object {
+                            "Fn::ImportValue": "octopus-api-TEST-function-name",
+                          },
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
             "STACK": "workflow",
             "STAGE": "TEST",
           },
@@ -4165,6 +4207,59 @@ $util.toJson($ctx.result)",
                   ],
                 ],
               },
+            },
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      Object {
+                        "Fn::ImportValue": "octopus-api-TEST-function-name",
+                      },
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      Object {
+                        "Fn::ImportValue": "octopus-api-TEST-function-name",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
             },
           ],
           "Version": "2012-10-17",

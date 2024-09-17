@@ -9,6 +9,7 @@
     "test": "jest --coverage --forceExit",
     "bundle": "esbuild src/server.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
     "watch": "ts-node-dev --respawn local/index.ts",
+    "simulate-octopus-call": "ts-node-dev --respawn local/simulateOctopus.ts",
     "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {

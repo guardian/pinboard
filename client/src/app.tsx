@@ -22,7 +22,7 @@ import {
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import { Item, MyUser, User } from "shared/graphql/graphql";
-import { ItemWithParsedPayload } from "./types/ItemWithParsedPayload";
+import { ItemWithParsedPayload } from "shared/types/ItemWithParsedPayload";
 import { HiddenIFrameForServiceWorker } from "./pushNotificationPreferences";
 import { GlobalStateProvider } from "./globalState";
 import { Floaty } from "./floaty";

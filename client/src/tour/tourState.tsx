@@ -304,6 +304,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
         })),
         groupMentions: [], //TODO - map variables.input.groupMentions to mention handle,
         claimable: variables.input.claimable || false,
+        isStarred: false,
       };
       setSuccessfulSends((prevSuccessfulSends) => [
         ...prevSuccessfulSends,

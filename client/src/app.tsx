@@ -45,6 +45,10 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
+import {
+  StarredMessagesPortal,
+  STARRED_MESSAGES_HTML_TAG,
+} from "./starred/starredMessages";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -64,6 +68,9 @@ export const PinBoardApp = ({
     null
   );
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
+  const [maybeStarredMessagesArea, setMaybeStarredMessagesArea] =
+    useState<Element | null>(null);
+
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
   >([]);
@@ -86,6 +93,11 @@ export const PinBoardApp = ({
   const refreshAssetHandleNodes = () =>
     setAssetHandles(
       Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
+    );
+
+  const refreshStarredMessagesAreaNodes = () =>
+    setMaybeStarredMessagesArea(
+      document.querySelector(STARRED_MESSAGES_HTML_TAG)
     );
 
   const refreshWorkflowPinboardElements = () =>
@@ -128,6 +140,7 @@ export const PinBoardApp = ({
   useEffect(() => {
     // Add nodes that already exist at time React app is instantiated
     refreshAssetHandleNodes();
+    refreshStarredMessagesAreaNodes();
     refreshWorkflowPinboardElements();
 
     refreshPreselectedPinboard();
@@ -137,6 +150,7 @@ export const PinBoardApp = ({
     // begin watching for any DOM changes
     new MutationObserver(() => {
       refreshAssetHandleNodes();
+      refreshStarredMessagesAreaNodes();
       refreshWorkflowPinboardElements();
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
@@ -357,6 +371,10 @@ export const PinBoardApp = ({
 
   const hasApolloAuthError = useReactiveVar(hasApolloAuthErrorVar);
 
+  const [maybeStarredMessages, setMaybeStarredMessages] = useState<Item[]>();
+  const [maybeScrollToItem, setMaybeScrollToItem] =
+    useState<(itemId: string) => void>();
+
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
@@ -380,6 +398,8 @@ export const PinBoardApp = ({
           }
           hasEverUsedTour={me?.hasEverUsedTour}
           visitTourStep={visitTourStep}
+          setStarredMessages={setMaybeStarredMessages}
+          setMaybeScrollToItem={setMaybeScrollToItem}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />
@@ -444,6 +464,14 @@ export const PinBoardApp = ({
                 expand={() => setIsExpanded(true)}
               />
             ))}
+            {maybeStarredMessagesArea && (
+              <StarredMessagesPortal
+                node={maybeStarredMessagesArea}
+                maybeStarredMessages={maybeStarredMessages}
+                userLookup={userLookup}
+                maybeScrollToItem={maybeScrollToItem}
+              />
+            )}
           </TourStateProvider>
         </GlobalStateProvider>
       </ApolloProvider>

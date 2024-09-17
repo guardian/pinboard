@@ -10,6 +10,7 @@ import {
   getGroupPinboardIds,
   getItemCounts,
   listItems,
+  setIsStarred,
 } from "./sql/Item";
 import { Sql } from "../../shared/database/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
@@ -42,6 +43,8 @@ const run = (
       return deleteItem(sql, args, userEmail);
     case "claimItem":
       return claimItem(sql, args, userEmail);
+    case "setIsStarred":
+      return setIsStarred(sql, args, userEmail);
     case "listItems":
       return listItems(sql, args, userEmail);
     case "seenItem":

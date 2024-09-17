@@ -98,6 +98,9 @@ interface GlobalStateContextShape {
   setExplicitPositionTranslation: (newPosition: ControlPosition) => void;
   boundedPositionTranslation: ControlPosition;
   updateBoundedPositionTranslation: (newPosition: ControlPosition) => void;
+
+  setStarredMessages: (starredMessages: Item[]) => void;
+  setMaybeScrollToItem: (func: (itemId: string) => void) => void;
 }
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
   null
@@ -130,6 +133,8 @@ interface GlobalStateProviderProps {
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
+  setStarredMessages: (starredMessages: Item[]) => void;
+  setMaybeScrollToItem: (func: (itemId: string) => void) => void;
 }
 
 export const GlobalStateProvider = ({
@@ -151,6 +156,8 @@ export const GlobalStateProvider = ({
   hasEverUsedTour,
   visitTourStep,
   children,
+  setStarredMessages,
+  setMaybeScrollToItem,
 }: PropsWithChildren<GlobalStateProviderProps>) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
@@ -588,6 +595,9 @@ export const GlobalStateProvider = ({
     setExplicitPositionTranslation,
     boundedPositionTranslation,
     updateBoundedPositionTranslation,
+
+    setStarredMessages,
+    setMaybeScrollToItem,
   };
 
   return (

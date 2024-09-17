@@ -27,6 +27,7 @@ import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
 import { useTourProgress } from "./tour/tourState";
+import { useGlobalStateContext } from "./globalState";
 
 interface ScrollableItemsProps {
   items: Array<PendingItem | Item>;
@@ -75,6 +76,8 @@ export const ScrollableItems = ({
   setMaybeEditingItemId,
   setMaybeReplyingToItemId,
 }: ScrollableItemsProps) => {
+  const { setMaybeScrollToItem } = useGlobalStateContext();
+
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
   const lastItemSeenByUsersForItemIDLookup = useMemo(
@@ -218,11 +221,27 @@ export const ScrollableItems = ({
   const scrollToItem = useCallback(
     (itemID: string) => {
       const targetElement = refMap.current[itemID];
-      targetElement?.scrollIntoView({ behavior: "smooth" });
-      targetElement.style.animation = "highlight-item 0.5s linear infinite"; // see panel.tsx for definition of 'highlight-item' animation
-      setTimeout(() => (targetElement.style.animation = ""), 2500);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth" });
+        targetElement.style.animation = "highlight-item 0.5s linear infinite"; // see panel.tsx for definition of 'highlight-item' animation
+        setTimeout(() => (targetElement.style.animation = ""), 2500);
+      } else {
+        console.error(
+          "Tried to scroll to item with ID",
+          itemID,
+          "but could not find it in the refMap"
+        );
+      }
     },
     [refMap.current]
+  );
+
+  useEffect(
+    () =>
+      setMaybeScrollToItem(
+        () => scrollToItem // since this is a setState, we need to wrap it in a function to avoid it evaluating immediately because of setState's overloaded signature
+      ),
+    [scrollToItem]
   );
 
   useLayoutEffect(() => {
@@ -301,6 +320,7 @@ export const ScrollableItems = ({
               item.claimedByEmail,
               item.editHistory,
               item.deletedAt,
+              item.isStarred,
               "pending" in item,
               userLookup,
               lastItemSeenByUsersForItemIDLookup,

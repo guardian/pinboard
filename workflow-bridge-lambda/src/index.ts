@@ -7,18 +7,42 @@ const WORKFLOW_DATASTORE_API_URL = `http://${getEnvironmentVariableOrThrow(
   "workflowDnsName"
 )}/api`;
 
-exports.handler = async (event: {
-  arguments?: { composerId?: string; ids?: string[]; searchText?: string };
-}) => {
+const fields = [
+  "id",
+  "title",
+  "composerId",
+  "headline",
+  "trashed",
+  "path",
+].join(",");
+
+interface StubsResponseBody {
+  data: {
+    content: { [status: string]: PinboardData[] };
+  };
+}
+
+interface Arguments {
+  composerId?: string;
+  ids?: string[];
+  searchText?: string;
+  paths?: string[];
+}
+
+exports.handler = async (event: { arguments?: Arguments }) => {
   if (event.arguments?.composerId) {
     return await getPinboardById("content")(event.arguments.composerId);
   }
   if (event.arguments?.ids) {
+    // TODO do this in single call using new endpoint added in https://github.com/guardian/workflow/pull/1119
     return await Promise.all(
       event.arguments.ids
         .map(parseFloat) // workflow IDs are Longs
         .map(getPinboardById("stubs"))
     );
+  }
+  if (event.arguments?.paths !== undefined) {
+    return await getPinboardsByPaths(event.arguments?.paths);
   }
   if (event.arguments?.searchText !== undefined) {
     return await getAllPinboards(event.arguments?.searchText);
@@ -62,6 +86,24 @@ const getPinboardById =
     return { ...data.externalData, ...data };
   };
 
+const getPinboardsByPaths = async (identifiers: number[] | string[]) => {
+  const stubsResponse = await fetch(
+    `${WORKFLOW_DATASTORE_API_URL}/stubsByPath?fieldFilter=${fields}`,
+    {
+      method: "POST",
+      body: JSON.stringify(identifiers),
+    }
+  );
+
+  if (!stubsResponse.ok) {
+    throw Error(`${stubsResponse.status} ${await stubsResponse.text()}`);
+  }
+
+  const stubsResponseBody = (await stubsResponse.json()) as StubsResponseBody;
+
+  return Object.values(stubsResponseBody.data.content).flat();
+};
+
 const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubs?fieldFilter=id&trashed=${isTrashed}`
@@ -71,11 +113,7 @@ const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
     throw Error(`${stubsResponse.status} ${await stubsResponse.text()}`);
   }
 
-  const stubsResponseBody = (await stubsResponse.json()) as {
-    data: {
-      content: { [status: string]: PinboardData[] };
-    };
-  };
+  const stubsResponseBody = (await stubsResponse.json()) as StubsResponseBody;
 
   return Object.values(stubsResponseBody.data.content)
     .flat()
@@ -83,8 +121,6 @@ const getAllPinboardIds = async ({ isTrashed }: { isTrashed: boolean }) => {
 };
 
 const getAllPinboards = async (searchText?: string) => {
-  const fields = ["id", "title", "composerId", "headline", "trashed"].join(",");
-
   const searchQueryParamClause = searchText
     ? `&text=${encodeURI(searchText)}`
     : "";
@@ -99,14 +135,9 @@ const getAllPinboards = async (searchText?: string) => {
     throw Error(`${stubsResponse.status} ${await stubsResponse.text()}`);
   }
 
-  const stubsResponseBody = (await stubsResponse.json()) as {
-    data: {
-      content: { [status: string]: PinboardData[] };
-    };
-  };
-  const groupedStubs = stubsResponseBody.data.content;
+  const stubsResponseBody = (await stubsResponse.json()) as StubsResponseBody;
 
-  return Object.entries(groupedStubs).reduce(
+  return Object.entries(stubsResponseBody.data.content).reduce(
     (accumulator, [status, stubs]) => [
       ...accumulator,
       ...stubs.map((stub) => ({ ...stub, status })),

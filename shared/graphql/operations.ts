@@ -14,6 +14,7 @@ export const QUERIES = {
   workflow: [
     "listPinboards",
     "getPinboardsByIds",
+    "getPinboardsByPaths",
     "getPinboardByComposerId",
   ] as const,
   grid: ["getGridSearchSummary", "asGridPayload"] as const,

@@ -24,6 +24,11 @@ export const gqlGetPinboardsByIds = gql`
         getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
     }
 `;
+export const gqlGetPinboardsByPaths = gql`
+    query MyQuery($paths: [String!]!) {
+        getPinboardsByPaths(paths: $paths) { ${pinboardReturnFields} }
+    }
+`;
 export const gqlGetGroupPinboardIds = gql`
   query MyQuery {
     getGroupPinboardIds {

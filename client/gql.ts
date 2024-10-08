@@ -8,6 +8,7 @@ const pinboardReturnFields = `
   headline
   trashed
   isNotFound
+  path
 `;
 export const gqlListPinboards = gql`
     query MyQuery($searchText: String!) {
@@ -48,6 +49,9 @@ export const gqlGetItemCounts = gql`
       pinboardId
       totalCount
       unreadCount
+      totalCropCount
+      fiveByFourCount
+      fourByFiveCount
     }
   }
 `;

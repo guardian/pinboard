@@ -187,4 +187,7 @@ type PinboardIdWithItemCounts {
   pinboardId: String!
   unreadCount: Int!
   totalCount: Int!
+  totalCropCount: Int!
+  fiveByFourCount: Int!
+  fourByFiveCount: Int!
 }

@@ -4,12 +4,13 @@ import { StaticGridPayload } from "../types/PayloadAndType";
 import CropIcon from "../../icons/crop.svg";
 import PictureIcon from "../../icons/picture.svg";
 import { palette } from "@guardian/source-foundations";
+import { agateSans } from "../../fontNormaliser";
 
 export const GridStaticImageDisplay = ({
   type,
   payload,
 }: StaticGridPayload) => (
-  <React.Fragment>
+  <>
     <img
       src={payload.thumbnail}
       css={css`
@@ -20,22 +21,26 @@ export const GridStaticImageDisplay = ({
       draggable={false}
       // TODO: hover for larger thumbnail
     />
-
-    {type === "grid-crop" && (
-      <CropIcon
-        css={css`
+    <div
+      css={css`
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        ${agateSans.xxsmall({ lineHeight: "tight" })}
+        margin-top: 6px;
+        color: ${palette.neutral[46]};
+        svg {
           fill: ${palette.neutral[46]};
-          margin-top: 4px;
-        `}
-      />
-    )}
-    {type === "grid-original" && (
-      <PictureIcon
-        css={css`
-          fill: ${palette.neutral[46]};
-          margin-top: 4px;
-        `}
-      />
-    )}
-  </React.Fragment>
+          margin-top: -2px;
+        }
+      `}
+    >
+      {type === "grid-crop" && <CropIcon />}
+      {type === "grid-original" && <PictureIcon />}
+      {payload.cropType}
+      {payload.cropType && payload.aspectRatio && " ("}
+      {payload.aspectRatio}
+      {payload.cropType && payload.aspectRatio && ")"}
+    </div>
+  </>
 );

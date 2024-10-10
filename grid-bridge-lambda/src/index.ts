@@ -1,20 +1,14 @@
-import fetch from "node-fetch";
-import {
-  pinboardSecretPromiseGetter,
-  STAGE,
-} from "../../shared/awsIntegration";
 import type {
   GridSearchQueryBreakdown,
   GridSearchSummary,
-} from "../../shared/graphql/graphql";
+} from "shared/graphql/graphql";
 
 import { isCollectionResponse, isSearchResponse } from "./types";
 import { PayloadAndType } from "client/src/types/PayloadAndType";
+import { gridFetch, gridTopLevelDomain } from "shared/grid";
 
-const gutoolsDomain =
-  STAGE === "PROD" ? "gutools.co.uk" : "test.dev-gutools.co.uk";
-const mediaApiDomain = `api.media.${gutoolsDomain}`;
-const collectionsDomain = `media-collections.${gutoolsDomain}`;
+const mediaApiHost = `api.media.${gridTopLevelDomain}`;
+const collectionsHost = `media-collections.${gridTopLevelDomain}`;
 const maxImagesInSummary = "4";
 
 export const handler = async (event: {
@@ -28,20 +22,8 @@ export const handler = async (event: {
   }
 };
 
-const gridFetch = async (url: string): Promise<unknown> => {
-  const response = await fetch(url, {
-    headers: {
-      "X-Gu-Media-Key": await pinboardSecretPromiseGetter(
-        `grid/${STAGE === "PROD" ? "PROD" : "CODE"}/apiKey`
-      ),
-    },
-  });
-
-  return await response.json();
-};
-
 const getSearchSummary = async (url: URL): Promise<GridSearchSummary> => {
-  if (url.hostname !== mediaApiDomain || url.pathname !== "/images") {
+  if (url.hostname !== mediaApiHost || url.pathname !== "/images") {
     throw new Error("Invalid Grid search API URL");
   }
   url.searchParams.set("length", maxImagesInSummary);
@@ -87,7 +69,7 @@ async function breakdownQuery(
     [...q.matchAll(COLLECTIONS)].map(async (match) => {
       const text = match[1] ?? match[2] ?? match[3];
       const collectionResponse = await gridFetch(
-        `https://${collectionsDomain}/collections/${text}`
+        `https://${collectionsHost}/collections/${text}`
       );
 
       if (!isCollectionResponse(collectionResponse)) {
@@ -127,7 +109,7 @@ async function breakdownQuery(
 async function buildPayloadFor(gridUrl: URL): Promise<PayloadAndType | null> {
   if (gridUrl.pathname === "/search") {
     const apiUrl = new URL(gridUrl.href);
-    apiUrl.hostname = mediaApiDomain;
+    apiUrl.hostname = mediaApiHost;
     apiUrl.pathname = apiUrl.pathname.replace("/search", "/images");
     apiUrl.searchParams.set("countAll", "true");
     apiUrl.searchParams.set("length", "0");
@@ -150,7 +132,7 @@ async function buildPayloadFor(gridUrl: URL): Promise<PayloadAndType | null> {
   if (gridUrl.pathname.startsWith("/images/")) {
     const maybeCrop = gridUrl.searchParams.get("crop");
     const apiUrl = new URL(gridUrl.href);
-    apiUrl.hostname = mediaApiDomain;
+    apiUrl.hostname = mediaApiHost;
     const imageResponse = (await gridFetch(apiUrl.href)) as {
       data: {
         thumbnail: { secureUrl: string };

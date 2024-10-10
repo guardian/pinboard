@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { itemReturnFields } from "shared/itemReturnFields";
 
 const pinboardReturnFields = `
   composerId
@@ -8,6 +9,7 @@ const pinboardReturnFields = `
   headline
   trashed
   isNotFound
+  path
 `;
 export const gqlListPinboards = gql`
     query MyQuery($searchText: String!) {
@@ -22,6 +24,11 @@ export const gqlGetPinboardByComposerId = gql`
 export const gqlGetPinboardsByIds = gql`
     query MyQuery($ids: [String!]!) {
         getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
+    }
+`;
+export const gqlGetPinboardsByPaths = gql`
+    query MyQuery($paths: [String!]!) {
+        getPinboardsByPaths(paths: $paths) { ${pinboardReturnFields} }
     }
 `;
 export const gqlGetGroupPinboardIds = gql`
@@ -43,31 +50,11 @@ export const gqlGetItemCounts = gql`
       pinboardId
       totalCount
       unreadCount
+      totalCropCount
+      fiveByFourCount
+      fourByFiveCount
     }
   }
-`;
-
-const itemReturnFields = `
-  id
-  type
-  userEmail
-  timestamp
-  pinboardId
-  message
-  payload
-  mentions {
-    label
-    isMe
-  }
-  groupMentions {
-    label
-    isMe
-  }
-  claimedByEmail
-  claimable
-  relatedItemId
-  editHistory
-  deletedAt
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)

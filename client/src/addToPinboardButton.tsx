@@ -1,14 +1,17 @@
 import ReactDOM from "react-dom";
 import React, { ReactPortal, useContext } from "react";
-import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
-import { pinboard, pinMetal } from "../colours";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
-import { textSans } from "../fontNormaliser";
+import { agateSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import {
+  IMAGINE_REQUEST_TYPES,
+  IMAGING_REQUEST_ITEM_TYPE,
+} from "shared/octopusImaging";
+import { ButtonInOtherTools } from "./buttonInOtherTools";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -42,10 +45,11 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${agateSans.small()}
       `}
     >
-      <button
+      <ButtonInOtherTools
+        iconAtEnd
         onClick={() => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
@@ -53,33 +57,38 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             assetType: payloadToBeSent.type,
           });
         }}
-        css={css`
-          display: flex;
-          align-items: center;
-          background-color: ${pinboard[500]};
-          ${textSans.xsmall()};
-          border: none;
-          border-radius: 100px;
-          padding: 0 ${space[2]}px 0 ${space[3]}px;
-          line-height: 2;
-          cursor: pointer;
-          color: ${pinMetal};
-        `}
       >
         {payloadToBeSent.type === "grid-search"
           ? "Add this search to"
           : "Add to"}
-        <PinIcon
-          css={css`
-            height: 18px;
-            margin-left: ${space[1]}px;
-            path {
-              stroke: ${pinMetal};
-              stroke-width: 1px;
-            }
+      </ButtonInOtherTools>
+      {payloadToBeSent.type === "grid-original" && (
+        <ButtonInOtherTools
+          iconAtEnd
+          onClick={() => {
+            props.setPayloadToBeSent({
+              type: IMAGING_REQUEST_ITEM_TYPE,
+              payload: {
+                ...payloadToBeSent.payload,
+                requestType: IMAGINE_REQUEST_TYPES[0],
+              },
+            });
+            props.expand();
+            sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.IMAGING_REQUEST_VIA_BUTTON,
+              {
+                assetType: IMAGING_REQUEST_ITEM_TYPE,
+              }
+            );
+          }}
+          extraCss={css`
+            white-space: nowrap;
+            margin-top: ${space[1]}px;
           `}
-        />{" "}
-      </button>
+        >
+          Imaging order
+        </ButtonInOtherTools>
+      )}
     </root.div>
   );
 };

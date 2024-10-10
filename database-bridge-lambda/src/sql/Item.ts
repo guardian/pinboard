@@ -3,9 +3,12 @@ import {
   EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
-} from "../../../shared/graphql/graphql";
-import { Sql } from "../../../shared/database/types";
-import { Range } from "../../../shared/types/grafanaType";
+} from "shared/graphql/graphql";
+import { Sql } from "shared/database/types";
+import { Range } from "shared/types/grafanaType";
+import { performImagingRequest } from "../imagingRequestCallout";
+import { IMAGING_REQUEST_ITEM_TYPE } from "shared/octopusImaging";
+import { ItemWithParsedPayload } from "shared/types/ItemWithParsedPayload";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -59,10 +62,22 @@ export const createItem = async (
   args: { input: CreateItemInput },
   userEmail: string
 ) =>
-  sql`
+  sql.begin(async (sql) => {
+    const insertResult = (await sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
-    `.then((rows) => rows[0]);
+    `.then((rows) => rows[0])) as ItemWithParsedPayload;
+    if (
+      insertResult.type === IMAGING_REQUEST_ITEM_TYPE &&
+      insertResult.payload
+    ) {
+      // if this throws, the SQL transaction should be rolled back
+      await performImagingRequest(insertResult);
+
+      //TODO return/store octopus ID
+    }
+    return insertResult;
+  });
 
 export const editItem = async (
   sql: Sql,
@@ -218,12 +233,15 @@ export const getItemCounts = (
     ? Promise.resolve([])
     : sql`
                 SELECT "pinboardId",
-                       COUNT(*)                                   AS "totalCount",
+                       COUNT(*) AS "totalCount",
                        COUNT(*) FILTER (WHERE "id" > COALESCE((SELECT "itemID"
                                                                FROM "LastItemSeenByUser"
                                                                WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
                                                                  AND "LastItemSeenByUser"."userEmail" = ${userEmail}),
-                                                              0)) AS "unreadCount"
+                                                              0)) AS "unreadCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop') AS "totalCropCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '5:4') AS "fiveByFourCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '4:5') AS "fourByFiveCount"
                 FROM "Item"
                 WHERE "pinboardId" IN ${sql(args.pinboardIds)}
                   AND "deletedAt" IS NULL

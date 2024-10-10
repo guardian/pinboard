@@ -25,6 +25,11 @@ import {
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
+import {
+  handleImagingCallFromOctopus,
+  ImagingCallFromOctopus,
+  isImagingCallFromOctopus,
+} from "./octopusImagingHandler";
 
 const s3 = new S3(standardAwsConfig);
 
@@ -163,7 +168,17 @@ if (IS_RUNNING_LOCALLY) {
   server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 } else {
   exports.handler = (
-    event: lambda.APIGatewayProxyEvent,
+    payload: lambda.APIGatewayProxyEvent | ImagingCallFromOctopus | undefined,
     context: lambda.Context
-  ) => proxy(createServer(server), event, context);
+  ) => {
+    console.log(payload);
+    if (payload && "queryStringParameters" in payload) {
+      // from API Gateway
+      return proxy(createServer(server), payload, context);
+    } else if (isImagingCallFromOctopus(payload)) {
+      return handleImagingCallFromOctopus(s3, payload);
+    }
+    console.error("unexpected payload", payload);
+    throw new Error("Not implemented");
+  };
 }

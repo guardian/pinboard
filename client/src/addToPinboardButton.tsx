@@ -1,14 +1,12 @@
 import ReactDOM from "react-dom";
 import React, { ReactPortal, useContext } from "react";
-import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
-import { pinboard, pinMetal } from "../colours";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
-import { space } from "@guardian/source-foundations";
 import { textSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
+import { ButtonInOtherTools } from "./buttonInOtherTools";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -45,7 +43,8 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         ${textSans.small()}
       `}
     >
-      <button
+      <ButtonInOtherTools
+        iconAtEnd
         onClick={() => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
@@ -53,33 +52,11 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             assetType: payloadToBeSent.type,
           });
         }}
-        css={css`
-          display: flex;
-          align-items: center;
-          background-color: ${pinboard[500]};
-          ${textSans.xsmall()};
-          border: none;
-          border-radius: 100px;
-          padding: 0 ${space[2]}px 0 ${space[3]}px;
-          line-height: 2;
-          cursor: pointer;
-          color: ${pinMetal};
-        `}
       >
         {payloadToBeSent.type === "grid-search"
           ? "Add this search to"
           : "Add to"}
-        <PinIcon
-          css={css`
-            height: 18px;
-            margin-left: ${space[1]}px;
-            path {
-              stroke: ${pinMetal};
-              stroke-width: 1px;
-            }
-          `}
-        />{" "}
-      </button>
+      </ButtonInOtherTools>
     </root.div>
   );
 };

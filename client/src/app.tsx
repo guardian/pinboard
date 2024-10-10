@@ -45,6 +45,14 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
+import {
+  FRONTS_PINBOARD_ELEMENTS_QUERY_SELECTOR,
+  FrontsIntegration,
+} from "./fronts/frontsIntegration";
+import {
+  SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR,
+  SuggestAlternateCrops,
+} from "./fronts/suggestAlternateCrops";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -67,6 +75,11 @@ export const PinBoardApp = ({
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
   >([]);
+  const [frontsPinboardElements, setFrontsPinboardElements] = useState<
+    HTMLElement[]
+  >([]);
+  const [alternateCropSuggestionElements, setAlternateCropSuggestionElements] =
+    useState<HTMLElement[]>([]);
 
   const [maybeInlineSelectedPinboardId, _setMaybeInlineSelectedPinboardId] =
     useState<string | null>(null);
@@ -92,6 +105,20 @@ export const PinBoardApp = ({
     setWorkflowPinboardElements(
       Array.from(
         document.querySelectorAll(WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR)
+      )
+    );
+
+  const refreshFrontsPinboardElements = () =>
+    setFrontsPinboardElements(
+      Array.from(
+        document.querySelectorAll(FRONTS_PINBOARD_ELEMENTS_QUERY_SELECTOR)
+      )
+    );
+
+  const refreshAlternateCropSuggestionElements = () =>
+    setAlternateCropSuggestionElements(
+      Array.from(
+        document.querySelectorAll(SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR)
       )
     );
 
@@ -129,6 +156,8 @@ export const PinBoardApp = ({
     // Add nodes that already exist at time React app is instantiated
     refreshAssetHandleNodes();
     refreshWorkflowPinboardElements();
+    refreshFrontsPinboardElements();
+    refreshAlternateCropSuggestionElements();
 
     refreshPreselectedPinboard();
 
@@ -138,6 +167,8 @@ export const PinBoardApp = ({
     new MutationObserver(() => {
       refreshAssetHandleNodes();
       refreshWorkflowPinboardElements();
+      refreshFrontsPinboardElements();
+      refreshAlternateCropSuggestionElements();
       refreshPreselectedPinboard();
       refreshPresetUnreadNotifications();
     }).observe(document.body, {
@@ -436,6 +467,18 @@ export const PinBoardApp = ({
                 )}
               </TickContext.Provider>
             </root.div>
+            {frontsPinboardElements.length > 0 && (
+              <FrontsIntegration
+                frontsPinboardElements={frontsPinboardElements}
+              />
+            )}
+            {alternateCropSuggestionElements.length > 0 && (
+              <SuggestAlternateCrops
+                alternateCropSuggestionElements={
+                  alternateCropSuggestionElements
+                }
+              />
+            )}
             {assetHandles.map((node, index) => (
               <AddToPinboardButtonPortal
                 key={index}

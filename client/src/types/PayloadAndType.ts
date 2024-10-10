@@ -33,6 +33,8 @@ interface PayloadCommon {
 
 export interface PayloadWithThumbnail extends PayloadCommon {
   thumbnail: string;
+  aspectRatio?: string;
+  cropType?: string;
 }
 
 export interface PayloadWithExternalUrl extends PayloadWithThumbnail {

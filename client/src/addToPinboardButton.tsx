@@ -1,8 +1,6 @@
 import ReactDOM from "react-dom";
 import React, { ReactPortal, useContext } from "react";
-import PinIcon from "../icons/pin-icon.svg";
 import { css } from "@emotion/react";
-import { pinboard, pinMetal } from "../colours";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
 import { space } from "@guardian/source-foundations";
 import { agateSans } from "../fontNormaliser";
@@ -13,34 +11,9 @@ import {
   IMAGINE_REQUEST_TYPES,
   IMAGING_REQUEST_ITEM_TYPE,
 } from "shared/octopusImaging";
+import { ButtonInOtherTools } from "./buttonInOtherTools";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
-
-const buttonCss = css`
-  display: flex;
-  align-items: center;
-  background-color: ${pinboard[500]};
-  ${agateSans.xxsmall({ fontWeight: "bold" })};
-  border: none;
-  border-radius: 100px;
-  padding: 0 6px 0 10px;
-  line-height: 2;
-  cursor: pointer;
-  color: ${pinMetal};
-`;
-
-const pinIcon = (
-  <PinIcon
-    css={css`
-      height: 14px;
-      margin-left: 2px;
-      path {
-        stroke: ${pinMetal};
-        stroke-width: 1px;
-      }
-    `}
-  />
-);
 
 interface AddToPinboardButtonProps {
   dataAttributes: DOMStringMap;
@@ -75,7 +48,8 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
         ${agateSans.small()}
       `}
     >
-      <button
+      <ButtonInOtherTools
+        iconAtEnd
         onClick={() => {
           props.setPayloadToBeSent(payloadToBeSent);
           props.expand();
@@ -83,15 +57,14 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
             assetType: payloadToBeSent.type,
           });
         }}
-        css={buttonCss}
       >
         {payloadToBeSent.type === "grid-search"
           ? "Add this search to"
           : "Add to"}
-        {pinIcon}
-      </button>
+      </ButtonInOtherTools>
       {payloadToBeSent.type === "grid-original" && (
-        <button
+        <ButtonInOtherTools
+          iconAtEnd
           onClick={() => {
             props.setPayloadToBeSent({
               type: IMAGING_REQUEST_ITEM_TYPE,
@@ -108,15 +81,13 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
               }
             );
           }}
-          css={css`
-            ${buttonCss};
+          extraCss={css`
             white-space: nowrap;
             margin-top: ${space[1]}px;
           `}
         >
           Imaging order
-          {pinIcon}
-        </button>
+        </ButtonInOtherTools>
       )}
     </root.div>
   );

@@ -25,7 +25,7 @@ export const ButtonInOtherTools = ({
       border: none;
       border-radius: 100px;
       padding: 0 ${iconAtEnd ? 6 : 10}px 0 ${iconAtEnd ? 10 : 6}px;
-      line-height: 2;
+      min-height: 24px;
       cursor: pointer;
       color: ${pinMetal};
       ${extraCss};

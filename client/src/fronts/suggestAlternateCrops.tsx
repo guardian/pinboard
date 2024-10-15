@@ -12,6 +12,8 @@ import { useGlobalStateContext } from "../globalState";
 import { CreateItemInput } from "shared/graphql/graphql";
 import { gqlCreateItem } from "../../gql";
 import { isPinboardData, PinboardData } from "shared/graphql/extraTypes";
+import { agateSans } from "../../fontNormaliser";
+import { pinMetal } from "../../colours";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
   "pinboard-suggest-alternate-crops";
@@ -41,7 +43,6 @@ export const SuggestAlternateCrops = ({
   alternateCropSuggestionElements,
 }: {
   alternateCropSuggestionElements: HTMLElement[];
-  // TODO take in some count of existing crops (so people know it doesn't need doing again)
 }) => {
   // FIXME handle the piece not being tracked in workflow
 
@@ -55,6 +56,7 @@ export const SuggestAlternateCrops = ({
     openPinboard,
     setPayloadToBeSent,
     clearSelectedPinboard,
+    cropsOnPreselectedPinboard,
   } = useGlobalStateContext();
 
   const apolloClient = useApolloClient();
@@ -130,6 +132,33 @@ export const SuggestAlternateCrops = ({
       return () => window.removeEventListener("message", handleGridMessage); // Cleanup/unmount function
     }
   }, [maybeGridIFrameUrl]);
+
+  const AlreadySuggestedCropsForRatio = ({
+    customRatio,
+  }: {
+    customRatio: string;
+  }) => {
+    if (!cropsOnPreselectedPinboard) return null;
+    const cropsMatchingRatio = cropsOnPreselectedPinboard.reduce(
+      (acc, crop) => (crop.aspectRatio === customRatio ? acc + 1 : acc),
+      0
+    );
+    return (
+      <span
+        css={css`
+          ${agateSans.xxsmall()};
+          color: ${pinMetal};
+          margin-left: 9px;
+            margin-top: -5px;
+      }
+      `}
+      >
+        {cropsMatchingRatio} crop{cropsMatchingRatio === 1 ? "" : "s"} at{" "}
+        {customRatio} already suggested
+      </span>
+    );
+  };
+
   return (
     <>
       {alternateCropSuggestionElements.map((htmlElement) =>
@@ -140,20 +169,23 @@ export const SuggestAlternateCrops = ({
               flex-direction: column;
               gap: 5px;
               margin: 5px 0;
+              align-items: center;
             `}
           >
             {Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
               ([customRatio, cropType]) => (
-                <ButtonInOtherTools
-                  key={customRatio}
-                  onClick={onClick(
-                    htmlElement.dataset.mediaId,
-                    cropType,
-                    customRatio
-                  )}
-                >
-                  Suggest an alternate {customRatio} crop
-                </ButtonInOtherTools>
+                <>
+                  <ButtonInOtherTools
+                    onClick={onClick(
+                      htmlElement.dataset.mediaId,
+                      cropType,
+                      customRatio
+                    )}
+                  >
+                    Suggest an alternate {customRatio} crop
+                  </ButtonInOtherTools>
+                  <AlreadySuggestedCropsForRatio customRatio={customRatio} />
+                </>
               )
             )}
           </root.div>,

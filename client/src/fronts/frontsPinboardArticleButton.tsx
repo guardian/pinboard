@@ -16,12 +16,14 @@ interface FrontsPinboardArticleButtonProps {
   maybePinboardData: PinboardData | undefined;
   maybeItemCounts: PinboardIdWithItemCounts | undefined;
   withDraggableThumbsOfRatio: string | undefined;
+  hasCountsLoaded: boolean;
 }
 
 export const FrontsPinboardArticleButton = ({
   maybePinboardData,
   maybeItemCounts,
   withDraggableThumbsOfRatio,
+  hasCountsLoaded,
 }: FrontsPinboardArticleButtonProps) => {
   const { setIsExpanded, openPinboard } = useGlobalStateContext();
 
@@ -90,7 +92,8 @@ export const FrontsPinboardArticleButton = ({
         }}
       >
         {!maybePinboardData && "Not tracked in workflow"}
-        {maybePinboardData && !maybeItemCounts && <em>loading...</em>}
+        {maybePinboardData && !hasCountsLoaded && <em>loading...</em>}
+        {maybePinboardData && hasCountsLoaded && !maybeItemCounts && "0 items"}
         {maybeItemCounts && (
           <>
             {

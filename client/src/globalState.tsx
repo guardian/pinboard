@@ -18,7 +18,10 @@ import {
   gqlGetPinboardsByIds,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
-import type { PayloadAndType } from "./types/PayloadAndType";
+import type {
+  PayloadAndType,
+  PayloadWithThumbnail,
+} from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
 import { isPinboardData } from "../../shared/graphql/extraTypes";
@@ -64,6 +67,8 @@ interface GlobalStateContextShape {
   openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
+  cropsOnPreselectedPinboard: PayloadWithThumbnail[];
+  setCropsOnPreselectedPinboard: (crops: PayloadWithThumbnail[]) => void;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 
@@ -180,6 +185,10 @@ export const GlobalStateProvider = ({
 
   const preselectedPinboardId =
     isPinboardData(preselectedPinboard) && preselectedPinboard.id;
+
+  const [cropsOnPreselectedPinboard, setCropsOnPreselectedPinboard] = useState<
+    PayloadWithThumbnail[]
+  >([]);
 
   const [
     maybeOpenPinboardIdBasedOnQueryParam,
@@ -556,6 +565,8 @@ export const GlobalStateProvider = ({
     openPinboardInNewTab,
     closePinboard,
     preselectedPinboard,
+    cropsOnPreselectedPinboard,
+    setCropsOnPreselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
 

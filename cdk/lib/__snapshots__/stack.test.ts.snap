@@ -29,6 +29,15 @@ Object {
     "gu:cdk:version": "49.5.0",
   },
   "Outputs": Object {
+    "BootstrappingLambdaFunctionName": Object {
+      "Description": "pinboard-bootstrapping-lambda-TEST function name",
+      "Export": Object {
+        "Name": "pinboard-bootstrapping-lambda-TEST-function-name",
+      },
+      "Value": Object {
+        "Ref": "pinboardbootstrappinglambdaD2C487DA",
+      },
+    },
     "pinboardbootstrappinglambdaapiEndpoint4DE1E032": Object {
       "Value": Object {
         "Fn::Join": Array [

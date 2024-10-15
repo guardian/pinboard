@@ -64,9 +64,7 @@ export const FrontsIntegration = ({
   interface ItemCountsLookup {
     [pinboardId: string]: PinboardIdWithItemCounts;
   }
-  const [itemCountsLookup, setItemCountsLookup] = useState(
-    {} as ItemCountsLookup
-  );
+  const [maybeItemCountsLookup, setMaybeItemCountsLookup] = useState();
   useEffect(() => {
     const pinboardIds = Object.values(pathToPinboardDataMap).map(
       ({ id }) => id
@@ -82,7 +80,7 @@ export const FrontsIntegration = ({
         })
         .then(({ data }) => {
           data?.getItemCounts &&
-            setItemCountsLookup(
+            setMaybeItemCountsLookup(
               data.getItemCounts.reduce(
                 (
                   acc: ItemCountsLookup,
@@ -105,9 +103,11 @@ export const FrontsIntegration = ({
             ReactDOM.createPortal(
               <FrontsPinboardArticleButton
                 maybePinboardData={pathToPinboardDataMap[path]}
+                hasCountsLoaded={!!maybeItemCountsLookup}
                 maybeItemCounts={
                   pathToPinboardDataMap[path] &&
-                  itemCountsLookup[pathToPinboardDataMap[path].id]
+                  maybeItemCountsLookup &&
+                  maybeItemCountsLookup[pathToPinboardDataMap[path].id]
                 }
                 withDraggableThumbsOfRatio={
                   htmlElementToMountInto.dataset.withDraggableThumbsOfRatio

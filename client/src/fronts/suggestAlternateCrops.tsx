@@ -1,19 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { ButtonInOtherTools } from "../buttonInOtherTools";
-import { css } from "@emotion/react";
-import {
-  PayloadWithThumbnail,
-  StaticGridPayload,
-} from "../types/PayloadAndType";
+import { css, Global } from "@emotion/react";
+import { PayloadWithThumbnail } from "../types/PayloadAndType";
 import root from "react-shadow/emotion";
 import { useApolloClient } from "@apollo/client";
 import { useGlobalStateContext } from "../globalState";
 import { CreateItemInput } from "shared/graphql/graphql";
 import { gqlCreateItem } from "../../gql";
-import { isPinboardData, PinboardData } from "shared/graphql/extraTypes";
+import { isPinboardData } from "shared/graphql/extraTypes";
 import { agateSans } from "../../fontNormaliser";
 import { pinMetal } from "../../colours";
+import { neutral } from "@guardian/source-foundations";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
   "pinboard-suggest-alternate-crops";
@@ -26,6 +24,33 @@ const SUGGESTIBLE_CROP_RATIOS = {
 const gridTopLevelDomain = window.location.hostname.endsWith(".gutools.co.uk")
   ? "gutools.co.uk"
   : "test.dev-gutools.co.uk";
+
+const cssToAddGuttersToComposerTrailThumbnail = css`
+  #js-change-trail-image-button {
+    position: relative;
+  }
+  #js-change-trail-image-button::before,
+  #js-change-trail-image-button::after {
+    display: block;
+    content: "";
+    position: absolute;
+    z-index: 999;
+    width: 12.5%;
+    top: 0;
+    bottom: 0;
+    opacity: 0.75;
+  }
+  #js-change-trail-image-button::before {
+    /* left gutter */
+    left: 0;
+    background: ${neutral[93]};
+  }
+  #js-change-trail-image-button::after {
+    /* right gutter */
+    right: 0;
+    background: ${neutral[93]};
+  }
+`;
 
 interface GridCropDataFromPostMessage {
   id: string;
@@ -149,7 +174,7 @@ export const SuggestAlternateCrops = ({
           ${agateSans.xxsmall()};
           color: ${pinMetal};
           margin-left: 9px;
-            margin-top: -5px;
+          margin-top: -5px;
       }
       `}
       >
@@ -161,34 +186,40 @@ export const SuggestAlternateCrops = ({
 
   return (
     <>
+      {alternateCropSuggestionElements.length > 0 && (
+        <Global styles={cssToAddGuttersToComposerTrailThumbnail} />
+      )}
       {alternateCropSuggestionElements.map((htmlElement) =>
         ReactDOM.createPortal(
-          <root.div
-            css={css`
-              display: flex;
-              flex-direction: column;
-              gap: 5px;
-              margin: 5px 0;
-              align-items: center;
-            `}
-          >
-            {Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
-              ([customRatio, cropType]) => (
-                <>
-                  <ButtonInOtherTools
-                    onClick={onClick(
-                      htmlElement.dataset.mediaId,
-                      cropType,
-                      customRatio
-                    )}
-                  >
-                    Suggest an alternate {customRatio} crop
-                  </ButtonInOtherTools>
-                  <AlreadySuggestedCropsForRatio customRatio={customRatio} />
-                </>
-              )
-            )}
-          </root.div>,
+          <div>
+            <label className="sub-label">Suggest crops for Fronts</label>
+            <root.div
+              css={css`
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                margin: 5px 0;
+                align-items: center;
+              `}
+            >
+              {Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
+                ([customRatio, cropType]) => (
+                  <>
+                    <ButtonInOtherTools
+                      onClick={onClick(
+                        htmlElement.dataset.mediaId,
+                        cropType,
+                        customRatio
+                      )}
+                    >
+                      Suggest an alternate {customRatio} crop
+                    </ButtonInOtherTools>
+                    <AlreadySuggestedCropsForRatio customRatio={customRatio} />
+                  </>
+                )
+              )}
+            </root.div>
+          </div>,
           htmlElement
         )
       )}

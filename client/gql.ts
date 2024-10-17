@@ -8,6 +8,7 @@ const pinboardReturnFields = `
   headline
   trashed
   isNotFound
+  path
 `;
 export const gqlListPinboards = gql`
     query MyQuery($searchText: String!) {
@@ -22,6 +23,11 @@ export const gqlGetPinboardByComposerId = gql`
 export const gqlGetPinboardsByIds = gql`
     query MyQuery($ids: [String!]!) {
         getPinboardsByIds(ids: $ids) { ${pinboardReturnFields} }
+    }
+`;
+export const gqlGetPinboardsByPaths = gql`
+    query MyQuery($paths: [String!]!) {
+        getPinboardsByPaths(paths: $paths) { ${pinboardReturnFields} }
     }
 `;
 export const gqlGetGroupPinboardIds = gql`
@@ -43,6 +49,9 @@ export const gqlGetItemCounts = gql`
       pinboardId
       totalCount
       unreadCount
+      totalCropCount
+      fiveByFourCount
+      fourByFiveCount
     }
   }
 `;

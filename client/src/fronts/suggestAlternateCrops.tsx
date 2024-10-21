@@ -10,7 +10,7 @@ import { CreateItemInput } from "shared/graphql/graphql";
 import { gqlCreateItem } from "../../gql";
 import { isPinboardData } from "shared/graphql/extraTypes";
 import { agateSans } from "../../fontNormaliser";
-import { pinMetal } from "../../colours";
+import { pinboard, pinMetal } from "../../colours";
 import { neutral } from "@guardian/source-foundations";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
@@ -164,23 +164,75 @@ export const SuggestAlternateCrops = ({
     customRatio: string;
   }) => {
     if (!cropsOnPreselectedPinboard) return null;
-    const cropsMatchingRatio = cropsOnPreselectedPinboard.reduce(
-      (acc, crop) => (crop.aspectRatio === customRatio ? acc + 1 : acc),
-      0
+    const cropsMatchingRatio = cropsOnPreselectedPinboard.filter(
+      (_) => _.aspectRatio === customRatio
     );
     return (
-      <span
+      <div
         css={css`
+          position: relative;
+          width: 100%;
           ${agateSans.xxsmall()};
           color: ${pinMetal};
-          margin-left: 9px;
-          margin-top: -5px;
-      }
-      `}
+          margin-top: 2px;
+          margin-bottom: 5px;
+          user-select: none;
+          text-align: center;
+          &:hover {
+            background-color: ${cropsMatchingRatio.length
+              ? pinboard["500"]
+              : "transparent"};
+            > div {
+              display: block;
+            }
+          }
+        `}
       >
-        {cropsMatchingRatio} crop{cropsMatchingRatio === 1 ? "" : "s"} at{" "}
-        {customRatio} already suggested
-      </span>
+        {cropsMatchingRatio.length} crop
+        {cropsMatchingRatio.length === 1 ? "" : "s"} at{" "}
+        <strong>{customRatio}</strong> already suggested
+        {cropsMatchingRatio.length > 0 && (
+          <div
+            css={css`
+              display: none;
+              position: absolute;
+              left: 0;
+              bottom: 50%;
+              transform: translate(-100%, 50%);
+              z-index: 9999;
+              padding: 5px;
+              border-radius: 3px;
+              border: 3px solid ${pinboard["500"]};
+              background: white;
+            `}
+          >
+            <div
+              css={css`
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+                overflow-x: auto;
+                max-width: 350px;
+              `}
+            >
+              {cropsMatchingRatio.map((payload, index) => (
+                <img
+                  key={index}
+                  css={css`
+                    max-width: 100px;
+                    max-height: 100px;
+                    //cursor: pointer;
+                  `}
+                  src={payload.thumbnail}
+                  // onClick={
+                  //   () => console.log(item.id) //TODO open pinboard and scroll to selected item to see context
+                  // }
+                ></img>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -197,7 +249,6 @@ export const SuggestAlternateCrops = ({
               css={css`
                 display: flex;
                 flex-direction: column;
-                gap: 5px;
                 margin: 5px 0;
                 align-items: center;
               `}

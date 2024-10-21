@@ -45,6 +45,7 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
+import { NewswiresIntegration } from "./newswires/newswiresIntegration";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -444,6 +445,7 @@ export const PinBoardApp = ({
                 expand={() => setIsExpanded(true)}
               />
             ))}
+            <NewswiresIntegration />
           </TourStateProvider>
         </GlobalStateProvider>
       </ApolloProvider>

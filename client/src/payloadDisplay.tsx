@@ -105,6 +105,16 @@ export const PayloadDisplay = ({
             payload={payloadAndType.payload}
           />
         )}
+        {payloadAndType.type === "newswires-snippet" && (
+          <code
+            css={css`
+              font-size: 0.8rem;
+              overflow-y: auto;
+            `}
+          >
+            {payloadAndType.payload.embeddableHtml}
+          </code>
+        )}
 
         {clearPayloadToBeSent && (
           <FloatingClearButton clear={clearPayloadToBeSent} />

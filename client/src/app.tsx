@@ -57,6 +57,7 @@ import {
   SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR,
   SuggestAlternateCrops,
 } from "./fronts/suggestAlternateCrops";
+import { NewswiresIntegration } from "./newswires/newswiresIntegration";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -513,6 +514,7 @@ export const PinBoardApp = ({
                 expand={() => setIsExpanded(true)}
               />
             ))}
+            <NewswiresIntegration />
           </TourStateProvider>
         </GlobalStateProvider>
       </ApolloProvider>

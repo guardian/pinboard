@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 
-const sources = ["grid", "mam"] as const;
-const sourceTypes = ["crop", "original", "search", "video"] as const;
+const sources = ["grid", "mam", "newswires"] as const;
+const sourceTypes = ["crop", "original", "search", "video", "snippet"] as const;
 
 type Source = (typeof sources)[number];
 const isSource = (source: unknown): source is Source =>
@@ -32,16 +32,23 @@ export interface PayloadWithApiUrl extends PayloadCommon {
   apiUrl: string;
 }
 
+export interface PayloadWithSnippet extends PayloadCommon {
+  embeddableHtml: string;
+}
+
 type Payload =
   | PayloadWithThumbnail
   | PayloadWithApiUrl
-  | PayloadWithExternalUrl;
+  | PayloadWithExternalUrl
+  | PayloadWithSnippet;
 const isPayload = (maybePayload: unknown): maybePayload is Payload => {
   return (
     typeof maybePayload === "object" &&
     maybePayload !== null &&
     "embeddableUrl" in maybePayload &&
-    ("thumbnail" in maybePayload || "apiUrl" in maybePayload)
+    ("thumbnail" in maybePayload ||
+      "apiUrl" in maybePayload ||
+      "embeddableHtml" in maybePayload)
   );
 };
 
@@ -60,10 +67,16 @@ export type MamVideoPayload = {
   payload: PayloadWithExternalUrl;
 };
 
+export type NewswiresSnippetPayload = {
+  type: "newswires-snippet";
+  payload: PayloadWithSnippet;
+};
+
 export type PayloadAndType =
   | StaticGridPayload
   | DynamicGridPayload
-  | MamVideoPayload;
+  | MamVideoPayload
+  | NewswiresSnippetPayload;
 
 export const buildPayloadAndType = (
   type: string,

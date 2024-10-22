@@ -1,19 +1,16 @@
 import * as Sentry from "@sentry/react";
 
-const sources = ["grid", "mam", "newswires"] as const;
-const sourceTypes = ["crop", "original", "search", "video", "snippet"] as const;
+const payloadTypes = [
+  "grid-crop",
+  "grid-original",
+  "grid-search",
+  "mam-video",
+  "newswires-snippet",
+] as const;
 
-type Source = (typeof sources)[number];
-const isSource = (source: unknown): source is Source =>
-  sources.includes(source as Source);
-type SourceType = (typeof sourceTypes)[number];
-const isSourceType = (sourceType: unknown): sourceType is SourceType =>
-  sourceTypes.includes(sourceType as SourceType);
-
-export type PayloadType = `${Source}-${SourceType}`; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
+export type PayloadType = (typeof payloadTypes)[number];
 const isPayloadType = (payloadType: string): payloadType is PayloadType => {
-  const parts = payloadType.split("-");
-  return parts.length === 2 && isSource(parts[0]) && isSourceType(parts[1]);
+  return payloadTypes.includes(payloadType as PayloadType);
 };
 
 interface PayloadCommon {
@@ -97,6 +94,12 @@ export const buildPayloadAndType = (
     type === "mam-video" &&
     "thumbnail" in payload &&
     "externalUrl" in payload
+  ) {
+    return { type, payload };
+  } else if (
+    type === "newswires-snippet" &&
+    "embeddableHtml" in payload &&
+    "embeddableUrl" in payload
   ) {
     return { type, payload };
   }

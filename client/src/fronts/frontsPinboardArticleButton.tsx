@@ -25,7 +25,7 @@ export const FrontsPinboardArticleButton = ({
   withDraggableThumbsOfRatio,
   hasCountsLoaded,
 }: FrontsPinboardArticleButtonProps) => {
-  const { setIsExpanded, openPinboard } = useGlobalStateContext();
+  const { peekAtPinboard } = useGlobalStateContext();
 
   const apolloClient = useApolloClient();
 
@@ -82,8 +82,7 @@ export const FrontsPinboardArticleButton = ({
         onClick={(event) => {
           event.stopPropagation();
           if (maybePinboardData) {
-            setIsExpanded(true);
-            openPinboard(false)(maybePinboardData, false); // TODO probably should be 'peek at pinboard' from panel.tsx
+            peekAtPinboard(maybePinboardData.id);
           } else {
             alert(
               "This piece is not tracked in workflow, which is required to chat and share assets (such as crops) via Pinboard."
@@ -151,9 +150,10 @@ export const FrontsPinboardArticleButton = ({
                 onDragStart={(event) => {
                   event.dataTransfer.setData("URL", payload.embeddableUrl);
                 }}
-                onClick={
-                  () => console.log(item.id) //TODO open pinboard and scroll to selected item to see context
-                }
+                onClick={() => {
+                  peekAtPinboard(item.pinboardId);
+                  console.log(item.id); //TODO scroll to selected item to see context
+                }}
               ></img>
             ))}
           </div>

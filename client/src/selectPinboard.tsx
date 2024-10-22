@@ -54,7 +54,6 @@ export const MAX_OPEN_PINBOARDS_TO_DISPLAY = 50;
 
 interface SelectPinboardProps {
   pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
-  peekAtPinboard: (pinboard: PinboardData) => void;
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
@@ -64,7 +63,6 @@ interface SelectPinboardProps {
 
 export const SelectPinboard = ({
   pinboardsWithClaimCounts,
-  peekAtPinboard,
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
@@ -83,6 +81,7 @@ export const SelectPinboard = ({
     openPinboard,
     openPinboardInNewTab,
     closePinboard,
+    peekAtPinboard,
     preselectedPinboard,
 
     hasWebPushSubscription,
@@ -217,7 +216,7 @@ export const SelectPinboard = ({
       } else if (isOpenInNewTab || isInline) {
         openPinboardInNewTab(pinboardData);
       } else if (isTeamPinboard) {
-        peekAtPinboard(pinboardData);
+        peekAtPinboard(pinboardData.id);
       } else {
         openPinboard(tourProgress.isRunning)(pinboardData, isOpenInNewTab);
       }

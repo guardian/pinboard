@@ -1,7 +1,14 @@
 #!/bin/sh
+echo "Running pre-commit hook"
+
 . "$(dirname "$0")/_/husky.sh"
 
 set -e
+
+fnm use
+
+fnm use || true
+nvm use || true
 
 corepack enable
 yarn lint-staged

@@ -78,7 +78,7 @@ export const SuggestAlternateCrops = ({
   const {
     setIsExpanded,
     preselectedPinboard,
-    openPinboard,
+    peekAtPinboard,
     setPayloadToBeSent,
     clearSelectedPinboard,
     cropsOnPreselectedPinboard,
@@ -131,7 +131,7 @@ export const SuggestAlternateCrops = ({
             },
           })
           .then(() => {
-            openPinboard(false)(preselectedPinboard, false);
+            peekAtPinboard(preselectedPinboard.id);
             setIsExpanded(true);
           }); // TODO handle errors with catch
       } else {
@@ -165,7 +165,7 @@ export const SuggestAlternateCrops = ({
   }) => {
     if (!cropsOnPreselectedPinboard) return null;
     const cropsMatchingRatio = cropsOnPreselectedPinboard.filter(
-      (_) => _.aspectRatio === customRatio
+      ([_]) => _.aspectRatio === customRatio
     );
     return (
       <div
@@ -215,18 +215,19 @@ export const SuggestAlternateCrops = ({
                 max-width: 350px;
               `}
             >
-              {cropsMatchingRatio.map((payload, index) => (
+              {cropsMatchingRatio.map(([payload, item], index) => (
                 <img
                   key={index}
                   css={css`
                     max-width: 100px;
                     max-height: 100px;
-                    //cursor: pointer;
+                    cursor: pointer;
                   `}
                   src={payload.thumbnail}
-                  // onClick={
-                  //   () => console.log(item.id) //TODO open pinboard and scroll to selected item to see context
-                  // }
+                  onClick={() => {
+                    peekAtPinboard(item.pinboardId);
+                    console.log(item.id); //TODO scroll to selected item to see context
+                  }}
                 ></img>
               ))}
             </div>

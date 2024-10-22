@@ -64,11 +64,14 @@ interface GlobalStateContextShape {
   openPinboard: (
     isDemo: boolean
   ) => (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
+  peekAtPinboard: (pinboardId: string) => void;
   openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
-  cropsOnPreselectedPinboard: PayloadWithThumbnail[];
-  setCropsOnPreselectedPinboard: (crops: PayloadWithThumbnail[]) => void;
+  cropsOnPreselectedPinboard: Array<[PayloadWithThumbnail, Item]>;
+  setCropsOnPreselectedPinboard: (
+    crops: Array<[PayloadWithThumbnail, Item]>
+  ) => void;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 
@@ -187,7 +190,7 @@ export const GlobalStateProvider = ({
     isPinboardData(preselectedPinboard) && preselectedPinboard.id;
 
   const [cropsOnPreselectedPinboard, setCropsOnPreselectedPinboard] = useState<
-    PayloadWithThumbnail[]
+    Array<[PayloadWithThumbnail, Item]>
   >([]);
 
   const [
@@ -220,17 +223,20 @@ export const GlobalStateProvider = ({
 
   const activePinboardIds = isDemoSelectedPinboard
     ? [demoPinboardData.id]
-    : [
-        ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-        ...(maybeOpenPinboardIdBasedOnQueryParam
-          ? [maybeOpenPinboardIdBasedOnQueryParam]
-          : []),
-        ...manuallyOpenedPinboardIds?.filter(
-          (_) =>
-            _ !== preselectedPinboardId &&
-            _ !== maybeOpenPinboardIdBasedOnQueryParam
-        ),
-      ];
+    : Array.from(
+        new Set([
+          ...(selectedPinboardId ? [selectedPinboardId] : []),
+          ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+          ...(maybeOpenPinboardIdBasedOnQueryParam
+            ? [maybeOpenPinboardIdBasedOnQueryParam]
+            : []),
+          ...manuallyOpenedPinboardIds?.filter(
+            (_) =>
+              _ !== preselectedPinboardId &&
+              _ !== maybeOpenPinboardIdBasedOnQueryParam
+          ),
+        ])
+      );
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -377,6 +383,11 @@ export const GlobalStateProvider = ({
         setSelectedPinboardId(pinboardData.id);
       }
     };
+
+  const peekAtPinboard = (pinboardId: string) => {
+    setSelectedPinboardId(pinboardId);
+    setIsExpanded(true);
+  };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 
@@ -563,6 +574,7 @@ export const GlobalStateProvider = ({
     addManuallyOpenedPinboardId,
     openPinboard,
     openPinboardInNewTab,
+    peekAtPinboard,
     closePinboard,
     preselectedPinboard,
     cropsOnPreselectedPinboard,

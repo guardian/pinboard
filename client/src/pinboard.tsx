@@ -159,9 +159,9 @@ export const Pinboard = ({
         items.reduce(
           (acc, item) =>
             item.type === "grid-crop" && item.payload
-              ? [...acc, JSON.parse(item.payload)]
+              ? [...acc, [JSON.parse(item.payload), item]]
               : acc,
-          [] as PayloadWithThumbnail[]
+          [] as Array<[PayloadWithThumbnail, Item]>
         )
       );
   }, [preselectedPinboard, items]);

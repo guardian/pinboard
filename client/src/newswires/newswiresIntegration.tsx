@@ -7,6 +7,7 @@ import { pinboard, pinMetal } from "../../colours";
 import { textSans } from "../../fontNormaliser";
 import { space } from "@guardian/source-foundations";
 import ReactDOM from "react-dom";
+import PinIcon from "../../icons/pin-icon.svg";
 
 const SELECTION_TARGET_DATA_ATTR = "[data-pinboard-selection-target]";
 
@@ -161,7 +162,7 @@ export const NewswiresIntegration = () => {
                     display: flex;
                     align-items: center;
                     background-color: ${pinboard[500]};
-                    ${textSans.xsmall()};
+                    ${textSans.xsmall({ fontWeight: "bold" })};
                     border: none;
                     border-radius: 100px;
                     border-${
@@ -177,7 +178,17 @@ export const NewswiresIntegration = () => {
                   `}
                   onClick={addSelectionToPinboard}
                 >
-                  Add selection to pinboard
+                  Add selection to{" "}
+                  <PinIcon
+                    css={css`
+                      height: 18px;
+                      margin-left: ${space[1]}px;
+                      path {
+                        stroke: ${pinMetal};
+                        stroke-width: 1px;
+                      }
+                    `}
+                  />
                 </button>
               )
             )}

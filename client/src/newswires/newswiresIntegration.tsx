@@ -91,7 +91,7 @@ export const NewswiresIntegration = () => {
   const debouncedSelectionHandler = useMemo(
     () => () => {
       setState(null); // clear selection to hide buttons
-      debounce(handleSelectionChange, 750)();
+      debounce(handleSelectionChange, 500)();
     },
     [handleSelectionChange]
   );

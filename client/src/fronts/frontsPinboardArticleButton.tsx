@@ -95,11 +95,6 @@ export const FrontsPinboardArticleButton = ({
         {maybePinboardData && hasCountsLoaded && !maybeItemCounts && "0 items"}
         {maybeItemCounts && (
           <>
-            {
-              maybeItemCounts.unreadCount ||
-                null /*TODO move to absolute position top right of button in red blob*/
-            }
-            {maybeItemCounts.unreadCount > 0 && " unread of "}
             {maybeItemCounts.totalCount}
             &nbsp;items
             {maybeItemCounts.totalCropCount > 0 && (

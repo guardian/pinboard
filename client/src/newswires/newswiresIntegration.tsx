@@ -10,31 +10,56 @@ import ReactDOM from "react-dom";
 
 const SELECTION_TARGET_DATA_ATTR = "[data-pinboard-selection-target]";
 
+interface ButtonPosition {
+  top: number;
+  left: number;
+}
+
 export const NewswiresIntegration = () => {
   const { setPayloadToBeSent, setIsExpanded } = useGlobalStateContext();
-  const [selectedHTML, setSelectedHTML] = useState<string | null>(null);
-  const [mountPoint, setMountPoint] = useState<Element | null>(null);
-  const [buttonCoords, setButtonCoords] = useState({ x: 0, y: 0 });
+
+  const [state, setState] = useState<{
+    selectedHTML: string;
+    mountPoint: HTMLElement;
+    firstButtonPosition: ButtonPosition;
+    lastButtonPosition: ButtonPosition;
+  } | null>(null);
 
   const handleSelectionChange = () => {
     const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const maybeOriginalTargetEl = document.querySelector(
-        SELECTION_TARGET_DATA_ATTR
-      );
-
-      setMountPoint(maybeOriginalTargetEl);
+    const maybeOriginalTargetEl: HTMLElement | null = document.querySelector(
+      SELECTION_TARGET_DATA_ATTR
+    );
+    if (selection && selection.rangeCount > 0 && maybeOriginalTargetEl) {
       const clonedContents = selection.getRangeAt(0).cloneContents();
       const maybeClonedTargetEl = clonedContents.querySelector(
         SELECTION_TARGET_DATA_ATTR
       );
+      const parentRect = maybeOriginalTargetEl.getBoundingClientRect();
+      const selectionRects = Array.from(
+        selection.getRangeAt(0).getClientRects()
+      );
+      const firstRect = selectionRects[0];
+      const lastRect = selectionRects[selectionRects.length - 1];
+      const newFirstButtonCoords = {
+        top: firstRect.y - parentRect.y,
+        left: firstRect.x - parentRect.x,
+      };
+      const newLastButtonCoords = {
+        top: lastRect.y - parentRect.y + lastRect.height,
+        left: lastRect.x - parentRect.x + lastRect.width,
+      };
       if (maybeClonedTargetEl) {
         console.log(
           "selection contains whole target element; contents:",
           maybeClonedTargetEl.innerHTML
         );
-        setSelectedHTML(maybeClonedTargetEl.innerHTML);
-        setSelectionFocusNode(selectionFocusNode); // todo: set coords instead, based on selection
+        setState({
+          selectedHTML: maybeClonedTargetEl.innerHTML,
+          mountPoint: maybeOriginalTargetEl,
+          firstButtonPosition: newFirstButtonCoords,
+          lastButtonPosition: newLastButtonCoords,
+        });
       } else if (
         maybeOriginalTargetEl?.contains(selection.anchorNode) &&
         maybeOriginalTargetEl?.contains(selection.focusNode)
@@ -45,14 +70,22 @@ export const NewswiresIntegration = () => {
           "selection is within target element; contents:",
           tempEl.innerHTML
         );
-        setSelectedHTML(tempEl.innerHTML);
-        setSelectionFocusNode(selection.focusNode);
+        setState({
+          selectedHTML: tempEl.innerHTML,
+          mountPoint: maybeOriginalTargetEl,
+          firstButtonPosition: newFirstButtonCoords,
+          lastButtonPosition: newLastButtonCoords,
+        });
+        //TODO might need to clean up tempEl
       }
     }
   };
 
   const debouncedSelectionHandler = useMemo(
-    () => debounce(handleSelectionChange, 750),
+    () => () => {
+      setState(null); // clear selection to hide buttons
+      debounce(handleSelectionChange, 750)();
+    },
     [handleSelectionChange]
   );
 
@@ -77,51 +110,74 @@ export const NewswiresIntegration = () => {
   }, []);
 
   const addSelectionToPinboard = useCallback(() => {
-    if (selectedHTML) {
+    if (state) {
       setPayloadToBeSent({
         type: "newswires-snippet",
         payload: {
-          embeddableHtml: selectedHTML,
+          embeddableHtml: state.selectedHTML,
           embeddableUrl: window.location.href,
         },
       });
       setIsExpanded(true);
     }
-  }, [selectedHTML, setPayloadToBeSent]);
+  }, [state, setPayloadToBeSent]);
 
   return (
     <>
       <Global
         styles={css`
+          ${SELECTION_TARGET_DATA_ATTR} {
+            position: relative;
+          }
           ${SELECTION_TARGET_DATA_ATTR}::selection {
             background-color: ${pinboard[500]};
             color: ${pinMetal};
           }
         `}
       />
-      {selectedHTML &&
-        mountPoint &&
+      {state &&
         ReactDOM.createPortal(
           <div>
-            <button
-              css={css`
-                display: flex;
-                align-items: center;
-                background-color: ${pinboard[500]};
-                ${textSans.xsmall()};
-                border: none;
-                border-radius: 100px;
-                padding: 0 ${space[2]}px 0 ${space[3]}px;
-                line-height: 2;
-                cursor: pointer;
-                color: ${pinMetal};
-              `}
-              onClick={addSelectionToPinboard}
-            >
-              Add selection to pinboard
-            </button>
+            {[state.firstButtonPosition, state.lastButtonPosition].map(
+              (buttonCoords, index) => (
+                <button
+                  key={index}
+                  css={css`
+                    position: absolute;
+                    top: ${buttonCoords.top}px;
+                    left: ${buttonCoords.left}px;
+                    transform: translate(
+                      ${
+                        buttonCoords === state.firstButtonPosition
+                          ? "0, -100%"
+                          : "-100%, 0"
+                      }
+                    );
+                    display: flex;
+                    align-items: center;
+                    background-color: ${pinboard[500]};
+                    ${textSans.xsmall()};
+                    border: none;
+                    border-radius: 100px;
+                    border-${
+                      buttonCoords === state.firstButtonPosition
+                        ? "bottom-left"
+                        : "top-right"
+                    }-radius: 0;
+                    padding: 0 ${space[2]}px 0 ${space[3]}px;
+                    line-height: 2;
+                    cursor: pointer;
+                    color: ${pinMetal};
+                      text-wrap: nowrap;
+                  `}
+                  onClick={addSelectionToPinboard}
+                >
+                  Add selection to pinboard
+                </button>
+              )
+            )}
           </div>,
-          mountPoint
+          state.mountPoint
         )}
     </>
   );

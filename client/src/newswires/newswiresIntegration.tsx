@@ -30,7 +30,12 @@ export const NewswiresIntegration = () => {
     const maybeOriginalTargetEl: HTMLElement | null = document.querySelector(
       SELECTION_TARGET_DATA_ATTR
     );
-    if (selection && selection.rangeCount > 0 && maybeOriginalTargetEl) {
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      selection.toString().length > 0 &&
+      maybeOriginalTargetEl
+    ) {
       const clonedContents = selection.getRangeAt(0).cloneContents();
       const maybeClonedTargetEl = clonedContents.querySelector(
         SELECTION_TARGET_DATA_ATTR

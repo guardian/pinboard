@@ -8,6 +8,7 @@ import { textSans } from "../../fontNormaliser";
 import { space } from "@guardian/source-foundations";
 import ReactDOM from "react-dom";
 import PinIcon from "../../icons/pin-icon.svg";
+import root from "react-shadow/emotion";
 
 const SELECTION_TARGET_DATA_ATTR = "[data-pinboard-selection-target]";
 
@@ -143,7 +144,7 @@ export const NewswiresIntegration = () => {
       />
       {state &&
         ReactDOM.createPortal(
-          <div>
+          <root.div>
             {[state.firstButtonPosition, state.lastButtonPosition].map(
               (buttonCoords, index) => (
                 <button
@@ -192,7 +193,7 @@ export const NewswiresIntegration = () => {
                 </button>
               )
             )}
-          </div>,
+          </root.div>,
           state.mountPoint
         )}
     </>

@@ -146,8 +146,7 @@ export const FrontsPinboardArticleButton = ({
                   event.dataTransfer.setData("URL", payload.embeddableUrl);
                 }}
                 onClick={() => {
-                  peekAtPinboard(item.pinboardId);
-                  console.log(item.id); //TODO scroll to selected item to see context
+                  peekAtPinboard(item.pinboardId, item.id);
                 }}
               ></img>
             ))}

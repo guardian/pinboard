@@ -33,6 +33,7 @@ export interface PayloadWithApiUrl extends PayloadCommon {
 
 export interface PayloadWithSnippet extends PayloadCommon {
   embeddableHtml: string;
+  maybeUsageNote: string | undefined;
 }
 
 type Payload =

@@ -64,7 +64,7 @@ interface GlobalStateContextShape {
   openPinboard: (
     isDemo: boolean
   ) => (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
-  peekAtPinboard: (pinboardId: string) => void;
+  peekAtPinboard: (pinboardId: string, maybeItemIdToHighlight?: string) => void;
   openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
@@ -74,6 +74,9 @@ interface GlobalStateContextShape {
   ) => void;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
+
+  maybeItemIdToHighlight: string | null;
+  clearMaybeItemIdToHighlight: () => void;
 
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
@@ -384,8 +387,14 @@ export const GlobalStateProvider = ({
       }
     };
 
-  const peekAtPinboard = (pinboardId: string) => {
+  const [maybeItemIdToHighlight, setMaybeItemIdToHighlight] = useState<
+    string | null
+  >(null);
+  const clearMaybeItemIdToHighlight = () => setMaybeItemIdToHighlight(null);
+
+  const peekAtPinboard = (pinboardId: string, itemIdToHighlight?: string) => {
     setSelectedPinboardId(pinboardId);
+    itemIdToHighlight && setMaybeItemIdToHighlight(itemIdToHighlight);
     setIsExpanded(true);
   };
 
@@ -581,6 +590,9 @@ export const GlobalStateProvider = ({
     setCropsOnPreselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
+
+    maybeItemIdToHighlight,
+    clearMaybeItemIdToHighlight,
 
     hasEverUsedTour,
     visitTourStep,

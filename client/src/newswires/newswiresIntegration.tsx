@@ -9,6 +9,7 @@ import { space } from "@guardian/source-foundations";
 import ReactDOM from "react-dom";
 import PinIcon from "../../icons/pin-icon.svg";
 import root from "react-shadow/emotion";
+import { boxShadow } from "../styling";
 
 const SELECTION_TARGET_DATA_ATTR = "[data-pinboard-selection-target]";
 
@@ -54,7 +55,7 @@ export const NewswiresIntegration = () => {
       };
       const newLastButtonCoords = {
         top: lastRect.y - parentRect.y + lastRect.height,
-        left: lastRect.x - parentRect.x + lastRect.width,
+        left: lastRect.x - parentRect.x + lastRect.width - 1,
       };
       if (maybeClonedTargetEl) {
         console.log(
@@ -136,7 +137,7 @@ export const NewswiresIntegration = () => {
           ${SELECTION_TARGET_DATA_ATTR} {
             position: relative;
           }
-          ${SELECTION_TARGET_DATA_ATTR}::selection {
+          ${SELECTION_TARGET_DATA_ATTR}::selection, ${SELECTION_TARGET_DATA_ATTR} ::selection {
             background-color: ${pinboard[500]};
             color: ${pinMetal};
           }
@@ -164,6 +165,7 @@ export const NewswiresIntegration = () => {
                     align-items: center;
                     background-color: ${pinboard[500]};
                     ${textSans.xsmall({ fontWeight: "bold" })};
+                    box-shadow: ${boxShadow};
                     border: none;
                     border-radius: 100px;
                     border-${
@@ -175,7 +177,7 @@ export const NewswiresIntegration = () => {
                     line-height: 2;
                     cursor: pointer;
                     color: ${pinMetal};
-                      text-wrap: nowrap;
+                    text-wrap: nowrap;
                   `}
                   onClick={addSelectionToPinboard}
                 >

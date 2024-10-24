@@ -59,7 +59,7 @@ import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 
 // if changing should also change .nvmrc (at the root of repo)
-const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_18_X;
+const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_20_X;
 
 const ALARM_SNS_TOPIC_NAME = "Cloudwatch-Alerts";
 

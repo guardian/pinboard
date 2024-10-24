@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <title>PinBoard</title>
     <script src="https://pinboard.local.dev-gutools.co.uk/pinboard.loader.js"></script>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        height: 100vh;
+        column-gap: 10px;
+      }
+      h3,
+      h4 {
+        margin-top: 10px;
+        margin-bottom: 5px;
+      }
+    </style>
   </head>
 
   <body>
@@ -56,6 +70,40 @@
       <button id="btn-unset-unread-notifications-bubble">Unset</button>
     </div>
 
+    <h3>Fronts Integration</h3>
+
+    <h4>Composer Buttons etc. (under trail image in furniture)</h4>
+    <em>Requires preselected pinboard (like in composer)</em>
+    <div
+      style="background: #f6f6f6; padding-left: 420px; display: inline-block"
+    >
+      <div style="width: 195px">
+        <pinboard-suggest-alternate-crops
+          data-media-id="d6518ba44eb272830b779e4ed6356482007d4536"
+        ></pinboard-suggest-alternate-crops>
+      </div>
+    </div>
+
+    <div style="max-width: 180px">
+      <h4>Fronts Clipboard Card:</h4>
+      <pinboard-article-button
+        data-url-path="uk-news/2024/oct/21/whats-my-scene-by-the-hoodoo-gurus-"
+      ></pinboard-article-button>
+    </div>
+    <h4>Fronts Article Cards [Collapsed]:</h4>
+    <pinboard-article-button
+      data-url-path="uk-news/2024/oct/21/whats-my-scene-by-the-hoodoo-gurus-"
+    ></pinboard-article-button>
+    <br />
+    <h4>Fronts Article Cards [Expanded]</h4>
+    <pinboard-article-button
+      data-url-path="uk-news/2024/oct/21/whats-my-scene-by-the-hoodoo-gurus-"
+      data-with-draggable-thumbs-of-ratio="5:4"
+    ></pinboard-article-button>
+    <pinboard-article-button
+      data-url-path="uk-news/2024/oct/21/whats-my-scene-by-the-hoodoo-gurus-"
+      data-with-draggable-thumbs-of-ratio="4:5"
+    ></pinboard-article-button>
     <h3><code>Add to 📌</code> button</h3>
     <ul id="button_section">
       <h4>present initially</h4>

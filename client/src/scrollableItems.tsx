@@ -27,6 +27,7 @@ import { PendingItem } from "./types/PendingItem";
 import { UserLookup } from "./types/UserLookup";
 import { PINBOARD_ITEM_ID_QUERY_PARAM } from "../../shared/constants";
 import { useTourProgress } from "./tour/tourState";
+import { useGlobalStateContext } from "./globalState";
 
 interface ScrollableItemsProps {
   items: Array<PendingItem | Item>;
@@ -260,6 +261,20 @@ export const ScrollableItems = ({
     return () =>
       window.removeEventListener("message", handleItemFromServiceWorker);
   }, []);
+
+  const { maybeItemIdToHighlight, clearMaybeItemIdToHighlight } =
+    useGlobalStateContext();
+  useEffect(() => {
+    if (
+      maybeItemIdToHighlight &&
+      items.some((_) => _.id === maybeItemIdToHighlight)
+    ) {
+      setTimeout(() => {
+        scrollToItem(maybeItemIdToHighlight);
+        clearMaybeItemIdToHighlight();
+      }, 250);
+    }
+  }, [items, maybeItemIdToHighlight]);
 
   return (
     <div

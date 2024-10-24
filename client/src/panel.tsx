@@ -72,15 +72,9 @@ export const Panel = ({
 
   const tourProgress = useTourProgress();
 
-  const isInline = useMemo(isInlineMode, []);
-
   const selectedPinboard = activePinboards.find(
     (activePinboard) => activePinboard.id === selectedPinboardId
   );
-  const [_maybePeekingAtPinboard, setMaybePeekingAtPinboard] =
-    useState<PinboardData | null>(null);
-  const maybePeekingAtPinboard =
-    tourProgress.isRunning || isInline ? null : _maybePeekingAtPinboard;
 
   const title = (() => {
     if (selectedPinboard?.isNotFound) {
@@ -88,9 +82,6 @@ export const Panel = ({
     }
     if (selectedPinboardId) {
       return selectedPinboard?.title || "Loading pinboard...";
-    }
-    if (maybePeekingAtPinboard) {
-      return maybePeekingAtPinboard?.title || "Loading pinboard...";
     }
     return "Select a pinboard";
   })();
@@ -182,9 +173,6 @@ export const Panel = ({
     ...groupPinboardIds, // spread required because useEffect only checks the pointer, not the contents of the activePinboardIds array
   ]);
 
-  const peekAtPinboard = (pinboard: PinboardData) =>
-    setMaybePeekingAtPinboard(pinboard);
-
   return (
     <div
       css={css`
@@ -243,36 +231,21 @@ export const Panel = ({
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        selectedPinboard={selectedPinboard || maybePeekingAtPinboard}
-        clearSelectedPinboard={() => {
-          clearSelectedPinboard();
-          setMaybePeekingAtPinboard(null);
-        }}
+        selectedPinboard={selectedPinboard}
+        clearSelectedPinboard={clearSelectedPinboard}
         headingTooltipText={
-          (selectedPinboard &&
-            getTooltipText(
-              selectedPinboard.title,
-              selectedPinboard.headline
-            )) ||
-          (maybePeekingAtPinboard
-            ? getTooltipText(
-                maybePeekingAtPinboard.title,
-                maybePeekingAtPinboard.headline
-              )
-            : undefined)
+          selectedPinboard &&
+          getTooltipText(selectedPinboard.title, selectedPinboard.headline)
         }
         isTopHalf={isTopHalf}
         isLeftHalf={isLeftHalf}
       >
         <span
           css={{
-            textDecoration: (selectedPinboard || maybePeekingAtPinboard)
-              ?.trashed
+            textDecoration: selectedPinboard?.trashed
               ? "line-through"
               : undefined,
-            fontStyle: (selectedPinboard || maybePeekingAtPinboard)?.isNotFound
-              ? "italic"
-              : undefined,
+            fontStyle: selectedPinboard?.isNotFound ? "italic" : undefined,
           }}
         >
           {title}
@@ -280,10 +253,9 @@ export const Panel = ({
       </Navigation>
       {panelRef.current && <Tour panelElement={panelRef.current} />}
 
-      {!selectedPinboardId && !maybePeekingAtPinboard && (
+      {!selectedPinboardId && (
         <SelectPinboard
           pinboardsWithClaimCounts={pinboardsWithClaimCounts}
-          peekAtPinboard={peekAtPinboard}
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
@@ -314,17 +286,6 @@ export const Panel = ({
           />
         ))
       }
-
-      {maybePeekingAtPinboard && (
-        <Pinboard
-          pinboardId={maybePeekingAtPinboard.id}
-          composerId={maybePeekingAtPinboard.composerId}
-          isExpanded={isExpanded}
-          isSelected={true}
-          panelElement={panelRef.current}
-          setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
-        />
-      )}
     </div>
   );
 };

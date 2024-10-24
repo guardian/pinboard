@@ -70,7 +70,7 @@ export const PayloadDisplay = ({
             // event.dataTransfer.setData("text/plain", "This is text to drag");
 
             event.dataTransfer.setData(
-              "text/plain",
+              "text/html",
               sanitizeHtml(payloadAndType.payload.embeddableHtml)
             );
           } else {

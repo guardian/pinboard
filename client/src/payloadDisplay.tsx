@@ -71,7 +71,13 @@ export const PayloadDisplay = ({
 
             event.dataTransfer.setData(
               "text/html",
-              sanitizeHtml(payloadAndType.payload.embeddableHtml)
+              // TODO consider also add a gu-note for who shared it and when
+              `${sanitizeHtml(
+                payloadAndType.payload.embeddableHtml
+              )}<br/><gu-note>${
+                payloadAndType.payload.maybeUsageNote ||
+                "NO USAGE NOTE IN THE WIRE"
+              }</gu-note>`
             );
           } else {
             event.dataTransfer.setData("URL", payload.embeddableUrl);

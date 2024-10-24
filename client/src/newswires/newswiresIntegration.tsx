@@ -23,7 +23,7 @@ export const NewswiresIntegration = () => {
 
   const [state, setState] = useState<{
     selectedHTML: string;
-    mountPoint: HTMLElement;
+    containerElement: HTMLElement;
     firstButtonPosition: ButtonPosition;
     lastButtonPosition: ButtonPosition;
   } | null>(null);
@@ -64,7 +64,7 @@ export const NewswiresIntegration = () => {
         );
         setState({
           selectedHTML: maybeClonedTargetEl.innerHTML,
-          mountPoint: maybeOriginalTargetEl,
+          containerElement: maybeOriginalTargetEl,
           firstButtonPosition: newFirstButtonCoords,
           lastButtonPosition: newLastButtonCoords,
         });
@@ -80,7 +80,7 @@ export const NewswiresIntegration = () => {
         );
         setState({
           selectedHTML: tempEl.innerHTML,
-          mountPoint: maybeOriginalTargetEl,
+          containerElement: maybeOriginalTargetEl,
           firstButtonPosition: newFirstButtonCoords,
           lastButtonPosition: newLastButtonCoords,
         });
@@ -124,6 +124,7 @@ export const NewswiresIntegration = () => {
         payload: {
           embeddableHtml: state.selectedHTML,
           embeddableUrl: window.location.href,
+          maybeUsageNote: state.containerElement.dataset.usageNote,
         },
       });
       setIsExpanded(true);
@@ -196,7 +197,7 @@ export const NewswiresIntegration = () => {
               )
             )}
           </root.div>,
-          state.mountPoint
+          state.containerElement
         )}
     </>
   );

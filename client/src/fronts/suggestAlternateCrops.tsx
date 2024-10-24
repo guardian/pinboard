@@ -225,8 +225,7 @@ export const SuggestAlternateCrops = ({
                   `}
                   src={payload.thumbnail}
                   onClick={() => {
-                    peekAtPinboard(item.pinboardId);
-                    console.log(item.id); //TODO scroll to selected item to see context
+                    peekAtPinboard(item.pinboardId, item.id);
                   }}
                 ></img>
               ))}

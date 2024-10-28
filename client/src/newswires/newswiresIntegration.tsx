@@ -16,6 +16,7 @@ const SELECTION_TARGET_DATA_ATTR = "[data-pinboard-selection-target]";
 interface ButtonPosition {
   top: number;
   left: number;
+  unRoundedCorner: "bottom-left" | "top-right" | "top-left" | "bottom-right";
 }
 
 export const NewswiresIntegration = () => {
@@ -49,14 +50,27 @@ export const NewswiresIntegration = () => {
       );
       const firstRect = selectionRects[0];
       const lastRect = selectionRects[selectionRects.length - 1];
-      const newFirstButtonCoords = {
+      const firstButtonCoords = {
         top: firstRect.y - parentRect.y,
         left: firstRect.x - parentRect.x,
       };
-      const newLastButtonCoords = {
+      const firstButtonPosition: ButtonPosition = {
+        ...firstButtonCoords,
+        unRoundedCorner: `bottom-${
+          firstButtonCoords.left > parentRect.width / 2 ? "right" : "left"
+        }`,
+      };
+      const lastButtonCoords = {
         top: lastRect.y - parentRect.y + lastRect.height,
         left: lastRect.x - parentRect.x + lastRect.width - 1,
       };
+      const lastButtonPosition: ButtonPosition = {
+        ...lastButtonCoords,
+        unRoundedCorner: `top-${
+          lastButtonCoords.left > parentRect.width / 2 ? "right" : "left"
+        }`,
+      };
+
       if (maybeClonedTargetEl) {
         console.log(
           "selection contains whole target element; contents:",
@@ -65,8 +79,8 @@ export const NewswiresIntegration = () => {
         setState({
           selectedHTML: maybeClonedTargetEl.innerHTML,
           containerElement: maybeOriginalTargetEl,
-          firstButtonPosition: newFirstButtonCoords,
-          lastButtonPosition: newLastButtonCoords,
+          firstButtonPosition,
+          lastButtonPosition,
         });
       } else if (
         maybeOriginalTargetEl?.contains(selection.anchorNode) &&
@@ -81,10 +95,10 @@ export const NewswiresIntegration = () => {
         setState({
           selectedHTML: tempEl.innerHTML,
           containerElement: maybeOriginalTargetEl,
-          firstButtonPosition: newFirstButtonCoords,
-          lastButtonPosition: newLastButtonCoords,
+          firstButtonPosition,
+          lastButtonPosition,
         });
-        //TODO might need to clean up tempEl
+        //TODO might need to clean up tempEl to avoid memory leak?
       }
     }
   };
@@ -107,8 +121,8 @@ export const NewswiresIntegration = () => {
      *   [x] check parent node of selection is newswires body text el (maybe add data attribute to body text el)
      *       - (find first shared parent of anchorNode and focusNode, make sure we're not sharing bits of text outside of the target)
      *   [x] extract HTML from selection (see chat thread)
-     *   [ ] render button when there's a selection
-     *   [ ] do things with pinboard
+     *   [x] render button when there's a selection
+     *   [x] do things with pinboard
      */
     return () =>
       document.removeEventListener(
@@ -157,10 +171,14 @@ export const NewswiresIntegration = () => {
                     left: ${buttonCoords.left}px;
                     transform: translate(
                       ${
-                        buttonCoords === state.firstButtonPosition
-                          ? "0, -100%"
-                          : "-100%, 0"
-                      }
+                        buttonCoords.unRoundedCorner.includes("left")
+                          ? "0"
+                          : "-100%"
+                      },${
+                    buttonCoords.unRoundedCorner.includes("bottom")
+                      ? "-100%"
+                      : "0"
+                  }
                     );
                     display: flex;
                     align-items: center;
@@ -169,11 +187,7 @@ export const NewswiresIntegration = () => {
                     box-shadow: ${boxShadow};
                     border: none;
                     border-radius: 100px;
-                    border-${
-                      buttonCoords === state.firstButtonPosition
-                        ? "bottom-left"
-                        : "top-right"
-                    }-radius: 0;
+                    border-${buttonCoords.unRoundedCorner}-radius: 0;
                     padding: 0 ${space[2]}px 0 ${space[3]}px;
                     line-height: 2;
                     cursor: pointer;

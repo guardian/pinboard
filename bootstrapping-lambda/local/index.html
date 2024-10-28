@@ -7,32 +7,6 @@
   </head>
 
   <body>
-    <hr />
-    <p>not inside target</p>
-    <h2>Not inside target</h2>
-    <div
-      data-pinboard-selection-target
-      style="padding: 20px; background-color: aliceblue"
-    >
-      <h3>Pinboard selection target</h3>
-      <p>
-        This is a target for the Pinboard library to render the selection
-        interface into. It will be hidden by the library when not in use. This
-        is a target for the Pinboard library to render the selection interface
-        into. It will be hidden by the library when not in use. This is a target
-        for the Pinboard library to render the selection interface into. It will
-        be hidden by the library when not in use. This is a target for the
-        Pinboard library to render the selection interface into. It will be
-        hidden by the library when not in use. This is a target for the Pinboard
-        library to render the selection interface into. It will be hidden by the
-        library when not in use. This is a target for the Pinboard library to
-        render the selection interface into. It will be hidden by the library
-        when not in use.
-      </p>
-    </div>
-    <p>not inside target</p>
-
-    <hr />
     <a href="?expandPinboard=true"
       >Expand pinboard via query param <code>?expandPinboard=true</code></a
     >
@@ -127,6 +101,34 @@
         and Pinboard detecting that and still taking over the element
       </p>
     </ul>
+    <div style="padding: 20px; background-color: aliceblue">
+      <h3>Pinboard selection target</h3>
+      <div
+        data-pinboard-selection-target
+        data-usage-note="This is a sample usage note, copyright Pinboard sandbox."
+      >
+        <p>
+          This is a target for the <strong>Pinboard</strong> library to render
+          the selection interface into. It will be hidden by the library when
+          not in use. This is a target for the <em>Pinboard</em> library to
+          render the selection interface into. It will be hidden by the library
+          when not in use. This is a target for the
+          <strong>Pinboard</strong> library to render the selection interface
+          into. It will be hidden by the library when not in use.
+        </p>
+        <p>
+          This is a target for the <em>Pinboard</em> library to render the
+          selection interface into. It will be hidden by the library when not in
+          use. This is a target for the <strong>Pinboard</strong> library to
+          render the selection interface into. It will be hidden by the library
+          when not in use. This is a target for the <em>Pinboard</em> library to
+          render the selection interface into. It will be hidden by the library
+          when not in use.
+        </p>
+      </div>
+    </div>
+
+    <hr />
   </body>
   <script>
     setTimeout(

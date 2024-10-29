@@ -19,6 +19,7 @@ import {
   RemovalPolicy,
   Stack,
   Tags,
+  Size,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -701,7 +702,7 @@ export class PinBoardStack extends GuStack {
         deployOptions: {
           stageName: "api",
         },
-        minimumCompressionSize: 0, // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
+        minCompressionSize: Size.bytes(0), // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
       }
     );
 

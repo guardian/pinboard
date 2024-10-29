@@ -1,13 +1,9 @@
-import { createServer, proxy } from "aws-serverless-express";
-import * as lambda from "aws-lambda";
+import serverlessExpress from "@codegenie/serverless-express";
 import { default as express } from "express";
 import cors from "cors";
 import { loaderTemplate } from "./loaderTemplate";
 import { generateAppSyncConfig } from "./generateAppSyncConfig";
-import {
-  IS_RUNNING_LOCALLY,
-  standardAwsConfig,
-} from "../../shared/awsIntegration";
+import { IS_RUNNING_LOCALLY, standardAwsConfig } from "shared/awsIntegration";
 import { S3 } from "@aws-sdk/client-s3";
 import fs from "fs";
 import {
@@ -16,9 +12,9 @@ import {
   applyNoCaching,
 } from "./util";
 import { GIT_COMMIT_HASH } from "../../GIT_COMMIT_HASH";
-import { getEnvironmentVariableOrThrow } from "../../shared/environmentVariables";
-import { Stage } from "../../shared/types/stage";
-import { GrafanaRequest, StageMetric } from "../../shared/types/grafanaType";
+import { getEnvironmentVariableOrThrow } from "shared/environmentVariables";
+import { Stage } from "shared/types/stage";
+import { GrafanaRequest, StageMetric } from "shared/types/grafanaType";
 import {
   AuthenticatedRequest,
   getAuthMiddleware,
@@ -162,8 +158,5 @@ if (IS_RUNNING_LOCALLY) {
   const PORT = 3030;
   server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 } else {
-  exports.handler = (
-    event: lambda.APIGatewayProxyEvent,
-    context: lambda.Context
-  ) => proxy(createServer(server), event, context);
+  exports.handler = serverlessExpress({ app: server });
 }

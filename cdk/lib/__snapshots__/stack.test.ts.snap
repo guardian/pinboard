@@ -26,6 +26,7 @@ Object {
       "GuCname",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
+      "GuAlarm",
     ],
     "gu:cdk:version": "59.5.6",
   },
@@ -3881,6 +3882,85 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::ApiGateway::Account",
       "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardbootstrappinglambdaapiAlarmC961CA44": Object {
+      "Properties": Object {
+        "ActionsEnabled": true,
+        "AlarmActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "The pinboard-bootstrapping-lambda-api-TEST gateway is experiencing 5XX errors",
+        "AlarmName": "pinboard-bootstrapping-lambda-api-TEST 5XX errors",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": Array [
+          Object {
+            "Name": "ApiName",
+            "Value": "pinboard-bootstrapping-lambda-api-TEST",
+          },
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "5XXError",
+        "Namespace": "AWS/ApiGateway",
+        "OKActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
+        "Period": 300,
+        "Statistic": "Average",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "59.5.6",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "Threshold": 0.05,
+      },
+      "Type": "AWS::CloudWatch::Alarm",
     },
     "pinboardbootstrappinglambdaapiCloudWatchRole71E5177D": Object {
       "DeletionPolicy": "Retain",

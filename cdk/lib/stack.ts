@@ -19,6 +19,7 @@ import {
   RemovalPolicy,
   Stack,
   Tags,
+  Size,
 } from "aws-cdk-lib";
 import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { join } from "path";
@@ -678,11 +679,12 @@ export class PinBoardStack extends GuStack {
       }
     );
 
+    const bootstrappingApiGatewayName = `${bootstrappingLambdaApiBaseName}-${this.stage}`;
     const bootstrappingApiGateway = new apiGateway.LambdaRestApi(
       this,
       bootstrappingLambdaApiBaseName,
       {
-        restApiName: `${bootstrappingLambdaApiBaseName}-${this.stage}`,
+        restApiName: bootstrappingApiGatewayName,
         handler: bootstrappingLambdaFunction,
         endpointTypes: [apiGateway.EndpointType.REGIONAL],
         policy: new iam.PolicyDocument({
@@ -701,9 +703,28 @@ export class PinBoardStack extends GuStack {
         deployOptions: {
           stageName: "api",
         },
-        minimumCompressionSize: 0, // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
+        minCompressionSize: Size.bytes(0), // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
       }
     );
+    new GuAlarm(this, `${bootstrappingLambdaApiBaseName}Alarm`, {
+      app: APP,
+      snsTopicName: ALARM_SNS_TOPIC_NAME,
+      alarmName: `${bootstrappingApiGatewayName} 5XX errors`,
+      alarmDescription: `The ${bootstrappingApiGatewayName} gateway is experiencing 5XX errors`,
+      metric: new cloudwatch.Metric({
+        metricName: "5XXError",
+        namespace: "AWS/ApiGateway",
+        dimensionsMap: {
+          ApiName: bootstrappingApiGatewayName,
+        },
+        period: Duration.minutes(5),
+      }),
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      threshold: 0.05,
+      evaluationPeriods: 2,
+      actionsEnabled: true,
+      okAction: true,
+    });
 
     const bootstrappingApiCertificate = new acm.Certificate(
       this,

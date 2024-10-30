@@ -3554,7 +3554,7 @@ $util.toJson($ctx.result)",
         },
         "FunctionName": "pinboard-bootstrapping-lambda-TEST",
         "Handler": "index.handler",
-        "MemorySize": 128,
+        "MemorySize": 256,
         "Role": Object {
           "Fn::GetAtt": Array [
             "pinboardbootstrappinglambdaServiceRoleE9E1278C",

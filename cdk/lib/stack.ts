@@ -643,7 +643,7 @@ export class PinBoardStack extends GuStack {
       bootstrappingLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
-        memorySize: 128,
+        memorySize: 256,
         timeout: Duration.seconds(5),
         handler: "index.handler",
         environment: {

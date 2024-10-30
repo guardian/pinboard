@@ -113,6 +113,9 @@ Object {
         "ArchiverLambdaServiceRoleEAB58FB0",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": Object {
             "Ref": "DistributionBucketName",
@@ -1298,6 +1301,9 @@ Object {
         "EmailLambdaServiceRoleCBE95916",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": Object {
             "Ref": "DistributionBucketName",
@@ -3392,6 +3398,9 @@ $util.toJson($ctx.result)",
         "pinboardauthlambdaServiceRole8197EA98",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-auth-lambda/pinboard-auth-lambda.zip",
@@ -3532,6 +3541,9 @@ $util.toJson($ctx.result)",
         "pinboardbootstrappinglambdaServiceRoleE9E1278C",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-bootstrapping-lambda-api/pinboard-bootstrapping-lambda-api.zip",
@@ -4292,6 +4304,9 @@ $util.toJson($ctx.result)",
         "pinboarddatabasebridgelambdaServiceRole07A568AB",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-database-bridge-lambda/pinboard-database-bridge-lambda.zip",
@@ -4490,6 +4505,9 @@ $util.toJson($ctx.result)",
         "pinboardgridbridgelambdaServiceRole33502BD3",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-grid-bridge-lambda/pinboard-grid-bridge-lambda.zip",
@@ -4632,6 +4650,9 @@ $util.toJson($ctx.result)",
         "pinboardnotificationslambdaServiceRole2F6EBFE9",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-notifications-lambda/pinboard-notifications-lambda.zip",
@@ -4837,6 +4858,9 @@ $util.toJson($ctx.result)",
         "pinboardusersrefresherlambdaServiceRoleBF872882",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-users-refresher-lambda/pinboard-users-refresher-lambda.zip",
@@ -5158,6 +5182,9 @@ $util.toJson($ctx.result)",
         "pinboardworkflowbridgelambdarole04BA8EEA",
       ],
       "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
         "Code": Object {
           "S3Bucket": "workflow-dist",
           "S3Key": "workflow/TEST/pinboard-workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip",

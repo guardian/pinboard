@@ -190,6 +190,7 @@ export class PinBoardStack extends GuStack {
       WORKFLOW_BRIDGE_LAMBDA_BASENAME,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
         timeout: Duration.seconds(5),
         handler: "index.handler",
@@ -236,6 +237,7 @@ export class PinBoardStack extends GuStack {
       gridBridgeLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
         timeout: Duration.seconds(5),
         handler: "index.handler",
@@ -283,6 +285,7 @@ export class PinBoardStack extends GuStack {
       DATABASE_BRIDGE_LAMBDA_BASENAME,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
         timeout: Duration.seconds(30),
         handler: "index.handler",
@@ -375,6 +378,7 @@ export class PinBoardStack extends GuStack {
       {
         vpc: accountVpc,
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
         timeout: Duration.seconds(30),
         handler: "index.handler",
@@ -400,6 +404,7 @@ export class PinBoardStack extends GuStack {
       pinboardAuthLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
         timeout: Duration.seconds(11),
         handler: "index.handler",
@@ -512,6 +517,7 @@ export class PinBoardStack extends GuStack {
       usersRefresherLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 512,
         timeout: Duration.minutes(15),
         handler: "index.handler",
@@ -565,6 +571,7 @@ export class PinBoardStack extends GuStack {
       securityGroups: [databaseSecurityGroup],
       functionName: `pinboard-archiver-lambda-${this.stage}`,
       runtime: LAMBDA_NODE_VERSION,
+      architecture: lambda.Architecture.ARM_64,
       handler: "index.handler",
       environment: {
         [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
@@ -603,6 +610,7 @@ export class PinBoardStack extends GuStack {
       securityGroups: [databaseSecurityGroup],
       functionName: getEmailLambdaFunctionName(this.stage as Stage),
       runtime: LAMBDA_NODE_VERSION,
+      architecture: lambda.Architecture.ARM_64,
       handler: "index.handler",
       environment: {
         [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
@@ -643,6 +651,7 @@ export class PinBoardStack extends GuStack {
       bootstrappingLambdaBasename,
       {
         runtime: LAMBDA_NODE_VERSION,
+        architecture: lambda.Architecture.ARM_64,
         memorySize: 256,
         timeout: Duration.seconds(5),
         handler: "index.handler",

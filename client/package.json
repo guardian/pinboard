@@ -30,7 +30,8 @@
     "preact": "10.15.1",
     "react-draggable": "^4.4.5",
     "react-joyride": "^2.5.3",
-    "react-shadow": "^19.0.2"
+    "react-shadow": "^19.0.2",
+    "sanitize-html": "^2.13.1"
   },
   "devDependencies": {
     "@babel/core": "^7.17.4",
@@ -41,6 +42,7 @@
     "@svgr/webpack": "^6.2.1",
     "@types/react": "16.9.56",
     "@types/react-dom": "16.9.9",
+    "@types/sanitize-html": "^2",
     "@types/webpack-env": "^1.16.3",
     "@types/webscopeio__react-textarea-autocomplete": "^4.7.2",
     "babel-loader": "^8.2.3",

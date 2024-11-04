@@ -32,6 +32,7 @@ type Mutation {
   addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
   removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
   visitTourStep(tourStepId: String!): MyUser
+  changeFeatureFlag(flagId: String!, newValue: Boolean!): MyUser
 }
 
 type Subscription {
@@ -96,6 +97,7 @@ type MyUser {
   hasWebPushSubscription: Boolean
   manuallyOpenedPinboardIds: [String!]
   hasEverUsedTour: Boolean!
+  featureFlags: AWSJSON
 }
 
 type Group {

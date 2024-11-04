@@ -119,6 +119,7 @@ const myUserReturnFields = `${userReturnFields}
   hasWebPushSubscription
   manuallyOpenedPinboardIds
   hasEverUsedTour
+  featureFlags
 `;
 
 export const gqlSearchMentionableUsers = (prefix: string) => gql`

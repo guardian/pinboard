@@ -15,6 +15,7 @@ import { Sql } from "../../shared/database/types";
 import { listLastItemSeenByUsers, seenItem } from "./sql/LastItemSeenByUser";
 import {
   addManuallyOpenedPinboardIds,
+  changeFeatureFlag,
   getMyUser,
   getUsers,
   removeManuallyOpenedPinboardIds,
@@ -66,6 +67,8 @@ const run = (
       return getItemCounts(sql, args, userEmail);
     case "visitTourStep":
       return visitTourStep(sql, args, userEmail);
+    case "changeFeatureFlag":
+      return changeFeatureFlag(sql, args, userEmail);
   }
 
   throw Error(

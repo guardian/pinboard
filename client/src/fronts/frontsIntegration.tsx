@@ -23,7 +23,7 @@ export const FrontsIntegration = ({
   const pathToElementsMap: { [path: string]: HTMLElement[] } = useMemo(
     () =>
       frontsPinboardElements.reduce(
-        // TODO could be replaced with groupBy if we upgrade to latest ES in tsconfig
+        // TODO could be replaced with groupBy if we upgrade to Node21 plus set lib to esnext in tsconfig
         (acc, htmlElement) =>
           htmlElement.dataset.urlPath
             ? {

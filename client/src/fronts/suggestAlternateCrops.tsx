@@ -69,8 +69,6 @@ export const SuggestAlternateCrops = ({
 }: {
   alternateCropSuggestionElements: HTMLElement[];
 }) => {
-  // FIXME handle the piece not being tracked in workflow
-
   const [maybeGridIFrameUrl, setMaybeGridIframeUrl] = useState<string | null>(
     null
   );
@@ -254,22 +252,28 @@ export const SuggestAlternateCrops = ({
                 align-items: center;
               `}
             >
-              {Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
-                ([customRatio, cropType]) => (
-                  <>
-                    <ButtonInOtherTools
-                      onClick={onClick(
-                        htmlElement.dataset.mediaId,
-                        cropType,
-                        customRatio
-                      )}
-                    >
-                      Suggest an alternate {customRatio} crop
-                    </ButtonInOtherTools>
-                    <AlreadySuggestedCropsForRatio customRatio={customRatio} />
-                  </>
-                )
-              )}
+              {preselectedPinboard === "loading" && "loading..."}
+              {preselectedPinboard === "notTrackedInWorkflow" &&
+                "This piece is not tracked in Workflow, as such you cannot suggest alternate crops for it. Please track in Workflow and refresh the page."}
+              {isPinboardData(preselectedPinboard) &&
+                Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
+                  ([customRatio, cropType]) => (
+                    <>
+                      <ButtonInOtherTools
+                        onClick={onClick(
+                          htmlElement.dataset.mediaId,
+                          cropType,
+                          customRatio
+                        )}
+                      >
+                        Suggest an alternate {customRatio} crop
+                      </ButtonInOtherTools>
+                      <AlreadySuggestedCropsForRatio
+                        customRatio={customRatio}
+                      />
+                    </>
+                  )
+                )}
             </root.div>
           </div>,
           htmlElement

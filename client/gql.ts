@@ -180,9 +180,9 @@ export const gqlRemoveManuallyOpenedPinboardIds = gql`
     }
 `;
 
-export const gqlOnManuallyOpenedPinboardIdsChanged = (userEmail: string) => gql`
-    subscription OnManuallyOpenedPinboardIdsChanged {
-        onManuallyOpenedPinboardIdsChanged(email: "${userEmail}") {
+export const gqlOnMyUserChanges = (userEmail: string) => gql`
+    subscription onMyUserChanges {
+        onMyUserChanges(email: "${userEmail}") {
             ${myUserReturnFields}
         }
     }
@@ -271,6 +271,14 @@ export const gqlAsGridPayload = gql`
 export const gqlVisitTourStep = gql`
     mutation visitTourStep($tourStepId: String!) {
         visitTourStep(tourStepId: $tourStepId) {
+            ${myUserReturnFields}
+        }
+    }
+`;
+
+export const gqlChangeFeatureFlag = gql`
+    mutation changeFeatureFlag($flagId: String!, $newValue: Boolean!) {
+        changeFeatureFlag(flagId: $flagId, newValue: $newValue) {
             ${myUserReturnFields}
         }
     }

@@ -48,9 +48,13 @@ type Subscription {
     pinboardId: String!
   ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
 
-  onManuallyOpenedPinboardIdsChanged(
+  onMyUserChanges(
     email: String! # unfortunately this can't be done via 'identity' in the resolver
-  ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
+  ): MyUser @aws_subscribe(mutations: [
+    "addManuallyOpenedPinboardIds",
+    "removeManuallyOpenedPinboardIds",
+    "changeFeatureFlag"
+  ])
 }
 
 type MentionHandle {

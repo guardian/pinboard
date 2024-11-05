@@ -82,6 +82,7 @@ export const SuggestAlternateCrops = ({
     setPayloadToBeSent,
     clearSelectedPinboard,
     cropsOnPreselectedPinboard,
+    featureFlags,
   } = useGlobalStateContext();
 
   const apolloClient = useApolloClient();
@@ -236,7 +237,7 @@ export const SuggestAlternateCrops = ({
     );
   };
 
-  return (
+  return featureFlags["alternateCropSuggesting"] ? (
     <>
       {alternateCropSuggestionElements.length > 0 && (
         <Global styles={cssToAddGuttersToComposerTrailThumbnail} />
@@ -309,5 +310,5 @@ export const SuggestAlternateCrops = ({
         </root.div>
       )}
     </>
-  );
+  ) : null;
 };

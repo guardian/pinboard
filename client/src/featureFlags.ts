@@ -2,7 +2,10 @@ import { readAndThenSilentlyDropQueryParamFromURL } from "./util";
 import { ApolloClient } from "@apollo/client";
 import { gqlChangeFeatureFlag } from "../gql";
 
-export const ALLOWED_FEATURE_FLAGS = ["test"] as const;
+export const ALLOWED_FEATURE_FLAGS = [
+  "test",
+  "alternateCropSuggesting",
+] as const;
 export type AllowedFeatureFlags = (typeof ALLOWED_FEATURE_FLAGS)[number];
 
 export type FeatureFlags = Partial<Record<AllowedFeatureFlags, boolean>>;

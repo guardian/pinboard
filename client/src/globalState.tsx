@@ -33,6 +33,7 @@ import {
 import { UserLookup } from "./types/UserLookup";
 import { demoPinboardData } from "./tour/tourConstants";
 import { readAndThenSilentlyDropQueryParamFromURL } from "./util";
+import { FeatureFlags } from "./featureFlags";
 
 const LOCAL_STORAGE_KEY_EXPLICIT_POSITION = "pinboard-explicit-position";
 
@@ -69,6 +70,8 @@ interface GlobalStateContextShape {
 
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
+
+  featureFlags: FeatureFlags;
 
   showNotification: (item: Item) => void;
   hasWebPushSubscription: boolean | null | undefined;
@@ -124,12 +127,13 @@ interface GlobalStateProviderProps {
   addEmailsToLookup: (emails: string[]) => void;
   hasWebPushSubscription: boolean | null | undefined;
   manuallyOpenedPinboardIds: string[];
-  setManuallyOpenedPinboardIds: (newMyUser: MyUser) => void;
+  updateUserWithChanges: (newMyUser: MyUser) => void;
   showNotification: (item: Item) => void;
   clearDesktopNotificationsForPinboardId: (pinboardId: string) => void;
   presetUnreadNotificationCount: number | undefined;
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
+  featureFlags: FeatureFlags;
 }
 
 export const GlobalStateProvider = ({
@@ -145,11 +149,12 @@ export const GlobalStateProvider = ({
   addEmailsToLookup,
   hasWebPushSubscription,
   manuallyOpenedPinboardIds,
-  setManuallyOpenedPinboardIds,
+  updateUserWithChanges,
   showNotification,
   clearDesktopNotificationsForPinboardId,
   hasEverUsedTour,
   visitTourStep,
+  featureFlags,
   children,
 }: PropsWithChildren<GlobalStateProviderProps>) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
@@ -353,9 +358,7 @@ export const GlobalStateProvider = ({
         addManuallyOpenedPinboardId(isDemo)(pinboardData.id).then(
           (result) =>
             result.data
-              ? setManuallyOpenedPinboardIds(
-                  result.data.addManuallyOpenedPinboardIds
-                )
+              ? updateUserWithChanges(result.data.addManuallyOpenedPinboardIds)
               : console.error(
                   "addManuallyOpenedPinboardIds did not return any data"
                 ) // TODO probably report to Sentry
@@ -421,9 +424,7 @@ export const GlobalStateProvider = ({
       }).then(
         (result) =>
           result.data
-            ? setManuallyOpenedPinboardIds(
-                result.data.removeManuallyOpenedPinboardIds
-              )
+            ? updateUserWithChanges(result.data.removeManuallyOpenedPinboardIds)
             : console.error(
                 "removeManuallyOpenedPinboardIds did not return any data"
               ) // TODO probably report to Sentry
@@ -561,6 +562,8 @@ export const GlobalStateProvider = ({
 
     hasEverUsedTour,
     visitTourStep,
+
+    featureFlags,
 
     showNotification,
     hasWebPushSubscription,

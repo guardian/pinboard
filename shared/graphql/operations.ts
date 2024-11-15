@@ -38,6 +38,7 @@ export const MUTATIONS = {
     "addManuallyOpenedPinboardIds",
     "removeManuallyOpenedPinboardIds",
     "visitTourStep",
+    "changeFeatureFlag",
   ] as const,
 } as const;
 

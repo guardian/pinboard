@@ -47,7 +47,7 @@ export const getUsers = (sql: Sql, args: { emails: string[] }) =>
   `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
-  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "visitedTourSteps" IS NOT NULL AS "hasEverUsedTour", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription"`;
+  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "visitedTourSteps" IS NOT NULL AS "hasEverUsedTour", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription", "featureFlags"`;
 
 export const getMyUser = (sql: Sql, userEmail: string) =>
   sql`
@@ -107,6 +107,23 @@ export const visitTourStep = async (
         COALESCE("visitedTourSteps", '{}'::jsonb), 
         ${[args.tourStepId]}, 
         to_jsonb(true), 
+        true
+    )
+    WHERE "email" = ${userEmail}
+    RETURNING ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
+`.then((rows) => rows[0]);
+
+export const changeFeatureFlag = async (
+  sql: Sql,
+  args: { flagId: string; newValue: boolean },
+  userEmail: string
+) =>
+  sql`
+    UPDATE "User"
+    SET "featureFlags" = jsonb_set(
+        COALESCE("featureFlags", '{}'::jsonb), 
+        ${[args.flagId]},
+        to_jsonb(${args.newValue}),
         true
     )
     WHERE "email" = ${userEmail}

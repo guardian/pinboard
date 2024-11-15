@@ -32,6 +32,7 @@ type Mutation {
   addManuallyOpenedPinboardIds(pinboardId: String!, maybeEmailOverride: String): MyUser
   removeManuallyOpenedPinboardIds(pinboardIdToClose: String!): MyUser
   visitTourStep(tourStepId: String!): MyUser
+  changeFeatureFlag(flagId: String!, newValue: Boolean!): MyUser
 }
 
 type Subscription {
@@ -47,9 +48,13 @@ type Subscription {
     pinboardId: String!
   ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
 
-  onManuallyOpenedPinboardIdsChanged(
+  onMyUserChanges(
     email: String! # unfortunately this can't be done via 'identity' in the resolver
-  ): MyUser @aws_subscribe(mutations: ["addManuallyOpenedPinboardIds", "removeManuallyOpenedPinboardIds"])
+  ): MyUser @aws_subscribe(mutations: [
+    "addManuallyOpenedPinboardIds",
+    "removeManuallyOpenedPinboardIds",
+    "changeFeatureFlag"
+  ])
 }
 
 type MentionHandle {
@@ -96,6 +101,7 @@ type MyUser {
   hasWebPushSubscription: Boolean
   manuallyOpenedPinboardIds: [String!]
   hasEverUsedTour: Boolean!
+  featureFlags: AWSJSON
 }
 
 type Group {

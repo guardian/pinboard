@@ -85,6 +85,8 @@ const runSetupTriggerSqlFile = (
           getEmailLambdaFunctionName(stage),
           EMAIL_DATABASE_TRIGGER_NAME
         ),
+    "add featureFlags column to User table": () =>
+      runSetupSqlFile(sql, "020-AddFeatureFlagsColumnToUserTable.sql"),
   };
 
   const allSteps = async () => {

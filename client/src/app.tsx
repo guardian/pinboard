@@ -18,7 +18,7 @@ import {
   gqlVisitTourStep,
   gqlGetMyUser,
   gqlGetUsers,
-  gqlOnManuallyOpenedPinboardIdsChanged,
+  gqlOnMyUserChanges,
   gqlSetWebPushSubscriptionForUser,
 } from "../gql";
 import { Item, MyUser, User } from "shared/graphql/graphql";
@@ -45,6 +45,10 @@ import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
 import { Global } from "@emotion/react";
 import { TourStateProvider } from "./tour/tourState";
 import { demoMentionableUsers, demoUser } from "./tour/tourConstants";
+import {
+  consumeFeatureFlagQueryParamsAndUpdateAccordingly,
+  extractFeatureFlags,
+} from "./featureFlags";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -206,7 +210,7 @@ export const PinBoardApp = ({
   const me = meQuery.data?.getMyUser;
 
   const manuallyOpenedPinboardIds = me?.manuallyOpenedPinboardIds;
-  const setManuallyOpenedPinboardIds = (newMyUser: MyUser) => {
+  const updateUserWithChanges = (newMyUser: MyUser) => {
     meQuery.updateQuery(() => ({ getMyUser: newMyUser }));
   };
 
@@ -225,18 +229,13 @@ export const PinBoardApp = ({
           meQuery.updateQuery(() => ({ getMyUser: data.visitTourStep }));
       });
 
-  useSubscription<{ onManuallyOpenedPinboardIdsChanged: MyUser }>(
-    gqlOnManuallyOpenedPinboardIdsChanged(userEmail),
-    {
-      client: apolloClient,
-      onSubscriptionData: ({ subscriptionData }) => {
-        subscriptionData.data &&
-          setManuallyOpenedPinboardIds(
-            subscriptionData.data?.onManuallyOpenedPinboardIdsChanged
-          );
-      },
-    }
-  );
+  useSubscription<{ onMyUserChanges: MyUser }>(gqlOnMyUserChanges(userEmail), {
+    client: apolloClient,
+    onSubscriptionData: ({ subscriptionData }) => {
+      subscriptionData.data &&
+        updateUserWithChanges(subscriptionData.data?.onMyUserChanges);
+    },
+  });
 
   const rawHasWebPushSubscription = me?.hasWebPushSubscription;
 
@@ -357,6 +356,16 @@ export const PinBoardApp = ({
 
   const hasApolloAuthError = useReactiveVar(hasApolloAuthErrorVar);
 
+  const featureFlags = useMemo(
+    () => extractFeatureFlags(me?.featureFlags),
+    [me?.featureFlags]
+  );
+  consumeFeatureFlagQueryParamsAndUpdateAccordingly(apolloClient);
+
+  useEffect(() => {
+    console.log("test feature flag:", featureFlags["test"]);
+  }, [featureFlags]);
+
   return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
@@ -373,13 +382,14 @@ export const PinBoardApp = ({
           addEmailsToLookup={addEmailsToLookup}
           hasWebPushSubscription={hasWebPushSubscription}
           manuallyOpenedPinboardIds={manuallyOpenedPinboardIds || []}
-          setManuallyOpenedPinboardIds={setManuallyOpenedPinboardIds}
+          updateUserWithChanges={updateUserWithChanges}
           showNotification={showDesktopNotification}
           clearDesktopNotificationsForPinboardId={
             clearDesktopNotificationsForPinboardId
           }
           hasEverUsedTour={me?.hasEverUsedTour}
           visitTourStep={visitTourStep}
+          featureFlags={featureFlags}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />

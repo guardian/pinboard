@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PinboardData } from "shared/graphql/extraTypes";
 import { PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import ReactDOM from "react-dom";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient, useQuery } from "@apollo/client";
 import { gqlGetItemCounts, gqlGetPinboardsByPaths } from "../../gql";
 import { FrontsPinboardArticleButton } from "./frontsPinboardArticleButton";
 
@@ -71,35 +71,31 @@ export const FrontsIntegration = ({
     [pinboardId: string]: PinboardIdWithItemCounts;
   }
   const [maybeItemCountsLookup, setMaybeItemCountsLookup] = useState();
+
+  const pinboardIds = useMemo(
+    () => Object.values(pathToPinboardDataMap).map(({ id }) => id),
+    [pathToPinboardDataMap]
+  );
+
+  const itemCountsQuery = useQuery(gqlGetItemCounts, {
+    variables: {
+      pinboardIds,
+    },
+    pollInterval: 10_000, //TODO consider subscribing to all messages and fetching counts based on that, might be more efficient
+  });
+
   useEffect(() => {
-    const pinboardIds = Object.values(pathToPinboardDataMap).map(
-      ({ id }) => id
-    );
-    pinboardIds.length > 0 &&
-      apolloClient
-        .query({
-          query: gqlGetItemCounts,
-          variables: {
-            pinboardIds,
-          },
-          //FIXME implement polling (probably means converting this one to a hook)
-        })
-        .then(({ data }) => {
-          data?.getItemCounts &&
-            setMaybeItemCountsLookup(
-              data.getItemCounts.reduce(
-                (
-                  acc: ItemCountsLookup,
-                  itemCounts: PinboardIdWithItemCounts
-                ) => ({
-                  ...acc,
-                  [itemCounts.pinboardId]: itemCounts,
-                }),
-                {}
-              )
-            );
-        });
-  }, [pathToPinboardDataMap]);
+    itemCountsQuery.data?.getItemCounts &&
+      setMaybeItemCountsLookup(
+        itemCountsQuery.data.getItemCounts.reduce(
+          (acc: ItemCountsLookup, itemCounts: PinboardIdWithItemCounts) => ({
+            ...acc,
+            [itemCounts.pinboardId]: itemCounts,
+          }),
+          {}
+        )
+      );
+  }, [itemCountsQuery.data]);
 
   return (
     <>

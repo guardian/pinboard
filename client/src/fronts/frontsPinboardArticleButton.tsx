@@ -1,7 +1,7 @@
 import { isPinboardData, PinboardData } from "shared/graphql/extraTypes";
 import { Item, PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import { useGlobalStateContext } from "../globalState";
-import { useApolloClient } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
 import { PayloadWithThumbnail } from "../types/PayloadAndType";
 import { gqlGetInitialItems } from "../../gql";
@@ -27,41 +27,42 @@ export const FrontsPinboardArticleButton = ({
 }: FrontsPinboardArticleButtonProps) => {
   const { peekAtPinboard } = useGlobalStateContext();
 
-  const apolloClient = useApolloClient();
-
   const [cropsAtRequiredRatio, setCropsAtRequiredRatio] = useState<
     Array<[PayloadWithThumbnail, Item]>
   >([]);
 
+  const [getItems, { loading }] = useLazyQuery(
+    gqlGetInitialItems //TODO consider creating new query,
+  );
+
   useEffect(() => {
     if (isPinboardData(maybePinboardData) && withDraggableThumbsOfRatio) {
-      //TODO consider converting to lazy query hook, so we can have a loading state easily
-      apolloClient
-        .query({
-          query: gqlGetInitialItems(maybePinboardData.id), //TODO consider creating new query
-        })
-        .then(({ data }) => {
-          data?.listItems &&
-            setCropsAtRequiredRatio(
-              data.listItems.reduce(
-                (acc: Array<[PayloadWithThumbnail, Item]>, item: Item) => {
-                  const parsedPayload =
-                    item.payload &&
-                    (JSON.parse(item.payload) as PayloadWithThumbnail);
-                  if (
-                    item.type === "grid-crop" &&
-                    parsedPayload &&
-                    parsedPayload.aspectRatio === withDraggableThumbsOfRatio
-                  ) {
-                    return [...acc, [parsedPayload, item]];
-                  } else {
-                    return acc;
-                  }
-                },
-                []
-              )
-            );
-        });
+      getItems({
+        variables: {
+          pinboardId: maybePinboardData.id,
+        },
+      }).then(({ data }) => {
+        data?.listItems &&
+          setCropsAtRequiredRatio(
+            data.listItems.reduce(
+              (acc: Array<[PayloadWithThumbnail, Item]>, item: Item) => {
+                const parsedPayload =
+                  item.payload &&
+                  (JSON.parse(item.payload) as PayloadWithThumbnail);
+                if (
+                  item.type === "grid-crop" &&
+                  parsedPayload &&
+                  parsedPayload.aspectRatio === withDraggableThumbsOfRatio
+                ) {
+                  return [...acc, [parsedPayload, item]];
+                } else {
+                  return acc;
+                }
+              },
+              []
+            )
+          );
+      });
     }
   }, [
     maybePinboardData,
@@ -110,50 +111,58 @@ export const FrontsPinboardArticleButton = ({
           </>
         )}
       </ButtonInOtherTools>
-      {cropsAtRequiredRatio && cropsAtRequiredRatio.length > 0 && (
-        <div
-          css={css`
-            margin-left: 20px;
-            ${agateSans.xxsmall()};
-            overflow: auto;
-            margin-bottom: 3px;
-          `}
-        >
-          <strong>
-            The {withDraggableThumbsOfRatio} crops suggested via Pinboard:
-          </strong>
-          <div
-            css={css`
-              display: flex;
-              gap: 3px;
-            `}
-          >
-            {cropsAtRequiredRatio.map(([payload, item], index) => (
-              <img
-                key={index}
-                css={css`
-                  max-width: 100px;
-                  max-height: 100px;
-                  cursor: grab;
 
-                  &:active {
-                    cursor: grabbing;
-                  }
-                `}
-                src={payload.thumbnail}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.setData("URL", payload.embeddableUrl);
-                }}
-                onClick={() => {
-                  peekAtPinboard(item.pinboardId, item.id);
-                }}
-              ></img>
-            ))}
-          </div>
-          <em>These can be dragged onto the trail image to replace it.</em>
-        </div>
-      )}
+      <div
+        css={css`
+          margin-left: 20px;
+          ${agateSans.xxsmall()};
+          overflow: auto;
+          margin-bottom: 3px;
+        `}
+      >
+        {loading && (
+          <em>
+            loading {withDraggableThumbsOfRatio} crops suggested via Pinboard...
+          </em>
+        )}
+        {cropsAtRequiredRatio && cropsAtRequiredRatio.length > 0 && (
+          <>
+            <strong>
+              The {withDraggableThumbsOfRatio} crops suggested via Pinboard:
+            </strong>
+            <div
+              css={css`
+                display: flex;
+                gap: 3px;
+              `}
+            >
+              {cropsAtRequiredRatio.map(([payload, item], index) => (
+                <img
+                  key={index}
+                  css={css`
+                    max-width: 100px;
+                    max-height: 100px;
+                    cursor: grab;
+
+                    &:active {
+                      cursor: grabbing;
+                    }
+                  `}
+                  src={payload.thumbnail}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("URL", payload.embeddableUrl);
+                  }}
+                  onClick={() => {
+                    peekAtPinboard(item.pinboardId, item.id);
+                  }}
+                ></img>
+              ))}
+            </div>
+            <em>These can be dragged onto the trail image to replace it.</em>
+          </>
+        )}
+      </div>
     </root.span>
   );
 };

@@ -80,9 +80,9 @@ const itemReturnFields = `
 `;
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
-export const gqlGetInitialItems = (pinboardId: string) => gql`
-    query MyQuery {
-        listItems(pinboardId: "${pinboardId}") {
+export const gqlGetInitialItems = gql`
+    query MyQuery($pinboardId: String!) {
+        listItems(pinboardId: $pinboardId) {
             ${itemReturnFields}
         }
     }

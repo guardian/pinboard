@@ -116,7 +116,8 @@ export const Pinboard = ({
     ? tourProgress.successfulSends
     : _successfulSends;
 
-  const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId), {
+  const initialItemsQuery = useQuery(gqlGetInitialItems, {
+    variables: { pinboardId },
     onCompleted: (data) => {
       addEmailsToLookup(
         data.listItems?.map((item: Item) => item.userEmail) || []

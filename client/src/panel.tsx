@@ -22,16 +22,15 @@ import { ChatTab } from "./types/Tab";
 import { pinboard } from "../colours";
 import { useQuery } from "@apollo/client";
 import { gqlGetGroupPinboardIds, gqlGetPinboardsByIds } from "../gql";
-import { PinboardIdWithClaimCounts } from "../../shared/graphql/graphql";
+import { PinboardIdWithClaimCounts } from "shared/graphql/graphql";
 import {
   PinboardData,
   PinboardDataWithClaimCounts,
-} from "../../shared/graphql/extraTypes";
+} from "shared/graphql/extraTypes";
 import { ErrorOverlay } from "./errorOverlay";
 import { Tour } from "./tour/tour";
 import { useTourProgress } from "./tour/tourState";
 import { demoPinboardsWithClaimCounts } from "./tour/tourConstants";
-import { isInlineMode } from "./inline/inlineMode";
 
 const teamPinboardsSortFunction = (
   a: PinboardIdWithClaimCounts,

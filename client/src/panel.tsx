@@ -9,7 +9,10 @@ import {
   top,
 } from "./styling";
 import { Pinboard } from "./pinboard";
-import { SelectPinboard } from "./selectPinboard";
+import {
+  MAX_OPEN_PINBOARDS_TO_DISPLAY,
+  SelectPinboard,
+} from "./selectPinboard";
 import { neutral, space } from "@guardian/source-foundations";
 import { Navigation } from "./navigation";
 import { useGlobalStateContext } from "./globalState";
@@ -297,22 +300,26 @@ export const Panel = ({
       {
         // The active pinboards are always mounted, so that we receive new item notifications
         // Note that the pinboard hides itself based on 'isSelected' prop
-        activePinboardIds.map((pinboardId) => (
-          <Pinboard
-            key={pinboardId}
-            pinboardId={pinboardId}
-            composerId={useMemo(
-              () =>
-                activePinboards.find((_) => _.id === pinboardId)?.composerId ||
-                null,
-              [activePinboards, pinboardId]
-            )}
-            isExpanded={pinboardId === selectedPinboardId && isExpanded}
-            isSelected={pinboardId === selectedPinboardId}
-            panelElement={panelRef.current}
-            setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
-          />
-        ))
+        activePinboardIds
+          .slice(0, MAX_OPEN_PINBOARDS_TO_DISPLAY)
+          .map((pinboardId) => (
+            <Pinboard
+              key={pinboardId}
+              pinboardId={pinboardId}
+              composerId={useMemo(
+                () =>
+                  activePinboards.find((_) => _.id === pinboardId)
+                    ?.composerId || null,
+                [activePinboards, pinboardId]
+              )}
+              isExpanded={pinboardId === selectedPinboardId && isExpanded}
+              isSelected={pinboardId === selectedPinboardId}
+              panelElement={panelRef.current}
+              setMaybeInlineSelectedPinboardId={
+                setMaybeInlineSelectedPinboardId
+              }
+            />
+          ))
       }
 
       {maybePeekingAtPinboard && (

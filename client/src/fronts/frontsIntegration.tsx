@@ -5,6 +5,7 @@ import ReactDOM from "react-dom";
 import { useApolloClient, useQuery } from "@apollo/client";
 import { gqlGetItemCounts, gqlGetPinboardsByPaths } from "../../gql";
 import { FrontsPinboardArticleButton } from "./frontsPinboardArticleButton";
+import { useGlobalStateContext } from "../globalState";
 
 export const FRONTS_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   "pinboard-article-button";
@@ -39,6 +40,8 @@ export const FrontsIntegration = ({
     [frontsPinboardElements]
   );
 
+  const { setError } = useGlobalStateContext();
+
   const apolloClient = useApolloClient();
 
   const [pathToPinboardDataMap, setPathToPinboardDataMap] = useState(
@@ -63,8 +66,8 @@ export const FrontsIntegration = ({
                 prevState
               )
             );
-        });
-    //TODO handle errors
+        })
+        .catch((error) => setError("unknown", error));
   }, [pathToElementsMap]);
 
   interface ItemCountsLookup {

@@ -82,6 +82,7 @@ export const SuggestAlternateCrops = ({
     clearSelectedPinboard,
     cropsOnPreselectedPinboard,
     featureFlags,
+    setError,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -144,7 +145,8 @@ export const SuggestAlternateCrops = ({
             );
             peekAtPinboard(preselectedPinboard.id);
             setIsExpanded(true);
-          }); // TODO handle errors with catch
+          })
+          .catch((error) => setError(preselectedPinboard.id, error));
       } else {
         clearSelectedPinboard();
         setPayloadToBeSent({

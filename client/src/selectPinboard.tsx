@@ -50,7 +50,7 @@ const SectionHeading: React.FC = ({ children }) => (
   <div css={{ ...textMarginCss, color: palette.neutral["46"] }}>{children}</div>
 );
 
-export const MAX_OPEN_PINBOARDS_TO_DISPLAY = 1;
+export const MAX_OPEN_PINBOARDS_TO_DISPLAY = 50;
 
 interface SelectPinboardProps {
   pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
@@ -470,7 +470,8 @@ export const SelectPinboard = ({
               {numberOfPinboardsOverDisplayLimit > 0 && (
                 <div
                   css={css`
-                    padding: ${space[1]};
+                    padding: ${space[2]}px;
+                    font-weight: normal;
                     font-style: italic;
                   `}
                 >

@@ -50,6 +50,8 @@ const SectionHeading: React.FC = ({ children }) => (
   <div css={{ ...textMarginCss, color: palette.neutral["46"] }}>{children}</div>
 );
 
+export const MAX_OPEN_PINBOARDS_TO_DISPLAY = 1;
+
 interface SelectPinboardProps {
   pinboardsWithClaimCounts: PinboardDataWithClaimCounts[];
   peekAtPinboard: (pinboard: PinboardData) => void;
@@ -118,9 +120,21 @@ export const SelectPinboard = ({
     };
   }, []);
 
-  const activePinboardsWithoutPreselected = isPinboardData(preselectedPinboard)
+  const _allActivePinboardsWithoutPreselected = isPinboardData(
+    preselectedPinboard
+  )
     ? activePinboards.filter((_) => _.id !== preselectedPinboard.id)
     : activePinboards;
+
+  const activePinboardsWithoutPreselected =
+    _allActivePinboardsWithoutPreselected.slice(
+      0,
+      MAX_OPEN_PINBOARDS_TO_DISPLAY
+    );
+
+  const numberOfPinboardsOverDisplayLimit =
+    _allActivePinboardsWithoutPreselected.length -
+    activePinboardsWithoutPreselected.length;
 
   const [searchPinboards, { data, loading, stopPolling, startPolling }] =
     useLazyQuery<{
@@ -453,6 +467,22 @@ export const SelectPinboard = ({
                 : activePinboardsWithoutPreselected
               ).map(OpenPinboardButton)}
               {isLoadingActivePinboardList && <SvgSpinner size="xsmall" />}
+              {numberOfPinboardsOverDisplayLimit > 0 && (
+                <div
+                  css={css`
+                    padding: ${space[1]};
+                    font-style: italic;
+                  `}
+                >
+                  <strong>
+                    PLUS {numberOfPinboardsOverDisplayLimit} more, which cannot
+                    be displayed.
+                  </strong>{" "}
+                  Please close some unused pinboards and raise with production
+                  staff to ensure workflow items have the correct status so they
+                  get cleaned up accordingly.
+                </div>
+              )}
               <div css={{ height: space[2] }} />
             </React.Fragment>
           )}

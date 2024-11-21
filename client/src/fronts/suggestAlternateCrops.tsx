@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { ButtonInOtherTools } from "../buttonInOtherTools";
 import { css, Global } from "@emotion/react";
@@ -12,6 +12,7 @@ import { isPinboardData } from "shared/graphql/extraTypes";
 import { agateSans } from "../../fontNormaliser";
 import { pinboard, pinMetal } from "../../colours";
 import { neutral } from "@guardian/source-foundations";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
   "pinboard-suggest-alternate-crops";
@@ -83,6 +84,8 @@ export const SuggestAlternateCrops = ({
     featureFlags,
   } = useGlobalStateContext();
 
+  const sendTelemetryEvent = useContext(TelemetryContext);
+
   const apolloClient = useApolloClient();
 
   const onClick = useCallback(
@@ -130,6 +133,15 @@ export const SuggestAlternateCrops = ({
             },
           })
           .then(() => {
+            sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.ALTERNATE_CROP_SUGGESTED,
+              pinboardPayload.aspectRatio && pinboardPayload.embeddableUrl
+                ? {
+                    aspectRatio: pinboardPayload.aspectRatio,
+                    embeddableUrl: pinboardPayload.embeddableUrl, // could probably refactor to extract mediaId and cropId properly
+                  }
+                : undefined
+            );
             peekAtPinboard(preselectedPinboard.id);
             setIsExpanded(true);
           }); // TODO handle errors with catch

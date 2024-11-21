@@ -2,7 +2,7 @@ import { isPinboardData, PinboardData } from "shared/graphql/extraTypes";
 import { Item, PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import { useGlobalStateContext } from "../globalState";
 import { useLazyQuery } from "@apollo/client";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { PayloadWithThumbnail } from "../types/PayloadAndType";
 import { gqlGetInitialItems } from "../../gql";
 import root from "react-shadow/emotion";
@@ -11,6 +11,7 @@ import { css } from "@emotion/react";
 import { pinboard } from "../../colours";
 import { neutral } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
+import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
 
 interface FrontsPinboardArticleButtonProps {
   maybePinboardData: PinboardData | undefined;
@@ -26,6 +27,8 @@ export const FrontsPinboardArticleButton = ({
   hasCountsLoaded,
 }: FrontsPinboardArticleButtonProps) => {
   const { peekAtPinboard } = useGlobalStateContext();
+
+  const sendTelemetryEvent = useContext(TelemetryContext);
 
   const [cropsAtRequiredRatio, setCropsAtRequiredRatio] = useState<
     Array<[PayloadWithThumbnail, Item]>
@@ -153,6 +156,18 @@ export const FrontsPinboardArticleButton = ({
                   onDragStart={(event) => {
                     event.dataTransfer.setData("URL", payload.embeddableUrl);
                   }}
+                  onDragEnd={(event) =>
+                    sendTelemetryEvent?.(
+                      PINBOARD_TELEMETRY_TYPE.ALTERNATE_CROP_DRAGGED,
+                      payload.aspectRatio
+                        ? {
+                            aspectRatio: payload.aspectRatio,
+                            embeddableUrl: payload.embeddableUrl,
+                            dropEffect: event.dataTransfer.dropEffect,
+                          }
+                        : undefined
+                    )
+                  }
                   onClick={() => {
                     peekAtPinboard(item.pinboardId, item.id);
                   }}

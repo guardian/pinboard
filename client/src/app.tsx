@@ -369,7 +369,11 @@ export const PinBoardApp = ({
             ...(tags || {}),
           }
         : tags;
-    basicSendTelemetryEvent?.(type, newTags, value);
+    basicSendTelemetryEvent?.(
+      type,
+      { hostname: window.location.hostname, ...newTags },
+      value
+    );
   };
 
   useEffect(() => {
@@ -392,14 +396,17 @@ export const PinBoardApp = ({
     () => extractFeatureFlags(me?.featureFlags),
     [me?.featureFlags]
   );
-  consumeFeatureFlagQueryParamsAndUpdateAccordingly(apolloClient);
-
   useEffect(() => {
-    console.log("test feature flag:", featureFlags["test"]);
-  }, [featureFlags]);
+    me?.email &&
+      consumeFeatureFlagQueryParamsAndUpdateAccordingly(
+        apolloClient,
+        extractFeatureFlags(me?.featureFlags),
+        sendTelemetryEvent
+      );
+  }, [me]);
 
   const shouldPinboardDisplay =
-    featureFlags["alternateCropSuggesting"] || !isRunningWithinFrontsTool;
+    !isRunningWithinFrontsTool || featureFlags["alternateCropSuggesting"];
 
   return shouldPinboardDisplay ? (
     <TelemetryContext.Provider value={sendTelemetryEvent}>

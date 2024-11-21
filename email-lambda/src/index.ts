@@ -71,6 +71,15 @@ export const handler = async (maybeSendImmediatelyDetail?: {
        * will need their isEmailEvaluated flag set to true at the bottom
        * of this file, so they aren't continually picked up
        */
+
+      if (itemIdWithGroupMention) {
+        console.error(
+          "Item with ID",
+          itemIdWithGroupMention,
+          "has no group mentions to email about. This is unexpected.",
+          { itemsToEmailAbout }
+        );
+      }
     }
 
     if (itemsToEmailAbout.length === 0) {

@@ -266,7 +266,7 @@ export const Panel = ({
       <Global styles={highlightItemsKeyFramesCSS} />
 
       {
-        // The active pinboards are always mounted, so that we receive new item notifications
+        // The active pinboards are always mounted
         // Note that the pinboard hides itself based on 'isSelected' prop
         activePinboardIds.map((pinboardId) => (
           <Pinboard

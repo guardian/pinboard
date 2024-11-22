@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useSubscription } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { Claimed, Item, LastItemSeenByUser } from "shared/graphql/graphql";
 import { ScrollableItems } from "./scrollableItems";
 import { PendingItem } from "./types/PendingItem";
@@ -7,9 +7,6 @@ import {
   gqlClaimItem,
   gqlGetInitialItems,
   gqlGetLastItemSeenByUsers,
-  gqlOnClaimItem,
-  gqlOnMutateItem,
-  gqlOnSeenItem,
 } from "../gql";
 import { SendMessageArea } from "./sendMessageArea";
 import { useGlobalStateContext } from "./globalState";
@@ -73,43 +70,41 @@ export const Pinboard = ({
     setUnreadFlag,
 
     addManuallyOpenedPinboardId,
+
+    allSubscriptionItems,
+    allSubscriptionClaimedItems,
+    allSubscriptionOnSeenItems,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
   const tourProgress = useTourProgress();
 
-  const itemSubscription = useSubscription(gqlOnMutateItem(pinboardId), {
-    onSubscriptionData: ({ subscriptionData }) => {
-      const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
-      addEmailsToLookup([itemFromSubscription.userEmail]);
-      setSubscriptionItems((prevState) => [...prevState, itemFromSubscription]);
-      if (!isExpanded && !itemFromSubscription.editHistory) {
-        showNotification(itemFromSubscription);
-        setUnreadFlag(pinboardId)(true);
-      }
-    },
-  });
+  const relevantSubscriptionItems = useMemo(
+    () => allSubscriptionItems.filter((_) => _.pinboardId === pinboardId),
+    [allSubscriptionItems]
+  );
+  const relevantSubscriptionClaimedItems = useMemo(
+    () =>
+      allSubscriptionClaimedItems.filter((_) => _.pinboardId === pinboardId),
+    [allSubscriptionClaimedItems]
+  );
+  const relevantSubscriptionOnSeenItems = useMemo(
+    () => allSubscriptionOnSeenItems.filter((_) => _.pinboardId === pinboardId),
+    [allSubscriptionOnSeenItems]
+  );
 
-  const claimSubscription = useSubscription(gqlOnClaimItem(pinboardId), {
-    onSubscriptionData: ({ subscriptionData }) => {
-      const { updatedItem, newItem }: Claimed =
-        subscriptionData.data.onClaimItem;
-      addEmailsToLookup([newItem.userEmail]);
-      setClaimItems((prevState) => [...prevState, updatedItem, newItem]);
-      if (!isExpanded) {
-        showNotification(newItem);
-        setUnreadFlag(pinboardId)(true);
-      }
-    },
-  });
-
-  const [claimItems, setClaimItems] = useState<Item[]>([]);
-
-  const [_subscriptionItems, setSubscriptionItems] = useState<Item[]>([]);
-  const subscriptionItems = tourProgress.isRunning
-    ? tourProgress.subscriptionItems
-    : _subscriptionItems;
+  const subscriptionItems = useMemo(
+    () =>
+      tourProgress.isRunning
+        ? tourProgress.subscriptionItems
+        : relevantSubscriptionItems.filter((_) => _.pinboardId === pinboardId),
+    [
+      relevantSubscriptionItems,
+      tourProgress.subscriptionItems,
+      tourProgress.isRunning,
+    ]
+  );
 
   const [_successfulSends, setSuccessfulSends] = useState<PendingItem[]>([]);
   const successfulSends = tourProgress.isRunning
@@ -131,7 +126,7 @@ export const Pinboard = ({
         ...(initialItemsQuery.data?.listItems || []),
         ...successfulSends,
         ...subscriptionItems, // any subscription items with same ids as 'successfulSends' will override (and therefore pending:true will be gone)
-        ...claimItems,
+        ...relevantSubscriptionClaimedItems,
       ].reduce(
         (accumulator, item) => ({
           ...accumulator,
@@ -139,7 +134,12 @@ export const Pinboard = ({
         }),
         {} as ItemsMap
       ),
-    [initialItemsQuery.data, successfulSends, subscriptionItems, claimItems]
+    [
+      initialItemsQuery.data,
+      successfulSends,
+      subscriptionItems,
+      relevantSubscriptionClaimedItems,
+    ]
   );
 
   const items: Array<PendingItem | Item> = useMemo(
@@ -187,24 +187,24 @@ export const Pinboard = ({
     ? tourProgress.lastItemSeenByUserLookup
     : _lastItemSeenByUserLookup;
 
-  useSubscription(gqlOnSeenItem(pinboardId), {
-    onSubscriptionData: ({ subscriptionData }) => {
-      const newLastItemSeenByUser: LastItemSeenByUser =
-        subscriptionData.data.onSeenItem;
-      addEmailsToLookup([newLastItemSeenByUser.userEmail]);
-      const previousLastItemSeenByUser =
-        _lastItemSeenByUserLookup[newLastItemSeenByUser.userEmail];
-      if (
-        !previousLastItemSeenByUser ||
-        previousLastItemSeenByUser.seenAt < newLastItemSeenByUser.seenAt
-      ) {
-        setLastItemSeenByUserLookup((prevState) => ({
-          ...prevState,
-          [newLastItemSeenByUser.userEmail]: newLastItemSeenByUser,
-        }));
-      }
-    },
-  });
+  useEffect(() => {
+    setLastItemSeenByUserLookup((prevState) =>
+      relevantSubscriptionOnSeenItems.reduce((acc, lastItemSeenByUser) => {
+        const previousLastItemSeenByUser = acc[lastItemSeenByUser.userEmail];
+        if (
+          !previousLastItemSeenByUser ||
+          previousLastItemSeenByUser.seenAt < lastItemSeenByUser.seenAt
+        ) {
+          return {
+            ...acc,
+            [lastItemSeenByUser.userEmail]: lastItemSeenByUser,
+          };
+        } else {
+          return acc;
+        }
+      }, prevState)
+    );
+  }, [relevantSubscriptionOnSeenItems]);
 
   useEffect(
     () =>
@@ -245,14 +245,8 @@ export const Pinboard = ({
   }, [lastItem, lastItemSeenByUserLookup]);
 
   useEffect(
-    () =>
-      setError(
-        pinboardId,
-        initialItemsQuery.error ||
-          itemSubscription.error ||
-          claimSubscription.error
-      ),
-    [initialItemsQuery.error, itemSubscription.error, claimSubscription.error]
+    () => setError(pinboardId, initialItemsQuery.error),
+    [initialItemsQuery.error]
   );
 
   const onSuccessfulSend = (
@@ -277,30 +271,21 @@ export const Pinboard = ({
     }
   };
 
-  const handleClaimed = (data: { claimItem: Claimed }) => {
-    setClaimItems((prevState) => [
-      ...prevState,
-      data.claimItem.updatedItem,
-      data.claimItem.newItem,
-    ]);
-    !tourProgress.isRunning &&
-      addManuallyOpenedPinboardId(tourProgress.isRunning)(
-        data.claimItem.pinboardId
-      );
-    const unclaimedDurationInMillis =
-      new Date(data.claimItem.newItem.timestamp).getTime() -
-      new Date(data.claimItem.updatedItem.timestamp).getTime();
-    sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.CLAIMED_ITEM, {
-      pinboardId: data.claimItem.pinboardId,
-      unclaimedDurationInMillis,
-    });
-  };
-
   const [claimItem] = useMutation(gqlClaimItem, {
-    onCompleted: handleClaimed,
+    onCompleted: (data: { claimItem: Claimed }) => {
+      !tourProgress.isRunning &&
+        addManuallyOpenedPinboardId(tourProgress.isRunning)(
+          data.claimItem.pinboardId
+        );
+      const unclaimedDurationInMillis =
+        new Date(data.claimItem.newItem.timestamp).getTime() -
+        new Date(data.claimItem.updatedItem.timestamp).getTime();
+      sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.CLAIMED_ITEM, {
+        pinboardId: data.claimItem.pinboardId,
+        unclaimedDurationInMillis,
+      });
+    },
   });
-
-  // FIXME add a GraphQL subscription to hear about claims performed by other people (reusing handleClaimed)
 
   const [hasProcessedItemIdInURL, setHasProcessedItemIdInURL] = useState(false);
 

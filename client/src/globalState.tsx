@@ -3,6 +3,7 @@ import {
   useLazyQuery,
   useMutation,
   useQuery,
+  useSubscription,
 } from "@apollo/client";
 import React, {
   PropsWithChildren,
@@ -11,11 +12,19 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { Item, MyUser } from "../../shared/graphql/graphql";
+import {
+  Claimed,
+  Item,
+  LastItemSeenByUser,
+  MyUser,
+} from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
   gqlGetPinboardByComposerId,
   gqlGetPinboardsByIds,
+  gqlOnClaimItem,
+  gqlOnMutateItem,
+  gqlOnSeenItem,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
 import type {
@@ -54,6 +63,10 @@ interface GlobalStateContextShape {
   isLoadingActivePinboardList: boolean;
   activePinboardIds: string[];
   activePinboards: PinboardData[];
+
+  allSubscriptionItems: Item[];
+  allSubscriptionClaimedItems: Item[]; // both the updated 'claimed' item and the new 'claim' item
+  allSubscriptionOnSeenItems: LastItemSeenByUser[];
 
   payloadToBeSent: PayloadAndType | null;
   setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
@@ -113,6 +126,7 @@ interface GlobalStateContextShape {
   boundedPositionTranslation: ControlPosition;
   updateBoundedPositionTranslation: (newPosition: ControlPosition) => void;
 }
+
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
   null
 );
@@ -145,6 +159,7 @@ interface GlobalStateProviderProps {
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
   featureFlags: FeatureFlags;
+  maybeInlineSelectedPinboardId?: string | null;
 }
 
 export const GlobalStateProvider = ({
@@ -167,6 +182,7 @@ export const GlobalStateProvider = ({
   visitTourStep,
   featureFlags,
   children,
+  maybeInlineSelectedPinboardId,
 }: PropsWithChildren<GlobalStateProviderProps>) => {
   const [activeTab, setActiveTab] = useState<Tab>(ChatTab);
 
@@ -271,6 +287,93 @@ export const GlobalStateProvider = ({
   const activePinboards: PinboardData[] = isDemoSelectedPinboard
     ? [demoPinboardData]
     : pinboardDataQuery.data?.getPinboardsByIds || [];
+
+  const [allSubscriptionItems, setAllSubscriptionItems] = useState<Item[]>([]);
+  const itemSubscription = useSubscription(gqlOnMutateItem, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
+      const pinboardId = itemFromSubscription.pinboardId;
+      // TODO trigger any item count re-fetches (probably need to store a count of items to trigger useEffect elsewhere)
+      if (
+        activePinboardIds.includes(pinboardId) ||
+        pinboardId === maybeInlineSelectedPinboardId
+      ) {
+        addEmailsToLookup([itemFromSubscription.userEmail]);
+        setAllSubscriptionItems((prevState) => [
+          ...prevState,
+          itemFromSubscription,
+        ]);
+        if (
+          (!isExpanded || selectedPinboardId !== pinboardId) &&
+          !itemFromSubscription.editHistory
+        ) {
+          showNotification(itemFromSubscription);
+        }
+      }
+    },
+  });
+
+  const [allSubscriptionClaimedItems, setAllSubscriptionClaimedItems] =
+    useState<Item[]>([]);
+  const claimSubscription = useSubscription(gqlOnClaimItem, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const { updatedItem, newItem }: Claimed =
+        subscriptionData.data.onClaimItem;
+      const pinboardId = updatedItem.pinboardId;
+      if (
+        activePinboardIds.includes(pinboardId) ||
+        pinboardId === maybeInlineSelectedPinboardId
+      ) {
+        addEmailsToLookup([newItem.userEmail]);
+        setAllSubscriptionClaimedItems((prevState) => [
+          ...prevState,
+          updatedItem,
+          newItem,
+        ]);
+        if (!isExpanded && pinboardId !== selectedPinboardId) {
+          // TODO check this condition doesn't need to be ORed
+          showNotification(newItem);
+          setUnreadFlag(pinboardId)(true);
+        }
+      }
+    },
+  });
+
+  const [allSubscriptionOnSeenItems, setAllSubscriptionOnSeenItems] = useState<
+    LastItemSeenByUser[]
+  >([]);
+  const onSeenItemSubscription = useSubscription(gqlOnSeenItem, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const newLastItemSeenByUser: LastItemSeenByUser =
+        subscriptionData.data.onSeenItem;
+      const pinboardId = newLastItemSeenByUser.pinboardId;
+      if (
+        activePinboardIds.includes(pinboardId) ||
+        pinboardId === maybeInlineSelectedPinboardId
+      ) {
+        addEmailsToLookup([newLastItemSeenByUser.userEmail]);
+        setAllSubscriptionOnSeenItems((prevState) => [
+          ...prevState,
+          newLastItemSeenByUser,
+        ]);
+      }
+    },
+  });
+
+  useEffect(
+    () =>
+      setError(
+        "N/A",
+        itemSubscription.error ||
+          claimSubscription.error ||
+          onSeenItemSubscription.error
+      ),
+    [
+      itemSubscription.error,
+      claimSubscription.error,
+      onSeenItemSubscription.error,
+    ]
+  );
 
   useEffect(
     () =>
@@ -460,8 +563,9 @@ export const GlobalStateProvider = ({
       );
     }
     setSelectedPinboardId(null);
-    setUnreadFlag(pinboardIdToClose)(undefined);
     setError(pinboardIdToClose, undefined);
+    //TODO probably need to check if pinboard is also in group pinboards, so we don't lose an unread on there
+    setUnreadFlag(pinboardIdToClose)(undefined);
   };
 
   useEffect(() => {
@@ -576,6 +680,10 @@ export const GlobalStateProvider = ({
     isLoadingActivePinboardList,
     activePinboards,
     activePinboardIds,
+
+    allSubscriptionItems: allSubscriptionItems,
+    allSubscriptionClaimedItems: allSubscriptionClaimedItems,
+    allSubscriptionOnSeenItems: allSubscriptionOnSeenItems,
 
     payloadToBeSent,
     setPayloadToBeSent,

@@ -111,9 +111,9 @@ export const gqlDeleteItem = gql`
         }
     }
 `;
-export const gqlOnMutateItem = (pinboardId: string) => gql`
+export const gqlOnMutateItem = gql`
     subscription OnMutateItem {
-        onMutateItem(pinboardId: "${pinboardId}") { ${itemReturnFields} }
+        onMutateItem { ${itemReturnFields} }
     }
 `;
 
@@ -212,9 +212,9 @@ export const gqlGetLastItemSeenByUsers = (pinboardId: string) => gql`
     }
 `;
 
-export const gqlOnSeenItem = (pinboardId: string) => gql`
+export const gqlOnSeenItem = gql`
     subscription OnSeenItem {
-        onSeenItem(pinboardId: "${pinboardId}") { ${lastItemSeenByUserReturnFields} }
+        onSeenItem { ${lastItemSeenByUserReturnFields} }
     }
 `;
 
@@ -245,9 +245,9 @@ export const gqlClaimItem = gql`
     }
 `;
 
-export const gqlOnClaimItem = (pinboardId: string) => gql`
+export const gqlOnClaimItem = gql`
     subscription OnClaimItem {
-        onClaimItem(pinboardId: "${pinboardId}") { ${claimedReturnFields} }
+        onClaimItem { ${claimedReturnFields} }
     }
 `;
 

@@ -6,7 +6,7 @@ schema {
 
 type Query {
   # database-bridge-lambda queries
-  listItems(pinboardId: String!): [Item]
+  listItems(pinboardId: String!, maybeAspectRatioFilter: String): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
   searchMentionableUsers(prefix: String!): UsersAndGroups

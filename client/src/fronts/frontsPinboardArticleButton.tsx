@@ -34,36 +34,22 @@ export const FrontsPinboardArticleButton = ({
     Array<[PayloadWithThumbnail, Item]>
   >([]);
 
-  const [getItems, { loading }] = useLazyQuery(
-    gqlGetInitialItems //TODO consider creating new query,
-  );
+  const [getItems, { loading }] = useLazyQuery(gqlGetInitialItems);
 
   useEffect(() => {
     if (isPinboardData(maybePinboardData) && withDraggableThumbsOfRatio) {
       getItems({
         variables: {
           pinboardId: maybePinboardData.id,
+          maybeAspectRatioFilter: withDraggableThumbsOfRatio,
         },
       }).then(({ data }) => {
         data?.listItems &&
           setCropsAtRequiredRatio(
-            data.listItems.reduce(
-              (acc: Array<[PayloadWithThumbnail, Item]>, item: Item) => {
-                const parsedPayload =
-                  item.payload &&
-                  (JSON.parse(item.payload) as PayloadWithThumbnail);
-                if (
-                  item.type === "grid-crop" &&
-                  parsedPayload &&
-                  parsedPayload.aspectRatio === withDraggableThumbsOfRatio
-                ) {
-                  return [...acc, [parsedPayload, item]];
-                } else {
-                  return acc;
-                }
-              },
-              []
-            )
+            data.listItems.map((item: Item) => [
+              JSON.parse(item.payload!),
+              item,
+            ])
           );
       });
     }

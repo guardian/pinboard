@@ -81,8 +81,8 @@ const itemReturnFields = `
 
 // TODO: consider updating the resolver (cdk/stack.ts) to use a Query with a secondary index (if performance degrades when we have lots of items)
 export const gqlGetInitialItems = gql`
-    query MyQuery($pinboardId: String!) {
-        listItems(pinboardId: $pinboardId) {
+    query MyQuery($pinboardId: String!, $maybeAspectRatioFilter: String) {
+        listItems(pinboardId: $pinboardId, maybeAspectRatioFilter: $maybeAspectRatioFilter) {
             ${itemReturnFields}
         }
     }

@@ -97,13 +97,18 @@ export const deleteItem = async (
 
 export const listItems = (
   sql: Sql,
-  args: { pinboardId: string },
+  args: { pinboardId: string; maybeAspectRatioFilter?: string },
   userEmail: string
 ) => sql`
     SELECT ${fragmentItemFields(sql, userEmail)}
     FROM "Item"
     WHERE "pinboardId" = ${args.pinboardId}
       AND "isArchived" = false
+    ${
+      args.maybeAspectRatioFilter
+        ? sql`AND "type" = 'grid-crop' AND  "payload" ->> 'aspectRatio' = ${args.maybeAspectRatioFilter}`
+        : sql``
+    }
 `;
 
 export const claimItem = (

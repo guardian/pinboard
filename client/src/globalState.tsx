@@ -67,6 +67,7 @@ interface GlobalStateContextShape {
   allSubscriptionItems: Item[];
   allSubscriptionClaimedItems: Item[]; // both the updated 'claimed' item and the new 'claim' item
   allSubscriptionOnSeenItems: LastItemSeenByUser[];
+  totalItemsReceivedViaSubscription: number;
 
   payloadToBeSent: PayloadAndType | null;
   setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
@@ -288,12 +289,17 @@ export const GlobalStateProvider = ({
     ? [demoPinboardData]
     : pinboardDataQuery.data?.getPinboardsByIds || [];
 
+  const [
+    totalItemsReceivedViaSubscription,
+    setTotalItemsReceivedViaSubscription,
+  ] = useState(0);
+
   const [allSubscriptionItems, setAllSubscriptionItems] = useState<Item[]>([]);
   const itemSubscription = useSubscription(gqlOnMutateItem, {
     onSubscriptionData: ({ subscriptionData }) => {
+      setTotalItemsReceivedViaSubscription((prev) => prev + 1);
       const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
       const pinboardId = itemFromSubscription.pinboardId;
-      // TODO trigger any item count re-fetches (probably need to store a count of items to trigger useEffect elsewhere)
       if (
         activePinboardIds.includes(pinboardId) ||
         pinboardId === maybeInlineSelectedPinboardId
@@ -317,6 +323,7 @@ export const GlobalStateProvider = ({
     useState<Item[]>([]);
   const claimSubscription = useSubscription(gqlOnClaimItem, {
     onSubscriptionData: ({ subscriptionData }) => {
+      setTotalItemsReceivedViaSubscription((prev) => prev + 1);
       const { updatedItem, newItem }: Claimed =
         subscriptionData.data.onClaimItem;
       const pinboardId = updatedItem.pinboardId;
@@ -330,11 +337,6 @@ export const GlobalStateProvider = ({
           updatedItem,
           newItem,
         ]);
-        if (!isExpanded && pinboardId !== selectedPinboardId) {
-          // TODO check this condition doesn't need to be ORed
-          showNotification(newItem);
-          setUnreadFlag(pinboardId)(true);
-        }
       }
     },
   });
@@ -681,9 +683,10 @@ export const GlobalStateProvider = ({
     activePinboards,
     activePinboardIds,
 
-    allSubscriptionItems: allSubscriptionItems,
-    allSubscriptionClaimedItems: allSubscriptionClaimedItems,
-    allSubscriptionOnSeenItems: allSubscriptionOnSeenItems,
+    allSubscriptionItems,
+    allSubscriptionClaimedItems,
+    allSubscriptionOnSeenItems,
+    totalItemsReceivedViaSubscription,
 
     payloadToBeSent,
     setPayloadToBeSent,

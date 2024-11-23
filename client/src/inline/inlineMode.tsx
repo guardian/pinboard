@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { InlineModePinboardTogglePortal } from "./inlineModePinboardToggle";
 import { useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts } from "../../gql";
-import { PinboardIdWithItemCounts } from "../../../shared/graphql/graphql";
+import { PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import { InlineModePanel } from "./inlineModePanel";
 import ReactDOM from "react-dom";
 import { InlineModeWorkflowColumnHeading } from "./inlineModeWorkflowColumnHeading";
+import { useGlobalStateContext } from "../globalState";
 
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
@@ -37,6 +38,8 @@ export const InlineMode = ({
   maybeInlineSelectedPinboardId,
   setMaybeInlineSelectedPinboardId,
 }: InlineModeProps) => {
+  const { totalItemsReceivedViaSubscription } = useGlobalStateContext();
+
   const pinboardArea = useMemo(
     () => document.getElementById("pinboard-area"),
     []
@@ -55,11 +58,9 @@ export const InlineMode = ({
     Record<string, PinboardIdWithItemCounts>
   >({});
 
-  const [fetchItemCounts, { stopPolling, startPolling }] =
-    useLazyQuery(gqlGetItemCounts);
+  const [fetchItemCounts] = useLazyQuery(gqlGetItemCounts);
 
   useEffect(() => {
-    stopPolling();
     const pinboardIds = Object.keys(workflowTitleElementLookup);
     if (pinboardIds.length > 0) {
       fetchItemCounts({
@@ -80,9 +81,8 @@ export const InlineMode = ({
             )
           ),
       });
-      startPolling(15000);
     }
-  }, [workflowTitleElementLookup]);
+  }, [workflowTitleElementLookup, totalItemsReceivedViaSubscription]);
 
   const maybeSelectedNode =
     maybeInlineSelectedPinboardId &&

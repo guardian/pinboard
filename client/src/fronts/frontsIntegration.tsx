@@ -40,7 +40,8 @@ export const FrontsIntegration = ({
     [frontsPinboardElements]
   );
 
-  const { setError } = useGlobalStateContext();
+  const { setError, totalItemsReceivedViaSubscription } =
+    useGlobalStateContext();
 
   const apolloClient = useApolloClient();
 
@@ -84,8 +85,11 @@ export const FrontsIntegration = ({
     variables: {
       pinboardIds,
     },
-    pollInterval: 10_000, //TODO consider subscribing to all messages and fetching counts based on that, might be more efficient
   });
+
+  useEffect(() => {
+    itemCountsQuery.refetch();
+  }, [totalItemsReceivedViaSubscription]);
 
   useEffect(() => {
     itemCountsQuery.data?.getItemCounts &&

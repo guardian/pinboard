@@ -67,6 +67,7 @@ export const Panel = ({
     setActiveTab,
     boundedPositionTranslation,
     setUnreadFlag,
+    totalItemsReceivedViaSubscription,
   } = useGlobalStateContext();
 
   const tourProgress = useTourProgress();
@@ -94,9 +95,11 @@ export const Panel = ({
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
-  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds, {
-    pollInterval: 15000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
-  });
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
+
+  useEffect(() => {
+    groupPinboardIdsQuery.refetch();
+  }, [totalItemsReceivedViaSubscription]);
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(
     () =>

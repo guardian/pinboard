@@ -6,7 +6,7 @@ import { PayloadWithThumbnail } from "../types/PayloadAndType";
 import root from "react-shadow/emotion";
 import { useApolloClient } from "@apollo/client";
 import { useGlobalStateContext } from "../globalState";
-import { CreateItemInput, Item } from "shared/graphql/graphql";
+import { CreateItemInput } from "shared/graphql/graphql";
 import { gqlCreateItem } from "../../gql";
 import { isPinboardData } from "shared/graphql/extraTypes";
 import { agateSans } from "../../fontNormaliser";

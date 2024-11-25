@@ -125,9 +125,9 @@ export const FrontsPinboardArticleButton = ({
                 gap: 3px;
               `}
             >
-              {cropsAtRequiredRatio.map(([payload, item], index) => (
+              {cropsAtRequiredRatio.map(([payload, item]) => (
                 <img
-                  key={index}
+                  key={item.id}
                   css={css`
                     max-width: 100px;
                     max-height: 100px;

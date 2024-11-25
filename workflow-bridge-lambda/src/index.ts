@@ -86,12 +86,12 @@ const getPinboardById =
     return { ...data.externalData, ...data };
   };
 
-const getPinboardsByPaths = async (identifiers: number[] | string[]) => {
+const getPinboardsByPaths = async (paths: string[]) => {
   const stubsResponse = await fetch(
     `${WORKFLOW_DATASTORE_API_URL}/stubsByPath?fieldFilter=${fields}`,
     {
       method: "POST",
-      body: JSON.stringify(identifiers),
+      body: JSON.stringify(paths),
     }
   );
 

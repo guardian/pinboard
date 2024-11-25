@@ -18,7 +18,10 @@ import {
   gqlGetPinboardsByIds,
   gqlRemoveManuallyOpenedPinboardIds,
 } from "../gql";
-import type { PayloadAndType } from "./types/PayloadAndType";
+import type {
+  PayloadAndType,
+  PayloadWithThumbnail,
+} from "./types/PayloadAndType";
 import type { PerPinboard } from "./types/PerPinboard";
 import type { PinboardData } from "../../shared/graphql/extraTypes";
 import { isPinboardData } from "../../shared/graphql/extraTypes";
@@ -62,11 +65,19 @@ interface GlobalStateContextShape {
   openPinboard: (
     isDemo: boolean
   ) => (pinboardData: PinboardData, isOpenInNewTab: boolean) => void;
+  peekAtPinboard: (pinboardId: string, maybeItemIdToHighlight?: string) => void;
   openPinboardInNewTab: (pinboardData: PinboardData) => void;
   closePinboard: (pinboardId: string) => void;
   preselectedPinboard: PreselectedPinboard;
+  cropsOnPreselectedPinboard: Array<[PayloadWithThumbnail, Item]>;
+  setCropsOnPreselectedPinboard: (
+    crops: Array<[PayloadWithThumbnail, Item]>
+  ) => void;
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
+
+  maybeItemIdToHighlight: string | null;
+  clearMaybeItemIdToHighlight: () => void;
 
   hasEverUsedTour: boolean | undefined;
   visitTourStep: (tourStepId: string) => void;
@@ -186,6 +197,10 @@ export const GlobalStateProvider = ({
   const preselectedPinboardId =
     isPinboardData(preselectedPinboard) && preselectedPinboard.id;
 
+  const [cropsOnPreselectedPinboard, setCropsOnPreselectedPinboard] = useState<
+    Array<[PayloadWithThumbnail, Item]>
+  >([]);
+
   const [
     maybeOpenPinboardIdBasedOnQueryParam,
     setMaybeOpenPinboardIdBasedOnQueryParam,
@@ -216,17 +231,20 @@ export const GlobalStateProvider = ({
 
   const activePinboardIds = isDemoSelectedPinboard
     ? [demoPinboardData.id]
-    : [
-        ...(preselectedPinboardId ? [preselectedPinboardId] : []),
-        ...(maybeOpenPinboardIdBasedOnQueryParam
-          ? [maybeOpenPinboardIdBasedOnQueryParam]
-          : []),
-        ...manuallyOpenedPinboardIds?.filter(
-          (_) =>
-            _ !== preselectedPinboardId &&
-            _ !== maybeOpenPinboardIdBasedOnQueryParam
-        ),
-      ];
+    : Array.from(
+        new Set([
+          ...(selectedPinboardId ? [selectedPinboardId] : []),
+          ...(preselectedPinboardId ? [preselectedPinboardId] : []),
+          ...(maybeOpenPinboardIdBasedOnQueryParam
+            ? [maybeOpenPinboardIdBasedOnQueryParam]
+            : []),
+          ...manuallyOpenedPinboardIds?.filter(
+            (_) =>
+              _ !== preselectedPinboardId &&
+              _ !== maybeOpenPinboardIdBasedOnQueryParam
+          ),
+        ])
+      );
 
   const pinboardDataQuery = useQuery<{
     getPinboardsByIds: PinboardData[];
@@ -371,6 +389,17 @@ export const GlobalStateProvider = ({
         setSelectedPinboardId(pinboardData.id);
       }
     };
+
+  const [maybeItemIdToHighlight, setMaybeItemIdToHighlight] = useState<
+    string | null
+  >(null);
+  const clearMaybeItemIdToHighlight = () => setMaybeItemIdToHighlight(null);
+
+  const peekAtPinboard = (pinboardId: string, itemIdToHighlight?: string) => {
+    setSelectedPinboardId(pinboardId);
+    itemIdToHighlight && setMaybeItemIdToHighlight(itemIdToHighlight);
+    setIsExpanded(true);
+  };
 
   const [errors, setErrors] = useState<PerPinboard<ApolloError>>({});
 
@@ -555,10 +584,16 @@ export const GlobalStateProvider = ({
     addManuallyOpenedPinboardId,
     openPinboard,
     openPinboardInNewTab,
+    peekAtPinboard,
     closePinboard,
     preselectedPinboard,
+    cropsOnPreselectedPinboard,
+    setCropsOnPreselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
+
+    maybeItemIdToHighlight,
+    clearMaybeItemIdToHighlight,
 
     hasEverUsedTour,
     visitTourStep,

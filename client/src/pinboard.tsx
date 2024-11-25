@@ -18,9 +18,13 @@ import { AssetView } from "./assetView";
 import { Feedback } from "./feedback";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ModalBackground } from "./modal";
-import { maybeConstructPayloadAndType } from "./types/PayloadAndType";
+import {
+  maybeConstructPayloadAndType,
+  PayloadWithThumbnail,
+} from "./types/PayloadAndType";
 import { useTourProgress, useTourStepRef } from "./tour/tourState";
 import { Reply } from "./reply";
+import { isPinboardData } from "shared/graphql/extraTypes";
 export interface ItemsMap {
   [id: string]: Item | PendingItem;
 }
@@ -57,6 +61,9 @@ export const Pinboard = ({
     payloadToBeSent,
     setPayloadToBeSent,
     clearPayloadToBeSent,
+
+    preselectedPinboard,
+    setCropsOnPreselectedPinboard,
 
     showNotification,
 
@@ -109,7 +116,8 @@ export const Pinboard = ({
     ? tourProgress.successfulSends
     : _successfulSends;
 
-  const initialItemsQuery = useQuery(gqlGetInitialItems(pinboardId), {
+  const initialItemsQuery = useQuery(gqlGetInitialItems, {
+    variables: { pinboardId },
     onCompleted: (data) => {
       addEmailsToLookup(
         data.listItems?.map((item: Item) => item.userEmail) || []
@@ -144,6 +152,20 @@ export const Pinboard = ({
 
   const lastItemIndex = items.length - 1;
   const lastItem = items[lastItemIndex];
+
+  useEffect(() => {
+    isPinboardData(preselectedPinboard) &&
+      preselectedPinboard.id === pinboardId &&
+      setCropsOnPreselectedPinboard(
+        items.reduce(
+          (acc, item) =>
+            item.type === "grid-crop" && item.payload
+              ? [...acc, [JSON.parse(item.payload), item]]
+              : acc,
+          [] as Array<[PayloadWithThumbnail, Item]>
+        )
+      );
+  }, [preselectedPinboard, items]);
 
   const initialLastItemSeenByUsersQuery = useQuery(
     gqlGetLastItemSeenByUsers(pinboardId),

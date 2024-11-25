@@ -6,7 +6,7 @@ schema {
 
 type Query {
   # database-bridge-lambda queries
-  listItems(pinboardId: String!): [Item]
+  listItems(pinboardId: String!, maybeAspectRatioFilter: String): [Item]
   listLastItemSeenByUsers(pinboardId: String!): [LastItemSeenByUser]
   getMyUser: MyUser
   searchMentionableUsers(prefix: String!): UsersAndGroups
@@ -16,6 +16,7 @@ type Query {
   # workflow-bridge-lambda queries
   listPinboards(searchText: String): [WorkflowStub]
   getPinboardsByIds(ids: [String!]!): [WorkflowStub]
+  getPinboardsByPaths(paths: [String!]!): [WorkflowStub]
   getPinboardByComposerId(composerId: String!): WorkflowStub
   # grid-bridge-lambda queries
   getGridSearchSummary(apiUrl: String!): GridSearchSummary
@@ -120,6 +121,7 @@ type WorkflowStub {
   title: String
   headline: String
   composerId: String
+  path: String
   status: String
   trashed: Boolean
   isNotFound: Boolean
@@ -185,4 +187,7 @@ type PinboardIdWithItemCounts {
   pinboardId: String!
   unreadCount: Int!
   totalCount: Int!
+  totalCropCount: Int!
+  fiveByFourCount: Int!
+  fourByFiveCount: Int!
 }

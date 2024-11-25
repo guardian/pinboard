@@ -97,13 +97,18 @@ export const deleteItem = async (
 
 export const listItems = (
   sql: Sql,
-  args: { pinboardId: string },
+  args: { pinboardId: string; maybeAspectRatioFilter?: string },
   userEmail: string
 ) => sql`
     SELECT ${fragmentItemFields(sql, userEmail)}
     FROM "Item"
     WHERE "pinboardId" = ${args.pinboardId}
       AND "isArchived" = false
+    ${
+      args.maybeAspectRatioFilter
+        ? sql`AND "type" = 'grid-crop' AND  "payload" ->> 'aspectRatio' = ${args.maybeAspectRatioFilter}`
+        : sql``
+    }
 `;
 
 export const claimItem = (
@@ -218,12 +223,15 @@ export const getItemCounts = (
     ? Promise.resolve([])
     : sql`
                 SELECT "pinboardId",
-                       COUNT(*)                                   AS "totalCount",
+                       COUNT(*) AS "totalCount",
                        COUNT(*) FILTER (WHERE "id" > COALESCE((SELECT "itemID"
                                                                FROM "LastItemSeenByUser"
                                                                WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
                                                                  AND "LastItemSeenByUser"."userEmail" = ${userEmail}),
-                                                              0)) AS "unreadCount"
+                                                              0)) AS "unreadCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop') AS "totalCropCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '5:4') AS "fiveByFourCount",
+                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '4:5') AS "fourByFiveCount"
                 FROM "Item"
                 WHERE "pinboardId" IN ${sql(args.pinboardIds)}
                   AND "deletedAt" IS NULL

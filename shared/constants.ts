@@ -27,3 +27,6 @@ export const getEmailLambdaFunctionName = (stage: Stage) =>
 export const OPEN_PINBOARD_QUERY_PARAM = "pinboardId";
 export const PINBOARD_ITEM_ID_QUERY_PARAM = "pinboardItemId";
 export const EXPAND_PINBOARD_QUERY_PARAM = "expandPinboard";
+
+export const EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET =
+  "has no group mentions to email about. This is unexpected.";

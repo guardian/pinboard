@@ -59,6 +59,10 @@ export const handler = async (maybeSendImmediatelyDetail?: {
   const sql = await getDatabaseConnection();
 
   try {
+    if (itemIdWithGroupMention) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
     const itemsToEmailAbout = await getItemsToEmailAbout(
       sql,
       itemIdWithGroupMention

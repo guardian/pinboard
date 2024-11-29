@@ -1587,7 +1587,7 @@ Object {
         "ComparisonOperator": "GreaterThanOrEqualToThreshold",
         "EvaluationPeriods": 1,
         "MetricName": "EmailLambdaRaceCondition",
-        "Namespace": "Pinboard",
+        "Namespace": "Pinboard/TEST",
         "Period": 300,
         "Statistic": "Average",
         "Tags": Array [
@@ -1632,14 +1632,8 @@ Object {
         },
         "MetricTransformations": Array [
           Object {
-            "Dimensions": Array [
-              Object {
-                "Key": "Stage",
-                "Value": "TEST",
-              },
-            ],
             "MetricName": "EmailLambdaRaceCondition",
-            "MetricNamespace": "Pinboard",
+            "MetricNamespace": "Pinboard/TEST",
             "MetricValue": "1",
           },
         ],

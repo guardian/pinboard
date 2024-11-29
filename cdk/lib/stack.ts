@@ -655,6 +655,9 @@ export class PinBoardStack extends GuStack {
         ),
         metricName: "EmailLambdaRaceCondition",
         metricNamespace: "Pinboard",
+        dimensions: {
+          Stage: this.stage,
+        },
         filterPattern: {
           logPatternString: EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
         },

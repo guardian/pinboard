@@ -1632,6 +1632,12 @@ Object {
         },
         "MetricTransformations": Array [
           Object {
+            "Dimensions": Array [
+              Object {
+                "Key": "Stage",
+                "Value": "TEST",
+              },
+            ],
             "MetricName": "EmailLambdaRaceCondition",
             "MetricNamespace": "Pinboard",
             "MetricValue": "1",

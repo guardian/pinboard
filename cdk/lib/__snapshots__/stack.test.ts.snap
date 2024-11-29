@@ -27,6 +27,7 @@ Object {
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
       "GuAlarm",
+      "GuAlarm",
     ],
     "gu:cdk:version": "59.5.6",
   },
@@ -1560,6 +1561,84 @@ Object {
         "TreatMissingData": "notBreaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
+    },
+    "EmailLambdaRaceConditionAlarmB1E6FE09": Object {
+      "Properties": Object {
+        "ActionsEnabled": true,
+        "AlarmActions": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:aws:sns:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":",
+                Object {
+                  "Ref": "AWS::AccountId",
+                },
+                ":Cloudwatch-Alerts",
+              ],
+            ],
+          },
+        ],
+        "AlarmDescription": "This occurs when the email-lambda has been invoked directly from RDS, being passed the ID of an item with group mentions, yet when querying the database for the item, it has no group mentions to email about. This is unexpected and indicates a race condition.",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "EmailLambdaRaceCondition",
+        "Namespace": "Pinboard",
+        "Period": 300,
+        "Statistic": "Average",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "59.5.6",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "Threshold": 1,
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "EmailLambdaRaceConditionMetricFilterC63DB9EC": Object {
+      "Properties": Object {
+        "FilterPattern": "has no group mentions to email about. This is unexpected.",
+        "LogGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/aws/lambda/",
+              Object {
+                "Ref": "EmailLambda93E95E21",
+              },
+            ],
+          ],
+        },
+        "MetricTransformations": Array [
+          Object {
+            "MetricName": "EmailLambdaRaceCondition",
+            "MetricNamespace": "Pinboard",
+            "MetricValue": "1",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::MetricFilter",
     },
     "EmailLambdaServiceRoleCBE95916": Object {
       "Properties": Object {

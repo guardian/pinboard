@@ -1,6 +1,9 @@
 import { getDatabaseConnection } from "shared/database/databaseConnection";
 import { STAGE, standardAwsConfig } from "shared/awsIntegration";
-import { getWorkflowBridgeLambdaFunctionName } from "shared/constants";
+import {
+  EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
+  getWorkflowBridgeLambdaFunctionName,
+} from "shared/constants";
 import { Stage } from "shared/types/stage";
 import { WorkflowStub } from "shared/graphql/graphql";
 import { Lambda } from "@aws-sdk/client-lambda";
@@ -59,6 +62,10 @@ export const handler = async (maybeSendImmediatelyDetail?: {
   const sql = await getDatabaseConnection();
 
   try {
+    if (itemIdWithGroupMention) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
     const itemsToEmailAbout = await getItemsToEmailAbout(
       sql,
       itemIdWithGroupMention
@@ -76,7 +83,7 @@ export const handler = async (maybeSendImmediatelyDetail?: {
         console.error(
           "Item with ID",
           itemIdWithGroupMention,
-          "has no group mentions to email about. This is unexpected.",
+          EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
           { itemsToEmailAbout }
         );
       }

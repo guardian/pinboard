@@ -26,6 +26,7 @@ import { join } from "path";
 import {
   APP,
   DATABASE_BRIDGE_LAMBDA_BASENAME,
+  EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
   getDatabaseBridgeLambdaFunctionName,
   getEmailLambdaFunctionName,
   getNotificationsLambdaFunctionName,
@@ -58,6 +59,7 @@ import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
 import { GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
+import { LogGroup, MetricFilter } from "aws-cdk-lib/aws-logs";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_20_X;
@@ -641,6 +643,33 @@ export class PinBoardStack extends GuStack {
     pinboardWorkflowBridgeLambda.grantInvoke(emailLambda);
     emailLambda.grantInvoke(roleToInvokeLambdaFromRDS);
     databaseProxy.grantConnect(emailLambda);
+
+    const emailLambdaRaceConditionMetricFilter = new MetricFilter(
+      this,
+      "EmailLambdaRaceConditionMetricFilter",
+      {
+        logGroup: LogGroup.fromLogGroupName(
+          this,
+          "EmailLambdaLogGroup",
+          `/aws/lambda/${emailLambda.functionName}`
+        ),
+        metricName: "EmailLambdaRaceCondition",
+        metricNamespace: "Pinboard",
+        filterPattern: {
+          logPatternString: EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
+        },
+      }
+    );
+
+    new GuAlarm(this, "EmailLambdaRaceConditionAlarm", {
+      app: APP,
+      snsTopicName: ALARM_SNS_TOPIC_NAME,
+      alarmDescription:
+        "This occurs when the email-lambda has been invoked directly from RDS, being passed the ID of an item with group mentions, yet when querying the database for the item, it has no group mentions to email about. This is unexpected and indicates a race condition.",
+      metric: emailLambdaRaceConditionMetricFilter.metric(),
+      threshold: 1,
+      evaluationPeriods: 1,
+    });
 
     const bootstrappingLambdaBasename = "pinboard-bootstrapping-lambda";
     const bootstrappingLambdaApiBaseName = `${bootstrappingLambdaBasename}-api`;

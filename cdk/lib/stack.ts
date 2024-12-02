@@ -654,7 +654,7 @@ export class PinBoardStack extends GuStack {
           `/aws/lambda/${emailLambda.functionName}`
         ),
         metricName: "EmailLambdaRaceCondition",
-        metricNamespace: "Pinboard",
+        metricNamespace: `Pinboard/${this.stage}`,
         filterPattern: {
           logPatternString: EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
         },

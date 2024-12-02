@@ -566,7 +566,8 @@ export const GlobalStateProvider = ({
     }
     setSelectedPinboardId(null);
     setError(pinboardIdToClose, undefined);
-    //TODO probably need to check if pinboard is also in group pinboards, so we don't lose an unread on there
+
+    // note that panel.tsx detects this and reinstates any hasUnread from the group pinboards
     setUnreadFlag(pinboardIdToClose)(undefined);
   };
 

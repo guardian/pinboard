@@ -66,6 +66,7 @@ export const Panel = ({
     activeTab,
     setActiveTab,
     boundedPositionTranslation,
+    unreadFlags,
     setUnreadFlag,
     totalItemsReceivedViaSubscription,
   } = useGlobalStateContext();
@@ -108,6 +109,15 @@ export const Panel = ({
       ),
     [groupPinboardIdsQuery.data]
   );
+
+  useEffect(() => {
+    // ensure that if ever the pinboard is closed manually, the hasUnread from the group pinboards becomes the value
+    groupPinboardIdsWithClaimCounts.forEach(
+      ({ pinboardId, hasUnread }) =>
+        unreadFlags[pinboardId] === undefined &&
+        setUnreadFlag(pinboardId)(hasUnread)
+    );
+  }, [unreadFlags]);
 
   useEffect(() => {
     groupPinboardIdsWithClaimCounts.forEach(({ pinboardId, hasUnread }) =>

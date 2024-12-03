@@ -46,7 +46,7 @@ type Subscription {
   ): Claimed @aws_subscribe(mutations: ["claimItem"])
 
   onSeenItem(
-    pinboardId: String!
+    pinboardId: String
   ): LastItemSeenByUser @aws_subscribe(mutations: ["seenItem"])
 
   onMyUserChanges(

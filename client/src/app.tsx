@@ -432,6 +432,7 @@ export const PinBoardApp = ({
           hasEverUsedTour={me?.hasEverUsedTour}
           visitTourStep={visitTourStep}
           featureFlags={featureFlags}
+          maybeInlineSelectedPinboardId={maybeInlineSelectedPinboardId}
         >
           <TourStateProvider>
             <Global styles={agateFontFaceIfApplicable} />

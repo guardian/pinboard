@@ -66,7 +66,9 @@ export const Panel = ({
     activeTab,
     setActiveTab,
     boundedPositionTranslation,
+    unreadFlags,
     setUnreadFlag,
+    totalItemsReceivedViaSubscription,
   } = useGlobalStateContext();
 
   const tourProgress = useTourProgress();
@@ -94,9 +96,11 @@ export const Panel = ({
   const isTopHalf =
     Math.abs(boundedPositionTranslation.y) > window.innerHeight / 2;
 
-  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds, {
-    pollInterval: 15000, // always poll this one, to ensure we get unread flags even when pinboard is not expanded
-  });
+  const groupPinboardIdsQuery = useQuery(gqlGetGroupPinboardIds);
+
+  useEffect(() => {
+    groupPinboardIdsQuery.refetch();
+  }, [totalItemsReceivedViaSubscription]);
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(
     () =>
@@ -105,6 +109,15 @@ export const Panel = ({
       ),
     [groupPinboardIdsQuery.data]
   );
+
+  useEffect(() => {
+    // ensure that if ever the pinboard is closed manually, the hasUnread from the group pinboards becomes the value
+    groupPinboardIdsWithClaimCounts.forEach(
+      ({ pinboardId, hasUnread }) =>
+        unreadFlags[pinboardId] === undefined &&
+        setUnreadFlag(pinboardId)(hasUnread)
+    );
+  }, [unreadFlags]);
 
   useEffect(() => {
     groupPinboardIdsWithClaimCounts.forEach(({ pinboardId, hasUnread }) =>
@@ -266,7 +279,7 @@ export const Panel = ({
       <Global styles={highlightItemsKeyFramesCSS} />
 
       {
-        // The active pinboards are always mounted, so that we receive new item notifications
+        // The active pinboards are always mounted
         // Note that the pinboard hides itself based on 'isSelected' prop
         activePinboardIds.map((pinboardId) => (
           <Pinboard

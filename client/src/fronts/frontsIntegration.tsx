@@ -21,21 +21,11 @@ export const FrontsIntegration = ({
 }: {
   frontsPinboardElements: HTMLElement[];
 }) => {
-  const pathToElementsMap: { [path: string]: HTMLElement[] } = useMemo(
+  const pathToElementsMap: Partial<{ [path: string]: HTMLElement[] }> = useMemo(
     () =>
-      frontsPinboardElements.reduce(
-        // TODO could be replaced with groupBy if we upgrade to Node21 plus set lib to esnext in tsconfig
-        (acc, htmlElement) =>
-          htmlElement.dataset.urlPath
-            ? {
-                ...acc,
-                [htmlElement.dataset.urlPath]: [
-                  ...(acc[htmlElement.dataset.urlPath] || []),
-                  htmlElement,
-                ],
-              }
-            : acc,
-        {} as Record<string, HTMLElement[]>
+      Object.groupBy(
+        frontsPinboardElements,
+        (htmlElement) => htmlElement.dataset.urlPath ?? "undefined"
       ),
     [frontsPinboardElements]
   );
@@ -108,7 +98,7 @@ export const FrontsIntegration = ({
     <>
       {Object.entries(pathToElementsMap).map(
         ([path, htmlElementsToMountInto]) =>
-          htmlElementsToMountInto.map((htmlElementToMountInto) =>
+          htmlElementsToMountInto!.map((htmlElementToMountInto) =>
             ReactDOM.createPortal(
               <FrontsPinboardArticleButton
                 maybePinboardData={pathToPinboardDataMap[path]}

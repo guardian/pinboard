@@ -62,7 +62,7 @@ import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { LogGroup, MetricFilter } from "aws-cdk-lib/aws-logs";
 
 // if changing should also change .nvmrc (at the root of repo)
-const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_20_X;
+const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_22_X;
 
 const ALARM_SNS_TOPIC_NAME = "Cloudwatch-Alerts";
 

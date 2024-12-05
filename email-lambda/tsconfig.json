@@ -1,7 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2020.promise"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   }

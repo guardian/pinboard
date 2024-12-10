@@ -40,7 +40,7 @@
     "@guardian/node-riffraff-artifact": "0.3.2",
     "@types/aws-lambda": "^8.10.114",
     "@types/jest": "^26.0.22",
-    "@types/node": "^18.15.11",
+    "@types/node": "^22.10.1",
     "@types/node-fetch": "^2.6.3",
     "@types/prompts": "^2.0.14",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
@@ -56,7 +56,7 @@
     "prompts": "^2.4.2",
     "ts-jest": "^26.5.4",
     "tsafe": "^1.0.1",
-    "typescript": "^5.0.2",
+    "typescript": "^5.7.2",
     "wsrun": "^5.2.4",
     "yarn-run-all": "^3.1.1"
   },

@@ -5392,13 +5392,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@guardian/pan-domain-node@npm:^0.4.2":
-  version: 0.4.2
-  resolution: "@guardian/pan-domain-node@npm:0.4.2"
+"@guardian/pan-domain-node@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@guardian/pan-domain-node@npm:0.5.0"
   dependencies:
-    cookie: "npm:^0.3.1"
+    cookie: "npm:^0.4.1"
     iniparser: "npm:^1.0.5"
-  checksum: 10c0/f60fe9d674b36a63a6d5a241d7dec6e93c1f86fea3d1caf2e05be09779d243e0a2e265e72fc6c5765efacf4a3643551429bb06cffd14c74f73115724ef85ecba
+  checksum: 10c0/45d573a1187ca1c3e379cd6ed73eb948773578091ea60348a9db618d594424aa4048cf610a73510f7e201c927bd34542dc09df1408d8a6f5c54e76285fbab105
   languageName: node
   linkType: hard
 
@@ -8879,7 +8879,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.299.0"
     "@babel/preset-typescript": "npm:^7.18.6"
     "@codegenie/serverless-express": "npm:^4.16.0"
-    "@guardian/pan-domain-node": "npm:^0.4.2"
+    "@guardian/pan-domain-node": "npm:^0.5.0"
     "@types/cors": "npm:^2.8.12"
     "@types/express": "npm:4.17.17"
     "@types/jest": "npm:^29.2.3"
@@ -9821,10 +9821,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.3.1":
-  version: 0.3.1
-  resolution: "cookie@npm:0.3.1"
-  checksum: 10c0/0d73c4d605b234c4d04de335aefa4988157f03265845f4a89ea311e3ba1ce73ab42b52d33652ed1c9671342eb77742a58f61753f3e90f31711284fb6031b2962
+"cookie@npm:^0.4.1":
+  version: 0.4.2
+  resolution: "cookie@npm:0.4.2"
+  checksum: 10c0/beab41fbd7c20175e3a2799ba948c1dcc71ef69f23fe14eeeff59fc09f50c517b0f77098db87dbb4c55da802f9d86ee86cdc1cd3efd87760341551838d53fca2
   languageName: node
   linkType: hard
 

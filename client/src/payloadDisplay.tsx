@@ -163,6 +163,18 @@ export const PayloadDisplay = ({
                 />
               </root.div>
             </blockquote>
+            {payloadAndType.payload.maybeUsageNote && (
+              <span
+                title={payloadAndType.payload.maybeUsageNote}
+                css={css`
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                `}
+              >
+                {payloadAndType.payload.maybeUsageNote}
+              </span>
+            )}
           </div>
         )}
 

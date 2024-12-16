@@ -30,8 +30,11 @@ export const FrontsIntegration = ({
     [frontsPinboardElements]
   );
 
-  const { setError, totalItemsReceivedViaSubscription } =
-    useGlobalStateContext();
+  const {
+    setError,
+    totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  } = useGlobalStateContext();
 
   const apolloClient = useApolloClient();
 
@@ -79,7 +82,10 @@ export const FrontsIntegration = ({
 
   useEffect(() => {
     itemCountsQuery.refetch();
-  }, [totalItemsReceivedViaSubscription]);
+  }, [
+    totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  ]);
 
   useEffect(() => {
     itemCountsQuery.data?.getItemCounts &&

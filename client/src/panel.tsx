@@ -69,6 +69,7 @@ export const Panel = ({
     unreadFlags,
     setUnreadFlag,
     totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   } = useGlobalStateContext();
 
   const tourProgress = useTourProgress();
@@ -100,7 +101,10 @@ export const Panel = ({
 
   useEffect(() => {
     groupPinboardIdsQuery.refetch();
-  }, [totalItemsReceivedViaSubscription]);
+  }, [
+    totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  ]);
 
   const groupPinboardIdsWithClaimCounts: PinboardIdWithClaimCounts[] = useMemo(
     () =>

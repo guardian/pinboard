@@ -68,6 +68,7 @@ interface GlobalStateContextShape {
   allSubscriptionClaimedItems: Item[]; // both the updated 'claimed' item and the new 'claim' item
   allSubscriptionOnSeenItems: LastItemSeenByUser[];
   totalItemsReceivedViaSubscription: number;
+  totalOfMyOwnOnSeenItemsReceivedViaSubscription: number;
 
   payloadToBeSent: PayloadAndType | null;
   setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
@@ -341,6 +342,11 @@ export const GlobalStateProvider = ({
     },
   });
 
+  const [
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+    setTotalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  ] = useState(0);
+
   const [allSubscriptionOnSeenItems, setAllSubscriptionOnSeenItems] = useState<
     LastItemSeenByUser[]
   >([]);
@@ -358,6 +364,9 @@ export const GlobalStateProvider = ({
           ...prevState,
           newLastItemSeenByUser,
         ]);
+      }
+      if (newLastItemSeenByUser.userEmail === userEmail) {
+        setTotalOfMyOwnOnSeenItemsReceivedViaSubscription((prev) => prev + 1);
       }
     },
   });
@@ -688,6 +697,7 @@ export const GlobalStateProvider = ({
     allSubscriptionClaimedItems,
     allSubscriptionOnSeenItems,
     totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
 
     payloadToBeSent,
     setPayloadToBeSent,

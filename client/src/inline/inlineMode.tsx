@@ -38,7 +38,10 @@ export const InlineMode = ({
   maybeInlineSelectedPinboardId,
   setMaybeInlineSelectedPinboardId,
 }: InlineModeProps) => {
-  const { totalItemsReceivedViaSubscription } = useGlobalStateContext();
+  const {
+    totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  } = useGlobalStateContext();
 
   const pinboardArea = useMemo(
     () => document.getElementById("pinboard-area"),
@@ -82,7 +85,11 @@ export const InlineMode = ({
           ),
       });
     }
-  }, [workflowTitleElementLookup, totalItemsReceivedViaSubscription]);
+  }, [
+    workflowTitleElementLookup,
+    totalItemsReceivedViaSubscription,
+    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
+  ]);
 
   const maybeSelectedNode =
     maybeInlineSelectedPinboardId &&

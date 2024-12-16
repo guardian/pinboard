@@ -9,6 +9,8 @@ import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
 import { FloatingClearButton } from "./floatingClearButton";
 import { MamVideoDisplay } from "./mam/mamVideoDisplay";
+import root from "react-shadow/emotion";
+import { bodyFont } from "../fontNormaliser";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -131,7 +133,7 @@ export const PayloadDisplay = ({
         {payloadAndType.type === "newswires-snippet" && (
           <div
             css={css`
-              font-size: 0.8rem;
+              font-size: 13px;
               display: flex;
               flex-direction: column;
               gap: 2px;
@@ -141,21 +143,25 @@ export const PayloadDisplay = ({
             <strong>Newswires snippet:</strong>
             <blockquote
               css={css`
-                font-size: 0.8rem;
                 overflow-y: auto;
                 margin: 0;
                 padding: 0 0 0 ${space[1]}px;
                 border-left: 4px solid ${brand[800]};
                 background-color: ${neutral[100]};
                 max-height: 175px;
-                overflow-y: auto;
               `}
             >
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: safeSnippetHtml || "",
-                }}
-              />
+              <root.div>
+                <div
+                  css={css`
+                    ${bodyFont.small({ lineHeight: "tight" })};
+                    font-size: 12px;
+                  `}
+                  dangerouslySetInnerHTML={{
+                    __html: safeSnippetHtml || "",
+                  }}
+                />
+              </root.div>
             </blockquote>
           </div>
         )}

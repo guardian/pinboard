@@ -19,6 +19,13 @@ interface ButtonPosition {
   unRoundedCorner: "bottom-left" | "top-right" | "top-left" | "bottom-right";
 }
 
+export const isNewswiresDomain = [
+  "https://pinboard.local.dev-gutools.co.uk", // local testing in Pinboard's local sandbox
+  "https://newswires.local.dev-gutools.co.uk",
+  "https://newswires.code.dev-gutools.co.uk",
+  "https://newswires.gutools.co.uk",
+].includes(window.location.hostname);
+
 export const NewswiresIntegration = () => {
   const { setPayloadToBeSent, setIsExpanded } = useGlobalStateContext();
 
@@ -113,17 +120,6 @@ export const NewswiresIntegration = () => {
 
   useEffect(() => {
     document.addEventListener("selectionchange", debouncedSelectionHandler);
-    /**
-     * todos:
-     *   [ ] limit to newswires domain
-     *   [x] add selection listener -- addEventListener("selectionchange", (event) => {});
-     *   [x] debounce handler
-     *   [x] check parent node of selection is newswires body text el (maybe add data attribute to body text el)
-     *       - (find first shared parent of anchorNode and focusNode, make sure we're not sharing bits of text outside of the target)
-     *   [x] extract HTML from selection (see chat thread)
-     *   [x] render button when there's a selection
-     *   [x] do things with pinboard
-     */
     return () =>
       document.removeEventListener(
         "selectionchange",

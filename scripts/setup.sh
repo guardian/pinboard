@@ -1,7 +1,10 @@
 #!/bin/bash
 set -e
 
-fnm install
+corepack enable
+
+fnm install || true
+nvm install || true
 
 dev-nginx setup-app dev-nginx.yaml
 

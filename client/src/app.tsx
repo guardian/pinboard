@@ -328,6 +328,8 @@ export const PinBoardApp = ({
     }
   };
 
+  // nonce comment
+
   const clearDesktopNotificationsForPinboardId = (pinboardId: string) => {
     setTimeout(
       () =>

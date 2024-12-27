@@ -16150,6 +16150,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postgres@npm:^3.4.5":
+  version: 3.4.5
+  resolution: "postgres@npm:3.4.5"
+  checksum: 10c0/53415acea77e97bdc1eeb861048f34964e2236e4d4d42f408fc9b901e62bfcf7443a487ebfdad18b57b468c6e297bf8d22097106a200f62eb1262eb5a71355df
+  languageName: node
+  linkType: hard
+
 "preact-render-to-string@npm:^6.0.3":
   version: 6.0.3
   resolution: "preact-render-to-string@npm:6.0.3"
@@ -17441,6 +17448,7 @@ __metadata:
     "@aws-sdk/client-ssm": "npm:^3.299.0"
     "@aws-sdk/credential-providers": "npm:^3.299.0"
     "@aws-sdk/rds-signer": "npm:^3.299.0"
+    postgres: "npm:^3.4.5"
   languageName: unknown
   linkType: soft
 

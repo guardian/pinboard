@@ -2261,23 +2261,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/types@npm:3.714.0":
+"@aws-sdk/types@npm:3.714.0, @aws-sdk/types@npm:^3.1.0, @aws-sdk/types@npm:^3.222.0, @aws-sdk/types@npm:^3.25.0":
   version: 3.714.0
   resolution: "@aws-sdk/types@npm:3.714.0"
   dependencies:
     "@smithy/types": "npm:^3.7.2"
     tslib: "npm:^2.6.2"
   checksum: 10c0/fd1b47d0d85bef495a2d76e4ad8d56328638ba59fec9719c7f30aedbde1f058d269825e00fc78eebafda14b73a583445911599eba6e9d039e3059cc79dd074d4
-  languageName: node
-  linkType: hard
-
-"@aws-sdk/types@npm:^3.1.0, @aws-sdk/types@npm:^3.222.0, @aws-sdk/types@npm:^3.25.0":
-  version: 3.696.0
-  resolution: "@aws-sdk/types@npm:3.696.0"
-  dependencies:
-    "@smithy/types": "npm:^3.7.1"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/3721939d5dd2a68fa4aee89d56b4817dd6c020721e2b2ea5b702968e7055826eb37e1924bc298007686304bf9bb6623bfec26b5cfd0663f2dba9d1b48437bb91
   languageName: node
   linkType: hard
 
@@ -6152,15 +6142,6 @@ __metadata:
     "@smithy/util-stream": "npm:^3.3.3"
     tslib: "npm:^2.6.2"
   checksum: 10c0/8cacf513141c31b40e9a3839fe46736b9f54c4dc328536e2c0310edbbb2b43c386dc019d121252b6c6365015e08b11caf327d04e1d4704b102b04c785f2589b0
-  languageName: node
-  linkType: hard
-
-"@smithy/types@npm:^3.7.1":
-  version: 3.7.1
-  resolution: "@smithy/types@npm:3.7.1"
-  dependencies:
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/c82ad86087b6e0d2261f581a8cca1694a0af31458d7789ff5d8787973b4940a6d035082005dfc87857f266ee9cb512f7eb80535917e6dd6eb3d7d70c45d0f9aa
   languageName: node
   linkType: hard
 
@@ -10060,21 +10041,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domhandler@npm:^4.0.0":
+"domhandler@npm:^4.0.0, domhandler@npm:^4.2.0, domhandler@npm:^4.3.0":
   version: 4.3.1
   resolution: "domhandler@npm:4.3.1"
   dependencies:
     domelementtype: "npm:^2.2.0"
   checksum: 10c0/5c199c7468cb052a8b5ab80b13528f0db3d794c64fc050ba793b574e158e67c93f8336e87fd81e9d5ee43b0e04aea4d8b93ed7be4899cb726a1601b3ba18538b
-  languageName: node
-  linkType: hard
-
-"domhandler@npm:^4.2.0, domhandler@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "domhandler@npm:4.3.0"
-  dependencies:
-    domelementtype: "npm:^2.2.0"
-  checksum: 10c0/c3de81c50d8e017dcfc404914ca29d30b4c646536ab52f133134ddc64b9e9987d9f11602c5beb08b435ec95cf5543f2d300daa56e9841e4c73c3f4f69f269c19
   languageName: node
   linkType: hard
 
@@ -10302,17 +10274,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enhanced-resolve@npm:^5.16.0":
-  version: 5.16.1
-  resolution: "enhanced-resolve@npm:5.16.1"
-  dependencies:
-    graceful-fs: "npm:^4.2.4"
-    tapable: "npm:^2.2.0"
-  checksum: 10c0/57d52625b978f18b32351a03006699de1e3695ce27af936ab4f1f98d3a4c825b219b445910bb4eef398303bbb5f37d7e382f842513d0f3a32614b78f6fd07ab7
-  languageName: node
-  linkType: hard
-
-"enhanced-resolve@npm:^5.17.1":
+"enhanced-resolve@npm:^5.16.0, enhanced-resolve@npm:^5.17.1":
   version: 5.18.0
   resolution: "enhanced-resolve@npm:5.18.0"
   dependencies:
@@ -16087,14 +16049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picocolors@npm:^1.0.0, picocolors@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "picocolors@npm:1.0.1"
-  checksum: 10c0/c63cdad2bf812ef0d66c8db29583802355d4ca67b9285d846f390cc15c2f6ccb94e8cb7eb6a6e97fc5990a6d3ad4ae42d86c84d3146e667c739a4234ed50d400
-  languageName: node
-  linkType: hard
-
-"picocolors@npm:^1.1.0":
+"picocolors@npm:^1.0.0, picocolors@npm:^1.0.1, picocolors@npm:^1.1.0":
   version: 1.1.1
   resolution: "picocolors@npm:1.1.1"
   checksum: 10c0/e2e3e8170ab9d7c7421969adaa7e1b31434f789afb9b3f115f6b96d91945041ac3ceb02e9ec6fe6510ff036bcc0bf91e69a1772edc0b707e12b19c0f2d6bcf58
@@ -18442,7 +18397,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser@npm:^5.10.0":
+"terser@npm:^5.10.0, terser@npm:^5.26.0":
   version: 5.37.0
   resolution: "terser@npm:5.37.0"
   dependencies:
@@ -18453,20 +18408,6 @@ __metadata:
   bin:
     terser: bin/terser
   checksum: 10c0/ff0dc79b0a0da821e7f5bf7a047eab6d04e70e88b62339a0f1d71117db3310e255f5c00738fa3b391f56c3571f800a00047720261ba04ced0241c1f9922199f4
-  languageName: node
-  linkType: hard
-
-"terser@npm:^5.26.0":
-  version: 5.31.0
-  resolution: "terser@npm:5.31.0"
-  dependencies:
-    "@jridgewell/source-map": "npm:^0.3.3"
-    acorn: "npm:^8.8.2"
-    commander: "npm:^2.20.0"
-    source-map-support: "npm:~0.5.20"
-  bin:
-    terser: bin/terser
-  checksum: 10c0/cb127a579b03fb9dcee0d293ff24814deedcd430f447933b618e8593b7454f615b5c8493c68e86a4b0188769d5ea2af5251b5d507edb208114f7e8aebdc7c850
   languageName: node
   linkType: hard
 

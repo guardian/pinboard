@@ -13,9 +13,6 @@
     "build": "run-p --print-label type-check synth",
     "update-snapshot": "jest -u"
   },
-  "devDependencies": {
-    "ts-node": "9.0.0"
-  },
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "2.54.0-alpha.0",
     "@guardian/cdk": "60.1.3",

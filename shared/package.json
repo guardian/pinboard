@@ -7,16 +7,9 @@
     "build": "tsc --noEmit"
   },
   "devDependencies": {
-    "@aws-sdk/client-auto-scaling": "^3.299.0",
-    "@aws-sdk/client-dynamodb": "^3.299.0",
-    "@aws-sdk/client-ec2": "^3.299.0",
-    "@aws-sdk/client-rds": "^3.299.0",
     "@aws-sdk/client-s3": "^3.299.0",
     "@aws-sdk/client-ssm": "^3.299.0",
-    "@aws-sdk/client-sts": "^3.299.0",
     "@aws-sdk/credential-providers": "^3.299.0",
-    "@aws-sdk/lib-dynamodb": "^3.299.0",
-    "@aws-sdk/rds-signer": "^3.299.0",
-    "@aws-sdk/util-dynamodb": "^3.299.0"
+    "@aws-sdk/rds-signer": "^3.299.0"
   }
 }

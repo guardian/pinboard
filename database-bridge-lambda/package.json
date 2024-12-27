@@ -11,8 +11,5 @@
   },
   "devDependencies": {
     "ts-node-dev": "^1.0.0"
-  },
-  "dependencies": {
-    "postgres": "^3.2.4"
   }
 }

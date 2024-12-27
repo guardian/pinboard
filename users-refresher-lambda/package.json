@@ -12,13 +12,10 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.299.0",
-    "@types/iniparser": "^0.0.29",
     "ts-node-dev": "^1.0.0"
   },
   "dependencies": {
     "@googleapis/admin": "9.0.1",
-    "@googleapis/people": "3.0.2",
-    "iniparser": "^1.0.5",
-    "postgres": "^3.2.4"
+    "@googleapis/people": "3.0.2"
   }
 }

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "repository": "https://github.com/guardian/editorial-tools-pinboard",
   "private": true,
-  "type": "module",
   "workspaces": [
     "auth-lambda",
     "bootstrapping-lambda",

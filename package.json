@@ -34,9 +34,9 @@
     "generate-appsync-auth-token": "ts-node-dev bootstrapping-lambda/generateAppSyncAuthToken.ts"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "5.0.2",
-    "@graphql-codegen/introspection": "1.18.0",
-    "@graphql-codegen/typescript": "1.17.11",
+    "@graphql-codegen/cli": "^5.0.3",
+    "@graphql-codegen/introspection": "^4.0.3",
+    "@graphql-codegen/typescript": "^4.1.2",
     "@guardian/node-riffraff-artifact": "0.3.2",
     "@types/aws-lambda": "^8.10.114",
     "@types/jest": "^26.0.22",

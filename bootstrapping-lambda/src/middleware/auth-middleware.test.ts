@@ -2,13 +2,16 @@ import { AuthenticatedRequest, getAuthMiddleware } from "./auth-middleware";
 import { Response } from "express";
 import { userHasPermission } from "../permissionCheck";
 import { getVerifiedUserEmail } from "../panDomainAuth";
-import { mocked } from "ts-jest/utils";
 
 jest.mock("../permissionCheck");
 jest.mock("../panDomainAuth");
 
-const mockedGetVerifiedUserEmail = mocked(getVerifiedUserEmail, true);
-const mockedUserHasPermission = mocked(userHasPermission, true);
+const mockedGetVerifiedUserEmail = jest.mocked(getVerifiedUserEmail, {
+  shallow: true,
+});
+const mockedUserHasPermission = jest.mocked(userHasPermission, {
+  shallow: true,
+});
 
 const mockNextFunction = jest.fn();
 

@@ -6,8 +6,12 @@ import { getVerifiedUserEmail } from "../panDomainAuth";
 jest.mock("../permissionCheck");
 jest.mock("../panDomainAuth");
 
-const mockedGetVerifiedUserEmail = jest.mocked(getVerifiedUserEmail, {shallow: true});
-const mockedUserHasPermission = jest.mocked(userHasPermission, {shallow: true});
+const mockedGetVerifiedUserEmail = jest.mocked(getVerifiedUserEmail, {
+  shallow: true,
+});
+const mockedUserHasPermission = jest.mocked(userHasPermission, {
+  shallow: true,
+});
 
 const mockNextFunction = jest.fn();
 

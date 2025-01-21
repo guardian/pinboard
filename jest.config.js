@@ -8,4 +8,8 @@ module.exports = {
       "<rootDir>/fileTransformer.js",
   },
   testEnvironment: "jest-environment-node",
+  snapshotFormat: {
+    escapeString: true,
+    printBasicPrototype: true,
+  },
 };

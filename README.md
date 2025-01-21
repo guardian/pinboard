@@ -41,7 +41,8 @@ Run `./scripts/setup.sh`, which...
 
 - Ensure you have the latest AWS credentials (profile: `workflow`)
 - Run `./scripts/start.sh`
-- to check it's up, hit https://pinboard.local.dev-gutools.co.uk (to see the PinBoard floaty etc. on a blank page - having gone through the auth and permission checks - if you don't see anything take a look at the console in the browser)
+- To check it's up, hit https://pinboard.local.dev-gutools.co.uk (to see the PinBoard floaty etc. on a blank page - having gone through the auth and permission checks - if you don't see anything take a look at the console in the browser)
+- If the page doesn't seem to be working, and there is a [panda](https://github.com/guardian/pan-domain-authentication)-related error in the console, you may need to run and open another tool locally (like [Composer](https://github.com/guardian/flexible-content)) in order to generate the required auth cookies
 
 NOTE: locally it uses the CODE AppSync API instance (since AppSync is a paid feature of localstack)
 

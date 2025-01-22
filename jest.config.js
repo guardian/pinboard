@@ -12,4 +12,7 @@ module.exports = {
     escapeString: true,
     printBasicPrototype: true,
   },
+  moduleNameMapper: {
+    "^uuid$": require.resolve("uuid"),
+  },
 };

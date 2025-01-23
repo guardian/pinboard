@@ -33,9 +33,9 @@
     "react-shadow": "^19.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.4",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-typescript": "^7.16.7",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
     "@emotion/babel-preset-css-prop": "^11.2.0",
     "@prefresh/webpack": "^3.3.3",
     "@svgr/webpack": "^6.2.1",

@@ -20,6 +20,7 @@ export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
 const SUGGESTIBLE_CROP_RATIOS = {
   "5:4": "Landscape",
   "4:5": "Portrait",
+  "1:1": "Square",
 };
 
 const gridTopLevelDomain = window.location.hostname.endsWith(".gutools.co.uk")

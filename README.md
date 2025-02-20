@@ -67,3 +67,7 @@ Note, `shared/graphql/schema.graphql` is also used in CDK to form part of the Cl
 ### Testing queries/mutations from AppSync area of AWS Console (in the browser)
 
 Occasionally you may want to test the GraphQL queries/mutations directly from the AWS Console. You for which you will need an auth token, you can generate these by running `yarn generate-appsync-auth-token` in the root of the project and selecting CODE or PROD from the prompt.
+
+## Maintenance Tasks
+
+- [managing the email groups in the messaging UI](./users-refresher-lambda/README.md#managing-email-groups)

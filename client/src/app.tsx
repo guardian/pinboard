@@ -397,6 +397,8 @@ export const PinBoardApp = ({
     [me?.featureFlags]
   );
   useEffect(() => {
+    console.log("Pinboard running", { featureFlags });
+
     me?.email &&
       consumeFeatureFlagQueryParamsAndUpdateAccordingly(
         apolloClient,

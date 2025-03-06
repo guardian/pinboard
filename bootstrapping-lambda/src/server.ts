@@ -121,6 +121,12 @@ server.get(
 
     const appSyncConfig = await generateAppSyncConfig(request.userEmail!, s3);
 
+    console.log(
+      request.userEmail,
+      "successfully requested pinboard.loader.js ON",
+      request.headers.referer
+    );
+
     response.send(
       loaderTemplate(
         {

@@ -4161,10 +4161,9 @@ $util.toJson($ctx.result)",
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardbootstrappinglambdaapiDeploymentF3CA75CFe270fad6fc9f31dcfbf4b3f940a4080b": Object {
+    "pinboardbootstrappinglambdaapiDeploymentF3CA75CF8e0cdcc80ad498e28bf264bafd5d34d0": Object {
       "DependsOn": Array [
-        "pinboardbootstrappinglambdaapiproxyANYABDEB60B",
-        "pinboardbootstrappinglambdaapiproxyE53D56AC",
+        "pinboardbootstrappinglambdaapidefault44C5212E",
         "pinboardbootstrappinglambdaapiANY256CDED1",
       ],
       "Properties": Object {
@@ -4181,7 +4180,7 @@ $util.toJson($ctx.result)",
       ],
       "Properties": Object {
         "DeploymentId": Object {
-          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CFe270fad6fc9f31dcfbf4b3f940a4080b",
+          "Ref": "pinboardbootstrappinglambdaapiDeploymentF3CA75CF8e0cdcc80ad498e28bf264bafd5d34d0",
         },
         "RestApiId": Object {
           "Ref": "pinboardbootstrappinglambdaapi577E85F1",
@@ -4245,6 +4244,21 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::CertificateManager::Certificate",
     },
+    "pinboardbootstrappinglambdaapidefault44C5212E": Object {
+      "Properties": Object {
+        "ParentId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardbootstrappinglambdaapi577E85F1",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "$default",
+        "RestApiId": Object {
+          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
     "pinboardbootstrappinglambdaapidomainname9CF70B03": Object {
       "Properties": Object {
         "DomainName": "pinboard.test.dev-gutools.co.uk",
@@ -4295,140 +4309,6 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::ApiGateway::BasePathMapping",
-    },
-    "pinboardbootstrappinglambdaapiproxyANYABDEB60B": Object {
-      "Properties": Object {
-        "ApiKeyRequired": false,
-        "AuthorizationType": "NONE",
-        "HttpMethod": "ANY",
-        "Integration": Object {
-          "IntegrationHttpMethod": "POST",
-          "Type": "AWS_PROXY",
-          "Uri": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":apigateway:",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-                ":lambda:path/2015-03-31/functions/",
-                Object {
-                  "Fn::GetAtt": Array [
-                    "pinboardbootstrappinglambdaD2C487DA",
-                    "Arn",
-                  ],
-                },
-                "/invocations",
-              ],
-            ],
-          },
-        },
-        "ResourceId": Object {
-          "Ref": "pinboardbootstrappinglambdaapiproxyE53D56AC",
-        },
-        "RestApiId": Object {
-          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
-        },
-      },
-      "Type": "AWS::ApiGateway::Method",
-    },
-    "pinboardbootstrappinglambdaapiproxyANYApiPermissionPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANYproxyBEE3326C": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "pinboardbootstrappinglambdaD2C487DA",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
-              },
-              "/",
-              Object {
-                "Ref": "pinboardbootstrappinglambdaapiDeploymentStageapiD49BFB3C",
-              },
-              "/*/*",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "pinboardbootstrappinglambdaapiproxyANYApiPermissionTestPinBoardStackTESTpinboardbootstrappinglambdaapi004924A9ANYproxyBB6FDCA4": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "pinboardbootstrappinglambdaD2C487DA",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "pinboardbootstrappinglambdaapi577E85F1",
-              },
-              "/test-invoke-stage/*/*",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "pinboardbootstrappinglambdaapiproxyE53D56AC": Object {
-      "Properties": Object {
-        "ParentId": Object {
-          "Fn::GetAtt": Array [
-            "pinboardbootstrappinglambdaapi577E85F1",
-            "RootResourceId",
-          ],
-        },
-        "PathPart": "{proxy+}",
-        "RestApiId": Object {
-          "Ref": "pinboardbootstrappinglambdaapi577E85F1",
-        },
-      },
-      "Type": "AWS::ApiGateway::Resource",
     },
     "pinboarddatabasebridgelambda34091516": Object {
       "DependsOn": Array [

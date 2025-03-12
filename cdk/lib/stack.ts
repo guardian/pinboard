@@ -60,6 +60,7 @@ import { GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { LogGroup, MetricFilter } from "aws-cdk-lib/aws-logs";
+import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_22_X;
@@ -741,9 +742,15 @@ export class PinBoardStack extends GuStack {
         deployOptions: {
           stageName: "api",
         },
+        proxy: false,
         minCompressionSize: Size.bytes(0), // gzip responses where the client (i.e. browser) supports it (via 'Accept-Encoding' header)
       }
     );
+    bootstrappingApiGateway.root.addMethod(
+      "ANY",
+      new LambdaIntegration(bootstrappingLambdaFunction)
+    );
+    bootstrappingApiGateway.root.addResource("$default");
     new GuAlarm(this, `${bootstrappingLambdaApiBaseName}Alarm`, {
       app: APP,
       snsTopicName: ALARM_SNS_TOPIC_NAME,

@@ -15,7 +15,7 @@ const toolsDomain = hostname.includes(".local.")
   ? "code.dev-gutools.co.uk"
   : "gutools.co.uk";
 
-export const desktopNotificationsPreferencesUrl = `https://pinboard.${toolsDomain}/push-notifications/`;
+export const desktopNotificationsPreferencesUrl = `https://pinboard.${toolsDomain}/push-notifications/index.html`;
 
 export const PushNotificationPreferencesOpener = ({
   hasWebPushSubscription,

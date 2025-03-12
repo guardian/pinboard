@@ -156,7 +156,7 @@ server.get(
   }
 );
 
-server.use(express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
+server.use(express.static(clientDirectory, { redirect: false })); // this allows us to serve the static client files (inc. the source map)
 
 if (IS_RUNNING_LOCALLY) {
   // if local then don't wrap in serverless

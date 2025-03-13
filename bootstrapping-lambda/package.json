@@ -28,7 +28,7 @@
     "@codegenie/serverless-express": "^4.16.0",
     "@guardian/pan-domain-node": "^0.5.0",
     "cors": "^2.8.5",
-    "express": "4.21.1",
+    "express": "4.21.2",
     "jose": "^4.3.7"
   }
 }

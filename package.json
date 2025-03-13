@@ -58,7 +58,7 @@
     "prompts": "^2.4.2",
     "ts-jest": "^29.2.5",
     "tsafe": "^1.0.1",
-    "typescript": "5.7.3",
+    "typescript": "^5.7.3",
     "wsrun": "^5.2.4"
   },
   "resolutions": {

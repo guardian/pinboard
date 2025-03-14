@@ -12,6 +12,7 @@ import { pinboard } from "../../colours";
 import { neutral } from "@guardian/source-foundations";
 import { agateSans } from "../../fontNormaliser";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
+import { SvgSpinner } from "@guardian/source-react-components";
 
 interface FrontsPinboardArticleButtonProps {
   maybePinboardData: PinboardData | undefined;
@@ -59,6 +60,18 @@ export const FrontsPinboardArticleButton = ({
     maybeItemCounts?.totalCropCount,
   ]);
 
+  const tooltipText = (() => {
+    if (!hasCountsLoaded) {
+      return "Loading item counts...";
+    }
+    if (!maybePinboardData) {
+      return "This piece is not tracked in workflow, which is required to chat and share assets (such as crops) via Pinboard.";
+    }
+    if (maybeItemCounts) {
+      return `${maybeItemCounts.totalCount} items with ${maybeItemCounts.totalCropCount} crops (${maybeItemCounts.fiveByFourCount} at 5:4 and ${maybeItemCounts.fourByFiveCount} at 4:5)`;
+    }
+  })();
+
   return (
     <root.span>
       <ButtonInOtherTools
@@ -67,7 +80,6 @@ export const FrontsPinboardArticleButton = ({
           background-color: ${maybePinboardData
             ? pinboard[500]
             : neutral["60"]};
-          // TODO fix line-height when button text wraps over multiple lines
         `}
         onClick={(event) => {
           event.stopPropagation();
@@ -79,26 +91,13 @@ export const FrontsPinboardArticleButton = ({
             );
           }
         }}
+        title={tooltipText}
       >
-        {!maybePinboardData && "Not tracked in workflow"}
-        {maybePinboardData && !hasCountsLoaded && <em>loading...</em>}
-        {maybePinboardData && hasCountsLoaded && !maybeItemCounts && "0 items"}
-        {maybeItemCounts && (
-          <>
-            {maybeItemCounts.totalCount}
-            &nbsp;items
-            {maybeItemCounts.totalCropCount > 0 && (
-              <>
-                &nbsp;with&nbsp;
-                {maybeItemCounts.totalCropCount}
-                &nbsp;crops
-                <wbr /> ({maybeItemCounts.fiveByFourCount}
-                &nbsp;at&nbsp;5:4&nbsp;and&nbsp;
-                {maybeItemCounts.fourByFiveCount}&nbsp;at&nbsp;4:5)
-              </>
-            )}
-          </>
-        )}
+        {!hasCountsLoaded && <SvgSpinner size="xsmall" />}
+        {hasCountsLoaded && !maybePinboardData && "N/A"}
+        {maybePinboardData &&
+          hasCountsLoaded &&
+          (maybeItemCounts?.totalCount || 0)}
       </ButtonInOtherTools>
 
       <div

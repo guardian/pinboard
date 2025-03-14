@@ -8,12 +8,14 @@ interface ButtonInOtherToolsProps {
   iconAtEnd?: true;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   extraCss?: SerializedStyles;
+  title?: string;
 }
 export const ButtonInOtherTools = ({
   children,
   iconAtEnd,
   onClick,
   extraCss,
+  title,
 }: PropsWithChildren<ButtonInOtherToolsProps>) => (
   <button
     onClick={onClick}
@@ -30,6 +32,7 @@ export const ButtonInOtherTools = ({
       color: ${pinMetal};
       ${extraCss};
     `}
+    title={title}
   >
     {iconAtEnd && children}
     <PinIcon

@@ -87,6 +87,8 @@ const runSetupTriggerSqlFile = (
         ),
     "add featureFlags column to User table": () =>
       runSetupSqlFile(sql, "020-AddFeatureFlagsColumnToUserTable.sql"),
+    "drop isEmailEvaluated column from Item table": () =>
+      runSetupSqlFile(sql, "021-DropIsEmailEvaluatedColumnFromItemTable.sql"),
   };
 
   const allSteps = async () => {

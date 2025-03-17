@@ -24,9 +24,8 @@ Object {
       "GuCname",
       "GuCname",
       "GuCname",
-      "GuScheduledLambda",
+      "GuLambdaFunction",
       "GuLambdaErrorPercentageAlarm",
-      "GuAlarm",
       "GuAlarm",
     ],
     "gu:cdk:version": "60.1.3",
@@ -1376,44 +1375,6 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "EmailLambdaEmailLambdarate5minutes0AllowEventRulePinBoardStackTESTEmailLambdaA8A9241C239D7601": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "EmailLambda93E95E21",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "EmailLambdaEmailLambdarate5minutes0E68F318E",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "EmailLambdaEmailLambdarate5minutes0E68F318E": Object {
-      "Properties": Object {
-        "Description": "Run every 5 minutes to ensure emails get sent out promptly (and not too huge batches, which might hit rate limits)",
-        "ScheduleExpression": "rate(5 minutes)",
-        "State": "ENABLED",
-        "Targets": Array [
-          Object {
-            "Arn": Object {
-              "Fn::GetAtt": Array [
-                "EmailLambda93E95E21",
-                "Arn",
-              ],
-            },
-            "Id": "Target0",
-          },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
     "EmailLambdaErrorPercentageAlarmForLambda75B2E289": Object {
       "Properties": Object {
         "ActionsEnabled": true,
@@ -1561,84 +1522,6 @@ Object {
         "TreatMissingData": "notBreaching",
       },
       "Type": "AWS::CloudWatch::Alarm",
-    },
-    "EmailLambdaRaceConditionAlarmB1E6FE09": Object {
-      "Properties": Object {
-        "ActionsEnabled": true,
-        "AlarmActions": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:aws:sns:",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-                ":",
-                Object {
-                  "Ref": "AWS::AccountId",
-                },
-                ":Cloudwatch-Alerts",
-              ],
-            ],
-          },
-        ],
-        "AlarmDescription": "This occurs when the email-lambda has been invoked directly from RDS, being passed the ID of an item with group mentions, yet when querying the database for the item, it has no group mentions to email about. This is unexpected and indicates a race condition.",
-        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
-        "EvaluationPeriods": 1,
-        "MetricName": "EmailLambdaRaceCondition",
-        "Namespace": "Pinboard/TEST",
-        "Period": 300,
-        "Statistic": "Average",
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "60.1.3",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-        "Threshold": 1,
-      },
-      "Type": "AWS::CloudWatch::Alarm",
-    },
-    "EmailLambdaRaceConditionMetricFilterC63DB9EC": Object {
-      "Properties": Object {
-        "FilterPattern": "has no group mentions to email about. This is unexpected.",
-        "LogGroupName": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "/aws/lambda/",
-              Object {
-                "Ref": "EmailLambda93E95E21",
-              },
-            ],
-          ],
-        },
-        "MetricTransformations": Array [
-          Object {
-            "MetricName": "EmailLambdaRaceCondition",
-            "MetricNamespace": "Pinboard/TEST",
-            "MetricValue": "1",
-          },
-        ],
-      },
-      "Type": "AWS::Logs::MetricFilter",
     },
     "EmailLambdaServiceRoleCBE95916": Object {
       "Properties": Object {

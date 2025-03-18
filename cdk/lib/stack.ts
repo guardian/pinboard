@@ -724,7 +724,7 @@ export class PinBoardStack extends GuStack {
       }),
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       threshold: 0.05,
-      evaluationPeriods: 2,
+      evaluationPeriods: isPROD ? 2 : 6, // CODE invocations are fewer and more sporadic so let's have more tolerance there
       actionsEnabled: true,
       okAction: true,
     });

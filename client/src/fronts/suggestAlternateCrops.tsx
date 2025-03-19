@@ -139,6 +139,7 @@ export const SuggestAlternateCrops = ({
               PINBOARD_TELEMETRY_TYPE.ALTERNATE_CROP_SUGGESTED,
               pinboardPayload.aspectRatio && pinboardPayload.embeddableUrl
                 ? {
+                    pinboardId: preselectedPinboard.id,
                     aspectRatio: pinboardPayload.aspectRatio,
                     embeddableUrl: pinboardPayload.embeddableUrl, // could probably refactor to extract mediaId and cropId properly
                   }

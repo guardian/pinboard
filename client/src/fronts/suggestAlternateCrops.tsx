@@ -175,13 +175,16 @@ export const SuggestAlternateCrops = ({
 
   const AlreadySuggestedCropsForRatio = ({
     customRatio,
+    clientX,
   }: {
     customRatio: string;
+    clientX: number;
   }) => {
     if (!cropsOnPreselectedPinboard) return null;
     const cropsMatchingRatio = cropsOnPreselectedPinboard.filter(
       ([_]) => _.aspectRatio === customRatio
     );
+    const shouldDisplayHoverOnLeft = clientX > 350;
     return (
       <div
         css={css`
@@ -194,6 +197,8 @@ export const SuggestAlternateCrops = ({
           user-select: none;
           text-align: center;
           &:hover {
+            box-shadow: ${shouldDisplayHoverOnLeft ? -5 : 5}px 0 0
+              ${cropsMatchingRatio.length ? pinboard["500"] : "transparent"};
             background-color: ${cropsMatchingRatio.length
               ? pinboard["500"]
               : "transparent"};
@@ -211,9 +216,12 @@ export const SuggestAlternateCrops = ({
             css={css`
               display: none;
               position: absolute;
-              left: 0;
+              ${shouldDisplayHoverOnLeft ? "left" : "right"}: -5px;
               bottom: 50%;
-              transform: translate(-100%, 50%);
+              transform: translate(
+                ${shouldDisplayHoverOnLeft ? -100 : 100}%,
+                50%
+              );
               z-index: 9999;
               padding: 5px;
               border-radius: 3px;
@@ -260,9 +268,10 @@ export const SuggestAlternateCrops = ({
         ReactDOM.createPortal(
           <div>
             <label className="sub-label">Suggest crops for Fronts</label>
+            <br />
             <root.div
               css={css`
-                display: flex;
+                display: inline-flex;
                 flex-direction: column;
                 margin: 5px 0;
                 align-items: center;
@@ -286,6 +295,7 @@ export const SuggestAlternateCrops = ({
                       </ButtonInOtherTools>
                       <AlreadySuggestedCropsForRatio
                         customRatio={customRatio}
+                        clientX={htmlElement.getBoundingClientRect().x}
                       />
                     </>
                   )

@@ -97,7 +97,5 @@ export const handler = async () => {
   } catch (e) {
     console.error(e);
     throw e;
-  } finally {
-    await sql.end();
   }
 };

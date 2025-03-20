@@ -188,7 +188,5 @@ export const handler = async (maybeSendImmediatelyDetail?: {
   } catch (e) {
     console.error(e);
     throw e;
-  } finally {
-    await sql.end();
   }
 };

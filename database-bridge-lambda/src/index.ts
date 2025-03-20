@@ -85,18 +85,14 @@ export const handler = async (
   payload: MetricRequest | AppSyncResolverEvent<unknown, unknown>
 ) => {
   const sql = await getDatabaseConnection();
-  try {
-    if (isMetricRequest(payload)) {
-      console.log("metric payload", payload);
-      return await getMetrics(sql, payload);
-    } else {
-      const args = payload.arguments as never;
-      const userEmail: string = (payload.identity as AppSyncIdentityLambda)
-        .resolverContext.userEmail;
-      const databaseOperation = payload.info.fieldName as DatabaseOperation;
-      return await run(sql, databaseOperation, args, userEmail);
-    }
-  } finally {
-    await sql.end();
+  if (isMetricRequest(payload)) {
+    console.log("metric payload", payload);
+    return await getMetrics(sql, payload);
+  } else {
+    const args = payload.arguments as never;
+    const userEmail: string = (payload.identity as AppSyncIdentityLambda)
+      .resolverContext.userEmail;
+    const databaseOperation = payload.info.fieldName as DatabaseOperation;
+    return await run(sql, databaseOperation, args, userEmail);
   }
 };

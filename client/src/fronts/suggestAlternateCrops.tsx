@@ -175,16 +175,16 @@ export const SuggestAlternateCrops = ({
 
   const AlreadySuggestedCropsForRatio = ({
     customRatio,
-    clientX,
+    containerWidth,
   }: {
     customRatio: string;
-    clientX: number;
+    containerWidth: number;
   }) => {
     if (!cropsOnPreselectedPinboard) return null;
     const cropsMatchingRatio = cropsOnPreselectedPinboard.filter(
       ([_]) => _.aspectRatio === customRatio
     );
-    const shouldDisplayHoverOnLeft = clientX > 350;
+    const shouldDisplayHoverOnLeft = containerWidth < 550;
     return (
       <div
         css={css`
@@ -295,7 +295,9 @@ export const SuggestAlternateCrops = ({
                       </ButtonInOtherTools>
                       <AlreadySuggestedCropsForRatio
                         customRatio={customRatio}
-                        clientX={htmlElement.getBoundingClientRect().x}
+                        containerWidth={
+                          htmlElement.getBoundingClientRect().width
+                        }
                       />
                     </>
                   )

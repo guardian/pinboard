@@ -3940,7 +3940,7 @@ $util.toJson($ctx.result)",
             "Value": "pinboard-bootstrapping-lambda-api-TEST",
           },
         ],
-        "EvaluationPeriods": 2,
+        "EvaluationPeriods": 6,
         "MetricName": "5XXError",
         "Namespace": "AWS/ApiGateway",
         "OKActions": Array [

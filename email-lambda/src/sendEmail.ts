@@ -1,31 +1,31 @@
 import { STAGE, standardAwsConfig } from "shared/awsIntegration";
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
-import { getBasicMessage, buildEmailHTML, PerPersonDetails } from "./email";
+import { getBasicMessage, buildEmailHTML, EmailData } from "./email";
 
 const emailer = new SESClient(standardAwsConfig);
 
-export const sendEmail = async (
-  email: string,
-  perPersonDetails: PerPersonDetails,
-  groupMentionRef?: number
-) => {
-  const count = Object.values(perPersonDetails).flatMap((_) => _.items).length;
-  if (count === 0) {
-    throw new Error("No items to email about");
-  }
+export const sendEmail = async ({
+  email,
+  emailData,
+  isIndividualMentionEmail,
+  ref,
+}: {
+  email: string;
+  emailData: EmailData;
+  isIndividualMentionEmail: boolean;
+  ref: number;
+}) => {
   console.log(
-    `Sending email to ${email} about ${count} ${
-      groupMentionRef ? "group mention (instant)" : "missed mentions"
-    }`
+    `Sending email to ${email} about ${
+      isIndividualMentionEmail ? "an individual" : "a group"
+    } mention.`
   );
 
-  const emailHTML = buildEmailHTML(perPersonDetails, !!groupMentionRef);
+  const emailHTML = buildEmailHTML(emailData, !!ref);
 
-  const subject = groupMentionRef
-    ? `📌 Your team has just been mentioned in Pinboard (ref:${groupMentionRef})`
-    : `📌 You might have missed ${count} message${
-        count > 1 ? "s" : ""
-      } in Pinboard (ref: ${Date.now()})`; //TODO find an alternate way to prevent threading for missed individual mentions
+  const subject = `📌 ${
+    isIndividualMentionEmail ? "You've" : "Your team has"
+  } just been mentioned in Pinboard (ref:${ref})`;
 
   return emailer.send(
     new SendEmailCommand({
@@ -42,7 +42,7 @@ export const sendEmail = async (
           Data: subject,
         },
         Body: {
-          Text: { Data: getBasicMessage(!!groupMentionRef) },
+          Text: { Data: getBasicMessage(!!ref) },
           Html: { Data: emailHTML },
         },
       },

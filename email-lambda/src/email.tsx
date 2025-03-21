@@ -8,7 +8,10 @@ import { STAGE } from "shared/awsIntegration";
 import { pinboard, pinMetal } from "client/colours";
 import { renderToString } from "preact-render-to-string";
 
-interface ItemFragment {
+export interface EmailData {
+  pinboardId: string;
+  headline: string | null;
+  workingTitle: string;
   id: string;
   type: string;
   timestamp: Date;
@@ -17,14 +20,6 @@ interface ItemFragment {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
-}
-
-export interface PerPersonDetails {
-  [pinboardId: string]: {
-    headline: string | null;
-    workingTitle: string;
-    items: ItemFragment[];
-  };
 }
 
 const toolsDomain =
@@ -39,7 +34,18 @@ export const getBasicMessage = (isGroupMentionEmail: boolean) =>
   isGroupMentionEmail ? "" : "You might have missed...";
 
 export const buildEmailHTML = (
-  perPersonDetails: PerPersonDetails,
+  {
+    pinboardId,
+    headline,
+    workingTitle,
+    id,
+    firstName,
+    lastName,
+    avatarUrl,
+    type,
+    message,
+    thumbnailURL,
+  }: EmailData,
   isGroupMentionEmail: boolean
 ) =>
   renderToString(
@@ -53,139 +59,118 @@ export const buildEmailHTML = (
       <h2 style={{ marginBottom: "8px" }}>
         {getBasicMessage(isGroupMentionEmail)}
       </h2>
-      {Object.entries(perPersonDetails).map(
-        ([pinboardId, { headline, workingTitle, items }]) => (
-          <div
-            key={pinboardId}
+      <div
+        style={{
+          backgroundColor: "#F6F6F6", // palette.neutral[97]
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            borderTop: `3px solid ${pinboard["500"]} `,
+            padding: "2px 4px",
+          }}
+        >
+          <strong>WT:</strong> {workingTitle}
+          {headline && (
+            <>
+              <br />
+              <strong>HL:</strong> {headline}
+            </>
+          )}
+        </div>
+        <ul style={{ padding: "0 10px", listStyle: "none" }}>
+          <li
             style={{
-              backgroundColor: "#F6F6F6", // palette.neutral[97]
-              marginBottom: "20px",
+              padding: "4px 0 12px",
+              borderTop: "1px solid #DCDCDC",
             }}
           >
+            <div style={{ display: "flex" }}>
+              {avatarUrl && (
+                <img
+                  src={avatarUrl}
+                  style={{
+                    width: `${AVATAR_SIZE}px`,
+                    height: `${AVATAR_SIZE}px`,
+                    border: "1px solid #DCDCDC", // unfortunately box-shadow appears not be supported in email
+                    borderRadius: "50%",
+                  }}
+                />
+              )}
+              <span
+                style={{
+                  lineHeight: `${AVATAR_SIZE}px`,
+                  fontWeight: "bold",
+                  marginLeft: avatarUrl
+                    ? `${AVATAR_GAP}px`
+                    : `${AVATAR_SIZE + AVATAR_GAP + 2}px`,
+                }}
+              >
+                {firstName} {lastName}
+              </span>
+            </div>
             <div
               style={{
-                borderTop: `3px solid ${pinboard["500"]} `,
-                padding: "2px 4px",
+                marginLeft: `${AVATAR_SIZE + AVATAR_GAP + 2}px`,
               }}
             >
-              <strong>WT:</strong> {workingTitle}
-              {headline && (
-                <>
-                  <br />
-                  <strong>HL:</strong> {headline}
-                </>
+              {message}
+              {type === "claim" && <em>...claimed the request</em>}
+              {thumbnailURL && (
+                <img
+                  style={{
+                    display: "block",
+                    maxWidth: "200px",
+                    maxHeight: "100px",
+                    padding: "3px",
+                    border: "1px solid #DCDCDC",
+                    borderRadius: "4px",
+                    backgroundColor: "#FFFFFF",
+                  }}
+                  src={thumbnailURL}
+                />
               )}
+              <div
+                style={{
+                  color: linkColour,
+                }}
+              >
+                Open message in{" "}
+                <a
+                  style={{
+                    color: linkColour,
+                  }}
+                  href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
+                >
+                  Composer
+                </a>
+                {", "}
+                <a
+                  style={{
+                    color: linkColour,
+                  }}
+                  href={`https://video.${toolsDomain}/videos?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
+                >
+                  Video
+                </a>
+                {" or "}
+                <a
+                  style={{
+                    color: linkColour,
+                  }}
+                  href={`https://media.${toolsDomain}/search?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`.replace(
+                    ".code.",
+                    ".test."
+                  )}
+                >
+                  Grid
+                </a>
+              </div>
             </div>
-            <ul style={{ padding: "0 10px", listStyle: "none" }}>
-              {items.map(
-                (
-                  {
-                    id,
-                    firstName,
-                    lastName,
-                    avatarUrl,
-                    type,
-                    message,
-                    thumbnailURL,
-                  },
-                  index
-                ) => (
-                  <li
-                    key={id}
-                    style={{
-                      padding: "4px 0 12px",
-                      borderTop: index > 0 ? "1px solid #DCDCDC" : undefined,
-                    }}
-                  >
-                    <div style={{ display: "flex" }}>
-                      {avatarUrl && (
-                        <img
-                          src={avatarUrl}
-                          style={{
-                            width: `${AVATAR_SIZE}px`,
-                            height: `${AVATAR_SIZE}px`,
-                            border: "1px solid #DCDCDC", // unfortunately box-shadow appears not be supported in email
-                            borderRadius: "50%",
-                          }}
-                        />
-                      )}
-                      <span
-                        style={{
-                          lineHeight: `${AVATAR_SIZE}px`,
-                          fontWeight: "bold",
-                          marginLeft: avatarUrl
-                            ? `${AVATAR_GAP}px`
-                            : `${AVATAR_SIZE + AVATAR_GAP + 2}px`,
-                        }}
-                      >
-                        {firstName} {lastName}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        marginLeft: `${AVATAR_SIZE + AVATAR_GAP + 2}px`,
-                      }}
-                    >
-                      {message}
-                      {type === "claim" && <em>...claimed the request</em>}
-                      {thumbnailURL && (
-                        <img
-                          style={{
-                            display: "block",
-                            maxWidth: "200px",
-                            maxHeight: "100px",
-                            padding: "3px",
-                            border: "1px solid #DCDCDC",
-                            borderRadius: "4px",
-                            backgroundColor: "#FFFFFF",
-                          }}
-                          src={thumbnailURL}
-                        />
-                      )}
-                      <div
-                        style={{
-                          color: linkColour,
-                        }}
-                      >
-                        Open message in{" "}
-                        <a
-                          style={{
-                            color: linkColour,
-                          }}
-                          href={`https://workflow.${toolsDomain}/redirect/${pinboardId}?${EXPAND_PINBOARD_QUERY_PARAM}=true&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
-                        >
-                          Composer
-                        </a>
-                        {", "}
-                        <a
-                          style={{
-                            color: linkColour,
-                          }}
-                          href={`https://video.${toolsDomain}/videos?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`}
-                        >
-                          Video
-                        </a>
-                        {" or "}
-                        <a
-                          style={{
-                            color: linkColour,
-                          }}
-                          href={`https://media.${toolsDomain}/search?${OPEN_PINBOARD_QUERY_PARAM}=${pinboardId}&${PINBOARD_ITEM_ID_QUERY_PARAM}=${id}`.replace(
-                            ".code.",
-                            ".test."
-                          )}
-                        >
-                          Grid
-                        </a>
-                      </div>
-                    </div>
-                  </li>
-                )
-              )}
-            </ul>
-          </div>
-        )
-      )}
+          </li>
+        </ul>
+      </div>
       <div style={{ fontStyle: "italic" }}>
         The working titles (WT) and headlines (HL) above were accurate at the
         time this email was sent.

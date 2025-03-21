@@ -1,189 +1,117 @@
 import { getDatabaseConnection } from "shared/database/databaseConnection";
 import { STAGE, standardAwsConfig } from "shared/awsIntegration";
-import {
-  EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
-  getWorkflowBridgeLambdaFunctionName,
-} from "shared/constants";
+import { getWorkflowBridgeLambdaFunctionName } from "shared/constants";
 import { Stage } from "shared/types/stage";
 import { WorkflowStub } from "shared/graphql/graphql";
 import { Lambda } from "@aws-sdk/client-lambda";
 import { sendEmail } from "./sendEmail";
-import { PerPersonDetails } from "./email";
-import { Sql } from "shared/database/types";
-
-interface FinalStructure {
-  [email: string]: PerPersonDetails;
-}
+import { EmailData } from "./email";
 
 const lambda = new Lambda(standardAwsConfig);
 
-function getItemsToEmailAbout(
-  sql: Sql,
-  itemIdWithGroupMention: number | undefined
-) {
-  return itemIdWithGroupMention
-    ? sql`
-      SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
-          SELECT json_agg("primaryEmail")
-          FROM "Group"
-          WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
-      ) AS "emails"
-      FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-      WHERE "id" = ${itemIdWithGroupMention}
-  `
-    : sql`
-      SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "firstName", "lastName", "avatarUrl", (
-          SELECT json_agg("mentionEmail")
-          FROM unnest("mentions") as "mentionEmail"
-          WHERE NOT EXISTS( /* this approach captures BOTH when the last thing they saw was before the mention in question AND when they've never seen the pinboard at all */
-              SELECT 1
-              FROM "LastItemSeenByUser"
-              WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-                AND "LastItemSeenByUser"."userEmail" = "mentionEmail"
-                AND "LastItemSeenByUser"."itemID" >= "Item"."id"
-          )
-      ) AS "emails"
-      FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
-      WHERE "mentions" != '{}' /* i.e. not empty */
-        AND "mentions" IS NOT NULL
-        AND "isEmailEvaluated" IS FALSE
-        AND "timestamp" < (NOW() - INTERVAL '1 hour')
-  `;
-}
-
-export const handler = async (maybeSendImmediatelyDetail?: {
+export const handler = async ({
+  itemId,
+  maybeRelatedItemId,
+}: {
   itemId: number;
   maybeRelatedItemId?: number;
 }) => {
-  const itemIdWithGroupMention = maybeSendImmediatelyDetail?.itemId;
-  const groupMentionRef =
-    maybeSendImmediatelyDetail?.maybeRelatedItemId || itemIdWithGroupMention; // this ensures threading (i.e. claim ends up as reply to the original email)
+  const ref = maybeRelatedItemId || itemId; // this ensures threading (i.e. claim ends up as reply to the original email)
 
   const sql = await getDatabaseConnection();
 
   try {
-    if (itemIdWithGroupMention) {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    }
+    // wait 5 seconds to ensure the item has been written to the database fully
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    const itemsToEmailAbout = await getItemsToEmailAbout(
-      sql,
-      itemIdWithGroupMention
-    );
-
-    if (!itemsToEmailAbout.some((_) => _.emails && _.emails.length > 0)) {
-      console.log("No items to email about");
-      /*
-       * not returning early here, because any items in itemsToEmailAbout
-       * will need their isEmailEvaluated flag set to true at the bottom
-       * of this file, so they aren't continually picked up
-       */
-
-      if (itemIdWithGroupMention) {
-        console.error(
-          "Item with ID",
-          itemIdWithGroupMention,
-          EMAIL_LAMBDA_RACE_CONDITION_LOG_LINE_SNIPPET,
-          { itemsToEmailAbout }
-        );
-      }
-    }
-
-    if (itemsToEmailAbout.length === 0) {
-      return;
-    }
-
-    const pinboardIds = itemsToEmailAbout.reduce<string[]>(
-      (accumulator, item) => {
-        if (accumulator.includes(item.pinboardId)) {
-          return accumulator; // don't add duplicates
-        }
-        try {
-          parseInt(item.pinboardId);
-          return [...accumulator, item.pinboardId];
-        } catch (e) {
-          console.error("Invalid pinboard ID", item.pinboardId, item);
-          return accumulator;
-        }
-      },
-      []
-    );
-
-    const workflowLookupRequestPayload = {
-      arguments: { ids: pinboardIds },
+    const itemToEmailAbout = (
+      await sql`
+      SELECT "id", "type", "message", "payload", "timestamp", "pinboardId", "Item"."userEmail", "firstName", "lastName", "avatarUrl", "mentions" as "individualMentionEmails", (
+          SELECT json_agg("primaryEmail")
+          FROM "Group"
+          WHERE "Group"."shorthand" = ANY("Item"."groupMentions")
+      ) AS "groupMentionEmails"
+      FROM "Item" LEFT JOIN "User" ON "Item"."userEmail" = "User"."email"
+      WHERE "id" = ${itemId}
+  `
+    )[0] as {
+      id: string;
+      type: string;
+      message: string;
+      payload: { thumbnail: string } | null;
+      timestamp: string;
+      pinboardId: string;
+      userEmail: string;
+      firstName: string;
+      lastName: string;
+      avatarUrl: string | null;
+      individualMentionEmails: string[] | null;
+      groupMentionEmails: string[] | null;
     };
 
-    // lookup working titles & headlines for all the Pinboard IDs
-    const workflowDetails: WorkflowStub[] = JSON.parse(
+    if (!itemToEmailAbout) {
+      throw new Error("No items found with ID " + itemId);
+    }
+
+    const pinboardId = parseInt(itemToEmailAbout.pinboardId);
+
+    if (!pinboardId) {
+      throw new Error(
+        `Pinboard ID (${itemToEmailAbout.pinboardId}) could not be found for item with ID ${itemId}`
+      );
+    }
+
+    // lookup working title & headline for the Pinboard ID
+    const workflowDetail: WorkflowStub = JSON.parse(
       Buffer.from(
         (
           await lambda.invoke({
             FunctionName: getWorkflowBridgeLambdaFunctionName(STAGE as Stage),
-            Payload: Buffer.from(JSON.stringify(workflowLookupRequestPayload)),
+            Payload: Buffer.from(
+              JSON.stringify({
+                arguments: { ids: [pinboardId] },
+              })
+            ),
           })
         ).Payload!
       ).toString()
-    );
+    )[0];
 
-    const workflowLookup = workflowDetails.reduce(
-      (acc, workflowStub) => ({
-        ...acc,
-        [workflowStub.id]: workflowStub,
-      }),
-      {} as { [id: string]: WorkflowStub }
-    );
-
-    // group by email address and then pinboard ID (so we can send one email per person, with all the missed mentions for each pinboard)
-    const finalStructure: FinalStructure = itemsToEmailAbout.reduce(
-      (
-        outerAcc: FinalStructure,
-        { payload, timestamp, pinboardId, emails, ...itemFragment }
-      ) =>
-        emails?.reduce(
-          (innerAcc: FinalStructure, email: string) => ({
-            ...innerAcc,
-            [email]: {
-              ...(innerAcc[email] || {}),
-              [pinboardId]: workflowLookup[pinboardId] && {
-                ...(innerAcc[email]?.[pinboardId] || {}),
-                headline: workflowLookup[pinboardId]?.headline,
-                workingTitle: workflowLookup[pinboardId]?.title,
-                items: [
-                  ...(innerAcc[email]?.[pinboardId]?.items || []),
-                  {
-                    ...itemFragment,
-                    thumbnailURL: payload?.thumbnail || null,
-                    timestamp: new Date(timestamp), // TODO improve timezone locality before displaying in emails
-                  },
-                ],
-              },
-            },
-          }),
-          outerAcc
-        ) || outerAcc,
-      {} as FinalStructure
-    );
-
-    for (const [email, perPersonDetails] of Object.entries(finalStructure)) {
-      await sendEmail(email, perPersonDetails, groupMentionRef).catch((error) =>
-        console.error(
-          `Failed to send email to ${email}, which contained items with IDs:`,
-          Object.values(perPersonDetails).map((_) => _.items.map((_) => _.id)),
-          itemIdWithGroupMention
-            ? ""
-            : "If you need to resend, you can manually reset the 'isEmailEvaluated' cell for these IDs in the Item table in the database",
-          error
-        )
+    if (!workflowDetail) {
+      throw new Error(
+        `Failed to get workflow detail for pinboard ID ${pinboardId}`
       );
     }
 
-    // mark those items as evaluated, so we don't email about them again
-    if (!itemIdWithGroupMention) {
-      await sql`
-        UPDATE "Item"
-        SET "isEmailEvaluated" = TRUE
-        WHERE "id" IN ${sql(itemsToEmailAbout.map(({ id }) => id))}
-    `;
+    if (!workflowDetail.title) {
+      throw new Error(`No workflow title for pinboard ID ${pinboardId}`);
+    }
+
+    const perPersonDetails: EmailData = {
+      ...itemToEmailAbout,
+      headline: workflowDetail.headline,
+      workingTitle: workflowDetail.title,
+      thumbnailURL: itemToEmailAbout.payload?.thumbnail || null,
+      timestamp: new Date(itemToEmailAbout.timestamp), // TODO improve timezone locality before displaying in emails
+    };
+
+    const emails = (itemToEmailAbout.individualMentionEmails || []).concat(
+      itemToEmailAbout.groupMentionEmails || []
+    );
+
+    for (const email of emails) {
+      await sendEmail({
+        email,
+        emailData: perPersonDetails,
+        isIndividualMentionEmail:
+          !!itemToEmailAbout.individualMentionEmails?.includes(email),
+        ref,
+      }).catch((error) =>
+        console.error(
+          `Failed to send email to ${email} for item ${itemId} in pinboard ${pinboardId}`,
+          error
+        )
+      );
     }
   } catch (e) {
     console.error(e);

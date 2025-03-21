@@ -4,7 +4,8 @@ CREATE OR REPLACE FUNCTION invokeEmailLambda()
 AS
 $$
 BEGIN
-    IF NEW."groupMentions" IS NOT NULL AND NEW."groupMentions" != '{}' THEN
+    IF (NEW."groupMentions" IS NOT NULL AND NEW."groupMentions" != '{}')
+       OR (NEW."mentions" IS NOT NULL AND NEW."mentions" != '{}') THEN
         PERFORM * FROM aws_lambda.invoke(
                 aws_commons.create_lambda_function_arn(
                         '$lambdaFunctionName',

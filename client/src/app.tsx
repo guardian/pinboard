@@ -52,7 +52,6 @@ import {
 import {
   FRONTS_PINBOARD_ELEMENTS_QUERY_SELECTOR,
   FrontsIntegration,
-  isRunningWithinFrontsTool,
 } from "./fronts/frontsIntegration";
 import {
   SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR,
@@ -400,17 +399,10 @@ export const PinBoardApp = ({
     console.log("Pinboard running", { featureFlags });
 
     me?.email &&
-      consumeFeatureFlagQueryParamsAndUpdateAccordingly(
-        apolloClient,
-        extractFeatureFlags(me?.featureFlags),
-        sendTelemetryEvent
-      );
+      consumeFeatureFlagQueryParamsAndUpdateAccordingly(apolloClient);
   }, [me]);
 
-  const shouldPinboardDisplay =
-    !isRunningWithinFrontsTool || featureFlags["alternateCropSuggesting"];
-
-  return shouldPinboardDisplay ? (
+  return (
     <TelemetryContext.Provider value={sendTelemetryEvent}>
       <ApolloProvider client={apolloClient}>
         <GlobalStateProvider
@@ -515,5 +507,5 @@ export const PinBoardApp = ({
         </GlobalStateProvider>
       </ApolloProvider>
     </TelemetryContext.Provider>
-  ) : null;
+  );
 };

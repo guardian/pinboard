@@ -10,12 +10,6 @@ import { useGlobalStateContext } from "../globalState";
 export const FRONTS_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   "pinboard-article-button";
 
-export const isRunningWithinFrontsTool = [
-  "fronts.local.dev-gutools.co.uk",
-  "fronts.code.dev-gutools.co.uk",
-  "fronts.gutools.co.uk",
-].includes(window.location.hostname);
-
 export const FrontsIntegration = ({
   frontsPinboardElements,
 }: {

@@ -91,6 +91,8 @@ interface GlobalStateContextShape {
   selectedPinboardId: string | null | undefined;
   clearSelectedPinboard: () => void;
 
+  openInTool: string | null;
+
   maybeItemIdToHighlight: string | null;
   clearMaybeItemIdToHighlight: () => void;
 
@@ -146,6 +148,7 @@ interface GlobalStateProviderProps {
   hasApolloAuthError: boolean;
   userEmail: string;
   preselectedComposerId: string | null | undefined;
+  openInTool: string | null;
   payloadToBeSent: PayloadAndType | null;
   setPayloadToBeSent: (newPayloadToBeSent: PayloadAndType | null) => void;
   isExpanded: boolean;
@@ -168,6 +171,7 @@ export const GlobalStateProvider = ({
   hasApolloAuthError,
   userEmail,
   preselectedComposerId,
+  openInTool,
   presetUnreadNotificationCount,
   payloadToBeSent,
   setPayloadToBeSent,
@@ -199,6 +203,9 @@ export const GlobalStateProvider = ({
   const preselectedPinboard = ((): PreselectedPinboard => {
     if (!preselectedComposerId) {
       return;
+    }
+    if (preselectedComposerId === "unknown") {
+      return "unknown";
     }
     if (
       preselectedPinboardQuery.data?.getPinboardByComposerId &&
@@ -713,6 +720,8 @@ export const GlobalStateProvider = ({
     setCropsOnPreselectedPinboard,
     selectedPinboardId,
     clearSelectedPinboard,
+
+    openInTool,
 
     maybeItemIdToHighlight,
     clearMaybeItemIdToHighlight,

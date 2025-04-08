@@ -82,6 +82,8 @@ export const SelectPinboard = ({
     peekAtPinboard,
     preselectedPinboard,
 
+    openInTool,
+
     hasWebPushSubscription,
 
     errors,
@@ -410,9 +412,8 @@ export const SelectPinboard = ({
           setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
         {isInline && !hasPinboardColumn && <WorkflowColumnInstructions />}
-        {preselectedPinboard === "notTrackedInWorkflow" && (
-          <NotTrackedInWorkflow />
-        )}
+        {(preselectedPinboard === "notTrackedInWorkflow" ||
+          preselectedPinboard === "unknown") && <NotTrackedInWorkflow />}
         {payloadToBeSent && (
           <div
             css={css`

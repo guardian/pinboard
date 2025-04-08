@@ -280,6 +280,8 @@ export const SuggestAlternateCrops = ({
               {preselectedPinboard === "loading" && "loading..."}
               {preselectedPinboard === "notTrackedInWorkflow" &&
                 "This piece is not tracked in Workflow, as such you cannot suggest alternate crops for it. Please track in Workflow and refresh the page."}
+              {preselectedPinboard === "unknown" &&
+                "This video hasn't been added to a Composer piece and tracked in Workflow, as such you cannot suggest alternate crops for it."}
               {isPinboardData(preselectedPinboard) &&
                 Object.entries(SUGGESTIBLE_CROP_RATIOS).map(
                   ([customRatio, cropType]) => (

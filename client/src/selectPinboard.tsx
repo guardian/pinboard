@@ -82,8 +82,6 @@ export const SelectPinboard = ({
     peekAtPinboard,
     preselectedPinboard,
 
-    openInTool,
-
     hasWebPushSubscription,
 
     errors,

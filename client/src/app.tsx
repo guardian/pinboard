@@ -99,6 +99,8 @@ export const PinBoardApp = ({
 
   const [composerSection, setComposerSection] = useState<string | undefined>();
 
+  const [openInTool, setOpenInTool] = useState<string | null>(null);
+
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const refreshAssetHandleNodes = () =>
@@ -138,6 +140,10 @@ export const PinBoardApp = ({
       preselectPinboardHTMLElement?.dataset?.composerSection;
     newComposerSection !== composerSection &&
       setComposerSection(newComposerSection);
+
+    const newOpenInTool = preselectPinboardHTMLElement?.dataset?.tool;
+    if (newOpenInTool !== undefined && newOpenInTool !== openInTool)
+      setOpenInTool(newOpenInTool);
   };
 
   const [presetUnreadNotificationCount, setPresetUnreadNotificationCount] =
@@ -418,6 +424,7 @@ export const PinBoardApp = ({
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
           preselectedComposerId={preSelectedComposerId}
+          openInTool={openInTool}
           payloadToBeSent={payloadToBeSent}
           setPayloadToBeSent={setPayloadToBeSent}
           isExpanded={isExpanded}

@@ -14,6 +14,7 @@ export type PreselectedPinboard =
   | PinboardData
   | "loading"
   | "notTrackedInWorkflow"
+  | "unknown"
   | undefined;
 
 export const isPinboardData = (
@@ -21,7 +22,8 @@ export const isPinboardData = (
 ): maybePinboardData is PinboardData =>
   !!maybePinboardData &&
   maybePinboardData !== "loading" &&
-  maybePinboardData !== "notTrackedInWorkflow";
+  maybePinboardData !== "notTrackedInWorkflow" &&
+  maybePinboardData !== "unknown";
 
 export const isPinboardDataWithClaimCounts = (
   pinboardData: PinboardData | PinboardDataWithClaimCounts

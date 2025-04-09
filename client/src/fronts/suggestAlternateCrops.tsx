@@ -84,6 +84,7 @@ export const SuggestAlternateCrops = ({
     cropsOnPreselectedPinboard,
     featureFlags,
     setError,
+    openInTool,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -191,7 +192,7 @@ export const SuggestAlternateCrops = ({
           position: relative;
           width: 100%;
           ${agateSans.xxsmall()};
-          color: ${pinMetal};
+          color: ${openInTool === "media-atom-maker" ? "white" : pinMetal};
           margin-top: 2px;
           margin-bottom: 5px;
           user-select: none;

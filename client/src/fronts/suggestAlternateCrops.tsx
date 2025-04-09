@@ -267,7 +267,13 @@ export const SuggestAlternateCrops = ({
       {alternateCropSuggestionElements.map((htmlElement) =>
         ReactDOM.createPortal(
           <div>
-            <label className="sub-label">Suggest crops for Fronts</label>
+            <label
+              css={css`
+                font-weight: bold;
+              `}
+            >
+              Suggest crops for Fronts
+            </label>
             <br />
             <root.div
               css={css`

@@ -82,7 +82,6 @@ export const SuggestAlternateCrops = ({
     setPayloadToBeSent,
     clearSelectedPinboard,
     cropsOnPreselectedPinboard,
-    featureFlags,
     setError,
     openInTool,
   } = useGlobalStateContext();
@@ -260,7 +259,7 @@ export const SuggestAlternateCrops = ({
     );
   };
 
-  return featureFlags["alternateCropSuggesting"] ? (
+  return (
     <>
       {alternateCropSuggestionElements.length > 0 && (
         <Global styles={cssToAddGuttersToComposerTrailThumbnail} />
@@ -351,5 +350,5 @@ export const SuggestAlternateCrops = ({
         </root.div>
       )}
     </>
-  ) : null;
+  );
 };

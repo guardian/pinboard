@@ -13,14 +13,15 @@ import { agateSans } from "../../fontNormaliser";
 import { pinboard, pinMetal } from "../../colours";
 import { neutral } from "@guardian/source-foundations";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
+import { capitalise } from "shared/util";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
   "pinboard-suggest-alternate-crops";
 
 const SUGGESTIBLE_CROP_RATIOS = {
-  "5:4": "Landscape",
-  "4:5": "Portrait",
-  "1:1": "Square",
+  "5:4": "landscape NEW",
+  "4:5": "portrait",
+  "1:1": "square",
 };
 
 const gridTopLevelDomain = window.location.hostname.endsWith(".gutools.co.uk")
@@ -64,15 +65,12 @@ export const SuggestAlternateCrops = ({
   const apolloClient = useApolloClient();
 
   const onClick = useCallback(
-    (maybeMediaId: string | undefined, cropType: string, customRatio: string) =>
-      () =>
-        setMaybeGridIframeUrl(
-          `https://media.${gridTopLevelDomain}${
-            maybeMediaId ? `/images/${maybeMediaId}/crop` : ""
-          }?cropType=${cropType}&customRatio=${cropType},${customRatio
-            .split(":")
-            .join(",")}`
-        ),
+    (maybeMediaId: string | undefined, cropType: string) => () =>
+      setMaybeGridIframeUrl(
+        `https://media.${gridTopLevelDomain}${
+          maybeMediaId ? `/images/${maybeMediaId}/crop` : ""
+        }?cropType=${cropType}`
+      ),
     []
   );
 
@@ -87,7 +85,9 @@ export const SuggestAlternateCrops = ({
           "https://"
         )}?crop=${data.id}`,
         aspectRatio: data.specification.aspectRatio,
-        cropType: SUGGESTIBLE_CROP_RATIOS[data.specification.aspectRatio],
+        cropType: capitalise(
+          SUGGESTIBLE_CROP_RATIOS[data.specification.aspectRatio]
+        ),
       };
       if (isPinboardData(preselectedPinboard)) {
         const createItemInput: CreateItemInput = {
@@ -263,11 +263,7 @@ export const SuggestAlternateCrops = ({
                   ([customRatio, cropType]) => (
                     <>
                       <ButtonInOtherTools
-                        onClick={onClick(
-                          htmlElement.dataset.mediaId,
-                          cropType,
-                          customRatio
-                        )}
+                        onClick={onClick(htmlElement.dataset.mediaId, cropType)}
                       >
                         Suggest an alternate {customRatio} crop
                       </ButtonInOtherTools>

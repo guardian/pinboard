@@ -1,6 +1,6 @@
 import { WithNames } from "./types/withNames";
 
-const capitalise = (str: string) =>
+export const capitalise = (str: string) =>
   str &&
   str
     .split("-")

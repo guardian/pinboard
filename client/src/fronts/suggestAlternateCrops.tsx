@@ -27,33 +27,6 @@ const gridTopLevelDomain = window.location.hostname.endsWith(".gutools.co.uk")
   ? "gutools.co.uk"
   : "test.dev-gutools.co.uk";
 
-const cssToAddGuttersToComposerTrailThumbnail = css`
-  #js-change-trail-image-button {
-    position: relative;
-  }
-  #js-change-trail-image-button::before,
-  #js-change-trail-image-button::after {
-    display: block;
-    content: "";
-    position: absolute;
-    z-index: 999;
-    width: 12.5%;
-    top: 0;
-    bottom: 0;
-    opacity: 0.75;
-  }
-  #js-change-trail-image-button::before {
-    /* left gutter */
-    left: 0;
-    background: ${neutral[93]};
-  }
-  #js-change-trail-image-button::after {
-    /* right gutter */
-    right: 0;
-    background: ${neutral[93]};
-  }
-`;
-
 interface GridCropDataFromPostMessage {
   id: string;
   specification: {
@@ -261,9 +234,6 @@ export const SuggestAlternateCrops = ({
 
   return (
     <>
-      {alternateCropSuggestionElements.length > 0 && (
-        <Global styles={cssToAddGuttersToComposerTrailThumbnail} />
-      )}
       {alternateCropSuggestionElements.map((htmlElement) =>
         ReactDOM.createPortal(
           <div>

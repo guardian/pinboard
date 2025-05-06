@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { ButtonInOtherTools } from "../buttonInOtherTools";
-import { css, Global } from "@emotion/react";
+import { css } from "@emotion/react";
 import { PayloadWithThumbnail } from "../types/PayloadAndType";
 import root from "react-shadow/emotion";
 import { useApolloClient } from "@apollo/client";
@@ -11,14 +11,12 @@ import { gqlCreateItem } from "../../gql";
 import { isPinboardData } from "shared/graphql/extraTypes";
 import { agateSans } from "../../fontNormaliser";
 import { pinboard, pinMetal } from "../../colours";
-import { neutral } from "@guardian/source-foundations";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "../types/Telemetry";
 
 export const SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR =
   "pinboard-suggest-alternate-crops";
 
 const SUGGESTIBLE_CROP_RATIOS = {
-  "5:4": "Landscape",
   "4:5": "Portrait",
   "1:1": "Square",
 };

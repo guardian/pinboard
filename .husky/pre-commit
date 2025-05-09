@@ -12,7 +12,7 @@ corepack enable
 yarn lint-staged
 
 if (git diff --name-only --cached | grep -e 'cdk' -e 'shared/graphql'); then
-    yarn workspace cdk update-snapshot
+    yarn update-snapshot
     git add cdk/lib/__snapshots__/
 fi
 

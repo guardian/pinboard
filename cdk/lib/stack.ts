@@ -301,7 +301,7 @@ export class PinBoardStack extends GuStack {
           deployBucket,
           `${this.stack}/${this.stage}/${DATABASE_BRIDGE_LAMBDA_BASENAME}/${DATABASE_BRIDGE_LAMBDA_BASENAME}.zip`
         ),
-        initialPolicy: [],
+        initialPolicy: [permissionsFilePolicyStatement],
         vpc: accountVpc,
         securityGroups: [databaseSecurityGroup],
       }

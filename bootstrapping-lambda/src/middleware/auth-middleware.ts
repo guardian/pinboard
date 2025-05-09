@@ -1,5 +1,8 @@
 import { getVerifiedUserEmail } from "../panDomainAuth";
-import { userHasPermission } from "../permissionCheck";
+import {
+  ACCESS_PERMISSION,
+  userHasPermission,
+} from "../../../shared/permissions";
 import { NextFunction, Request, Response } from "express";
 import { HTTP_STATUS_CODES } from "../../../shared/http/httpClientValues";
 
@@ -30,7 +33,7 @@ export const getAuthMiddleware =
             .send(MISSING_AUTH_COOKIE_MESSAGE);
     }
 
-    if (await userHasPermission(maybeAuthenticatedEmail)) {
+    if (await userHasPermission(maybeAuthenticatedEmail, ACCESS_PERMISSION)) {
       request.userEmail = maybeAuthenticatedEmail;
       return next();
     }

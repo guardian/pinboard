@@ -65,12 +65,14 @@ interface PinBoardAppProps {
   apolloClient: ApolloClient<Record<string, unknown>>;
   hasApolloAuthErrorVar: ReactiveVar<boolean>;
   userEmail: string;
+  permissions: string[];
 }
 
 export const PinBoardApp = ({
   apolloClient,
   hasApolloAuthErrorVar,
   userEmail,
+  permissions,
 }: PinBoardAppProps) => {
   const [payloadToBeSent, setPayloadToBeSent] = useState<PayloadAndType | null>(
     null
@@ -415,6 +417,7 @@ export const PinBoardApp = ({
           hasApolloAuthError={hasApolloAuthError}
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
+          permissions={permissions}
           preselectedComposerId={preSelectedComposerId}
           openInTool={openInTool}
           payloadToBeSent={payloadToBeSent}

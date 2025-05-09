@@ -4458,6 +4458,11 @@ $util.toJson($ctx.result)",
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::permissions-cache/TEST/*",
+            },
+            Object {
               "Action": "rds-db:connect",
               "Effect": "Allow",
               "Resource": Object {

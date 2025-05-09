@@ -1,15 +1,13 @@
-import {
-  ADMIN_PERMISSION,
-  userHasPermission,
-} from "../../../shared/permissions";
+import { ADMIN_PERMISSION } from "shared/permissionDefinitions";
+import { userHasPermission } from "shared/permissions";
 import {
   CreateItemInput,
   EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
-} from "../../../shared/graphql/graphql";
-import { Sql } from "../../../shared/database/types";
-import { Range } from "../../../shared/types/grafanaType";
+} from "shared/graphql/graphql";
+import { Sql } from "shared/database/types";
+import { Range } from "shared/types/grafanaType";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,

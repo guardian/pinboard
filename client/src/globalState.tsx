@@ -54,6 +54,7 @@ const getHasBrowserFocus = () =>
 
 interface GlobalStateContextShape {
   userEmail: string;
+  permissions: string[];
   userLookup: UserLookup;
   addEmailsToLookup: (emails: string[]) => void;
 
@@ -147,6 +148,7 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 interface GlobalStateProviderProps {
   hasApolloAuthError: boolean;
   userEmail: string;
+  permissions: string[];
   preselectedComposerId: string | null | undefined;
   openInTool: string | null;
   payloadToBeSent: PayloadAndType | null;
@@ -170,6 +172,7 @@ interface GlobalStateProviderProps {
 export const GlobalStateProvider = ({
   hasApolloAuthError,
   userEmail,
+  permissions,
   preselectedComposerId,
   openInTool,
   presetUnreadNotificationCount,
@@ -690,6 +693,7 @@ export const GlobalStateProvider = ({
 
   const contextValue: GlobalStateContextShape = {
     userEmail,
+    permissions,
     userLookup,
     addEmailsToLookup,
 

@@ -1,10 +1,8 @@
 import { getVerifiedUserEmail } from "../panDomainAuth";
-import {
-  ACCESS_PERMISSION,
-  userHasPermission,
-} from "../../../shared/permissions";
+import { ACCESS_PERMISSION } from "shared/permissionDefinitions";
+import { userHasPermission } from "shared/permissions";
 import { NextFunction, Request, Response } from "express";
-import { HTTP_STATUS_CODES } from "../../../shared/http/httpClientValues";
+import { HTTP_STATUS_CODES } from "shared/http/httpClientValues";
 
 const MISSING_AUTH_COOKIE_MESSAGE =
   "pan-domain auth cookie missing, invalid or expired";

@@ -1,13 +1,11 @@
 import { admin as googleAdminAPI, auth as googleAuth } from "@googleapis/admin";
 import { people as googlePeopleAPI } from "@googleapis/people";
-import { S3 } from "@aws-sdk/client-s3";
 import {
   pinboardConfigPromiseGetter,
   pinboardSecretPromiseGetter,
   STAGE,
-  standardAwsConfig,
 } from "../../shared/awsIntegration";
-import { getPinboardPermissionOverrides } from "../../shared/permissions";
+import { getPinboardAccessPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { buildPhotoUrlLookup } from "./google/buildPhotoUrlLookup";
 import { buildUserLookupFromGoogle } from "./google/buildUserLookupFromGoogle";
@@ -20,15 +18,13 @@ import { buildUserLookupFromDatabase } from "./google/buildUserLookupFromDatabas
 import { getGroupMembersFromGoogle } from "./google/getGroupMembersFromGoogle";
 import { getGroupDetailFromGoogle } from "./google/getGroupDetailFromGoogle";
 
-const s3 = new S3(standardAwsConfig);
-
 export const handler = async ({
   isProcessPermissionChangesOnly,
 }: {
   isProcessPermissionChangesOnly?: boolean;
 }) => {
   const emailsOfUsersWithPinboardPermission = (
-    await getPinboardPermissionOverrides(s3)
+    await getPinboardAccessPermissionOverrides()
   )?.reduce<string[]>(
     (acc, { userId, active }) =>
       active ? [...acc, userId.toLowerCase()] : acc,

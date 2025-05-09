@@ -1,10 +1,10 @@
 import { AuthenticatedRequest, getAuthMiddleware } from "./auth-middleware";
 import { Response } from "express";
-import { userHasPermission } from "../permissionCheck";
+import { userHasPermission } from "../../../shared/permissions";
 import { getVerifiedUserEmail } from "../panDomainAuth";
 import { mocked } from "jest-mock";
 
-jest.mock("../permissionCheck");
+jest.mock("../../../shared/permissions");
 jest.mock("../panDomainAuth");
 
 const mockedGetVerifiedUserEmail = mocked(getVerifiedUserEmail, {

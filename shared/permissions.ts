@@ -16,7 +16,7 @@ interface Permission {
 
 const s3 = new S3(standardAwsConfig);
 
-const getAllPermissions = async () => {
+async function loadPermissions() {
   const { Body } = await s3.getObject({
     Bucket: "permissions-cache",
     Key: `${STAGE}/permissions.json`,
@@ -26,7 +26,33 @@ const getAllPermissions = async () => {
   }
   const transformedBody = await Body.transformToString();
   const allPermissions = JSON.parse(transformedBody) as Permission[];
+  return { allPermissions, loadTime: new Date() };
+}
+
+let cache = loadPermissions();
+
+async function getOrRefresh() {
+  const prevCache = await cache;
+
+  const now = new Date();
+  const sixtySecsAgo = new Date(now.getTime() - 60_000);
+
+  if (prevCache.loadTime < sixtySecsAgo) {
+    cache = loadPermissions().catch((e) => {
+      console.error(
+        "Refreshing permissions cache failed with error, so keeping stale cache...",
+        e
+      );
+      return { allPermissions: prevCache.allPermissions, loadTime: new Date() };
+    });
+  }
+
+  const { allPermissions } = await cache;
   return allPermissions;
+}
+
+const getAllPermissions = () => {
+  return getOrRefresh();
 };
 
 const getAllPinboardOverrides = async (

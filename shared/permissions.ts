@@ -92,6 +92,6 @@ export const userHasPermission = async (
   const overrides = await getAllPinboardOverrides(permission);
 
   return Boolean(
-    overrides?.find(({ userId, active }) => userId === userEmail && active)
+    overrides?.some(({ userId, active }) => userId === userEmail && active)
   );
 };

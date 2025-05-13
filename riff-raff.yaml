@@ -28,7 +28,7 @@ deployments:
         CODE: PinBoardStack-CODE.template.json
         PROD: PinBoardStack-PROD.template.json
       amiTags:
-        Recipe: editorial-tools-jammy-java11-ARM-WITH-cdk-base
+        Recipe: editorial-tools-jammy-java11
         AmigoStage: PROD
       amiEncrypted: true
       amiParameter: AMIPinboard

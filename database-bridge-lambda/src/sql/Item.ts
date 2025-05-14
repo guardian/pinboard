@@ -1,11 +1,13 @@
+import { ADMIN_PERMISSION } from "shared/permissionDefinitions";
+import { userHasPermission } from "shared/permissions";
 import {
   CreateItemInput,
   EditItemInput,
   Item,
   PinboardIdWithClaimCounts,
-} from "../../../shared/graphql/graphql";
-import { Sql } from "../../../shared/database/types";
-import { Range } from "../../../shared/types/grafanaType";
+} from "shared/graphql/graphql";
+import { Sql } from "shared/database/types";
+import { Range } from "shared/types/grafanaType";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -83,17 +85,27 @@ export const deleteItem = async (
   sql: Sql,
   args: { itemId: string },
   userEmail: string
-) =>
-  sql`
+) => {
+  const userMayDeleteAnyMessage = await userHasPermission(
+    userEmail,
+    ADMIN_PERMISSION
+  );
+  // normally we check the item's author is the same as the user deleting to prevent deleting
+  // other users' items. But admins are allowed to do exactly that, so drop the condition.
+  const fragmentIdentityCheck = userMayDeleteAnyMessage
+    ? sql``
+    : sql`AND "userEmail" = ${userEmail}`;
+  return sql`
       UPDATE "Item"
-      SET 
-          "message" = NULL, 
-          "payload" = NULL, 
+      SET
+          "message" = NULL,
+          "payload" = NULL,
           "deletedAt" = now()
       WHERE "id" = ${args.itemId}
-        AND "userEmail" = ${userEmail}
+         ${fragmentIdentityCheck}
       RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
+};
 
 export const listItems = (
   sql: Sql,

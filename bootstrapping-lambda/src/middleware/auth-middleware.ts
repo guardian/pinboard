@@ -1,7 +1,8 @@
 import { getVerifiedUserEmail } from "../panDomainAuth";
-import { userHasPermission } from "../permissionCheck";
+import { ACCESS_PERMISSION } from "shared/permissionDefinitions";
+import { userHasPermission } from "shared/permissions";
 import { NextFunction, Request, Response } from "express";
-import { HTTP_STATUS_CODES } from "../../../shared/http/httpClientValues";
+import { HTTP_STATUS_CODES } from "shared/http/httpClientValues";
 
 const MISSING_AUTH_COOKIE_MESSAGE =
   "pan-domain auth cookie missing, invalid or expired";
@@ -30,7 +31,7 @@ export const getAuthMiddleware =
             .send(MISSING_AUTH_COOKIE_MESSAGE);
     }
 
-    if (await userHasPermission(maybeAuthenticatedEmail)) {
+    if (await userHasPermission(maybeAuthenticatedEmail, ACCESS_PERMISSION)) {
       request.userEmail = maybeAuthenticatedEmail;
       return next();
     }

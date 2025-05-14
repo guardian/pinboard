@@ -35,6 +35,7 @@ const DEFAULT_APOLLO_DEBOUNCE_DELAY = 0; // zero in-case used by mistake
 
 export function mount({
   userEmail,
+  permissions,
   appSyncConfig,
   sentryDSN,
   stage,
@@ -231,6 +232,7 @@ export function mount({
         <PinBoardApp
           apolloClient={apolloClient}
           userEmail={userEmail}
+          permissions={permissions}
           hasApolloAuthErrorVar={hasApolloAuthErrorVar}
         />
       </CacheProvider>

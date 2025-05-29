@@ -141,17 +141,25 @@ export const ScrollableItems = ({
 
   const sendTelemetryEvent = useContext(TelemetryContext);
 
+  const [itemIdToSetAsLastSeen, setItemIdToSetAsLastSeen] = useState<
+    string | null
+  >(null);
+
   const seenLastItem = () => {
-    // don't keep sending mutations if everyone already knows we've seen it
+    maybeLastItem && setItemIdToSetAsLastSeen(maybeLastItem.id);
+  };
+
+  // the useEffect below ensures the seenItem mutation is called only once for the last item (and only if it hasn't already been seen)
+  useEffect(() => {
     if (
-      maybeLastItem &&
-      maybeLastItem.id !== lastItemSeenByUserLookup[userEmail]?.itemID
+      itemIdToSetAsLastSeen &&
+      itemIdToSetAsLastSeen !== lastItemSeenByUserLookup[userEmail]?.itemID
     ) {
       seenItem({
         variables: {
           input: {
             pinboardId,
-            itemID: maybeLastItem.id,
+            itemID: itemIdToSetAsLastSeen,
           },
         },
       });
@@ -159,7 +167,7 @@ export const ScrollableItems = ({
         pinboardId,
       });
     }
-  };
+  }, [itemIdToSetAsLastSeen]);
 
   useEffect(() => {
     if (isScrolledToBottom && hasBrowserFocus) {

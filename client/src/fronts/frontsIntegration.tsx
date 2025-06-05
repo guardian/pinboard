@@ -36,13 +36,15 @@ export const FrontsIntegration = ({
     {} as { [path: string]: PinboardData }
   );
   useEffect(() => {
-    const paths = Object.keys(pathToElementsMap);
-    paths.length > 0 &&
+    const pathsYetToBeLookedUp = Object.keys(pathToElementsMap).filter(
+      (path) => !pathToPinboardDataMap[path]
+    );
+    pathsYetToBeLookedUp.length > 0 &&
       apolloClient
         .query({
           query: gqlGetPinboardsByPaths,
           variables: {
-            paths,
+            paths: pathsYetToBeLookedUp,
           },
         })
         .then(({ data }) => {

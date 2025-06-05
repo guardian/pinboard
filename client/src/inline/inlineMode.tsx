@@ -56,6 +56,7 @@ export const InlineMode = ({
     () => getWorkflowTitleElementLookup(workflowPinboardElements),
     [workflowPinboardElements]
   );
+  const pinboardIds = Object.keys(workflowTitleElementLookup);
 
   const [itemCountsLookup, setItemCountsLookup] = useState<
     Record<string, PinboardIdWithItemCounts>
@@ -64,7 +65,6 @@ export const InlineMode = ({
   const [fetchItemCounts] = useLazyQuery(gqlGetItemCounts);
 
   useEffect(() => {
-    const pinboardIds = Object.keys(workflowTitleElementLookup);
     if (pinboardIds.length > 0) {
       fetchItemCounts({
         variables: { pinboardIds },
@@ -86,7 +86,7 @@ export const InlineMode = ({
       });
     }
   }, [
-    workflowTitleElementLookup,
+    pinboardIds.toString(),
     totalItemsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   ]);

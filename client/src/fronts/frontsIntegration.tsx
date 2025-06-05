@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { PinboardData } from "shared/graphql/extraTypes";
 import { PinboardIdWithItemCounts } from "shared/graphql/graphql";
 import ReactDOM from "react-dom";
-import { useApolloClient, useQuery } from "@apollo/client";
+import { useApolloClient, useLazyQuery } from "@apollo/client";
 import { gqlGetItemCounts, gqlGetPinboardsByPaths } from "../../gql";
 import { FrontsPinboardArticleButton } from "./frontsPinboardArticleButton";
 import { useGlobalStateContext } from "../globalState";
@@ -68,31 +68,34 @@ export const FrontsIntegration = ({
     [pathToPinboardDataMap]
   );
 
-  const itemCountsQuery = useQuery(gqlGetItemCounts, {
-    variables: {
-      pinboardIds,
-    },
-  });
+  const [fetchItemCounts] = useLazyQuery(gqlGetItemCounts);
 
   useEffect(() => {
-    itemCountsQuery.refetch();
+    if (pinboardIds.length > 0) {
+      fetchItemCounts({
+        variables: { pinboardIds },
+        onCompleted: (data) => {
+          data?.getItemCounts &&
+            setMaybeItemCountsLookup(
+              data.getItemCounts.reduce(
+                (
+                  acc: ItemCountsLookup,
+                  itemCounts: PinboardIdWithItemCounts
+                ) => ({
+                  ...acc,
+                  [itemCounts.pinboardId]: itemCounts,
+                }),
+                {}
+              )
+            );
+        },
+      });
+    }
   }, [
+    pinboardIds,
     totalItemsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   ]);
-
-  useEffect(() => {
-    itemCountsQuery.data?.getItemCounts &&
-      setMaybeItemCountsLookup(
-        itemCountsQuery.data.getItemCounts.reduce(
-          (acc: ItemCountsLookup, itemCounts: PinboardIdWithItemCounts) => ({
-            ...acc,
-            [itemCounts.pinboardId]: itemCounts,
-          }),
-          {}
-        )
-      );
-  }, [itemCountsQuery.data]);
 
   return (
     <>

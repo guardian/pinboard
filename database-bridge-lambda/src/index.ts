@@ -93,6 +93,12 @@ export const handler = async (
     const userEmail: string = (payload.identity as AppSyncIdentityLambda)
       .resolverContext.userEmail;
     const databaseOperation = payload.info.fieldName as DatabaseOperation;
+
+    console.log("AppSync request:", {
+      userEmail,
+      databaseOperation,
+      referrer: payload.request.headers.referer,
+    });
     return await run(sql, databaseOperation, args, userEmail);
   }
 };

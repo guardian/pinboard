@@ -24,11 +24,8 @@ export const FrontsIntegration = ({
     [frontsPinboardElements]
   );
 
-  const {
-    setError,
-    totalItemsReceivedViaSubscription,
-    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
-  } = useGlobalStateContext();
+  const { setError, totalItemsReceivedViaSubscription } =
+    useGlobalStateContext();
 
   const apolloClient = useApolloClient();
 
@@ -77,8 +74,8 @@ export const FrontsIntegration = ({
   useEffect(() => {
     itemCountsQuery.refetch();
   }, [
+    // TODO could filter to only if the pinboardIds we care about receive items on the subscription
     totalItemsReceivedViaSubscription,
-    totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   ]);
 
   useEffect(() => {

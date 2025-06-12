@@ -417,6 +417,7 @@ export const PinBoardApp = ({
           hasApolloAuthError={hasApolloAuthError}
           presetUnreadNotificationCount={presetUnreadNotificationCount}
           userEmail={userEmail}
+          memberOf={me?.memberOf ?? []}
           permissions={permissions}
           preselectedComposerId={preSelectedComposerId}
           openInTool={openInTool}

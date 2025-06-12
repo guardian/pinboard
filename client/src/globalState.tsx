@@ -69,7 +69,7 @@ interface GlobalStateContextShape {
   allSubscriptionClaimedItems: Item[]; // both the updated 'claimed' item and the new 'claim' item
   allSubscriptionOnSeenItems: LastItemSeenByUser[];
   totalItemsReceivedViaSubscription: number;
-  totalItemsWithGroupMentionsReceivedViaSubscription: number;
+  totalItemsWithRelevantGroupMentionsReceivedViaSubscription: number;
   totalOfMyOwnOnSeenItemsReceivedViaSubscription: number;
 
   payloadToBeSent: PayloadAndType | null;
@@ -149,6 +149,7 @@ export const useGlobalStateContext = (): GlobalStateContextShape => {
 interface GlobalStateProviderProps {
   hasApolloAuthError: boolean;
   userEmail: string;
+  memberOf: string[];
   permissions: string[];
   preselectedComposerId: string | null | undefined;
   openInTool: string | null;
@@ -173,6 +174,7 @@ interface GlobalStateProviderProps {
 export const GlobalStateProvider = ({
   hasApolloAuthError,
   userEmail,
+  memberOf,
   permissions,
   preselectedComposerId,
   openInTool,
@@ -306,8 +308,8 @@ export const GlobalStateProvider = ({
     setTotalItemsReceivedViaSubscription,
   ] = useState(0);
   const [
-    totalItemsWithGroupMentionsReceivedViaSubscription,
-    setTotalItemsWithGroupMentionsReceivedViaSubscription,
+    totalItemsWithRelevantGroupMentionsReceivedViaSubscription,
+    setTotalItemsWithRelevantGroupMentionsReceivedViaSubscription,
   ] = useState(0);
 
   const [allSubscriptionItems, setAllSubscriptionItems] = useState<Item[]>([]);
@@ -315,10 +317,11 @@ export const GlobalStateProvider = ({
     onSubscriptionData: ({ subscriptionData }) => {
       setTotalItemsReceivedViaSubscription((prev) => prev + 1);
       if (
-        subscriptionData.data.onMutateItem.groupMentions &&
-        subscriptionData.data.onMutateItem.groupMentions.length > 0
+        subscriptionData.data.onMutateItem.groupMentions?.some(
+          (groupShorthand: string) => memberOf.includes(groupShorthand)
+        )
       ) {
-        setTotalItemsWithGroupMentionsReceivedViaSubscription(
+        setTotalItemsWithRelevantGroupMentionsReceivedViaSubscription(
           (prev) => prev + 1
         );
       }
@@ -352,7 +355,7 @@ export const GlobalStateProvider = ({
         subscriptionData.data.onClaimItem.groupMentions &&
         subscriptionData.data.onClaimItem.groupMentions.length > 0
       ) {
-        setTotalItemsWithGroupMentionsReceivedViaSubscription(
+        setTotalItemsWithRelevantGroupMentionsReceivedViaSubscription(
           (prev) => prev + 1
         );
       }
@@ -729,7 +732,7 @@ export const GlobalStateProvider = ({
     allSubscriptionClaimedItems,
     allSubscriptionOnSeenItems,
     totalItemsReceivedViaSubscription,
-    totalItemsWithGroupMentionsReceivedViaSubscription,
+    totalItemsWithRelevantGroupMentionsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
 
     payloadToBeSent,

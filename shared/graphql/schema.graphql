@@ -103,6 +103,7 @@ type MyUser {
   manuallyOpenedPinboardIds: [String!]
   hasEverUsedTour: Boolean!
   featureFlags: AWSJSON
+  memberOf: [String!]!
 }
 
 type Group {

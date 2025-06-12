@@ -129,6 +129,7 @@ const myUserReturnFields = `${userReturnFields}
   manuallyOpenedPinboardIds
   hasEverUsedTour
   featureFlags
+  memberOf
 `;
 
 export const gqlSearchMentionableUsers = (prefix: string) => gql`

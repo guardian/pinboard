@@ -51,7 +51,11 @@ const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
 
 export const getMyUser = (sql: Sql, userEmail: string) =>
   sql`
-    SELECT ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}
+    SELECT ${fragmentMyUserWithoutPushSubscriptionSecrets(sql)}, COALESCE((
+        SELECT json_agg("groupShorthand")
+        FROM "User", "GroupMember"
+        WHERE "GroupMember"."userGoogleID" = "User"."googleID"
+    ), '[]') AS "memberOf"
     FROM "User"
     WHERE "email" = ${userEmail}
 `.then((rows) => rows[0]);

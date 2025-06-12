@@ -87,6 +87,7 @@ export const InlineMode = ({
     }
   }, [
     workflowTitleElementLookup,
+    // TODO could filter to only fire if the pinboardIds we care about receive items on the subscription
     totalItemsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   ]);

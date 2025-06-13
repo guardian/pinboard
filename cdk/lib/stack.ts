@@ -170,7 +170,7 @@ export class PinBoardStack extends GuStack {
     });
 
     const workflowDatastoreVpcId = Fn.importValue(
-      `WorkflowDatastoreLoadBalancerSecurityGroupVpcId-${this.stage}`
+      `WorkflowDatastoreLoadBalancerSecurityGroupVpcIdNewVpc-${this.stage}`
     );
 
     const workflowDatastoreVPC = ec2.Vpc.fromVpcAttributes(
@@ -181,7 +181,7 @@ export class PinBoardStack extends GuStack {
         availabilityZones: Fn.getAzs(region),
         privateSubnetIds: Fn.split(
           ",",
-          Fn.importValue(`WorkflowPrivateSubnetIds-${this.stage}`)
+          Fn.importValue(`WorkflowPrivateSubnetIdsNewVpc-${this.stage}`)
         ),
       }
     );
@@ -200,7 +200,7 @@ export class PinBoardStack extends GuStack {
           STACK: this.stack,
           APP,
           [ENVIRONMENT_VARIABLE_KEYS.workflowDnsName]: Fn.importValue(
-            `WorkflowDatastoreLoadBalancerDNSName-${this.stage}`
+            `WorkflowDatastoreLoadBalancerDNSNameNewVpc-${this.stage}`
           ),
         },
         functionName: getWorkflowBridgeLambdaFunctionName(this.stage as Stage),
@@ -225,7 +225,7 @@ export class PinBoardStack extends GuStack {
             this,
             "workflow-datastore-load-balancer-security-group",
             Fn.importValue(
-              `WorkflowDatastoreLoadBalancerSecurityGroupId-${this.stage}`
+              `WorkflowDatastoreLoadBalancerSecurityGroupIdNewVpc-${this.stage}`
             )
           ),
         ],

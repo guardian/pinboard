@@ -5215,7 +5215,7 @@ $util.toJson($ctx.result)",
             "STACK": "workflow",
             "STAGE": "TEST",
             "WORKFLOW_DATASTORE_LOAD_BALANCER_DNS_NAME": Object {
-              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerDNSName-TEST",
+              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerDNSNameNewVpc-TEST",
             },
           },
         },
@@ -5255,14 +5255,14 @@ $util.toJson($ctx.result)",
         "VpcConfig": Object {
           "SecurityGroupIds": Array [
             Object {
-              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerSecurityGroupId-TEST",
+              "Fn::ImportValue": "WorkflowDatastoreLoadBalancerSecurityGroupIdNewVpc-TEST",
             },
           ],
           "SubnetIds": Object {
             "Fn::Split": Array [
               ",",
               Object {
-                "Fn::ImportValue": "WorkflowPrivateSubnetIds-TEST",
+                "Fn::ImportValue": "WorkflowPrivateSubnetIdsNewVpc-TEST",
               },
             ],
           },

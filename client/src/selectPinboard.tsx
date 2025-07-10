@@ -460,27 +460,28 @@ export const SelectPinboard = ({
             <React.Fragment>
               <SectionHeading>MY TEAMS&apos; PINBOARDS</SectionHeading>
               {pinboardsWithClaimCounts.map(OpenPinboardButton)}
-              {!tourProgress.isRunning && (
-                <button
-                  css={css`
-                    color: ${palette.neutral["20"]};
-                    border: 1px solid ${palette.neutral["93"]};
-                    cursor: pointer;
-                    ${agateSans.xxsmall({ fontWeight: "bold" })};
-                    background-color: ${palette.neutral["100"]};
-                    &:hover {
-                      background-color: ${palette.neutral["86"]};
+              {!tourProgress.isRunning &&
+                (noOfTeamPinboardsNotShown > 0 || isShowAllTeamPinboards) && (
+                  <button
+                    css={css`
+                      color: ${palette.neutral["20"]};
+                      border: 1px solid ${palette.neutral["93"]};
+                      cursor: pointer;
+                      ${agateSans.xxsmall({ fontWeight: "bold" })};
+                      background-color: ${palette.neutral["100"]};
+                      &:hover {
+                        background-color: ${palette.neutral["86"]};
+                      }
+                    `}
+                    onClick={() =>
+                      setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
                     }
-                  `}
-                  onClick={() =>
-                    setIsShowAllTeamPinboards(!isShowAllTeamPinboards)
-                  }
-                >
-                  {isShowAllTeamPinboards
-                    ? "Show fewer"
-                    : `Show ${noOfTeamPinboardsNotShown} more`}
-                </button>
-              )}
+                  >
+                    {isShowAllTeamPinboards
+                      ? "Show fewer"
+                      : `Show ${noOfTeamPinboardsNotShown} more`}
+                  </button>
+                )}
               <div css={{ height: space[2] }} />
             </React.Fragment>
           )}

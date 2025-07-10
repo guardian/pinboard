@@ -68,7 +68,7 @@ export const Panel = ({
     boundedPositionTranslation,
     unreadFlags,
     setUnreadFlag,
-    totalItemsWithGroupMentionsReceivedViaSubscription,
+    totalItemsWithRelevantGroupMentionsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   } = useGlobalStateContext();
 
@@ -102,7 +102,7 @@ export const Panel = ({
   useEffect(() => {
     groupPinboardIdsQuery.refetch();
   }, [
-    totalItemsWithGroupMentionsReceivedViaSubscription,
+    totalItemsWithRelevantGroupMentionsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
   ]);
 

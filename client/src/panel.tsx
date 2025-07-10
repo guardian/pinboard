@@ -138,8 +138,11 @@ export const Panel = ({
     : unclaimedCount > 5
     ? unclaimedCount
     : 5;
-  const noOfTeamPinboardsNotShown =
-    groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow;
+  const noOfTeamPinboardsNotShown = Math.max(
+    // avoid negative number
+    0,
+    groupPinboardIdsWithClaimCounts.length - noOfTeamPinboardsToShow
+  );
 
   const groupPinboardIds = groupPinboardIdsWithClaimCounts
     .slice(0, noOfTeamPinboardsToShow)

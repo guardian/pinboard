@@ -69,6 +69,7 @@ interface GlobalStateContextShape {
   allSubscriptionClaimedItems: Item[]; // both the updated 'claimed' item and the new 'claim' item
   allSubscriptionOnSeenItems: LastItemSeenByUser[];
   totalItemsReceivedViaSubscription: number;
+  totalItemsWithGroupMentionsReceivedViaSubscription: number;
   totalOfMyOwnOnSeenItemsReceivedViaSubscription: number;
 
   payloadToBeSent: PayloadAndType | null;
@@ -304,11 +305,23 @@ export const GlobalStateProvider = ({
     totalItemsReceivedViaSubscription,
     setTotalItemsReceivedViaSubscription,
   ] = useState(0);
+  const [
+    totalItemsWithGroupMentionsReceivedViaSubscription,
+    setTotalItemsWithGroupMentionsReceivedViaSubscription,
+  ] = useState(0);
 
   const [allSubscriptionItems, setAllSubscriptionItems] = useState<Item[]>([]);
   const itemSubscription = useSubscription(gqlOnMutateItem, {
     onSubscriptionData: ({ subscriptionData }) => {
       setTotalItemsReceivedViaSubscription((prev) => prev + 1);
+      if (
+        subscriptionData.data.onMutateItem.groupMentions &&
+        subscriptionData.data.onMutateItem.groupMentions.length > 0
+      ) {
+        setTotalItemsWithGroupMentionsReceivedViaSubscription(
+          (prev) => prev + 1
+        );
+      }
       const itemFromSubscription: Item = subscriptionData.data.onMutateItem;
       const pinboardId = itemFromSubscription.pinboardId;
       if (
@@ -335,6 +348,14 @@ export const GlobalStateProvider = ({
   const claimSubscription = useSubscription(gqlOnClaimItem, {
     onSubscriptionData: ({ subscriptionData }) => {
       setTotalItemsReceivedViaSubscription((prev) => prev + 1);
+      if (
+        subscriptionData.data.onClaimItem.groupMentions &&
+        subscriptionData.data.onClaimItem.groupMentions.length > 0
+      ) {
+        setTotalItemsWithGroupMentionsReceivedViaSubscription(
+          (prev) => prev + 1
+        );
+      }
       const { updatedItem, newItem }: Claimed =
         subscriptionData.data.onClaimItem;
       const pinboardId = updatedItem.pinboardId;
@@ -708,6 +729,7 @@ export const GlobalStateProvider = ({
     allSubscriptionClaimedItems,
     allSubscriptionOnSeenItems,
     totalItemsReceivedViaSubscription,
+    totalItemsWithGroupMentionsReceivedViaSubscription,
     totalOfMyOwnOnSeenItemsReceivedViaSubscription,
 
     payloadToBeSent,

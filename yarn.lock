@@ -1324,13 +1324,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/types@npm:3.731.0, @aws-sdk/types@npm:^3.1.0, @aws-sdk/types@npm:^3.222.0, @aws-sdk/types@npm:^3.25.0":
+"@aws-sdk/types@npm:3.731.0":
   version: 3.731.0
   resolution: "@aws-sdk/types@npm:3.731.0"
   dependencies:
     "@smithy/types": "npm:^4.0.0"
     tslib: "npm:^2.6.2"
   checksum: 10c0/f93d8d0ab574367f2c40f148d986c36b6fe66b854afba52198f1d1bf5b67e23673c3a507c07f9cf58cd3de00e76d241218abf989efc74b9a90213f5951ac7d43
+  languageName: node
+  linkType: hard
+
+"@aws-sdk/types@npm:^3.1.0, @aws-sdk/types@npm:^3.222.0, @aws-sdk/types@npm:^3.25.0, @aws-sdk/types@npm:^3.299.0":
+  version: 3.840.0
+  resolution: "@aws-sdk/types@npm:3.840.0"
+  dependencies:
+    "@smithy/types": "npm:^4.3.1"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/292d38f5087c3aa925addd890f8ae2bf650282c2cf4997d971a341dc0249dfca7ce02d69a4af09da2562b78a4232232d2a3b88105f34f66aee608d52aac238d1
   languageName: node
   linkType: hard
 
@@ -3754,13 +3764,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@guardian/pan-domain-node@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@guardian/pan-domain-node@npm:0.5.0"
+"@guardian/pan-domain-node@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@guardian/pan-domain-node@npm:1.2.0"
   dependencies:
+    "@aws-sdk/client-s3": "npm:^3.299.0"
+    "@aws-sdk/credential-providers": "npm:^3.299.0"
+    "@aws-sdk/types": "npm:^3.299.0"
     cookie: "npm:^0.4.1"
     iniparser: "npm:^1.0.5"
-  checksum: 10c0/45d573a1187ca1c3e379cd6ed73eb948773578091ea60348a9db618d594424aa4048cf610a73510f7e201c927bd34542dc09df1408d8a6f5c54e76285fbab105
+  checksum: 10c0/bdf029be1332a478bee7d5bf7c0b52579cf71a073b508bba415606c9bf331b45cef686236db906a0809be8f028b3839cc943c5d339c5a3dff9dadf128e96dabb
   languageName: node
   linkType: hard
 
@@ -4876,12 +4889,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/types@npm:^4.0.0, @smithy/types@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@smithy/types@npm:4.1.0"
+"@smithy/types@npm:^4.0.0, @smithy/types@npm:^4.1.0, @smithy/types@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "@smithy/types@npm:4.3.1"
   dependencies:
     tslib: "npm:^2.6.2"
-  checksum: 10c0/d8817145ea043c5b29783df747ed47c3a1c584fd9d02bbdb609d38b7cb4dded1197ac214ae112744c86abe0537a314dae0edbc0e752bb639ef2d9fb84c67a9d9
+  checksum: 10c0/8b350562b9ed4ff97465025b4ae77a34bb07b9d47fb6f9781755aac9401b0355a63c2fef307393e2dae3fa0277149dd7d83f5bc2a63d4ad3519ea32fd56b5cda
   languageName: node
   linkType: hard
 
@@ -7032,7 +7045,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.299.0"
     "@babel/preset-typescript": "npm:^7.18.6"
     "@codegenie/serverless-express": "npm:^4.16.0"
-    "@guardian/pan-domain-node": "npm:^0.5.0"
+    "@guardian/pan-domain-node": "npm:^1.2.0"
     "@types/cors": "npm:^2.8.12"
     "@types/express": "npm:4.17.17"
     "@types/jest": "npm:^29.2.3"

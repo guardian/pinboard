@@ -1,17 +1,18 @@
 import { handler } from "./src";
-import { AppSyncResolverEvent } from "aws-lambda/trigger/appsync-resolver";
-import { createDatabaseTunnel } from "../shared/database/local/databaseTunnel";
+import { createDatabaseTunnel } from "shared/database/local/databaseTunnel";
 import prompts from "prompts";
-import { DatabaseOperation } from "../shared/graphql/operations";
-import { getYourEmail } from "../shared/local/yourEmail";
-import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
+import { DatabaseOperation } from "shared/graphql/operations";
+import { getYourEmail } from "shared/local/yourEmail";
+import { CreateItemInput, EditItemInput } from "shared/graphql/graphql";
+import { IMAGING_REQUEST_ITEM_TYPE } from "shared/octopusImaging";
 
 (async () => {
   const baseInput = {
     identity: { resolverContext: { userEmail: await getYourEmail() } },
+    request: { headers: { referrer: "LOCAL-TESTING" }, domainName: null },
   };
 
-  const sampleInputs: Partial<Record<DatabaseOperation, unknown>> = {
+  const sampleInputs = {
     listItems: { pinboardId: "63206" },
     searchMentionableUsers: { prefix: "a" },
     claimItem: { itemId: "1667" },
@@ -35,7 +36,7 @@ import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
     deleteItem: { itemId: "2352" },
     getMyUser: {},
     visitTourStep: { tourStepId: "testing" },
-  };
+  } satisfies Partial<Record<DatabaseOperation, unknown>>;
 
   await createDatabaseTunnel();
 
@@ -48,14 +49,34 @@ import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
       type: "select",
       name: "inputPayload",
       message: "Operation?",
-      choices: Object.entries(sampleInputs).map(([operation, sampleInput]) => ({
-        title: operation,
-        value: {
-          ...baseInput,
-          arguments: sampleInput,
-          info: { fieldName: operation },
-        } as AppSyncResolverEvent<unknown, unknown>,
-      })),
+      choices: [
+        ...Object.entries(sampleInputs).map(([operation, sampleInput]) => ({
+          title: operation,
+          value: {
+            ...baseInput,
+            arguments: sampleInput,
+            info: { fieldName: operation },
+          },
+        })),
+        {
+          title: "Digital Imaging Order (via octopus)",
+          value: {
+            ...baseInput,
+            info: { fieldName: "createItem" },
+            arguments: {
+              input: {
+                ...sampleInputs.createItem.input,
+                type: IMAGING_REQUEST_ITEM_TYPE,
+                payload: {
+                  requestType: "Cut out",
+                  embeddableUrl:
+                    "https://media.test.dev-gutools.co.uk/images/24733ea386c7fcb37496c55cc86e8f1468b9dfcf",
+                },
+              },
+            },
+          },
+        },
+      ],
     });
 
     console.log(JSON.stringify(await handler(inputPayload), null, 2));

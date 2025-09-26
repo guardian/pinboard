@@ -68,6 +68,16 @@ export const OctopusImagingOrderDisplay = ({
         draggable={false}
         // TODO: hover for larger thumbnail
       />
+      {payload.octopusOrderId && (
+        <div
+          css={css`
+            ${agateSans.xxsmall()}
+            font-size: 8px;
+          `}
+        >
+          <strong>Order Ref:</strong> {payload.octopusOrderId}
+        </div>
+      )}
     </div>
   );
 };

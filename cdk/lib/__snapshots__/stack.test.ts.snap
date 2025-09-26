@@ -4463,6 +4463,26 @@ $util.toJson($ctx.result)",
               "Resource": "arn:aws:s3:::permissions-cache/TEST/*",
             },
             Object {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/pinboard/*",
+                  ],
+                ],
+              },
+            },
+            Object {
               "Action": "rds-db:connect",
               "Effect": "Allow",
               "Resource": Object {

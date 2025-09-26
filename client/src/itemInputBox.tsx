@@ -265,8 +265,8 @@ export const ItemInputBox = ({
           `}
         >
           <em>
-            You must provide some notes to help Imaging team to understand your
-            request
+            You must provide some notes to help the Imaging team to understand
+            your request
           </em>
         </div>
       )}

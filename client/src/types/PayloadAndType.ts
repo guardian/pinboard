@@ -47,6 +47,7 @@ export interface PayloadWithApiUrl extends PayloadCommon {
 
 export interface PayloadWithRequestType extends PayloadWithThumbnail {
   requestType: ImagingRequestType;
+  octopusOrderId?: string;
 }
 
 export type Payload =

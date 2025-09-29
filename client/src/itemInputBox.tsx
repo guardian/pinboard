@@ -8,7 +8,7 @@ import { Group, User } from "shared/graphql/graphql";
 import { AvatarRoundel } from "./avatarRoundel";
 import { agateSans } from "../fontNormaliser";
 import { scrollbarsCss } from "./styling";
-import { composer } from "../colours";
+import { composer, pinMetal } from "../colours";
 import { LazyQueryHookOptions, useApolloClient } from "@apollo/client";
 import { gqlSearchMentionableUsers } from "../gql";
 import { SvgSpinner } from "@guardian/source-react-components";
@@ -16,6 +16,7 @@ import { isGroup, isUser } from "shared/graphql/extraTypes";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
+import { IMAGING_REQUEST_ITEM_TYPE } from "../../shared/octopusImaging";
 
 interface WithEntity<E> {
   entity: E & {
@@ -31,7 +32,7 @@ const LoadingSuggestions = () => (
       gap: ${space["2"]}px;
       background: ${palette.neutral["100"]};
       padding: ${space["2"]}px;
-      font-family: ${agateSans.small({ lineHeight: "tight" })};
+      ${agateSans.small({ lineHeight: "tight" })};
     `}
   >
     <SvgSpinner size="xsmall" />
@@ -49,7 +50,7 @@ const Suggestion = ({
           cursor: default;
           padding: ${space[1]}px;
           background: ${palette.neutral["93"]};
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${agateSans.xxsmall({ fontWeight: "bold" })};
           color: ${palette.neutral["46"]};
           user-select: none;
         `}
@@ -253,104 +254,124 @@ export const ItemInputBox = ({
     <div
       css={css`
         flex-grow: 1;
-        background-color: white;
-        border-radius: ${space[1]}px;
-        padding-bottom: 0.1px;
-        ${rtaStyles}
       `}
     >
-      {maybeReplyingToElement}
-      <ReactTextareaAutocomplete<User | Group>
-        innerRef={(element) => (textAreaRef.current = element)}
-        disabled={isSending}
-        trigger={{
-          "@": {
-            dataProvider: addUnverifiedMention
-              ? mentionsDataProvider
-              : () => [],
-            component: Suggestion,
-            output: (userOrGroup) => ({
-              key: isGroup(userOrGroup)
-                ? userOrGroup.shorthand
-                : userOrGroup.email,
-              text: isGroup(userOrGroup)
-                ? groupToMentionHandle(userOrGroup)
-                : userToMentionHandle(userOrGroup),
-              caretPosition: "next",
-            }),
-            allowWhitespace: true,
-          },
-        }}
-        minChar={0}
-        loadingComponent={LoadingSuggestions}
-        placeholder="enter message here..."
-        value={message}
-        onFocus={({ target }) => resizeTextArea(target)}
-        onChange={(event) => {
-          resizeTextArea(event.target);
-          setMessage(event.target.value);
-        }}
-        onKeyPress={
-          sendItem &&
-          ((event) => {
-            event.stopPropagation();
-            if (isHardReturn(event)) {
-              if (
-                !isAsGridPayloadLoading &&
-                (message?.trim() || payloadToBeSent)
-              ) {
-                sendItem();
-              }
-              event.preventDefault();
-            }
-          })
-        }
-        onPaste={handlePaste}
-        onItemSelected={({ item }) => addUnverifiedMention?.(item)}
-        rows={1}
+      {payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE && (
+        <div
+          css={css`
+            ${agateSans.xxsmall()};
+            margin-bottom: ${space[1]}px;
+            color: ${message ? pinMetal : composer.warning["100"]};
+          `}
+        >
+          <em>
+            You must provide some notes to help the Imaging team to understand
+            your request
+          </em>
+        </div>
+      )}
+      <div
         css={css`
-          box-sizing: border-box;
-          background-color: transparent;
-          border: none;
-          vertical-align: middle;
-          &:focus-visible {
-            outline: none;
-          }
-          /* Firefox needs this hint to get the correct initial height.
-           Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
-          height: 21.1px;
-          ${addUnverifiedMention ? "max-height: 74px;" : ""}
-          ${agateSans.small({ lineHeight: "tight" })};
-          resize: none;
-          ${scrollbarsCss(palette.neutral[86])}
+          background-color: white;
+          border-radius: ${space[1]}px;
+          padding-bottom: 0.1px;
+          ${rtaStyles}
         `}
-        boundariesElement={panelElement || undefined}
-      />
-      {isAsGridPayloadLoading && (
-        <div
+      >
+        {maybeReplyingToElement}
+        <ReactTextareaAutocomplete<User | Group>
+          innerRef={(element) => (textAreaRef.current = element)}
+          disabled={isSending}
+          trigger={{
+            "@": {
+              dataProvider: addUnverifiedMention
+                ? mentionsDataProvider
+                : () => [],
+              component: Suggestion,
+              output: (userOrGroup) => ({
+                key: isGroup(userOrGroup)
+                  ? userOrGroup.shorthand
+                  : userOrGroup.email,
+                text: isGroup(userOrGroup)
+                  ? groupToMentionHandle(userOrGroup)
+                  : userToMentionHandle(userOrGroup),
+                caretPosition: "next",
+              }),
+              allowWhitespace: true,
+            },
+          }}
+          minChar={0}
+          loadingComponent={LoadingSuggestions}
+          placeholder="enter message here..."
+          value={message}
+          onFocus={({ target }) => resizeTextArea(target)}
+          onChange={(event) => {
+            resizeTextArea(event.target);
+            setMessage(event.target.value);
+          }}
+          onKeyPress={
+            sendItem &&
+            ((event) => {
+              event.stopPropagation();
+              if (isHardReturn(event)) {
+                const hasSomethingToSend =
+                  payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE
+                    ? message
+                    : message?.trim() || payloadToBeSent;
+                if (!isAsGridPayloadLoading && hasSomethingToSend) {
+                  sendItem();
+                }
+                event.preventDefault();
+              }
+            })
+          }
+          onPaste={handlePaste}
+          onItemSelected={({ item }) => addUnverifiedMention?.(item)}
+          rows={1}
           css={css`
-            display: flex;
-            align-items: center;
-            padding: 5px;
-            ${agateSans.small({ fontStyle: "italic" })};
+            box-sizing: border-box;
+            background-color: transparent;
+            border: none;
+            vertical-align: middle;
+            &:focus-visible {
+              outline: none;
+            }
+            /* Firefox needs this hint to get the correct initial height.
+           Chrome will sometimes show a scrollbar at 21px, so give it a .1px extra as a nudge not to add one */
+            height: 21.1px;
+            ${addUnverifiedMention ? "max-height: 74px;" : ""}
+            ${agateSans.small({ lineHeight: "tight" })};
+            resize: none;
+            ${scrollbarsCss(palette.neutral[86])}
           `}
-        >
-          <SvgSpinner size="small" />
-          &nbsp;please wait a moment
-        </div>
-      )}
-      {payloadToBeSent && (
-        <div
-          css={css`
-            margin: 0 ${space[1]}px;
-          `}
-        >
-          <PayloadDisplay
-            payloadAndType={payloadToBeSent}
-            clearPayloadToBeSent={clearPayloadToBeSent}
-          />
-        </div>
-      )}
+          boundariesElement={panelElement || undefined}
+        />
+        {isAsGridPayloadLoading && (
+          <div
+            css={css`
+              display: flex;
+              align-items: center;
+              padding: 5px;
+              ${agateSans.small({ fontStyle: "italic" })};
+            `}
+          >
+            <SvgSpinner size="small" />
+            &nbsp;please wait a moment
+          </div>
+        )}
+        {payloadToBeSent && (
+          <div
+            css={css`
+              margin: 0 ${space[1]}px;
+            `}
+          >
+            <PayloadDisplay
+              payloadAndType={payloadToBeSent}
+              clearPayloadToBeSent={clearPayloadToBeSent}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

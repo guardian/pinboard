@@ -2,11 +2,15 @@ import ReactDOM from "react-dom";
 import React, { ReactPortal, useContext } from "react";
 import { css } from "@emotion/react";
 import { buildPayloadAndType, PayloadAndType } from "./types/PayloadAndType";
-import { textSans } from "../fontNormaliser";
+import { agateSans } from "../fontNormaliser";
 import root from "react-shadow/emotion";
 import * as Sentry from "@sentry/react";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { ButtonInOtherTools } from "./buttonInOtherTools";
+import {
+  IMAGINE_REQUEST_TYPES,
+  IMAGING_REQUEST_ITEM_TYPE,
+} from "shared/octopusImaging";
 
 export const ASSET_HANDLE_HTML_TAG = "asset-handle";
 
@@ -40,7 +44,7 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
   return (
     <root.div
       css={css`
-        ${textSans.small()}
+        ${agateSans.small()}
       `}
     >
       <ButtonInOtherTools
@@ -57,6 +61,32 @@ const AddToPinboardButton = (props: AddToPinboardButtonProps) => {
           ? "Add this search to"
           : "Add to"}
       </ButtonInOtherTools>
+      {payloadToBeSent.type === "grid-original" && (
+        <ButtonInOtherTools
+          extraCss={css`
+            margin-top: 5px;
+          `}
+          iconAtEnd
+          onClick={() => {
+            props.setPayloadToBeSent({
+              type: IMAGING_REQUEST_ITEM_TYPE,
+              payload: {
+                ...payloadToBeSent.payload,
+                requestType: IMAGINE_REQUEST_TYPES[0],
+              },
+            });
+            props.expand();
+            sendTelemetryEvent?.(
+              PINBOARD_TELEMETRY_TYPE.IMAGING_REQUEST_VIA_BUTTON,
+              {
+                assetType: IMAGING_REQUEST_ITEM_TYPE,
+              }
+            );
+          }}
+        >
+          Imaging order
+        </ButtonInOtherTools>
+      )}
     </root.div>
   );
 };

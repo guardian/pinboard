@@ -8,6 +8,9 @@ import {
 } from "shared/graphql/graphql";
 import { Sql } from "shared/database/types";
 import { Range } from "shared/types/grafanaType";
+import { performImagingRequest } from "../imagingRequestCallout";
+import { IMAGING_REQUEST_ITEM_TYPE } from "shared/octopusImaging";
+import { ItemWithParsedPayload } from "client/src/types/ItemWithParsedPayload";
 
 const fragmentIndividualMentionsToMentionHandles = (
   sql: Sql,
@@ -61,10 +64,39 @@ export const createItem = async (
   args: { input: CreateItemInput },
   userEmail: string
 ) =>
-  sql`
+  sql.begin(async (sql) => {
+    const insertResult = (await sql`
         INSERT INTO "Item" ${sql({ userEmail, ...args.input })}
             RETURNING ${fragmentItemFields(sql, userEmail)}
-    `.then((rows) => rows[0]);
+    `.then((rows) => rows[0])) as ItemWithParsedPayload;
+    if (
+      insertResult.type === IMAGING_REQUEST_ITEM_TYPE &&
+      insertResult.payload
+    ) {
+      // if this throws, the SQL transaction should be rolled back
+      const octopusOrderId = await performImagingRequest(
+        insertResult,
+        insertResult.payload
+      );
+
+      const augmentedPayload = {
+        ...insertResult.payload,
+        octopusOrderId,
+      };
+
+      await sql`
+        UPDATE "Item" 
+        SET "payload" = ${augmentedPayload}
+        WHERE "id" = ${insertResult.id}
+      `;
+
+      return {
+        ...insertResult,
+        payload: augmentedPayload,
+      };
+    }
+    return insertResult;
+  });
 
 export const editItem = async (
   sql: Sql,

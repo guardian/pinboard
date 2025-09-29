@@ -17,6 +17,7 @@ import { useConfirmModal } from "./modal";
 import { groupToMentionHandle, userToMentionHandle } from "./mentionsUtil";
 import { useTourProgress } from "./tour/tourState";
 import { demoPinboardData } from "./tour/tourConstants";
+import { IMAGING_REQUEST_ITEM_TYPE } from "../../shared/octopusImaging";
 
 interface SendMessageAreaProps {
   payloadToBeSent: PayloadAndType | null;
@@ -219,7 +220,8 @@ export const SendMessageArea = ({
         disabled={
           isItemSending ||
           isAsGridPayloadLoading ||
-          !(message?.trim() || payloadToBeSent)
+          !(message?.trim() || payloadToBeSent) ||
+          (payloadToBeSent?.type === IMAGING_REQUEST_ITEM_TYPE && !message)
         }
       >
         {isItemSending ? (

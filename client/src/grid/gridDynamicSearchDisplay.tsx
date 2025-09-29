@@ -99,7 +99,7 @@ export const GridDynamicSearchDisplay = ({
       {!getGridSearchSummaryQuery.loading && maybeQueryBreakdown && (
         <div
           css={css`
-            font-family: ${agateSans.xsmall({ fontWeight: "bold" })};
+            ${agateSans.xsmall({ fontWeight: "bold" })};
             display: flex;
             flex-wrap: wrap;
             gap: ${space["1"]}px;
@@ -116,7 +116,7 @@ export const GridDynamicSearchDisplay = ({
 
       <span
         css={css`
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${agateSans.xxsmall({ fontWeight: "bold" })};
           line-height: 36px;
           margin-bottom: 6px;
         `}
@@ -126,7 +126,7 @@ export const GridDynamicSearchDisplay = ({
 
       <span
         css={css`
-          font-family: ${agateSans.xxsmall({ fontWeight: "bold" })};
+          ${agateSans.xxsmall({ fontWeight: "bold" })};
         `}
       >
         {!getGridSearchSummaryQuery.loading &&
@@ -140,7 +140,7 @@ export const GridDynamicSearchDisplay = ({
           <div>
             <span
               css={css`
-                font-family: ${agateSans.xxsmall()};
+                ${agateSans.xxsmall()};
               `}
             >
               Last checked{" "}

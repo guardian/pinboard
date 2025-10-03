@@ -39,7 +39,7 @@ jobs:
           node-version-file: ".nvmrc"
 
       - name: install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: check for duplicate dependencies (if it fails here, then pre-commit hook is not working)
         run: yarn dedupe --check

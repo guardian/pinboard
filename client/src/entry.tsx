@@ -99,6 +99,10 @@ export function mount({
     tags?: IUserTelemetryEvent["tags"] & IPinboardEventTags,
     value: boolean | number = true
   ): void => {
+    if (stage === "LOCAL") {
+      return console.log("TELEMETRY:", type, tags, value);
+    }
+
     const event = {
       app: APP,
       stage: stage,

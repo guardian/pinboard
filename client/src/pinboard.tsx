@@ -74,6 +74,8 @@ export const Pinboard = ({
     allSubscriptionItems,
     allSubscriptionClaimedItems,
     allSubscriptionOnSeenItems,
+
+    salienceItems,
   } = useGlobalStateContext();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
@@ -353,7 +355,7 @@ export const Pinboard = ({
       {activeTab === "chat" && initialItemsQuery.data && (
         <ScrollableItems
           showNotification={showNotification}
-          items={items}
+          items={[...items, ...salienceItems]}
           itemsMap={itemsMap}
           successfulSends={successfulSends}
           subscriptionItems={subscriptionItems}

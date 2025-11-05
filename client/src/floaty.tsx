@@ -10,6 +10,8 @@ import { SvgAlertTriangle } from "@guardian/source-react-components";
 import { dropTargetCss, IsDropTargetProps } from "./drop";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import Draggable from "react-draggable";
+import { useSalienceCorrecter } from "./salienceHack/useSalienceCorrecter";
+import { SpeechBubble } from "./salienceHack/speechBubble";
 
 interface FloatyNotificationsBubbleProps {
   presetUnreadNotificationCount: number | undefined;
@@ -52,7 +54,10 @@ export const Floaty = ({ isDropTarget }: IsDropTargetProps) => {
     setExplicitPositionTranslation,
     boundedPositionTranslation,
     updateBoundedPositionTranslation,
+    salienceItems,
   } = useGlobalStateContext();
+
+  useSalienceCorrecter();
 
   const badge = (() => {
     if (hasError) {
@@ -80,6 +85,9 @@ export const Floaty = ({ isDropTarget }: IsDropTargetProps) => {
   })();
 
   const sendTelemetryEvent = useContext(TelemetryContext);
+
+  const isLeftHalf =
+    Math.abs(boundedPositionTranslation.x) > window.innerWidth / 2;
 
   return (
     <Draggable
@@ -129,6 +137,22 @@ export const Floaty = ({ isDropTarget }: IsDropTargetProps) => {
         {isDropTarget && (
           <div css={{ ...dropTargetCss, borderRadius: "50%" }} />
         )}
+        <div
+          css={css`
+            position: absolute;
+            ${isLeftHalf ? "left" : "right"}: ${floatySize + space[2]}px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: ${space[2]}px;
+          `}
+        >
+          {!isExpanded &&
+            salienceItems.map((item) => (
+              <SpeechBubble key={item.id} item={item} />
+            ))}
+        </div>
         <PinIcon
           css={css`
             position: absolute;

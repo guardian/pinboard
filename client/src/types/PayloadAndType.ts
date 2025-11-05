@@ -10,10 +10,13 @@ export type SourceType = (typeof sourceTypes)[number];
 export const isSourceType = (sourceType: unknown): sourceType is SourceType =>
   sourceTypes.includes(sourceType as SourceType);
 
-export type PayloadType = `${Source}-${SourceType}`; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
+export type PayloadType = `${Source}-${SourceType}` | "embed"; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
 export const isPayloadType = (
   payloadType: string
 ): payloadType is PayloadType => {
+  if (payloadType === "embed") {
+    return true;
+  }
   const parts = payloadType.split("-");
   return parts.length === 2 && isSource(parts[0]) && isSourceType(parts[1]);
 };
@@ -36,16 +39,23 @@ export interface PayloadWithApiUrl extends PayloadCommon {
   apiUrl: string;
 }
 
+export interface PayloadWithHtml extends PayloadCommon {
+  html: string;
+}
+
 export type Payload =
   | PayloadWithThumbnail
   | PayloadWithApiUrl
-  | PayloadWithExternalUrl;
+  | PayloadWithExternalUrl
+  | PayloadWithHtml;
 export const isPayload = (maybePayload: unknown): maybePayload is Payload => {
   return (
     typeof maybePayload === "object" &&
     maybePayload !== null &&
     "embeddableUrl" in maybePayload &&
-    ("thumbnail" in maybePayload || "apiUrl" in maybePayload)
+    ("thumbnail" in maybePayload ||
+      "apiUrl" in maybePayload ||
+      "html" in maybePayload)
   );
 };
 
@@ -64,10 +74,19 @@ export type MamVideoPayload = {
   payload: PayloadWithExternalUrl;
 };
 
+export type EmbedPayload = {
+  type: "embed";
+  payload: {
+    embeddableUrl: string;
+    html: string;
+  };
+};
+
 export type PayloadAndType =
   | StaticGridPayload
   | DynamicGridPayload
-  | MamVideoPayload;
+  | MamVideoPayload
+  | EmbedPayload;
 
 export const buildPayloadAndType = (
   type: string,
@@ -87,6 +106,8 @@ export const buildPayloadAndType = (
     "thumbnail" in payload &&
     "externalUrl" in payload
   ) {
+    return { type, payload };
+  } else if (type === "embed" && "html" in payload) {
     return { type, payload };
   }
 };

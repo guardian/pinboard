@@ -57,6 +57,8 @@ import {
   SUGGEST_ALTERNATE_CROP_QUERY_SELECTOR,
   SuggestAlternateCrops,
 } from "./fronts/suggestAlternateCrops";
+import { nigel } from "./salienceHack/nigel";
+import { zarah } from "./salienceHack/zarah";
 
 const PRESELECT_PINBOARD_HTML_TAG = "pinboard-preselect";
 const PRESET_UNREAD_NOTIFICATIONS_COUNT_HTML_TAG = "pinboard-bubble-preset";
@@ -201,10 +203,11 @@ export const PinBoardApp = ({
 
   const [userLookup, setUserLookup] = useState<UserLookup>(
     // FIXME really not sure we should be doing this unless we're in the tour
-    demoMentionableUsers.reduce(
-      (acc, user) => ({ ...acc, [user.email]: user }),
-      { [demoUser.email]: demoUser }
-    )
+    demoMentionableUsers
+      .concat([nigel, zarah])
+      .reduce((acc, user) => ({ ...acc, [user.email]: user }), {
+        [demoUser.email]: demoUser,
+      })
   );
 
   const [userEmailsToLookup, setEmailsToLookup] = useState<Set<string>>(

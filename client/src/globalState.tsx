@@ -18,6 +18,7 @@ import {
   LastItemSeenByUser,
   MentionHandle,
   MyUser,
+  User,
 } from "../../shared/graphql/graphql";
 import {
   gqlAddManuallyOpenedPinboardIds,
@@ -132,6 +133,9 @@ interface GlobalStateContextShape {
   setExplicitPositionTranslation: (newPosition: ControlPosition) => void;
   boundedPositionTranslation: ControlPosition;
   updateBoundedPositionTranslation: (newPosition: ControlPosition) => void;
+
+  salienceItems: Item[];
+  setSalienceItems: React.Dispatch<React.SetStateAction<Item[]>>;
 }
 
 const GlobalStateContext = React.createContext<GlobalStateContextShape | null>(
@@ -714,6 +718,8 @@ export const GlobalStateProvider = ({
 
   const clearPayloadToBeSent = () => setPayloadToBeSent(null);
 
+  const [salienceItems, setSalienceItems] = useState<Item[]>([]);
+
   const contextValue: GlobalStateContextShape = {
     userEmail,
     permissions,
@@ -785,6 +791,9 @@ export const GlobalStateProvider = ({
     setExplicitPositionTranslation,
     boundedPositionTranslation,
     updateBoundedPositionTranslation,
+
+    salienceItems,
+    setSalienceItems,
   };
 
   return (

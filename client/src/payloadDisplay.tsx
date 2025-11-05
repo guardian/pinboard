@@ -8,6 +8,7 @@ import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
 import { FloatingClearButton } from "./floatingClearButton";
 import { MamVideoDisplay } from "./mam/mamVideoDisplay";
+import { EmbedDisplay } from "./salienceHack/EmbedDisplay";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -15,6 +16,7 @@ interface PayloadDisplayProps {
   tab?: Tab;
   shouldNotBeClickable?: true;
 }
+const HTML_ENCODER = document.createElement("encoder");
 
 export const PayloadDisplay = ({
   payloadAndType,
@@ -58,12 +60,30 @@ export const PayloadDisplay = ({
         `}
         draggable={!shouldNotBeClickable}
         onDragStart={(event) => {
-          event.dataTransfer.setData("URL", payload.embeddableUrl);
-          event.dataTransfer.setData(
-            // prevent grid from accepting these as drops, as per https://github.com/guardian/grid/commit/4b72d93eedcbacb4f90680764d468781a72507f5#diff-771b9da876348ce4b4e057e2d8253324c30a8f3db4e434d49b3ce70dbbdb0775R138-R140
-            "application/vnd.mediaservice.kahuna.image",
-            "true"
-          );
+          if ("html" in payload) {
+            HTML_ENCODER.innerText = payload.html;
+            const encodedHtml = HTML_ENCODER.innerHTML;
+            event.dataTransfer.setData(
+              "text/html",
+              `<meta charset='utf-8'>
+                     <div pme-element-type="embed" data-pm-slice="0 0 []">
+                      <div pme-field-name="embed__alt"></div>
+                      <div pme-field-name="embed__caption"></div>
+                      <div pme-field-name="embed__html">${encodedHtml}</div>
+                      <div pme-field-name="embed__isMandatory" fields="false"></div>
+                      <div pme-field-name="embed__role" fields="&quot;none-selected&quot;"></div>
+                      <div pme-field-name="embed__url">${payload.embeddableUrl}</div>
+                     </div>`
+            );
+          } else {
+            event.dataTransfer.setData("URL", payload.embeddableUrl);
+
+            event.dataTransfer.setData(
+              // prevent grid from accepting these as drops, as per https://github.com/guardian/grid/commit/4b72d93eedcbacb4f90680764d468781a72507f5#diff-771b9da876348ce4b4e057e2d8253324c30a8f3db4e434d49b3ce70dbbdb0775R138-R140
+              "application/vnd.mediaservice.kahuna.image",
+              "true"
+            );
+          }
           sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_FROM_PINBOARD, {
             assetType: payloadAndType?.type,
             ...(tab && { tab }),
@@ -104,6 +124,10 @@ export const PayloadDisplay = ({
             type={payloadAndType.type}
             payload={payloadAndType.payload}
           />
+        )}
+
+        {payloadAndType.type === "embed" && (
+          <EmbedDisplay payload={payloadAndType.payload} />
         )}
 
         {clearPayloadToBeSent && (

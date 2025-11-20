@@ -55,6 +55,7 @@ const showNotification = (
   });
 };
 
+// these come from active pinboard instances in the browser via postMessage from hidden iFrame
 self.addEventListener("message", (event: MessageEvent) => {
   if (event.data.item) {
     showNotification({
@@ -76,9 +77,13 @@ self.addEventListener("message", (event: MessageEvent) => {
   }
 });
 
+// FROM notifications-lambda
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 self.addEventListener("push", (event: any) => {
-  showNotification(event.data.json());
+  // null/undefined data is just a heartbeat so the server can test the validity of the subscription - serviceWorker needn't do anything
+  if (event.data) {
+    showNotification(event.data.json());
+  }
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

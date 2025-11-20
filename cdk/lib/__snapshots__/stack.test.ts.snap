@@ -4704,6 +4704,12 @@ $util.toJson($ctx.result)",
         "Environment": Object {
           "Variables": Object {
             "APP": "pinboard",
+            "DATABASE_HOSTNAME": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseDatabaseProxy537ACFCB",
+                "Endpoint",
+              ],
+            },
             "STACK": "workflow",
             "STAGE": "TEST",
           },
@@ -4745,7 +4751,7 @@ $util.toJson($ctx.result)",
           "SecurityGroupIds": Array [
             Object {
               "Fn::GetAtt": Array [
-                "pinboardnotificationslambdaSecurityGroupCE2444D9",
+                "DatabaseSecurityGroup7319C0F6",
                 "GroupId",
               ],
             },
@@ -4756,44 +4762,6 @@ $util.toJson($ctx.result)",
         },
       },
       "Type": "AWS::Lambda::Function",
-    },
-    "pinboardnotificationslambdaSecurityGroupCE2444D9": Object {
-      "Properties": Object {
-        "GroupDescription": "Automatic security group for Lambda Function PinBoardStackTESTpinboardnotificationslambda3B7736D5",
-        "SecurityGroupEgress": Array [
-          Object {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "App",
-            "Value": "pinboard",
-          },
-          Object {
-            "Key": "gu:cdk:version",
-            "Value": "62.1.2",
-          },
-          Object {
-            "Key": "gu:repo",
-            "Value": "guardian/pinboard",
-          },
-          Object {
-            "Key": "Stack",
-            "Value": "workflow",
-          },
-          Object {
-            "Key": "Stage",
-            "Value": "TEST",
-          },
-        ],
-        "VpcId": Object {
-          "Ref": "VpcId",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
     },
     "pinboardnotificationslambdaServiceRole2F6EBFE9": Object {
       "Properties": Object {
@@ -4884,6 +4852,51 @@ $util.toJson($ctx.result)",
                 ],
               },
             },
+            Object {
+              "Action": "rds-db:connect",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":rds-db:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":dbuser:",
+                    Object {
+                      "Fn::Select": Array [
+                        6,
+                        Object {
+                          "Fn::Split": Array [
+                            ":",
+                            Object {
+                              "Fn::GetAtt": Array [
+                                "DatabaseDatabaseProxy537ACFCB",
+                                "DBProxyArn",
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    "/{{resolve:secretsmanager:",
+                    Object {
+                      "Ref": "DatabaseSecretAttachmentE5D1B020",
+                    },
+                    ":SecretString:username::}}",
+                  ],
+                ],
+              },
+            },
           ],
           "Version": "2012-10-17",
         },
@@ -4895,6 +4908,77 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "pinboardnotificationslambdascheduleweedoutexpiredsubscriptions588C8614": Object {
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Runs the ",
+              Object {
+                "Ref": "pinboardnotificationslambdaC35CECF7",
+              },
+              " every night, to send empty pushes to all subscriptions to weed out expired ones.",
+            ],
+          ],
+        },
+        "ScheduleExpression": "cron(* 8 ? * MON-FRI *)",
+        "State": "ENABLED",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "62.1.2",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "pinboardnotificationslambdaC35CECF7",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "pinboardnotificationslambdascheduleweedoutexpiredsubscriptionsAllowEventRulePinBoardStackTESTpinboardnotificationslambda3B7736D5B17A0391": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaC35CECF7",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdascheduleweedoutexpiredsubscriptions588C8614",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "pinboardusersrefresherlambda2D488032": Object {
       "DependsOn": Array [

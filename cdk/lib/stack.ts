@@ -389,16 +389,34 @@ export class PinBoardStack extends GuStack {
           STAGE: this.stage,
           STACK: this.stack,
           APP,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
         functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
         code: lambda.Code.fromBucket(
           deployBucket,
           `${this.stack}/${this.stage}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
         ),
+        securityGroups: [databaseSecurityGroup],
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
     pinboardNotificationsLambda.grantInvoke(roleToInvokeLambdaFromRDS);
+    databaseProxy.grantConnect(pinboardNotificationsLambda);
+    new events.Rule(
+      this,
+      `${NOTIFICATIONS_LAMBDA_BASENAME}-schedule-weed-out-expired-subscriptions`,
+      {
+        description: `Runs the ${pinboardNotificationsLambda.functionName} every night, to send empty pushes to all subscriptions to weed out expired ones.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(pinboardNotificationsLambda),
+        ],
+        schedule: events.Schedule.cron({
+          hour: "8", // 8 AM UTC
+          weekDay: "MON-FRI", // weekdays only (so engineers are generally around to investigate any issues)
+        }),
+      }
+    );
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 

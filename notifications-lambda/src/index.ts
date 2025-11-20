@@ -3,6 +3,7 @@ import { publicVapidKey } from "../../shared/constants";
 import { pinboardSecretPromiseGetter } from "../../shared/awsIntegration";
 import { Item } from "../../shared/graphql/graphql";
 import { PushSubscription } from "web-push";
+import { getDatabaseConnection } from "shared/database/databaseConnection";
 
 export interface UserWithWebPushSubscription {
   email: string;
@@ -13,23 +14,65 @@ interface InputEventFromDatabaseTrigger {
   item: Item;
   users: UserWithWebPushSubscription[];
 }
-export const handler = async ({
-  item,
-  users,
-}: InputEventFromDatabaseTrigger) => {
-  const privateVapidKey = await pinboardSecretPromiseGetter(
-    "notifications/privateVapidKey"
-  );
 
+// TODO in UI, loudly prompt users to re-subscribe if in potentially expired state
+// TODO also in UI, make the 'subscribe/unsubscribe' button more prominent and more importantly derived not only from DB entry but also by querying service worker (via hidden iframe) for whether there is an active sub for the current browser
+
+// undefined/null inputPayload indicates a scheduled nightly event to send empty pushes to all subscriptions to weed out expired ones
+export const handler = async (
+  inputPayload: InputEventFromDatabaseTrigger | undefined | null
+) => {
+  const vapidDetails = {
+    subject: "mailto:digitalcms.bugs@guardian.co.uk",
+    publicKey: publicVapidKey,
+    privateKey: await pinboardSecretPromiseGetter(
+      "notifications/privateVapidKey"
+    ),
+  };
+
+  // must be a scheduled event to weed out expired subscriptions
+  if (!inputPayload) {
+    const sql = await getDatabaseConnection();
+    // TODO update architecture diagram accordingly
+    await sql`SELECT "email", "webPushSubscription"
+        FROM "User"
+        WHERE "webPushSubscription" IS NOT NULL`.then((rows) =>
+      Promise.allSettled(
+        rows.map(async ({ email, webPushSubscription }) => {
+          webPush
+            .sendNotification(webPushSubscription, null, {
+              vapidDetails,
+            })
+            .then((result) => {
+              if (result.statusCode < 300) {
+                console.log(
+                  `Push subscription for ${email} appears to still be valid.`,
+                  result.body
+                );
+              } else {
+                throw Error(result.body);
+              }
+            })
+            .catch((errorPushing) => {
+              console.warn(
+                `Push subscription for ${email} looks to be expired or invalid. Updating DB accordingly...`,
+                errorPushing
+              );
+              // TODO marking as 'potentially expired' in the DB
+            });
+        })
+      )
+    );
+    return;
+  }
+
+  // must be a DB-triggered event to send real notification
+  const { item, users } = inputPayload;
   await Promise.allSettled(
     users.map((user) =>
       webPush
         .sendNotification(user.webPushSubscription, JSON.stringify(item), {
-          vapidDetails: {
-            subject: "mailto:digitalcms.bugs@guardian.co.uk",
-            publicKey: publicVapidKey,
-            privateKey: privateVapidKey,
-          },
+          vapidDetails,
         })
         .then((result) => {
           if (result.statusCode < 300) {

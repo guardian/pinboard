@@ -13059,6 +13059,7 @@ __metadata:
   resolution: "notifications-lambda@workspace:notifications-lambda"
   dependencies:
     "@types/web-push": "npm:^3.3.2"
+    postgres: "npm:^3.2.4"
     ts-node-dev: "npm:^1.1.8"
     web-push: "npm:^3.5.0"
   languageName: unknown

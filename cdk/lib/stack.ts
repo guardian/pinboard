@@ -383,7 +383,7 @@ export class PinBoardStack extends GuStack {
         runtime: LAMBDA_NODE_VERSION,
         architecture: lambda.Architecture.ARM_64,
         memorySize: 128,
-        timeout: Duration.seconds(30),
+        timeout: Duration.minutes(5),
         handler: "index.handler",
         environment: {
           STAGE: this.stage,

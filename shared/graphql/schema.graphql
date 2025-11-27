@@ -101,6 +101,7 @@ type MyUser {
   lastName: String!
   avatarUrl: String
   hasWebPushSubscription: Boolean
+  isValidWebPushSubscription: Boolean
   manuallyOpenedPinboardIds: [String!]
   hasEverUsedTour: Boolean!
   featureFlags: AWSJSON

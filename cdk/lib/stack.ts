@@ -323,6 +323,7 @@ export class PinBoardStack extends GuStack {
           ec2.InstanceClass.T4G,
           ec2.InstanceSize.NANO
         ),
+        instanceMetricGranularity: "5Minute",
         groupMetrics: [
           new autoscaling.GroupMetrics(
             autoscaling.GroupMetric.IN_SERVICE_INSTANCES

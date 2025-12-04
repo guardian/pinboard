@@ -18,9 +18,9 @@
   },
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "2.54.0-alpha.0",
-    "@guardian/cdk": "60.1.3",
-    "aws-cdk": "2.171.1",
-    "aws-cdk-lib": "2.171.1",
-    "constructs": "10.4.2"
+    "@guardian/cdk": "^62.1.1",
+    "aws-cdk": "^2.1033.0",
+    "aws-cdk-lib": "^2.231.0",
+    "constructs": "10.4.3"
   }
 }

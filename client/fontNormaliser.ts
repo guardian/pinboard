@@ -56,6 +56,8 @@ export const agateSans = agateSansFont(
 );
 export const textSans = pixelSizedFont(sourceFoundations.textSans);
 
+export const bodyFont = pixelSizedFont(sourceFoundations.body);
+
 const isAgateLoaded = () => {
   let foundAgate = false;
   document.fonts.forEach((font) => {

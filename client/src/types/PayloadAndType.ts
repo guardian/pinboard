@@ -1,21 +1,16 @@
 import * as Sentry from "@sentry/react";
 
-export const sources = ["grid", "mam"] as const;
-export const sourceTypes = ["crop", "original", "search", "video"] as const;
+const payloadTypes = [
+  "grid-crop",
+  "grid-original",
+  "grid-search",
+  "mam-video",
+  "newswires-snippet",
+] as const;
 
-export type Source = (typeof sources)[number];
-export const isSource = (source: unknown): source is Source =>
-  sources.includes(source as Source);
-export type SourceType = (typeof sourceTypes)[number];
-export const isSourceType = (sourceType: unknown): sourceType is SourceType =>
-  sourceTypes.includes(sourceType as SourceType);
-
-export type PayloadType = `${Source}-${SourceType}`; // TODO improve this type as it enumerates all the combinations, e.g. mam-original which is not valid
-export const isPayloadType = (
-  payloadType: string
-): payloadType is PayloadType => {
-  const parts = payloadType.split("-");
-  return parts.length === 2 && isSource(parts[0]) && isSourceType(parts[1]);
+export type PayloadType = (typeof payloadTypes)[number];
+const isPayloadType = (payloadType: string): payloadType is PayloadType => {
+  return payloadTypes.includes(payloadType as PayloadType);
 };
 
 interface PayloadCommon {
@@ -36,16 +31,24 @@ export interface PayloadWithApiUrl extends PayloadCommon {
   apiUrl: string;
 }
 
-export type Payload =
+export interface PayloadWithSnippet extends PayloadCommon {
+  embeddableHtml: string;
+  maybeUsageNote: string | undefined;
+}
+
+type Payload =
   | PayloadWithThumbnail
   | PayloadWithApiUrl
-  | PayloadWithExternalUrl;
-export const isPayload = (maybePayload: unknown): maybePayload is Payload => {
+  | PayloadWithExternalUrl
+  | PayloadWithSnippet;
+const isPayload = (maybePayload: unknown): maybePayload is Payload => {
   return (
     typeof maybePayload === "object" &&
     maybePayload !== null &&
     "embeddableUrl" in maybePayload &&
-    ("thumbnail" in maybePayload || "apiUrl" in maybePayload)
+    ("thumbnail" in maybePayload ||
+      "apiUrl" in maybePayload ||
+      "embeddableHtml" in maybePayload)
   );
 };
 
@@ -64,10 +67,16 @@ export type MamVideoPayload = {
   payload: PayloadWithExternalUrl;
 };
 
+export type NewswiresSnippetPayload = {
+  type: "newswires-snippet";
+  payload: PayloadWithSnippet;
+};
+
 export type PayloadAndType =
   | StaticGridPayload
   | DynamicGridPayload
-  | MamVideoPayload;
+  | MamVideoPayload
+  | NewswiresSnippetPayload;
 
 export const buildPayloadAndType = (
   type: string,
@@ -86,6 +95,12 @@ export const buildPayloadAndType = (
     type === "mam-video" &&
     "thumbnail" in payload &&
     "externalUrl" in payload
+  ) {
+    return { type, payload };
+  } else if (
+    type === "newswires-snippet" &&
+    "embeddableHtml" in payload &&
+    "embeddableUrl" in payload
   ) {
     return { type, payload };
   }

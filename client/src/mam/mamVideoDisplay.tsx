@@ -6,7 +6,7 @@ import { palette } from "@guardian/source-foundations";
 
 export const MamVideoDisplay = ({ type, payload }: MamVideoPayload) => (
   <React.Fragment>
-    {payload.externalUrl ? (
+    {payload.externalUrl && payload.externalUrl.toLowerCase() !== "false" ? (
       <iframe
         css={css`
           pointer-events: none;

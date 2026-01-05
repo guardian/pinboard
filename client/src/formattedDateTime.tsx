@@ -4,7 +4,7 @@ import { formatDateTime } from "./util";
 export const TickContext = React.createContext<number>(Date.now());
 
 interface FormattedDateTimeProps {
-  timestamp: number;
+  timestamp: number | string;
   isPartOfSentence?: true;
   withAgo?: true;
 }
@@ -17,7 +17,13 @@ export const FormattedDateTime = ({
   useContext(TickContext); // this should cause re-render
   return (
     <React.Fragment>
-      {formatDateTime(timestamp, isPartOfSentence, withAgo)}
+      {formatDateTime(
+        typeof timestamp === "number"
+          ? timestamp
+          : new Date(timestamp).valueOf(),
+        isPartOfSentence,
+        withAgo
+      )}
     </React.Fragment>
   );
 };

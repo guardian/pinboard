@@ -26,6 +26,7 @@ type Query {
 type Mutation {
   createItem(input: CreateItemInput!): Item
   editItem(itemId: String!, input: EditItemInput!): Item
+  dismissItem(itemId: String!): Item
   deleteItem(itemId: String!): Item
   claimItem(itemId: String!): Claimed
   seenItem(input: LastItemSeenByUserInput!): LastItemSeenByUser
@@ -39,7 +40,7 @@ type Mutation {
 type Subscription {
   onMutateItem(
     pinboardId: String
-  ): Item @aws_subscribe(mutations: ["createItem", "editItem", "deleteItem"])
+  ): Item @aws_subscribe(mutations: ["createItem", "editItem", "dismissItem", "deleteItem"])
 
   onClaimItem(
     pinboardId: String

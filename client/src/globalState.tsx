@@ -339,7 +339,12 @@ export const GlobalStateProvider = ({
           (!isExpanded || selectedPinboardId !== pinboardId) &&
           !itemFromSubscription.editHistory
         ) {
-          showNotification(itemFromSubscription);
+          const maybeParsedPayload =
+            itemFromSubscription.payload &&
+            JSON.parse(itemFromSubscription.payload);
+          const isDismissed =
+            maybeParsedPayload && "dismissed" in maybeParsedPayload;
+          !isDismissed && showNotification(itemFromSubscription);
         }
       }
     },

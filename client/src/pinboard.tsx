@@ -318,7 +318,7 @@ export const Pinboard = ({
   >(null);
   const clearMaybeReplyingToItemId = () => setMaybeReplyingToItemId(null);
 
-  const [maybeDeleteItemModalElement, setMaybeDeleteItemModalElement] =
+  const [maybeItemModalElement, setMaybeItemModalElement] =
     useState<JSX.Element | null>(null);
 
   const maybeReplyingToItem =
@@ -337,7 +337,7 @@ export const Pinboard = ({
 
   return !isSelected ? null : (
     <React.Fragment>
-      <div>{maybeDeleteItemModalElement}</div>
+      <div>{maybeItemModalElement}</div>
       <div>{maybeEditingItemId && <ModalBackground />}</div>
       <div ref={useTourStepRef("feedback")}>
         <Feedback
@@ -368,7 +368,7 @@ export const Pinboard = ({
           claimItem={claimItem}
           hasProcessedItemIdInURL={hasProcessedItemIdInURL}
           setHasProcessedItemIdInURL={setHasProcessedItemIdInURL}
-          setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+          setMaybeItemModalElement={setMaybeItemModalElement}
           maybeEditingItemId={maybeEditingItemId}
           setMaybeEditingItemId={setMaybeEditingItemId}
           setMaybeReplyingToItemId={setMaybeReplyingToItemId}

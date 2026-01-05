@@ -20,6 +20,10 @@ export const isPayloadType = (
 
 interface PayloadCommon {
   embeddableUrl: string;
+  dismissed?: {
+    by: string; // user email
+    at: string; // ISO string
+  };
 }
 
 export interface PayloadWithThumbnail extends PayloadCommon {

@@ -32,6 +32,7 @@ import { CreateItemInput, EditItemInput } from "../shared/graphql/graphql";
         type: "testing",
       } as EditItemInput,
     },
+    dismissItem: { itemId: "3589" },
     deleteItem: { itemId: "2352" },
     getMyUser: {},
     visitTourStep: { tourStepId: "testing" },

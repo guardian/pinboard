@@ -35,7 +35,7 @@ interface ItemDisplayProps {
   userEmail: string;
   setRef?: (node: HTMLDivElement) => void;
   scrollToItem: (itemID: string) => void;
-  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  setMaybeItemModalElement: (element: JSX.Element | null) => void;
   maybeEditingItemId: string | null;
   setMaybeEditingItemId: (itemId: string | null) => void;
   setMaybeReplyingToItemId: (itemId: string | null) => void;
@@ -51,7 +51,7 @@ export const ItemDisplay = ({
   userEmail,
   setRef,
   scrollToItem,
-  setMaybeDeleteItemModalElement,
+  setMaybeItemModalElement,
   maybeEditingItemId,
   setMaybeEditingItemId,
   setMaybeReplyingToItemId,
@@ -162,7 +162,7 @@ export const ItemDisplay = ({
             item={item}
             isMutable={isMutable}
             enterEditMode={() => setMaybeEditingItemId(item.id)}
-            setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+            setMaybeItemModalElement={setMaybeItemModalElement}
             setMaybeReplyingToItemId={setMaybeReplyingToItemId}
           />
         </div>

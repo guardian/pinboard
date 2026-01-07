@@ -1,13 +1,16 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { css } from "@emotion/react";
+import sanitizeHtml from "sanitize-html";
 import { PayloadAndType } from "./types/PayloadAndType";
-import { neutral, palette, space } from "@guardian/source-foundations";
+import { brand, neutral, palette, space } from "@guardian/source-foundations";
 import { GridStaticImageDisplay } from "./grid/gridStaticImageDisplay";
 import { GridDynamicSearchDisplay } from "./grid/gridDynamicSearchDisplay";
 import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
 import { FloatingClearButton } from "./floatingClearButton";
 import { MamVideoDisplay } from "./mam/mamVideoDisplay";
+import root from "react-shadow/emotion";
+import { bodyFont } from "../fontNormaliser";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -24,6 +27,13 @@ export const PayloadDisplay = ({
 }: PayloadDisplayProps) => {
   const { payload } = payloadAndType;
   const sendTelemetryEvent = useContext(TelemetryContext);
+
+  const safeSnippetHtml = useMemo(() => {
+    return payloadAndType.type === "newswires-snippet"
+      ? sanitizeHtml(payloadAndType.payload.embeddableHtml)
+      : undefined;
+  }, [payloadAndType]);
+
   return (
     <div
       css={css`
@@ -58,12 +68,27 @@ export const PayloadDisplay = ({
         `}
         draggable={!shouldNotBeClickable}
         onDragStart={(event) => {
-          event.dataTransfer.setData("URL", payload.embeddableUrl);
-          event.dataTransfer.setData(
-            // prevent grid from accepting these as drops, as per https://github.com/guardian/grid/commit/4b72d93eedcbacb4f90680764d468781a72507f5#diff-771b9da876348ce4b4e057e2d8253324c30a8f3db4e434d49b3ce70dbbdb0775R138-R140
-            "application/vnd.mediaservice.kahuna.image",
-            "true"
-          );
+          if (payloadAndType.type === "newswires-snippet") {
+            // event.dataTransfer.setData("text/plain", "This is text to drag");
+
+            event.dataTransfer.setData(
+              "text/html",
+              // TODO consider also add a gu-note for who shared it and when
+              `${sanitizeHtml(
+                payloadAndType.payload.embeddableHtml
+              )}<br/><gu-note>${
+                payloadAndType.payload.maybeUsageNote ||
+                "NO USAGE NOTE IN THE WIRE"
+              }</gu-note>`
+            );
+          } else {
+            event.dataTransfer.setData("URL", payload.embeddableUrl);
+            event.dataTransfer.setData(
+              // prevent grid from accepting these as drops, as per https://github.com/guardian/grid/commit/4b72d93eedcbacb4f90680764d468781a72507f5#diff-771b9da876348ce4b4e057e2d8253324c30a8f3db4e434d49b3ce70dbbdb0775R138-R140
+              "application/vnd.mediaservice.kahuna.image",
+              "true"
+            );
+          }
           sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.DRAG_FROM_PINBOARD, {
             assetType: payloadAndType?.type,
             ...(tab && { tab }),
@@ -104,6 +129,53 @@ export const PayloadDisplay = ({
             type={payloadAndType.type}
             payload={payloadAndType.payload}
           />
+        )}
+        {payloadAndType.type === "newswires-snippet" && (
+          <div
+            css={css`
+              font-size: 13px;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+              width: 192px;
+            `}
+          >
+            <strong>Newswires snippet:</strong>
+            <blockquote
+              css={css`
+                overflow-y: auto;
+                margin: 0;
+                padding: 0 0 0 ${space[1]}px;
+                border-left: 4px solid ${brand[800]};
+                background-color: ${neutral[100]};
+                max-height: 175px;
+              `}
+            >
+              <root.div>
+                <div
+                  css={css`
+                    ${bodyFont.small({ lineHeight: "tight" })};
+                    font-size: 12px;
+                  `}
+                  dangerouslySetInnerHTML={{
+                    __html: safeSnippetHtml || "",
+                  }}
+                />
+              </root.div>
+            </blockquote>
+            {payloadAndType.payload.maybeUsageNote && (
+              <span
+                title={payloadAndType.payload.maybeUsageNote}
+                css={css`
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                `}
+              >
+                {payloadAndType.payload.maybeUsageNote}
+              </span>
+            )}
+          </div>
         )}
 
         {clearPayloadToBeSent && (

@@ -22,6 +22,7 @@ import {
 
 import { getMetrics } from "./reporting/reportingServiceClient";
 import { listUserPermissions } from "shared/permissions";
+import { allowCorsFromOphanMiddleware } from "./middleware/allowCorsFromOphanMiddleware";
 
 const s3 = new S3(standardAwsConfig);
 
@@ -88,6 +89,7 @@ interface FileWithLastModified {
 
 server.get(
   "/pinboard.loader.js",
+  allowCorsFromOphanMiddleware,
   getAuthMiddleware(true),
   async (request: AuthenticatedRequest, response) => {
     applyNoCaching(response); // absolutely no caching, as this JS will contain config/secrets to pass to the main

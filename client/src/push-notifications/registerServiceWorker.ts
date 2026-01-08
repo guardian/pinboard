@@ -8,7 +8,7 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
       maybeWebPushSubscription ? "subscribing to " : "unsubscribing from"
     } Desktop Notifications`
   );
-  window.opener.postMessage(
+  (window.opener || window.parent).postMessage(
     {
       webPushSubscription:
         maybeWebPushSubscription && JSON.stringify(maybeWebPushSubscription),
@@ -21,7 +21,7 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
 (async () => {
   if (toggleButton && "serviceWorker" in navigator) {
     // running in popout (rather than iFrame)
-    if (window.opener) {
+    // if (window.opener) {
       const swRegistration = await navigator.serviceWorker.register(
         "serviceWorker.js",
         {
@@ -31,6 +31,8 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
 
       console.log("Pinboard Service Worker running");
       await swRegistration.update();
+
+      const hasNotificationPermission = Notification.permission === "granted";
 
       const maybePushSubscription =
         await swRegistration.pushManager.getSubscription();
@@ -44,6 +46,15 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
       } else {
         toggleButton.innerText = "Subscribe to Desktop Notifications";
         toggleButton.addEventListener("click", async () => {
+          if (window.parent) {
+            // Is in iframe so open same page in a new tab
+            window.open(
+              window.location.href,
+              "pinboard-notifications-permission",
+              "width=400,height=600"
+            )
+            return;
+          }
           if ((await Notification.requestPermission()) === "granted") {
             parentCallback(
               await swRegistration.pushManager.subscribe({
@@ -56,9 +67,9 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
           }
         });
       }
-    }
+    // }
     // running in iFrame
-    else {
+    // else {
       // unfortunately can't call serviceWorker.register() due to cross-origin service worker prevention
       const maybeSwRegistration =
         await navigator.serviceWorker.getRegistration();
@@ -79,6 +90,6 @@ const parentCallback = (maybeWebPushSubscription?: PushSubscription) => {
       } else {
         console.log("No Pinboard service worker.");
       }
-    }
+    // }
   }
 })();

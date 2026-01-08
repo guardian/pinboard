@@ -18,6 +18,7 @@ Object {
       "GuHttpsEgressSecurityGroup",
       "GuAutoScalingGroup",
       "GuAlarm",
+      "GuApiLambda",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
       "GuCname",
@@ -71,6 +72,32 @@ Object {
         "Fn::GetAtt": Array [
           "pinboardbootstrappinglambdaapidomainname9CF70B03",
           "RegionalDomainName",
+        ],
+      },
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiEndpoint75A9A09D": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+            },
+            ".execute-api.",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            Object {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+            Object {
+              "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentStageprod3EB8923D",
+            },
+            "/",
+          ],
         ],
       },
     },
@@ -4699,8 +4726,10 @@ $util.toJson($ctx.result)",
           "arm64",
         ],
         "Code": Object {
-          "S3Bucket": "workflow-dist",
-          "S3Key": "workflow/TEST/pinboard-notifications-lambda/pinboard-notifications-lambda.zip",
+          "S3Bucket": Object {
+            "Ref": "DistributionBucketName",
+          },
+          "S3Key": "workflow/TEST/pinboard/pinboard-notifications-lambda.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -4717,6 +4746,9 @@ $util.toJson($ctx.result)",
         },
         "FunctionName": "pinboard-notifications-lambda-TEST",
         "Handler": "index.handler",
+        "LoggingConfig": Object {
+          "LogFormat": "JSON",
+        },
         "MemorySize": 128,
         "Role": Object {
           "Fn::GetAtt": Array [
@@ -4854,6 +4886,90 @@ $util.toJson($ctx.result)",
               },
             },
             Object {
+              "Action": Array [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Ref": "DistributionBucketName",
+                      },
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::",
+                      Object {
+                        "Ref": "DistributionBucketName",
+                      },
+                      "/workflow/TEST/pinboard/pinboard-notifications-lambda.zip",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": "ssm:GetParametersByPath",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard",
+                  ],
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:ssm:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":parameter/TEST/workflow/pinboard/*",
+                  ],
+                ],
+              },
+            },
+            Object {
               "Action": "rds-db:connect",
               "Effect": "Allow",
               "Resource": Object {
@@ -4909,6 +5025,410 @@ $util.toJson($ctx.result)",
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiANYAC6DE9EA": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "ANY",
+        "Integration": Object {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":lambda:path/2015-03-31/functions/",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardnotificationslambdaC35CECF7",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+            "RootResourceId",
+          ],
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiANYApiPermissionPinBoardStackTESTpinboardnotificationslambdapinboardnotificationslambdaapi55649DA9ANY4C950039": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaC35CECF7",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+              },
+              "/",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentStageprod3EB8923D",
+              },
+              "/*/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiANYApiPermissionTestPinBoardStackTESTpinboardnotificationslambdapinboardnotificationslambdaapi55649DA9ANYCF627E15": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaC35CECF7",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+              },
+              "/test-invoke-stage/*/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiAccount3718658E": Object {
+      "DeletionPolicy": "Retain",
+      "DependsOn": Array [
+        "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+      ],
+      "Properties": Object {
+        "CloudWatchRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdapinboardnotificationslambdaapiCloudWatchRole0B01572C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1": Object {
+      "Properties": Object {
+        "Name": "workflow-TEST-pinboard-notifications-lambda-api",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "60.1.3",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::RestApi",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiCloudWatchRole0B01572C": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "60.1.3",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD15e85e70058e0753cd44ab174a1a3aca2": Object {
+      "DependsOn": Array [
+        "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANY4CA88021",
+        "pinboardnotificationslambdapinboardnotificationslambdaapiproxyADD2F140",
+        "pinboardnotificationslambdapinboardnotificationslambdaapiANYAC6DE9EA",
+      ],
+      "Properties": Object {
+        "Description": "Automatically created by the RestApi construct",
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Deployment",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentStageprod3EB8923D": Object {
+      "DependsOn": Array [
+        "pinboardnotificationslambdapinboardnotificationslambdaapiAccount3718658E",
+      ],
+      "Properties": Object {
+        "DeploymentId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD15e85e70058e0753cd44ab174a1a3aca2",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+        "StageName": "prod",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "60.1.3",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::Stage",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiproxyADD2F140": Object {
+      "Properties": Object {
+        "ParentId": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+            "RootResourceId",
+          ],
+        },
+        "PathPart": "{proxy+}",
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Resource",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANY4CA88021": Object {
+      "Properties": Object {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "ANY",
+        "Integration": Object {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ":lambda:path/2015-03-31/functions/",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardnotificationslambdaC35CECF7",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiproxyADD2F140",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANYApiPermissionPinBoardStackTESTpinboardnotificationslambdapinboardnotificationslambdaapi55649DA9ANYproxy53E1FDFE": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaC35CECF7",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+              },
+              "/",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentStageprod3EB8923D",
+              },
+              "/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANYApiPermissionTestPinBoardStackTESTpinboardnotificationslambdapinboardnotificationslambdaapi55649DA9ANYproxy5DD5C5CC": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "pinboardnotificationslambdaC35CECF7",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              Object {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              Object {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              Object {
+                "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+              },
+              "/test-invoke-stage/*/*",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "pinboardnotificationslambdascheduleweedoutexpiredsubscriptions588C8614": Object {
       "Properties": Object {

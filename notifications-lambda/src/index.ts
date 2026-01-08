@@ -4,6 +4,9 @@ import { pinboardSecretPromiseGetter } from "shared/awsIntegration";
 import { Item } from "shared/graphql/graphql";
 import { PushSubscription } from "web-push";
 import { getDatabaseConnection } from "shared/database/databaseConnection";
+import { APIGatewayEvent, Callback, Context } from "aws-lambda";
+import serverlessExpress from "@codegenie/serverless-express";
+import { server } from "./server";
 
 export interface UserWithWebPushSubscription {
   email: string;
@@ -18,10 +21,20 @@ interface InputEventFromDatabaseTrigger {
 // TODO in UI, loudly prompt users to re-subscribe if in potentially expired state
 // TODO also in UI, make the 'subscribe/unsubscribe' button more prominent and more importantly derived not only from DB entry but also by querying service worker (via hidden iframe) for whether there is an active sub for the current browser
 
+const serverHandler = serverlessExpress({ app: server });
+
 // undefined/null inputPayload indicates a scheduled nightly event to send empty pushes to all subscriptions to weed out expired ones
 export const handler = async (
-  inputPayload: InputEventFromDatabaseTrigger | undefined | null
+  inputPayload: InputEventFromDatabaseTrigger | APIGatewayEvent | undefined | null,
+  context: Context,
+  callback: Callback
 ) => {
+
+  if (inputPayload && "httpMethod" in inputPayload) {
+    // API Gateway event routed to Express server
+    return serverHandler(inputPayload, context, callback);
+  }
+
   const vapidDetails = {
     subject: "mailto:digitalcms.bugs@guardian.co.uk",
     publicKey: publicVapidKey,

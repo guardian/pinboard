@@ -1,14 +1,15 @@
 import { css } from "@emotion/react";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { palette, space } from "@guardian/source-foundations";
 import ReplyIcon from "../icons/reply.svg";
 import PencilIcon from "../icons/pencil.svg";
+import HideIcon from "../icons/hide.svg";
 import BinIcon from "../icons/bin.svg";
 import { useConfirmModal } from "./modal";
 import { scrollbarsCss } from "./styling";
 import { composer } from "../colours";
 import { useMutation } from "@apollo/client";
-import { gqlDeleteItem } from "../gql";
+import { gqlDeleteItem, gqlDismissItem } from "../gql";
 import { Item } from "shared/graphql/graphql";
 import { PINBOARD_TELEMETRY_TYPE, TelemetryContext } from "./types/Telemetry";
 import { ADMIN_PERMISSION } from "shared/permissionDefinitions";
@@ -22,7 +23,7 @@ interface ItemHoverMenuProps {
   item: Item;
   isMutable: boolean;
   enterEditMode: () => void;
-  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  setMaybeItemModalElement: (element: JSX.Element | null) => void;
   setMaybeReplyingToItemId: (itemId: string | null) => void;
 }
 
@@ -30,7 +31,7 @@ export const ItemHoverMenu = ({
   item,
   isMutable,
   enterEditMode,
-  setMaybeDeleteItemModalElement,
+  setMaybeItemModalElement,
   setMaybeReplyingToItemId,
 }: ItemHoverMenuProps) => {
   const [deleteConfirmModalElement, confirmDelete] = useConfirmModal(
@@ -55,11 +56,6 @@ export const ItemHoverMenu = ({
         {item.message}
       </div>
     </React.Fragment>
-  );
-
-  useEffect(
-    () => setMaybeDeleteItemModalElement(deleteConfirmModalElement),
-    [deleteConfirmModalElement]
   );
 
   const [deleteItem] = useMutation(gqlDeleteItem, {
@@ -106,6 +102,45 @@ export const ItemHoverMenu = ({
     });
   };
 
+  const maybeParsedPayload = useMemo(
+    () => item.payload && JSON.parse(item.payload),
+    [item.payload]
+  );
+
+  const [dismissConfirmModalElement, confirmDismiss] = useConfirmModal(
+    <div
+      css={css`
+        font-weight: bold;
+      `}
+    >
+      Are you sure you want
+      <br /> to dismiss this item?
+    </div>
+  );
+
+  const isDismissable = !!maybeParsedPayload && !maybeParsedPayload.dismissed;
+
+  const [dismissItem] = useMutation(gqlDismissItem, {
+    variables: { itemId: item.id },
+    onError: (error) => {
+      console.error(error);
+      alert(`failed to dismiss item`);
+    },
+  });
+  const onClickDismissButton = () => {
+    confirmDismiss().then((confirmed) => {
+      confirmed && item.payload && dismissItem();
+    });
+  };
+
+  useEffect(
+    () =>
+      setMaybeItemModalElement(
+        deleteConfirmModalElement || dismissConfirmModalElement
+      ),
+    [deleteConfirmModalElement, dismissConfirmModalElement]
+  );
+
   return (
     <div
       className={ITEM_HOVER_MENU_CLASS_NAME}
@@ -150,6 +185,11 @@ export const ItemHoverMenu = ({
       {isMutable && (
         <button onClick={enterEditMode} title="Edit">
           <PencilIcon />
+        </button>
+      )}
+      {isDismissable && (
+        <button onClick={onClickDismissButton} title="Dismiss">
+          <HideIcon />
         </button>
       )}
       {(isMutable || isAdmin) && (

@@ -48,7 +48,7 @@ interface ScrollableItemsProps {
   }) => Promise<FetchResult<{ claimItem: Claimed }>>;
   hasProcessedItemIdInURL: boolean;
   setHasProcessedItemIdInURL: (newValue: boolean) => void;
-  setMaybeDeleteItemModalElement: (element: JSX.Element | null) => void;
+  setMaybeItemModalElement: (element: JSX.Element | null) => void;
   maybeEditingItemId: string | null;
   setMaybeEditingItemId: (itemId: string | null) => void;
   setMaybeReplyingToItemId: (itemId: string | null) => void;
@@ -71,7 +71,7 @@ export const ScrollableItems = ({
   claimItem,
   hasProcessedItemIdInURL,
   setHasProcessedItemIdInURL,
-  setMaybeDeleteItemModalElement,
+  setMaybeItemModalElement,
   maybeEditingItemId,
   setMaybeEditingItemId,
   setMaybeReplyingToItemId,
@@ -312,7 +312,7 @@ export const ScrollableItems = ({
                 }
                 setRef={setRef(item.id)}
                 scrollToItem={scrollToItem}
-                setMaybeDeleteItemModalElement={setMaybeDeleteItemModalElement}
+                setMaybeItemModalElement={setMaybeItemModalElement}
                 maybeEditingItemId={maybeEditingItemId}
                 setMaybeEditingItemId={setMaybeEditingItemId}
                 setMaybeReplyingToItemId={setMaybeReplyingToItemId}
@@ -330,6 +330,7 @@ export const ScrollableItems = ({
               scrollToItem,
               item.relatedItemId && itemsMap[item.relatedItemId]?.editHistory,
               item.relatedItemId && itemsMap[item.relatedItemId]?.deletedAt,
+              item.payload,
             ]
           )
         )}

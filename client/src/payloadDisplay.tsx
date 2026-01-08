@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { css } from "@emotion/react";
 import { PayloadAndType } from "./types/PayloadAndType";
 import { neutral, palette, space } from "@guardian/source-foundations";
@@ -8,6 +8,9 @@ import { TelemetryContext, PINBOARD_TELEMETRY_TYPE } from "./types/Telemetry";
 import { Tab } from "./types/Tab";
 import { FloatingClearButton } from "./floatingClearButton";
 import { MamVideoDisplay } from "./mam/mamVideoDisplay";
+import { useGlobalStateContext } from "./globalState";
+import { FormattedDateTime } from "./formattedDateTime";
+import { agateSans } from "../fontNormaliser";
 
 interface PayloadDisplayProps {
   payloadAndType: PayloadAndType;
@@ -22,11 +25,20 @@ export const PayloadDisplay = ({
   tab,
   shouldNotBeClickable,
 }: PayloadDisplayProps) => {
+  const { userLookup, addEmailsToLookup } = useGlobalStateContext();
   const { payload } = payloadAndType;
   const sendTelemetryEvent = useContext(TelemetryContext);
+
+  const maybeDismissedBy =
+    payload.dismissed && userLookup[payload.dismissed.by];
+  useEffect(() => {
+    payload.dismissed && addEmailsToLookup([payload.dismissed.by]);
+  }, [payload.dismissed]);
+
   return (
     <div
       css={css`
+        position: relative;
         margin: ${space[1]}px 0;
         border: 1px solid ${neutral[86]};
         border-radius: ${space[1]}px;
@@ -39,7 +51,23 @@ export const PayloadDisplay = ({
                 background-color: ${neutral[86]};
               `}
         }
+        ${shouldNotBeClickable
+          ? ""
+          : css`
+              cursor: pointer;
+            `}
       `}
+      onClick={
+        shouldNotBeClickable
+          ? undefined
+          : () => {
+              window.open(payload.embeddableUrl, "_blank");
+              sendTelemetryEvent?.(PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED, {
+                assetType: payloadAndType?.type,
+                tab: tab as Tab,
+              });
+            }
+      }
     >
       <div
         css={css`
@@ -47,16 +75,14 @@ export const PayloadDisplay = ({
           flex-direction: column;
           position: relative;
           padding: ${space[1]}px;
+          min-width: 120px;
           max-width: 192px;
+          min-height: 60px;
           max-height: 350px;
           color: ${palette.neutral["20"]};
-          ${shouldNotBeClickable
-            ? ""
-            : css`
-                cursor: pointer;
-              `}
+          opacity: ${maybeDismissedBy ? 0.2 : 1};
         `}
-        draggable={!shouldNotBeClickable}
+        draggable={!shouldNotBeClickable && !maybeDismissedBy}
         onDragStart={(event) => {
           event.dataTransfer.setData("URL", payload.embeddableUrl);
           event.dataTransfer.setData(
@@ -69,20 +95,6 @@ export const PayloadDisplay = ({
             ...(tab && { tab }),
           });
         }}
-        onClick={
-          shouldNotBeClickable
-            ? undefined
-            : () => {
-                window.open(payload.embeddableUrl, "_blank");
-                sendTelemetryEvent?.(
-                  PINBOARD_TELEMETRY_TYPE.GRID_ASSET_OPENED,
-                  {
-                    assetType: payloadAndType?.type,
-                    tab: tab as Tab,
-                  }
-                );
-              }
-        }
       >
         {(payloadAndType.type === "grid-crop" ||
           payloadAndType.type === "grid-original") && (
@@ -110,6 +122,30 @@ export const PayloadDisplay = ({
           <FloatingClearButton clear={clearPayloadToBeSent} />
         )}
       </div>
+      {maybeDismissedBy && (
+        <div
+          css={css`
+            ${agateSans.xsmall()};
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+          `}
+        >
+          Dismissed by <br />
+          {maybeDismissedBy.firstName} {maybeDismissedBy.lastName} <br />
+          <FormattedDateTime
+            timestamp={payload.dismissed!.at}
+            withAgo
+            isPartOfSentence
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -103,6 +103,14 @@ export const gqlEditItem = gql`
         }
     }
 `;
+export const gqlDismissItem = gql`
+  mutation DismissItem($itemId: String!) {
+    dismissItem(itemId: $itemId) {
+      # including fields here makes them accessible in our subscription data
+      ${itemReturnFields}
+    }
+  }
+`;
 export const gqlDeleteItem = gql`
     mutation DeleteItem($itemId: String!) {
         deleteItem(itemId: $itemId) {

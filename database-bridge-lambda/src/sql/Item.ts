@@ -81,6 +81,28 @@ export const editItem = async (
         RETURNING ${fragmentItemFields(sql, userEmail)}
     `.then((rows) => rows[0]);
 
+export const dismissItem = async (
+  sql: Sql,
+  args: { itemId: string },
+  userEmail: string
+) =>
+  sql`
+        UPDATE "Item"
+        SET
+            "payload" = jsonb_set(
+                COALESCE("payload", '{}'::jsonb),
+                '{dismissed}',
+                to_jsonb(
+                    json_build_object(
+                        'by', ${userEmail}::text,
+                        'at', now()
+                    )
+                )
+            )
+        WHERE "id" = ${args.itemId}
+        RETURNING ${fragmentItemFields(sql, userEmail)}
+    `.then((rows) => rows[0]);
+
 export const deleteItem = async (
   sql: Sql,
   args: { itemId: string },
@@ -118,7 +140,7 @@ export const listItems = (
       AND "isArchived" = false
     ${
       args.maybeAspectRatioFilter
-        ? sql`AND "type" = 'grid-crop' AND  "payload" ->> 'aspectRatio' = ${args.maybeAspectRatioFilter}`
+        ? sql`AND "type" = 'grid-crop' AND  "payload" ->> 'aspectRatio' = ${args.maybeAspectRatioFilter} AND "payload" ->> 'dismissed' IS NULL`
         : sql``
     }
 `;
@@ -230,26 +252,28 @@ export const getItemCounts = (
   sql: Sql,
   args: { pinboardIds: string[] },
   userEmail: string
-) =>
-  args.pinboardIds.length === 0
+) => {
+  const cropsFilterClause = sql`WHERE "type" = 'grid-crop' AND "payload" ->> 'dismissed' IS NULL`;
+  return args.pinboardIds.length === 0
     ? Promise.resolve([])
     : sql`
-                SELECT "pinboardId",
-                       COUNT(*) AS "totalCount",
-                       COUNT(*) FILTER (WHERE "id" > COALESCE((SELECT "itemID"
-                                                               FROM "LastItemSeenByUser"
-                                                               WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
-                                                                 AND "LastItemSeenByUser"."userEmail" = ${userEmail}),
-                                                              0)) AS "unreadCount",
-                       COUNT(*) FILTER (WHERE "type" = 'grid-crop') AS "totalCropCount",
-                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '5:4') AS "fiveByFourCount",
-                       COUNT(*) FILTER (WHERE "type" = 'grid-crop' AND "payload" ->> 'aspectRatio' = '4:5') AS "fourByFiveCount"
-                FROM "Item"
-                WHERE "pinboardId" IN ${sql(args.pinboardIds)}
-                  AND "deletedAt" IS NULL
-                  AND "isArchived" = false
-                GROUP BY "pinboardId"
-        `;
+      SELECT "pinboardId",
+             COUNT(*)                                                                       AS "totalCount",
+             COUNT(*) FILTER (WHERE "id" > COALESCE((SELECT "itemID"
+                                                     FROM "LastItemSeenByUser"
+                                                     WHERE "LastItemSeenByUser"."pinboardId" = "Item"."pinboardId"
+                                                       AND "LastItemSeenByUser"."userEmail" = ${userEmail}),
+                                                    0))                                     AS "unreadCount",
+             COUNT(*) FILTER (${cropsFilterClause})                                         AS "totalCropCount",
+             COUNT(*) FILTER (${cropsFilterClause} AND "payload" ->> 'aspectRatio' = '5:4') AS "fiveByFourCount",
+             COUNT(*) FILTER (${cropsFilterClause} AND "payload" ->> 'aspectRatio' = '4:5') AS "fourByFiveCount"
+      FROM "Item"
+      WHERE "pinboardId" IN ${sql(args.pinboardIds)}
+        AND "deletedAt" IS NULL
+        AND "isArchived" = false
+      GROUP BY "pinboardId"
+    `;
+};
 
 export const getUniqueUsersPerHourInRange = async (
   sql: Sql,

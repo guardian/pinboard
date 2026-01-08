@@ -153,8 +153,8 @@ export const SuggestAlternateCrops = ({
     containerWidth: number;
   }) => {
     if (!cropsOnPreselectedPinboard) return null;
-    const cropsMatchingRatio = cropsOnPreselectedPinboard.filter(
-      ([_]) => _.aspectRatio === customRatio
+    const cropsMatchingRatioNotDismissed = cropsOnPreselectedPinboard.filter(
+      ([payload]) => payload.aspectRatio === customRatio && !payload.dismissed
     );
     const shouldDisplayHoverOnLeft = containerWidth < 550;
     return (
@@ -170,8 +170,10 @@ export const SuggestAlternateCrops = ({
           text-align: center;
           &:hover {
             box-shadow: ${shouldDisplayHoverOnLeft ? -5 : 5}px 0 0
-              ${cropsMatchingRatio.length ? pinboard["500"] : "transparent"};
-            background-color: ${cropsMatchingRatio.length
+              ${cropsMatchingRatioNotDismissed.length
+                ? pinboard["500"]
+                : "transparent"};
+            background-color: ${cropsMatchingRatioNotDismissed.length
               ? pinboard["500"]
               : "transparent"};
             > div {
@@ -180,10 +182,10 @@ export const SuggestAlternateCrops = ({
           }
         `}
       >
-        {cropsMatchingRatio.length} crop
-        {cropsMatchingRatio.length === 1 ? "" : "s"} at{" "}
+        {cropsMatchingRatioNotDismissed.length} crop
+        {cropsMatchingRatioNotDismissed.length === 1 ? "" : "s"} at{" "}
         <strong>{customRatio}</strong> already suggested
-        {cropsMatchingRatio.length > 0 && (
+        {cropsMatchingRatioNotDismissed.length > 0 && (
           <div
             css={css`
               display: none;
@@ -210,7 +212,7 @@ export const SuggestAlternateCrops = ({
                 max-width: 350px;
               `}
             >
-              {cropsMatchingRatio.map(([payload, item], index) => (
+              {cropsMatchingRatioNotDismissed.map(([payload, item], index) => (
                 <img
                   key={index}
                   css={css`

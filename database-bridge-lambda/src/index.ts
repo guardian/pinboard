@@ -6,6 +6,7 @@ import {
   claimItem,
   createItem,
   deleteItem,
+  dismissItem,
   editItem,
   getGroupPinboardIds,
   getItemCounts,
@@ -39,6 +40,8 @@ const run = (
       return createItem(sql, args, userEmail);
     case "editItem":
       return editItem(sql, args, userEmail);
+    case "dismissItem":
+      return dismissItem(sql, args, userEmail);
     case "deleteItem":
       return deleteItem(sql, args, userEmail);
     case "claimItem":
@@ -97,7 +100,7 @@ export const handler = async (
     console.log("AppSync request:", {
       userEmail,
       databaseOperation,
-      referrer: payload.request.headers.referer,
+      referrer: payload?.request?.headers?.referer,
     });
     return await run(sql, databaseOperation, args, userEmail);
   }

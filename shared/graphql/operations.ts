@@ -32,6 +32,7 @@ export const MUTATIONS = {
   database: [
     "createItem",
     "editItem",
+    "dismissItem",
     "deleteItem",
     "claimItem",
     "seenItem",

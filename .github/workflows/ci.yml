@@ -77,7 +77,7 @@ jobs:
 
       - uses: guardian/actions-riff-raff@v4
         with:
-          app: Editorial Tools::PinBoard
+          projectName: Editorial Tools::PinBoard
           configPath: riff-raff.yaml
           contentDirectories: |
             pinboard-cloudformation:
@@ -105,4 +105,4 @@ jobs:
               - email-lambda/dist
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
-          buildNumber: $BUILD_NUMBER
+          buildNumber: ${{ env.BUILD_NUMBER }}

@@ -79,13 +79,13 @@ jobs:
       - name: zip subprojects
         run: |
           zip -r workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip workflow-bridge-lambda/dist/*
-          zip -r grid-bridge-lambda/grid-bridge-lambda.zip grid-bridge-lambda/dist/*
-          zip -r users-refresher-lambda/users-refresher-lambda.zip users-refresher-lambda/dist/*
-          zip -r notifications-lambda/notifications-lambda.zip notifications-lambda/dist/*
-          zip -r auth-lambda/auth-lambda.zip auth-lambda/dist/*
-          zip -r database-bridge-lambda/database-bridge-lambda.zip database-bridge-lambda/dist/*
-          zip -r archiver-lambda/archiver-lambda.zip archiver-lambda/dist/*
-          zip -r email-lambda/email-lambda.zip email-lambda/dist/*
+          zip -r grid-bridge-lambda/pinboard-grid-bridge-lambda.zip grid-bridge-lambda/dist/*
+          zip -r users-refresher-lambda/pinboard-users-refresher-lambda.zip users-refresher-lambda/dist/*
+          zip -r notifications-lambda/pinboard-notifications-lambda.zip notifications-lambda/dist/*
+          zip -r auth-lambda/pinboard-auth-lambda.zip auth-lambda/dist/*
+          zip -r database-bridge-lambda/pinboard-database-bridge-lambda.zip database-bridge-lambda/dist/*
+          zip -r archiver-lambda/pinboard-archiver-lambda.zip archiver-lambda/dist/*
+          zip -r email-lambda/pinboard-email-lambda.zip email-lambda/dist/*
 
       - uses: guardian/actions-riff-raff@v4
         with:
@@ -102,19 +102,19 @@ jobs:
             pinboard-workflow-bridge-lambda:
               - workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip 
             pinboard-grid-bridge-lambda:
-              - grid-bridge-lambda/grid-bridge-lambda.zip
+              - grid-bridge-lambda/pinboard-grid-bridge-lambda.zip
             pinboard-users-refresher-lambda:
-              - users-refresher-lambda/users-refresher-lambda.zip
+              - users-refresher-lambda/pinboard-users-refresher-lambda.zip
             pinboard-notifications-lambda:
-              - notifications-lambda/notifications-lambda.zip
+              - notifications-lambda/pinboard-notifications-lambda.zip
             pinboard-auth-lambda:
-              - auth-lambda/auth-lambda.zip
+              - auth-lambda/pinboard-auth-lambda.zip
             pinboard-database-bridge-lambda:
-              - database-bridge-lambda/database-bridge-lambda.zip
+              - database-bridge-lambda/pinboard-database-bridge-lambda.zip
             pinboard-archiver-lambda:
-              - archiver-lambda/archiver-lambda.zip
+              - archiver-lambda/pinboard-archiver-lambda.zip
             pinboard-email-lambda:
-              - email-lambda/email-lambda.zip
+              - email-lambda/pinboard-email-lambda.zip
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           buildNumber: ${{ env.BUILD_NUMBER }}

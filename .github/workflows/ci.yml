@@ -74,6 +74,7 @@ jobs:
           cp -v bootstrapping-lambda/dist/index.js dist/
           cp -v client/dist/pinboard.main* dist/client
           cp -rv client/dist/push-notifications dist/client
+          zip -r dist/pinboard-bootstrapping-lambda-api.zip dist/*
 
       - uses: guardian/actions-riff-raff@v4
         with:
@@ -86,7 +87,7 @@ jobs:
             pinboard-db-jump-host-asg-artifact:
               - cdk/startup.sh
             pinboard-bootstrapping-lambda-api:
-              - dist
+              - dist/pinboard-bootstrapping-lambda-api.zip
             pinboard-workflow-bridge-lambda:
               - workflow-bridge-lambda/dist
             pinboard-grid-bridge-lambda:

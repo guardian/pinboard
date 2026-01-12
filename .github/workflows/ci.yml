@@ -78,14 +78,14 @@ jobs:
 
       - name: zip subprojects
         run: |
-          zip -r workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip workflow-bridge-lambda/dist/*
-          zip -r grid-bridge-lambda/pinboard-grid-bridge-lambda.zip grid-bridge-lambda/dist/*
-          zip -r users-refresher-lambda/pinboard-users-refresher-lambda.zip users-refresher-lambda/dist/*
-          zip -r notifications-lambda/pinboard-notifications-lambda.zip notifications-lambda/dist/*
-          zip -r auth-lambda/pinboard-auth-lambda.zip auth-lambda/dist/*
-          zip -r database-bridge-lambda/pinboard-database-bridge-lambda.zip database-bridge-lambda/dist/*
-          zip -r archiver-lambda/pinboard-archiver-lambda.zip archiver-lambda/dist/*
-          zip -r email-lambda/pinboard-email-lambda.zip email-lambda/dist/*
+          zip -r -j workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip workflow-bridge-lambda/dist/
+          zip -r -j grid-bridge-lambda/pinboard-grid-bridge-lambda.zip grid-bridge-lambda/dist/
+          zip -r -j users-refresher-lambda/pinboard-users-refresher-lambda.zip users-refresher-lambda/dist/
+          zip -r -j notifications-lambda/pinboard-notifications-lambda.zip notifications-lambda/dist/
+          zip -r -j auth-lambda/pinboard-auth-lambda.zip auth-lambda/dist/
+          zip -r -j database-bridge-lambda/pinboard-database-bridge-lambda.zip database-bridge-lambda/dist/
+          zip -r -j archiver-lambda/pinboard-archiver-lambda.zip archiver-lambda/dist/
+          zip -r -j email-lambda/pinboard-email-lambda.zip email-lambda/dist/
 
       - uses: guardian/actions-riff-raff@v4
         with:

@@ -74,7 +74,8 @@ jobs:
           cp -v bootstrapping-lambda/dist/index.js dist/
           cp -v client/dist/pinboard.main* dist/client
           cp -rv client/dist/push-notifications dist/client
-          zip -r dist/pinboard-bootstrapping-lambda-api.zip dist/*
+          cd dist
+          zip -r pinboard-bootstrapping-lambda-api.zip *
 
       - name: zip subprojects
         run: |

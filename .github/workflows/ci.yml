@@ -16,6 +16,7 @@ jobs:
       # required by aws-actions/configure-aws-credentials
       id-token: write
       contents: read
+      pull-requests: write
     steps:
       - name: calculate build number
         run: |
@@ -73,8 +74,48 @@ jobs:
           cp -v bootstrapping-lambda/dist/index.js dist/
           cp -v client/dist/pinboard.main* dist/client
           cp -rv client/dist/push-notifications dist/client
+          cd dist
+          zip -r pinboard-bootstrapping-lambda-api.zip *
 
-      - name: upload riff-raff artifacts
+      - name: zip subprojects
         run: |
-          export GITHUB_RUN_NUMBER=$BUILD_NUMBER
-          yarn node-riffraff-artifact
+          zip -r -j workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip workflow-bridge-lambda/dist/
+          zip -r -j grid-bridge-lambda/pinboard-grid-bridge-lambda.zip grid-bridge-lambda/dist/
+          zip -r -j users-refresher-lambda/pinboard-users-refresher-lambda.zip users-refresher-lambda/dist/
+          zip -r -j notifications-lambda/pinboard-notifications-lambda.zip notifications-lambda/dist/
+          zip -r -j auth-lambda/pinboard-auth-lambda.zip auth-lambda/dist/
+          zip -r -j database-bridge-lambda/pinboard-database-bridge-lambda.zip database-bridge-lambda/dist/
+          zip -r -j archiver-lambda/pinboard-archiver-lambda.zip archiver-lambda/dist/
+          zip -r -j email-lambda/pinboard-email-lambda.zip email-lambda/dist/
+
+      - uses: guardian/actions-riff-raff@v4
+        with:
+          projectName: Editorial Tools::PinBoard
+          configPath: riff-raff.yaml
+          contentDirectories: |
+            pinboard-cloudformation:
+              - cdk/cdk.out/PinBoardStack-CODE.template.json
+              - cdk/cdk.out/PinBoardStack-PROD.template.json
+            pinboard-db-jump-host-asg-artifact:
+              - cdk/startup.sh
+            pinboard-bootstrapping-lambda-api:
+              - dist/pinboard-bootstrapping-lambda-api.zip
+            pinboard-workflow-bridge-lambda:
+              - workflow-bridge-lambda/pinboard-workflow-bridge-lambda.zip 
+            pinboard-grid-bridge-lambda:
+              - grid-bridge-lambda/pinboard-grid-bridge-lambda.zip
+            pinboard-users-refresher-lambda:
+              - users-refresher-lambda/pinboard-users-refresher-lambda.zip
+            pinboard-notifications-lambda:
+              - notifications-lambda/pinboard-notifications-lambda.zip
+            pinboard-auth-lambda:
+              - auth-lambda/pinboard-auth-lambda.zip
+            pinboard-database-bridge-lambda:
+              - database-bridge-lambda/pinboard-database-bridge-lambda.zip
+            pinboard-archiver-lambda:
+              - archiver-lambda/pinboard-archiver-lambda.zip
+            pinboard-email-lambda:
+              - email-lambda/pinboard-email-lambda.zip
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          roleArn: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+          buildNumber: ${{ env.BUILD_NUMBER }}

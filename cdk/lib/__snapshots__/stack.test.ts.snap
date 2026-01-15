@@ -5173,7 +5173,7 @@ $util.toJson($ctx.result)",
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "60.1.3",
+            "Value": "62.1.2",
           },
           Object {
             "Key": "gu:repo",
@@ -5227,7 +5227,7 @@ $util.toJson($ctx.result)",
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "60.1.3",
+            "Value": "62.1.2",
           },
           Object {
             "Key": "gu:repo",
@@ -5246,12 +5246,15 @@ $util.toJson($ctx.result)",
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD15e85e70058e0753cd44ab174a1a3aca2": Object {
+    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD1f5bf88648d8678eeb1051db736bca767": Object {
       "DependsOn": Array [
         "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANY4CA88021",
         "pinboardnotificationslambdapinboardnotificationslambdaapiproxyADD2F140",
         "pinboardnotificationslambdapinboardnotificationslambdaapiANYAC6DE9EA",
       ],
+      "Metadata": Object {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": Object {
         "Description": "Automatically created by the RestApi construct",
         "RestApiId": Object {
@@ -5266,7 +5269,7 @@ $util.toJson($ctx.result)",
       ],
       "Properties": Object {
         "DeploymentId": Object {
-          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD15e85e70058e0753cd44ab174a1a3aca2",
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD1f5bf88648d8678eeb1051db736bca767",
         },
         "RestApiId": Object {
           "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
@@ -5279,7 +5282,7 @@ $util.toJson($ctx.result)",
           },
           Object {
             "Key": "gu:cdk:version",
-            "Value": "60.1.3",
+            "Value": "62.1.2",
           },
           Object {
             "Key": "gu:repo",

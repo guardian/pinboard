@@ -25,11 +25,14 @@ const serverHandler = serverlessExpress({ app: server });
 
 // undefined/null inputPayload indicates a scheduled nightly event to send empty pushes to all subscriptions to weed out expired ones
 export const handler = async (
-  inputPayload: InputEventFromDatabaseTrigger | APIGatewayEvent | undefined | null,
+  inputPayload:
+    | InputEventFromDatabaseTrigger
+    | APIGatewayEvent
+    | undefined
+    | null,
   context: Context,
   callback: Callback
 ) => {
-
   if (inputPayload && "httpMethod" in inputPayload) {
     // API Gateway event routed to Express server
     return serverHandler(inputPayload, context, callback);

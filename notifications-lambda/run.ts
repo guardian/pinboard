@@ -61,6 +61,6 @@ import prompts from "prompts";
       },
     ],
   });
-
+  // @ts-ignore
   await handler(inputEvent);
 })().catch(console.error);

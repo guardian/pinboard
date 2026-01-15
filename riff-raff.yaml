@@ -79,6 +79,7 @@ deployments:
     dependencies:
       - pinboard-cloudformation
     type: aws-lambda
+    app: pinboard
     parameters:
       prefixStack: false
       fileName: pinboard-notifications-lambda.zip

@@ -55,7 +55,7 @@ import {
   GuUserData,
 } from "@guardian/cdk/lib/constructs/autoscaling";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
-import { GuScheduledLambda } from "@guardian/cdk";
+import { GuApiLambda, GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { GuLambdaFunction } from "@guardian/cdk/lib/constructs/lambda";
@@ -374,30 +374,49 @@ export class PinBoardStack extends GuStack {
       okAction: true,
     });
 
-    const pinboardNotificationsLambda = new lambda.Function(
+    const pinboardNotificationsLambda = new GuApiLambda(
       this,
       NOTIFICATIONS_LAMBDA_BASENAME,
       {
+        api: {
+          id: `${NOTIFICATIONS_LAMBDA_BASENAME}-api`,
+        },
+        app: APP,
         vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
+        functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
         runtime: LAMBDA_NODE_VERSION,
         architecture: lambda.Architecture.ARM_64,
+        timeout: Duration.minutes(5),
         memorySize: 128,
-        timeout: Duration.seconds(30),
         handler: "index.handler",
         environment: {
-          STAGE: this.stage,
-          STACK: this.stack,
-          APP,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
-        code: lambda.Code.fromBucket(
-          deployBucket,
-          `${this.stack}/${this.stage}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
-        ),
+        fileName: `${NOTIFICATIONS_LAMBDA_BASENAME}.zip`,
+        monitoringConfiguration: {
+          noMonitoring: true, // TODO: Add monitoring
+        },
         initialPolicy: [readPinboardParamStorePolicyStatement],
       }
     );
     pinboardNotificationsLambda.grantInvoke(roleToInvokeLambdaFromRDS);
+    databaseProxy.grantConnect(pinboardNotificationsLambda);
+    new events.Rule(
+      this,
+      `${NOTIFICATIONS_LAMBDA_BASENAME}-schedule-weed-out-expired-subscriptions`,
+      {
+        description: `Runs the ${pinboardNotificationsLambda.functionName} every night, to send empty pushes to all subscriptions to weed out expired ones.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(pinboardNotificationsLambda),
+        ],
+        schedule: events.Schedule.cron({
+          hour: "8", // 8 AM UTC
+          weekDay: "MON-FRI", // weekdays only (so engineers are generally around to investigate any issues)
+        }),
+      }
+    );
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 

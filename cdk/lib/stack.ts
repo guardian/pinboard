@@ -379,6 +379,7 @@ export class PinBoardStack extends GuStack {
       NOTIFICATIONS_LAMBDA_BASENAME,
       {
         api: {
+          restApiName: `${NOTIFICATIONS_LAMBDA_BASENAME}-api-${this.stage}`,
           id: `${NOTIFICATIONS_LAMBDA_BASENAME}-api`,
         },
         app: APP,
@@ -397,7 +398,10 @@ export class PinBoardStack extends GuStack {
         monitoringConfiguration: {
           noMonitoring: true, // TODO: Add monitoring
         },
-        initialPolicy: [readPinboardParamStorePolicyStatement],
+        initialPolicy: [
+          readPinboardParamStorePolicyStatement,
+          pandaConfigAndKeyPolicyStatement,
+        ],
       }
     );
     pinboardNotificationsLambda.grantInvoke(roleToInvokeLambdaFromRDS);

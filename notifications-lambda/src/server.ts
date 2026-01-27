@@ -1,13 +1,15 @@
 import { default as express } from "express";
 import { IS_RUNNING_LOCALLY } from "shared/awsIntegration";
+import { getVerifiedUserEmail } from "shared/server/panDomainAuth";
 
 export const server = express();
 
-// TODO: Add panda auth middleware to protect endpoints
 // TODO: Move notifications endpoint from bootstrapping-lambda here
 
-server.get("", (_, response) => {
-  response.send("Notifications Lambda is running.");
+server.get("", async (request, response) => {
+  const maybeCookie = request.header("Cookie");
+  const maybeAuthenticatedEmail = await getVerifiedUserEmail(maybeCookie);
+  response.send(`Hello, ${maybeAuthenticatedEmail || "Guest"}!`);
 });
 
 if (IS_RUNNING_LOCALLY) {

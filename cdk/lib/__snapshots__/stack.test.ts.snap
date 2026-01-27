@@ -18,7 +18,9 @@ Object {
       "GuHttpsEgressSecurityGroup",
       "GuAutoScalingGroup",
       "GuAlarm",
+      "GuCertificate",
       "GuApiLambda",
+      "GuCname",
       "GuScheduledLambda",
       "GuLambdaErrorPercentageAlarm",
       "GuCname",
@@ -657,6 +659,41 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "CertificatePinboard476E3B26": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "DomainName": "staff-notifications.test.dev-gutools.co.uk",
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "62.1.2",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "PinBoardStack-TEST/CertificatePinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+        "ValidationMethod": "DNS",
+      },
+      "Type": "AWS::CertificateManager::Certificate",
+      "UpdateReplacePolicy": "Retain",
     },
     "DatabaseB269D8BB": Object {
       "DeletionPolicy": "Retain",
@@ -2089,6 +2126,23 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "NotificationsGuCname": Object {
+      "Properties": Object {
+        "Name": "staff-notifications.test.dev-gutools.co.uk",
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "pinboardnotificationslambdapinboardnotificationslambdaapiCustomDomain524A569E",
+              "RegionalDomainName",
+            ],
+          },
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
     },
     "ParameterStoreReadPinboard2639F7F2": Object {
       "Properties": Object {
@@ -5250,6 +5304,56 @@ $util.toJson($ctx.result)",
       },
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiCustomDomain524A569E": Object {
+      "Properties": Object {
+        "DomainName": "staff-notifications.test.dev-gutools.co.uk",
+        "EndpointConfiguration": Object {
+          "Types": Array [
+            "REGIONAL",
+          ],
+        },
+        "RegionalCertificateArn": Object {
+          "Ref": "CertificatePinboard476E3B26",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "App",
+            "Value": "pinboard",
+          },
+          Object {
+            "Key": "gu:cdk:version",
+            "Value": "62.1.2",
+          },
+          Object {
+            "Key": "gu:repo",
+            "Value": "guardian/pinboard",
+          },
+          Object {
+            "Key": "Stack",
+            "Value": "workflow",
+          },
+          Object {
+            "Key": "Stage",
+            "Value": "TEST",
+          },
+        ],
+      },
+      "Type": "AWS::ApiGateway::DomainName",
+    },
+    "pinboardnotificationslambdapinboardnotificationslambdaapiCustomDomainMapPinBoardStackTESTpinboardnotificationslambdapinboardnotificationslambdaapi55649DA91180EA8D": Object {
+      "Properties": Object {
+        "DomainName": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiCustomDomain524A569E",
+        },
+        "RestApiId": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",
+        },
+        "Stage": Object {
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentStageprod3EB8923D",
+        },
+      },
+      "Type": "AWS::ApiGateway::BasePathMapping",
     },
     "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD19e616bfc90f29ef8130609e07a4b155a": Object {
       "DependsOn": Array [

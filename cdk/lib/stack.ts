@@ -59,6 +59,7 @@ import { GuApiLambda, GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { GuLambdaFunction } from "@guardian/cdk/lib/constructs/lambda";
+import { GuCertificate } from "@guardian/cdk/lib/constructs/acm";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_22_X;
@@ -67,13 +68,14 @@ const ALARM_SNS_TOPIC_NAME = "Cloudwatch-Alerts";
 
 interface PinBoardStackProps extends GuStackProps {
   domainName: string;
+  notificationsDomainName: string;
 }
 
 export class PinBoardStack extends GuStack {
   constructor(
     scope: App,
     id: string,
-    { domainName, ...props }: PinBoardStackProps
+    { domainName, notificationsDomainName, ...props }: PinBoardStackProps
   ) {
     super(scope, id, { ...props, app: APP });
 
@@ -382,6 +384,13 @@ export class PinBoardStack extends GuStack {
         api: {
           restApiName: `${NOTIFICATIONS_LAMBDA_BASENAME}-api-${this.stage}`,
           id: `${NOTIFICATIONS_LAMBDA_BASENAME}-api`,
+          domainName: {
+            domainName: notificationsDomainName,
+            certificate: new GuCertificate(this, {
+              app: APP,
+              domainName: notificationsDomainName,
+            }),
+          },
         },
         app: APP,
         vpc: accountVpc,
@@ -422,6 +431,13 @@ export class PinBoardStack extends GuStack {
         }),
       }
     );
+    new GuCname(this, `NotificationsGuCname`, {
+      app: APP,
+      domainName: notificationsDomainName,
+      resourceRecord:
+        pinboardNotificationsLambda.api.domainName!.domainNameAliasDomainName,
+      ttl: Duration.hours(1),
+    });
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 

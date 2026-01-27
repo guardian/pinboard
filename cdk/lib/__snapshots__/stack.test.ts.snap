@@ -4886,6 +4886,11 @@ $util.toJson($ctx.result)",
               },
             },
             Object {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::pan-domain-auth-settings/*",
+            },
+            Object {
               "Action": Array [
                 "s3:GetObject*",
                 "s3:GetBucket*",
@@ -5165,7 +5170,7 @@ $util.toJson($ctx.result)",
     },
     "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1": Object {
       "Properties": Object {
-        "Name": "workflow-TEST-pinboard-notifications-lambda-api",
+        "Name": "pinboard-notifications-lambda-api-TEST",
         "Tags": Array [
           Object {
             "Key": "App",
@@ -5246,7 +5251,7 @@ $util.toJson($ctx.result)",
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD1f5bf88648d8678eeb1051db736bca767": Object {
+    "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD19e616bfc90f29ef8130609e07a4b155a": Object {
       "DependsOn": Array [
         "pinboardnotificationslambdapinboardnotificationslambdaapiproxyANY4CA88021",
         "pinboardnotificationslambdapinboardnotificationslambdaapiproxyADD2F140",
@@ -5269,7 +5274,7 @@ $util.toJson($ctx.result)",
       ],
       "Properties": Object {
         "DeploymentId": Object {
-          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD1f5bf88648d8678eeb1051db736bca767",
+          "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiDeploymentAFC92CD19e616bfc90f29ef8130609e07a4b155a",
         },
         "RestApiId": Object {
           "Ref": "pinboardnotificationslambdapinboardnotificationslambdaapiC3B4C7F1",

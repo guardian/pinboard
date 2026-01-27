@@ -134,6 +134,7 @@ const userReturnFields = `
 
 const myUserReturnFields = `${userReturnFields}
   hasWebPushSubscription
+  isValidWebPushSubscription
   manuallyOpenedPinboardIds
   hasEverUsedTour
   featureFlags

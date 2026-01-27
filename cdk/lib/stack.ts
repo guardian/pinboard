@@ -94,7 +94,7 @@ export class PinBoardStack extends GuStack {
     const database = new rds.DatabaseInstance(this, "Database", {
       instanceIdentifier: `${APP}-db-${this.stage}`,
       engine: rds.DatabaseInstanceEngine.postgres({
-        version: rds.PostgresEngineVersion.VER_13_7, // RDS Proxy fails to create with a Postgres 14 instance (comment on 22 Aug 2022)
+        version: rds.PostgresEngineVersion.VER_17_7,
       }),
       vpc: accountVpc,
       port: DATABASE_PORT,
@@ -105,6 +105,7 @@ export class PinBoardStack extends GuStack {
       allocatedStorage: 20, // minimum for GP2
       storageEncrypted: true,
       autoMinorVersionUpgrade: true,
+      allowMajorVersionUpgrade: true,
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T4G,
         isPROD ? ec2.InstanceSize.SMALL : ec2.InstanceSize.MICRO

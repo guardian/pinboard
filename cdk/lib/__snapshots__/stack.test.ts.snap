@@ -635,6 +635,7 @@ Object {
       "DeletionPolicy": "Retain",
       "Properties": Object {
         "AllocatedStorage": "20",
+        "AllowMajorVersionUpgrade": true,
         "AssociatedRoles": Array [
           Object {
             "FeatureName": "Lambda",
@@ -658,7 +659,7 @@ Object {
         "DeletionProtection": true,
         "EnableIAMDatabaseAuthentication": true,
         "Engine": "postgres",
-        "EngineVersion": "13.7",
+        "EngineVersion": "17.7",
         "MasterUserPassword": Object {
           "Fn::Join": Array [
             "",

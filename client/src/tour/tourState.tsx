@@ -274,6 +274,7 @@ export const TourStateProvider: React.FC = ({ children }) => {
           visitTourStep(tourStepIDs[index]); // tracks in the database
           break;
         }
+        default:
       }
     }
   };

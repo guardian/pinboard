@@ -7,10 +7,7 @@
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
     "build": "run-p --print-label type-check bundle",
-    "watch": "ts-node-dev --respawn run.ts"
-  },
-  "devDependencies": {
-    "ts-node-dev": "^1.0.0"
+    "watch": "tsx watch run.ts"
   },
   "dependencies": {
     "postgres": "^3.2.4"

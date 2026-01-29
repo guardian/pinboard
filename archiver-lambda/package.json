@@ -6,12 +6,11 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
-    "watch": "ts-node-dev --respawn run.ts",
+    "watch": "tsx watch run.ts",
     "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.299.0",
-    "ts-node-dev": "^1.0.0"
+    "@aws-sdk/client-lambda": "^3.299.0"
   },
   "dependencies": {
     "postgres": "^3.2.4"

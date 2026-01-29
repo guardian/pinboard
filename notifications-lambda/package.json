@@ -6,12 +6,11 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "bundle": "esbuild src/index.ts --bundle --minify --outfile=dist/index.js  --platform=node --external:aws-sdk --external:@aws-sdk",
-    "watch": "ts-node-dev --respawn run.ts",
+    "watch": "tsx watch run.ts",
     "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
-    "@types/web-push": "^3.3.2",
-    "ts-node-dev": "^1.1.8"
+    "@types/web-push": "^3.3.2"
   },
   "dependencies": {
     "web-push": "^3.5.0"

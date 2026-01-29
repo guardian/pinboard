@@ -30,9 +30,9 @@
     "type-check": "wsrun --parallel --fast-exit --prefix --report type-check",
     "build": "wsrun --parallel --fast-exit --prefix --report build",
     "prepare": "husky install",
-    "database-setup": "ts-node-dev shared/database/local/runDatabaseSetup.ts",
-    "database-migrate": "ts-node-dev shared/database/local/runDatabaseMigration.ts",
-    "generate-appsync-auth-token": "ts-node-dev bootstrapping-lambda/generateAppSyncAuthToken.ts"
+    "database-setup": "tsx shared/database/local/runDatabaseSetup.ts",
+    "database-migrate": "tsx shared/database/local/runDatabaseMigration.ts",
+    "generate-appsync-auth-token": "tsx bootstrapping-lambda/generateAppSyncAuthToken.ts"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.3",
@@ -58,6 +58,7 @@
     "prompts": "^2.4.2",
     "ts-jest": "^29.2.5",
     "tsafe": "^1.0.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "wsrun": "^5.2.4"
   },

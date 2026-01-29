@@ -47,7 +47,11 @@ export const getUsers = (sql: Sql, args: { emails: string[] }) =>
   `;
 
 const fragmentMyUserWithoutPushSubscriptionSecrets = (sql: Sql) =>
-  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", "visitedTourSteps" IS NOT NULL AS "hasEverUsedTour", "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription", "featureFlags"`;
+  sql`"email", "firstName", "lastName", "avatarUrl", "manuallyOpenedPinboardIds", 
+       "visitedTourSteps" IS NOT NULL AS "hasEverUsedTour", 
+       "webPushSubscription" IS NOT NULL AS "hasWebPushSubscription", 
+       ("webPushSubscription"->'isExpired')::boolean IS NOT TRUE AS "isValidWebPushSubscription", 
+       "featureFlags"`;
 
 export const getMyUser = (sql: Sql, userEmail: string) =>
   sql`

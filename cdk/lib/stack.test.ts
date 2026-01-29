@@ -6,6 +6,7 @@ describe("PinBoardStack's", () => {
     const app = new App();
     const stack = new PinBoardStack(app, "PinBoardStack-TEST", {
       domainName: "pinboard.test.dev-gutools.co.uk",
+      notificationsDomainName: "staff-notifications.test.dev-gutools.co.uk",
       stack: "workflow",
       stage: "TEST",
     });

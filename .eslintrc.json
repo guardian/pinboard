@@ -31,7 +31,8 @@
         "importNames": ["textSans", "headline", "titlepiece", "body"],
         "message": "Please use the modified fonts from fontNormaliser.ts"
       }
-    ]
+    ],
+    "react/no-unknown-property": ["error", { "ignore": ["css"] }]
   },
   "settings": {
     "react": {

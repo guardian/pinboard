@@ -2,12 +2,12 @@ import {
   PanDomainAuthentication,
   guardianValidation,
 } from "@guardian/pan-domain-node";
-import { AWS_REGION } from "../../shared/awsRegion";
+import { AWS_REGION } from "../awsRegion";
 import { standardAwsConfig } from "shared/awsIntegration";
 import {
   pandaPublicConfigFilename,
   pandaSettingsBucketName,
-} from "../../shared/panDomainAuth";
+} from "../panDomainAuth";
 
 const panda = new PanDomainAuthentication(
   "gutoolsAuth-assym", // cookie name

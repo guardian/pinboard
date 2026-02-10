@@ -635,7 +635,7 @@ Object {
       "DeletionPolicy": "Retain",
       "Properties": Object {
         "AllocatedStorage": "20",
-        "AllowMajorVersionUpgrade": true,
+        "AllowMajorVersionUpgrade": false,
         "AssociatedRoles": Array [
           Object {
             "FeatureName": "Lambda",

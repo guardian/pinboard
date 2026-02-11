@@ -105,7 +105,7 @@ export class PinBoardStack extends GuStack {
       allocatedStorage: 20, // minimum for GP2
       storageEncrypted: true,
       autoMinorVersionUpgrade: true,
-      allowMajorVersionUpgrade: true,
+      allowMajorVersionUpgrade: false,
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T4G,
         isPROD ? ec2.InstanceSize.SMALL : ec2.InstanceSize.MICRO

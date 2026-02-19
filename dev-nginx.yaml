@@ -2,7 +2,5 @@ name: pinboard
 mappings:
   - prefix: pinboard
     port: 3030
-  - prefix: pinboard-sandbox # for simulating cross-domain (useful for checking the service worker in iFrame)
-    port: 3030
   - prefix: staff-notifications
     port: 3031

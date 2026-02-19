@@ -1,4 +1,4 @@
-import { getVerifiedUserEmail } from "../panDomainAuth";
+import { getVerifiedUserEmail } from "shared/server/panDomainAuth";
 import { ACCESS_PERMISSION } from "shared/permissionDefinitions";
 import { userHasPermission } from "shared/permissions";
 import { NextFunction, Request, Response } from "express";

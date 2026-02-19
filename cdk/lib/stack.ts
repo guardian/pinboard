@@ -55,10 +55,11 @@ import {
   GuUserData,
 } from "@guardian/cdk/lib/constructs/autoscaling";
 import { GuAlarm } from "@guardian/cdk/lib/constructs/cloudwatch";
-import { GuScheduledLambda } from "@guardian/cdk";
+import { GuApiLambda, GuScheduledLambda } from "@guardian/cdk";
 import { EmailIdentity } from "aws-cdk-lib/aws-ses";
 import { GuCname } from "@guardian/cdk/lib/constructs/dns";
 import { GuLambdaFunction } from "@guardian/cdk/lib/constructs/lambda";
+import { GuCertificate } from "@guardian/cdk/lib/constructs/acm";
 
 // if changing should also change .nvmrc (at the root of repo)
 const LAMBDA_NODE_VERSION = lambda.Runtime.NODEJS_22_X;
@@ -67,13 +68,14 @@ const ALARM_SNS_TOPIC_NAME = "Cloudwatch-Alerts";
 
 interface PinBoardStackProps extends GuStackProps {
   domainName: string;
+  notificationsDomainName: string;
 }
 
 export class PinBoardStack extends GuStack {
   constructor(
     scope: App,
     id: string,
-    { domainName, ...props }: PinBoardStackProps
+    { domainName, notificationsDomainName, ...props }: PinBoardStackProps
   ) {
     super(scope, id, { ...props, app: APP });
 
@@ -375,30 +377,67 @@ export class PinBoardStack extends GuStack {
       okAction: true,
     });
 
-    const pinboardNotificationsLambda = new lambda.Function(
+    const pinboardNotificationsLambda = new GuApiLambda(
       this,
       NOTIFICATIONS_LAMBDA_BASENAME,
       {
+        api: {
+          restApiName: `${NOTIFICATIONS_LAMBDA_BASENAME}-api-${this.stage}`,
+          id: `${NOTIFICATIONS_LAMBDA_BASENAME}-api`,
+          domainName: {
+            domainName: notificationsDomainName,
+            certificate: new GuCertificate(this, {
+              app: APP,
+              domainName: notificationsDomainName,
+            }),
+          },
+        },
+        app: APP,
         vpc: accountVpc,
+        securityGroups: [databaseSecurityGroup],
+        functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
         runtime: LAMBDA_NODE_VERSION,
         architecture: lambda.Architecture.ARM_64,
+        timeout: Duration.minutes(5),
         memorySize: 128,
-        timeout: Duration.seconds(30),
         handler: "index.handler",
         environment: {
-          STAGE: this.stage,
-          STACK: this.stack,
-          APP,
+          [ENVIRONMENT_VARIABLE_KEYS.databaseHostname]: databaseHostname,
         },
-        functionName: getNotificationsLambdaFunctionName(this.stage as Stage),
-        code: lambda.Code.fromBucket(
-          deployBucket,
-          `${this.stack}/${this.stage}/${NOTIFICATIONS_LAMBDA_BASENAME}/${NOTIFICATIONS_LAMBDA_BASENAME}.zip`
-        ),
-        initialPolicy: [readPinboardParamStorePolicyStatement],
+        fileName: `${NOTIFICATIONS_LAMBDA_BASENAME}.zip`,
+        monitoringConfiguration: {
+          noMonitoring: true, // TODO: Add monitoring
+        },
+        initialPolicy: [
+          readPinboardParamStorePolicyStatement,
+          pandaConfigAndKeyPolicyStatement,
+        ],
       }
     );
     pinboardNotificationsLambda.grantInvoke(roleToInvokeLambdaFromRDS);
+    databaseProxy.grantConnect(pinboardNotificationsLambda);
+    new events.Rule(
+      this,
+      `${NOTIFICATIONS_LAMBDA_BASENAME}-schedule-weed-out-expired-subscriptions`,
+      {
+        description: `Runs the ${pinboardNotificationsLambda.functionName} every night, to send empty pushes to all subscriptions to weed out expired ones.`,
+        enabled: true,
+        targets: [
+          new eventsTargets.LambdaFunction(pinboardNotificationsLambda),
+        ],
+        schedule: events.Schedule.cron({
+          hour: "8", // 8 AM UTC
+          weekDay: "MON-FRI", // weekdays only (so engineers are generally around to investigate any issues)
+        }),
+      }
+    );
+    new GuCname(this, `NotificationsGuCname`, {
+      app: APP,
+      domainName: notificationsDomainName,
+      resourceRecord:
+        pinboardNotificationsLambda.api.domainName!.domainNameAliasDomainName,
+      ttl: Duration.hours(1),
+    });
 
     const pinboardAuthLambdaBasename = "pinboard-auth-lambda";
 

@@ -9,10 +9,12 @@ new PinBoardStack(app, "PinBoardStack-CODE", {
   stack,
   stage: "CODE",
   domainName: "pinboard.code.dev-gutools.co.uk",
+  notificationsDomainName: "staff-notifications.code.dev-gutools.co.uk",
 });
 
 new PinBoardStack(app, "PinBoardStack-PROD", {
   stack,
   stage: "PROD",
   domainName: "pinboard.gutools.co.uk",
+  notificationsDomainName: "staff-notifications.gutools.co.uk",
 });

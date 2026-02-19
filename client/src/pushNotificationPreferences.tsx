@@ -66,7 +66,6 @@ export const HiddenIFrameForServiceWorker = ({
           ? `?${OPEN_PINBOARD_QUERY_PARAM}=${maybePinboardId}`
           : ""
       }`}
-      style={{ display: "none" }}
     />
   );
 };

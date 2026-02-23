@@ -10,7 +10,7 @@
     "build": "run-p --print-label type-check bundle"
   },
   "devDependencies": {
-    "@aws-sdk/client-lambda": "^3.299.0",
+    "@aws-sdk/client-lambda": "^3.995.0",
     "ts-node-dev": "^1.0.0"
   },
   "dependencies": {

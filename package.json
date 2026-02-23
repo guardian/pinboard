@@ -63,7 +63,8 @@
   },
   "resolutions": {
     "cdk@1.0.0/cross-spawn": "^7.0.5",
-    "client@1.0.0/cross-spawn": "^7.0.5"
+    "client@1.0.0/cross-spawn": "^7.0.5",
+    "fast-xml-parser": "^5.3.7"
   },
   "lint-staged": {
     "**/*.{ts, tsx}": "eslint --fix",

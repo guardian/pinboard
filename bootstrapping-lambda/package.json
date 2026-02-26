@@ -22,7 +22,7 @@
     "jest": "^29.3.1",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
-    "ts-node-dev": "^1.0.0"
+    "ts-node-dev": "^2.0.0"
   },
   "dependencies": {
     "@codegenie/serverless-express": "^4.16.0",

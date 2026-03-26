@@ -23,9 +23,13 @@ export const AssetView = ({ items }: AssetViewProps) => {
       const payloadAndType = buildPayloadAndType(item.type, payload);
       if (!payloadAndType) {
         Sentry.captureException(
-          new Error(
-            `Failed to parse payload with type=${item.type}, payload=${item.payload}`
-          )
+          new Error(`Failed to parse payload with type=${item.type}`),
+          {
+            extra: {
+              payloadType: item.type,
+              payload,
+            },
+          }
         );
         return accumulator;
       }

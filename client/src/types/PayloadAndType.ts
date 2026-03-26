@@ -107,7 +107,13 @@ export const maybeConstructPayloadAndType = (
 
   if (!payloadAndType) {
     Sentry.captureException(
-      new Error(`Failed to parse payload with type=${type}, payload=${payload}`)
+      new Error(`Failed to parse payload with type=${type}`),
+      {
+        extra: {
+          payloadType: type,
+          payload,
+        },
+      }
     );
   }
 

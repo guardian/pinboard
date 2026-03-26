@@ -11,7 +11,7 @@
     "test": "jest 2>&1"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.995.0",
+    "@aws-sdk/client-s3": "^3.1017.0",
     "@types/iniparser": "^0.0.29",
     "ts-node-dev": "^2.0.0"
   },

@@ -11,7 +11,7 @@
     "build": "run-p --print-label type-check bundle",
     "watch": "run-p --print-label ui:watch-build ui:watch-loader watch-server",
     "ui:watch-loader": "cd notifications-ui && tsc --watch loader.ts --outFile dist/loader.js",
-    "ui:watch-build": "cd notifications-ui && vite build --watch",
+    "ui:watch-build": "cd notifications-ui && vite build --watch --outDir dist/ui",
     "ui:build": "cd notifications-ui && vite build",
     "ui:preview": "cd notifications-ui && vite preview",
     "ui:check": "cd notifications-ui && svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"

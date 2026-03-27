@@ -1,6 +1,8 @@
 import { default as express } from "express";
 import { IS_RUNNING_LOCALLY } from "shared/awsIntegration";
 import { getVerifiedUserEmail } from "shared/server/panDomainAuth";
+import { getDatabaseConnection } from "shared/database/databaseConnection";
+import { createDatabaseTunnel } from "shared/database/local/databaseTunnel";
 
 export const server = express();
 
@@ -23,6 +25,7 @@ const authMiddleware = async (
     response.status(401).send("Unauthorized"); // TODO replace with redirect to login tool
     return;
   }
+  response.locals.userEmail = maybeAuthenticatedEmail;
   next();
 };
 
@@ -32,6 +35,33 @@ const clientDirectory = IS_RUNNING_LOCALLY
 
 // TODO think about caching
 server.use(authMiddleware, express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
+if (IS_RUNNING_LOCALLY) {
+  server.use(authMiddleware, express.static(`${clientDirectory}/ui`));
+}
+
+server.get("/api/status", authMiddleware, async (request, response) => {
+  if (IS_RUNNING_LOCALLY) {
+    await createDatabaseTunnel({
+      stage: "CODE",
+    });
+  }
+  const sql = await getDatabaseConnection();
+  const userEmail = response.locals.userEmail;
+  const statusFromDB = (
+    await sql`
+    SELECT (
+             CASE
+               WHEN "webPushSubscription" IS NULL THEN 'none'
+               WHEN ("webPushSubscription"->'isExpired')::boolean IS TRUE THEN 'expired'
+               ELSE 'valid'
+               END
+             ) as "status"
+    FROM "User"
+    WHERE email = ${userEmail}
+  `
+  )[0].status; // valid/expired/none
+  response.json(statusFromDB);
+});
 
 if (IS_RUNNING_LOCALLY) {
   // if local then don't wrap in serverless

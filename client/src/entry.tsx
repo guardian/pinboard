@@ -110,7 +110,9 @@ export function mount({
         platform: window.location.hostname, // e.g. composer.gutools.co.uk
       },
     };
-    telemetryEventService.addEvent(event);
+    if (stage !== "LOCAL") {
+      telemetryEventService.addEvent(event);
+    }
   };
 
   const apolloUrlInfo: UrlInfo = {

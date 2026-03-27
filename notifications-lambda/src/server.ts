@@ -32,6 +32,14 @@ const clientDirectory = IS_RUNNING_LOCALLY
 
 // TODO think about caching
 server.use(authMiddleware, express.static(clientDirectory)); // this allows us to serve the static client files (inc. the source map)
+if (IS_RUNNING_LOCALLY) {
+  server.use(authMiddleware, express.static(`${clientDirectory}/ui`));
+}
+
+server.get("/api/status", authMiddleware, async (request, response) => {
+  // valid/expired/none
+  response.json("expired");
+});
 
 if (IS_RUNNING_LOCALLY) {
   // if local then don't wrap in serverless

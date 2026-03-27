@@ -1,47 +1,108 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import { onMount } from 'svelte';
+
+  const isIFramed = window.self !== window.parent; // could do this with ownerDocument === document
+  let maybeStatus = $state();
+
+  onMount(() => {
+    if(isIFramed){
+      fetch("/api/status").then(response => {
+        if(response.ok){
+          return response.json()
+        }
+        throw Error(`API call failed with status ${response.status}`);
+      }).then(status => {
+        maybeStatus = status;
+        // TODO this json will be richer than just boolean in the future
+        if(status!="valid"){
+          // TODO api call to see if we need to show the iframe (to prompt user to turn on desktop notifications)
+          //FIXME this * should be complemented by a CSP that only allows iframing on tools domains
+          window.parent.postMessage("visible", "*")
+        }
+      }).catch(error => {
+        console.error("Error fetching status:", error);
+      });
+    }
+
+  });
+
 </script>
 
 <main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
+  <!--
+    TODO check for browser permissions for notifications (probably via service worker)
+  -->
+  {#if maybeStatus === "expired"}
+    <span>
+      Your notification permissions have expired. Please
+      <button>re-enable desktop notifications</button>
+      to continue receiving notifications.</span>
 
-  <div class="card">
-    <Counter />
-  </div>
+  {:else if maybeStatus === "none"}
+    <span>
+      It is encouraged to
+      <button>enable desktop notifications</button>
+      for editorial tools. See benefits.
+    </span>
+  {/if}
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
 
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
+  <!--
+  TODO
+   - make entry point that can be applied to other tools in iframe (like pinboard is)
+   - port service worker over
+  -->
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
+
+    :global(body) {
+        margin: 0;
+        font-family: "Guardian Agate Sans", sans-serif;
+        text-align: center;
+    }
+
+    main {
+        padding: 10px;
+        background: hotpink;
+        border-radius: 0 0 5px 5px;
+    }
+
+    button {
+        font-family: "Guardian Agate Sans", sans-serif;
+        font-size: inherit;
+        cursor: pointer;
+    }
+
+    /* TODO use ed tools design system for these font definitions (and ideally hosting of the fonts)🤞 */
+    @font-face {
+        font-family: "Guardian Agate Sans";
+        src: url("https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: "Guardian Agate Sans";
+        src: url("https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: "Guardian Agate Sans";
+        src: url("https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-RegularItalic.woff2")
+        format("woff2");
+        font-weight: 400;
+        font-style: italic;
+        font-display: swap;
+    }
+    @font-face {
+        font-family: "Guardian Agate Sans";
+        src: url("https://interactive.guim.co.uk/fonts/guss-webfonts/GuardianAgateSans1Web/GuardianAgateSans1Web-BoldItalic.woff2") format("woff2");
+        font-weight: 700;
+        font-style: italic;
+        font-display: swap;
+    }
+
 </style>

@@ -30,7 +30,7 @@
     "preact": "10.15.1",
     "react-draggable": "^4.4.5",
     "react-joyride": "^2.5.3",
-    "react-shadow": "^19.0.2"
+    "react-shadow": "^20.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

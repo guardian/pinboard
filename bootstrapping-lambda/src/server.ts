@@ -21,7 +21,7 @@ import {
 } from "./middleware/auth-middleware";
 
 import { getMetrics } from "./reporting/reportingServiceClient";
-import { listUserPermissions } from "shared/permissions";
+import { permissionsClient } from "shared/permissions";
 
 const s3 = new S3(standardAwsConfig);
 
@@ -135,7 +135,9 @@ server.get(
           appSyncConfig,
           userEmail: request.userEmail!,
           stage: (process.env.STAGE as Stage) || "LOCAL",
-          permissions: await listUserPermissions(request.userEmail!),
+          permissions: await permissionsClient.listUserPermissions(
+            request.userEmail!
+          ),
         },
         mainJsFilename,
         request.hostname

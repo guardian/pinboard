@@ -27,5 +27,5 @@ new AppSync(standardAwsConfig)
     process.env[ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint] =
       appSyncAPI.uris?.["GRAPHQL"];
 
-    import("../src/server"); // actually start the server, once the environment variable is set
+    import("../src/server.js"); // actually start the server, once the environment variable is set
   });

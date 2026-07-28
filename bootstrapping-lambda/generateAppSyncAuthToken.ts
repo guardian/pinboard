@@ -22,7 +22,7 @@ import { getYourEmail } from "../shared/local/yourEmail";
   const yourEmail = await getYourEmail();
 
   // using dynamic import to allow us to override STAGE which is evaluated when the module is imported
-  const generateAppSyncConfig = (await import("./src/generateAppSyncConfig"))
+  const generateAppSyncConfig = (await import("./src/generateAppSyncConfig.js"))
     .generateAppSyncConfig;
 
   console.log((await generateAppSyncConfig(yourEmail, s3)).authToken);

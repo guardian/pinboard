@@ -17,7 +17,7 @@
     "@aws-cdk/aws-appsync-alpha": "2.54.0-alpha.0",
     "@guardian/cdk": "^62.1.1",
     "aws-cdk": "^2.1127.0",
-    "aws-cdk-lib": "^2.260.0",
+    "aws-cdk-lib": "^2.246.0",
     "constructs": "10.4.3",
     "ts-node": "9.0.0"
   }

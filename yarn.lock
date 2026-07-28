@@ -5688,7 +5688,7 @@ __metadata:
   resolution: "auth-lambda@workspace:auth-lambda"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
-    jose: "npm:^4.3.7"
+    jose: "npm:^4.15.9"
   languageName: unknown
   linkType: soft
 
@@ -6087,7 +6087,7 @@ __metadata:
     cors: "npm:^2.8.5"
     express: "npm:4.22.1"
     jest: "npm:^29.3.1"
-    jose: "npm:^4.3.7"
+    jose: "npm:4.15.9"
     ts-jest: "npm:^29.0.3"
     ts-node: "npm:^10.9.1"
     ts-node-dev: "npm:^2.0.0"
@@ -10810,10 +10810,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^4.3.7":
-  version: 4.3.7
-  resolution: "jose@npm:4.3.7"
-  checksum: 10c0/ba2bd8ac01dfdcf1fc0220a90588f0fbe39ec1e141a153763f3bfe6c4792245cf6ea7f5aae578aaa135c097389b666a68419fcba2ff4c138610bbf60234d9093
+"jose@npm:4.15.9, jose@npm:^4.15.9":
+  version: 4.15.9
+  resolution: "jose@npm:4.15.9"
+  checksum: 10c0/4ed4ddf4a029db04bd167f2215f65d7245e4dc5f36d7ac3c0126aab38d66309a9e692f52df88975d99429e357e5fd8bab340ff20baab544d17684dd1d940a0f4
   languageName: node
   linkType: hard
 

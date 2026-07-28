@@ -29,6 +29,6 @@
     "@guardian/pan-domain-node": "^1.2.3",
     "cors": "^2.8.5",
     "express": "4.22.1",
-    "jose": "^4.3.7"
+    "jose": "4.15.9"
   }
 }

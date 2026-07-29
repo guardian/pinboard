@@ -1,5 +1,5 @@
 import { ADMIN_PERMISSION } from "shared/permissionDefinitions";
-import { userHasPermission } from "shared/permissions";
+import { permissionsClient } from "shared/permissions";
 import {
   CreateItemInput,
   EditItemInput,
@@ -73,7 +73,7 @@ export const editItem = async (
 ) =>
   sql`
         UPDATE "Item"
-        SET 
+        SET
             ${sql(args.input)},
             "editHistory" = ARRAY_APPEND("editHistory", now())
         WHERE "id" = ${args.itemId}
@@ -108,9 +108,9 @@ export const deleteItem = async (
   args: { itemId: string },
   userEmail: string
 ) => {
-  const userMayDeleteAnyMessage = await userHasPermission(
-    userEmail,
-    ADMIN_PERMISSION
+  const userMayDeleteAnyMessage = await permissionsClient.hasPermission(
+    ADMIN_PERMISSION,
+    userEmail
   );
   // normally we check the item's author is the same as the user deleting to prevent deleting
   // other users' items. But admins are allowed to do exactly that, so drop the condition.

@@ -30,10 +30,9 @@ export const handler = async ({
     emailsOfUsersWithPinboardPermission =
       await permissionsClient.listUsersWithPermission(ACCESS_PERMISSION);
   } catch (e) {
-    // throw new Error("Could not get list of users with 'pinboard' permission.", {
-    //   cause: e,
-    // });
-    throw new Error("Could not get list of users with 'pinboard' permission.");
+    throw new Error("Could not get list of users with 'pinboard' permission.", {
+      cause: e,
+    });
   }
 
   const sql = await getDatabaseConnection();

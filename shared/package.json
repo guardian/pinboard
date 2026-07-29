@@ -18,6 +18,6 @@
     "@aws-sdk/lib-dynamodb": "^3.1061.0",
     "@aws-sdk/rds-signer": "^3.1061.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
-    "@guardian/permissions-client": "0.0.0-canary-20260728163057"
+    "@guardian/permissions-client": "0.0.3"
   }
 }

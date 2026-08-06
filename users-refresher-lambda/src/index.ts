@@ -5,8 +5,7 @@ import {
   pinboardSecretPromiseGetter,
   STAGE,
 } from "../../shared/awsIntegration";
-import { permissionsClient } from "../../shared/permissions";
-import { ACCESS_PERMISSION } from "../../shared/permissionDefinitions";
+import { getPinboardAccessPermissionOverrides } from "../../shared/permissions";
 import { getDatabaseConnection } from "../../shared/database/databaseConnection";
 import { buildPhotoUrlLookup } from "./google/buildPhotoUrlLookup";
 import { buildUserLookupFromGoogle } from "./google/buildUserLookupFromGoogle";
@@ -24,15 +23,15 @@ export const handler = async ({
 }: {
   isProcessPermissionChangesOnly?: boolean;
 }) => {
-  let emailsOfUsersWithPinboardPermission: string[] = [];
-
-  try {
-    emailsOfUsersWithPinboardPermission =
-      await permissionsClient.listUsersWithPermission(ACCESS_PERMISSION);
-  } catch (e) {
-    throw new Error("Could not get list of users with 'pinboard' permission.", {
-      cause: e,
-    });
+  const emailsOfUsersWithPinboardPermission = (
+    await getPinboardAccessPermissionOverrides()
+  )?.reduce<string[]>(
+    (acc, { userId, active }) =>
+      active ? [...acc, userId.toLowerCase()] : acc,
+    []
+  );
+  if (!emailsOfUsersWithPinboardPermission) {
+    throw Error("Could not get list of users with 'pinboard' permission.");
   }
 
   const sql = await getDatabaseConnection();
@@ -49,8 +48,8 @@ export const handler = async ({
           `Permission removed for ${user.email}, so marking as not mentionable`
         );
         await sql`
-          UPDATE "User"
-          SET "isMentionable" = false
+          UPDATE "User" 
+          SET "isMentionable" = false 
           WHERE "email" = ${user.email}
         `.catch(handleUpsertError(user));
       }
@@ -146,7 +145,7 @@ export const handler = async ({
         ) {
           console.log(`Updating details for user ${email}`);
           await sql`
-            UPDATE "User"
+            UPDATE "User" 
             SET "avatarUrl" = ${maybeAvatarUrl},
                 "isMentionable" = ${maybeUserFromGoogle.isMentionable},
                 "firstName" = ${maybeUserFromGoogle.firstName},

@@ -34,7 +34,8 @@ export const getAuthMiddleware =
     if (
       await permissionsClient.hasPermission(
         ACCESS_PERMISSION,
-        maybeAuthenticatedEmail
+        maybeAuthenticatedEmail,
+        true
       )
     ) {
       request.userEmail = maybeAuthenticatedEmail;

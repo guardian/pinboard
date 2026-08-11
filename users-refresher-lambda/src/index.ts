@@ -28,7 +28,7 @@ export const handler = async ({
 
   try {
     emailsOfUsersWithPinboardPermission =
-      await permissionsClient.listUsersWithPermission(ACCESS_PERMISSION);
+      await permissionsClient.listUsersWithPermission(ACCESS_PERMISSION, true);
   } catch (e) {
     throw new Error("Could not get list of users with 'pinboard' permission.", {
       cause: e,

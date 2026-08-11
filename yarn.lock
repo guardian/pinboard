@@ -3253,13 +3253,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@guardian/permissions-client@npm:0.0.3":
-  version: 0.0.3
-  resolution: "@guardian/permissions-client@npm:0.0.3"
+"@guardian/permissions-client@npm:0.0.0-canary-20260811144022":
+  version: 0.0.0-canary-20260811144022
+  resolution: "@guardian/permissions-client@npm:0.0.0-canary-20260811144022"
   peerDependencies:
     "@aws-sdk/client-s3": ^3.1090.0
     "@aws-sdk/credential-providers": ^3.1090.0
-  checksum: 10c0/821ec22ed480f91e5e8d5cbbde0d78bce8a04310d265019971a7e51304083b45a2886e891997498b5a44dec561b0e4528f1b6661eb613b4ca6639aee75db1fe1
+  checksum: 10c0/aedbeacc7617095efe31cef3236ec6ca3251bb31aa11bd4b7ce48d2a8d441535aa6a2321ea4cb31198a7e679ef4dc71e937f798f77287c00585beb1bc5f515d6
   languageName: node
   linkType: hard
 
@@ -13529,7 +13529,7 @@ __metadata:
     "@aws-sdk/lib-dynamodb": "npm:^3.1061.0"
     "@aws-sdk/rds-signer": "npm:^3.1061.0"
     "@aws-sdk/util-dynamodb": "npm:^3.996.2"
-    "@guardian/permissions-client": "npm:0.0.3"
+    "@guardian/permissions-client": "npm:0.0.0-canary-20260811144022"
   languageName: unknown
   linkType: soft
 

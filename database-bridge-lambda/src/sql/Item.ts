@@ -110,7 +110,8 @@ export const deleteItem = async (
 ) => {
   const userMayDeleteAnyMessage = await permissionsClient.hasPermission(
     ADMIN_PERMISSION,
-    userEmail
+    userEmail,
+    true
   );
   // normally we check the item's author is the same as the user deleting to prevent deleting
   // other users' items. But admins are allowed to do exactly that, so drop the condition.

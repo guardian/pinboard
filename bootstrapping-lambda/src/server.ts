@@ -136,7 +136,8 @@ server.get(
           userEmail: request.userEmail!,
           stage: (process.env.STAGE as Stage) || "LOCAL",
           permissions: await permissionsClient.listUserPermissions(
-            request.userEmail!
+            request.userEmail!,
+            true
           ),
         },
         mainJsFilename,

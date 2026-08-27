@@ -71,3 +71,57 @@ Occasionally you may want to test the GraphQL queries/mutations directly from th
 ## Maintenance Tasks
 
 - [managing the email groups in the messaging UI](./users-refresher-lambda/README.md#managing-email-groups)
+
+## Connecting to the Database
+
+When debugging, you might need to connect to the CODE or PROD database – you can do this by running the database-setup package.json script. That script starts an EC2 instance to use as a jump host: an SSH tunnel will be opened to the database via that instance. (It used to be possible to run the script by running `yarn database-setup`, but that doesn’t seem to work anymore, so this example uses npx and inlines the definition of that script.)
+
+``` sh
+> npx ts-node-dev shared/database/local/runDatabaseSetup.ts
+[INFO] 16:58:30 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.8.2)
+✔ Stage? › CODE
+DB Proxy Hostname: pinboard-database-proxy-code.proxy-cg86nsstvc9z.eu-west-1.rds.amazonaws.com
+Requesting a database 'jump host' (by ensuring desired count of the ASG is 1)
+Waiting for instance to be 'running'...
+Instance i-0712cec9ef4bf0553 is running 🎉
+Waiting for instance to have 'OK' status...
+```
+
+Once the instance is ready (which can take a few minutes), the script creates an SSH tunnel. It then sets up an IAM token database login, and prints out the token before it prompts you with some database admin options.
+
+``` sh
+Instance i-0712cec9ef4bf0553 has OK status 🎉
+Fetching SSH details...
+SSH details fetched, establishing SSH tunnel...
+SSH tunnel established on localhost:5432 🎉
+
+IAM Token to use as DB password (if you want to connect from command line, IntelliJ etc.)
+<TOKEN REDACTED>
+
+Created new database connection pool
+? Which setup step? › - Use arrow-keys. Return to submit.
+❯   ALL
+    create Item table
+    create Item table index
+    create LastItemSeenByUser table
+    create LastItemSeenByUser table index
+    create User table
+    enable Lambda invocation from within RDS DB
+    create/update 'after insert' trigger on Item table (to invoke notifications-lambda if applicable)
+    add googleID column to User table
+  ↓ create Group table
+```
+
+If you only want to connect to the database, you won’t want to run any of these options, so interrupt the command with ctrl-c and then use the token in your own command. Here’s an example `psql` call, where you need to have set up the password [in a pgpass file](https://www.postgresql.org/docs/current/libpq-pgpass.html) (note that the colon in the password will have to be backslash-escaped):
+
+``` sh
+> psql --host localhost --port 5432 --username pinboard --dbname pinboard
+psql (14.23 (Homebrew), server 17.9)
+WARNING: psql major version 14, server major version 17.
+         Some psql features might not work.
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_128_GCM_SHA256, bits: 128, compression: off)
+Type "help" for help.
+
+pinboard=> 
+```
+

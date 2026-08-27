@@ -76,7 +76,7 @@ Occasionally you may want to test the GraphQL queries/mutations directly from th
 
 When debugging, you might need to connect to the CODE or PROD database – you can do this by running the database-setup package.json script. That script starts an EC2 instance to use as a jump host: an SSH tunnel will be opened to the database via that instance. (It used to be possible to run the script by running `yarn database-setup`, but that doesn’t seem to work anymore, so this example uses npx and inlines the definition of that script.)
 
-``` sh
+```sh
 > npx ts-node-dev shared/database/local/runDatabaseSetup.ts
 [INFO] 16:58:30 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.8.2)
 ✔ Stage? › CODE
@@ -89,7 +89,7 @@ Waiting for instance to have 'OK' status...
 
 Once the instance is ready (which can take a few minutes), the script creates an SSH tunnel. It then sets up an IAM token database login, and prints out the token before it prompts you with some database admin options.
 
-``` sh
+```sh
 Instance i-0712cec9ef4bf0553 has OK status 🎉
 Fetching SSH details...
 SSH details fetched, establishing SSH tunnel...
@@ -114,7 +114,7 @@ Created new database connection pool
 
 If you only want to connect to the database, you won’t want to run any of these options, so interrupt the command with ctrl-c and then use the token in your own command. Here’s an example `psql` call, where you need to have set up the password [in a pgpass file](https://www.postgresql.org/docs/current/libpq-pgpass.html) (note that the colon in the password will have to be backslash-escaped):
 
-``` sh
+```sh
 > psql --host localhost --port 5432 --username pinboard --dbname pinboard
 psql (14.23 (Homebrew), server 17.9)
 WARNING: psql major version 14, server major version 17.
@@ -122,7 +122,7 @@ WARNING: psql major version 14, server major version 17.
 SSL connection (protocol: TLSv1.3, cipher: TLS_AES_128_GCM_SHA256, bits: 128, compression: off)
 Type "help" for help.
 
-pinboard=> 
+pinboard=>
 ```
 
 You don’t need to clean up the EC2 instance: it gets automatically spun down after a period of inactivity. Do make sure to kill the tunnel from your machine once you’re done with it, though.

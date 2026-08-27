@@ -125,3 +125,4 @@ Type "help" for help.
 pinboard=> 
 ```
 
+You don’t need to clean up the EC2 instance: it gets automatically spun down after a period of inactivity. Do make sure to kill the tunnel from your machine once you’re done with it, though.

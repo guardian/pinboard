@@ -382,7 +382,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.1061.0, @aws-sdk/client-s3@npm:^3.995.0":
+"@aws-sdk/client-s3@npm:^3.1061.0":
   version: 3.1061.0
   resolution: "@aws-sdk/client-s3@npm:3.1061.0"
   dependencies:
@@ -616,7 +616,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/credential-providers@npm:3.1061.0, @aws-sdk/credential-providers@npm:^3.1061.0, @aws-sdk/credential-providers@npm:^3.925.0, @aws-sdk/credential-providers@npm:^3.995.0":
+"@aws-sdk/credential-providers@npm:3.1061.0, @aws-sdk/credential-providers@npm:^3.1061.0, @aws-sdk/credential-providers@npm:^3.925.0":
   version: 3.1061.0
   resolution: "@aws-sdk/credential-providers@npm:3.1061.0"
   dependencies:
@@ -3241,15 +3241,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@guardian/pan-domain-node@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "@guardian/pan-domain-node@npm:1.2.3"
+"@guardian/pan-domain-node@npm:1.2.5":
+  version: 1.2.5
+  resolution: "@guardian/pan-domain-node@npm:1.2.5"
   dependencies:
-    "@aws-sdk/client-s3": "npm:^3.995.0"
-    "@aws-sdk/credential-providers": "npm:^3.995.0"
+    "@aws-sdk/client-s3": "npm:^3.1061.0"
+    "@aws-sdk/credential-providers": "npm:^3.1061.0"
     cookie: "npm:^0.4.1"
-    iniparser: "npm:^1.0.5"
-  checksum: 10c0/5fab4181b82c1d9a2db046613eaa6ecd460f0b2fe65b1cc88a76226526cef913fd047f7d9e4005312a946f43937561b67f1d60e846dfb1ae2c7154d2246ca4c5
+    ini: "npm:6.0.0"
+  checksum: 10c0/92bea0a928e3bb7c36172404039ffa5d5e14aa0ca052bb0339cb4fd7f3065bbaff354f4c0d197aa84c82f938ef868bc1a30725010d33d7b9cfc06bbef21cb5cd
   languageName: node
   linkType: hard
 
@@ -6078,7 +6078,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
     "@babel/preset-typescript": "npm:^7.18.6"
     "@codegenie/serverless-express": "npm:^4.16.0"
-    "@guardian/pan-domain-node": "npm:^1.2.3"
+    "@guardian/pan-domain-node": "npm:1.2.5"
     "@types/cors": "npm:^2.8.12"
     "@types/express": "npm:4.17.17"
     "@types/jest": "npm:^29.2.3"
@@ -9580,6 +9580,13 @@ __metadata:
   version: 2.0.3
   resolution: "inherits@npm:2.0.3"
   checksum: 10c0/6e56402373149ea076a434072671f9982f5fad030c7662be0332122fe6c0fa490acb3cc1010d90b6eff8d640b1167d77674add52dfd1bb85d545cf29e80e73e7
+  languageName: node
+  linkType: hard
+
+"ini@npm:6.0.0":
+  version: 6.0.0
+  resolution: "ini@npm:6.0.0"
+  checksum: 10c0/9a7f55f306e2b25b41ae67c8b526e8f4673f057b70852b9025816ef4f15f07bf1ba35ed68ea4471ff7b31718f7ef1bc50d709f8d03cb012e10a3135eb99c7206
   languageName: node
   linkType: hard
 

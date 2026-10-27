@@ -46,12 +46,14 @@ const teamPinboardsSortFunction = (
 };
 
 interface PanelProps extends IsDropTargetProps {
+  workflowPinboardColumnHeadingElement: HTMLElement | null;
   workflowPinboardElements: HTMLElement[];
   setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
 export const Panel = ({
   isDropTarget,
+  workflowPinboardColumnHeadingElement,
   workflowPinboardElements,
   setMaybeInlineSelectedPinboardId,
 }: PanelProps) => {
@@ -278,6 +280,9 @@ export const Panel = ({
           noOfTeamPinboardsNotShown={noOfTeamPinboardsNotShown}
           isShowAllTeamPinboards={isShowAllTeamPinboards}
           setIsShowAllTeamPinboards={setIsShowAllTeamPinboards}
+          workflowPinboardColumnHeadingElement={
+            workflowPinboardColumnHeadingElement
+          }
           workflowPinboardElements={workflowPinboardElements}
           setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />

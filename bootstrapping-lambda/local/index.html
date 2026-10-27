@@ -107,6 +107,9 @@
       data-url-path="uk-news/2024/oct/21/whats-my-scene-by-the-hoodoo-gurus-"
       data-with-draggable-thumbs-of-ratio="4:5"
     ></pinboard-article-button>
+    <h3>Workflow column (part of 'inline mode') [one second delay]</h3>
+    <br />
+    <div id="workflow-inline-mode" style="width: 77px"></div>
     <h3><code>Add to 📌</code> button</h3>
     <ul id="button_section">
       <h4>present initially</h4>
@@ -165,6 +168,20 @@
   <script>
     setTimeout(
       () => {
+        const workflowColumnHeading = document.createElement("div");
+        workflowColumnHeading.className =
+          "content-list-head__heading--pinboard";
+        document
+          .getElementById("workflow-inline-mode")
+          .appendChild(workflowColumnHeading);
+
+        const workflowPinboardCell = document.createElement("div");
+        workflowPinboardCell.className = "content-list-item__field--pinboard";
+        workflowPinboardCell.dataset.pinboardId = "14748";
+        document
+          .getElementById("workflow-inline-mode")
+          .appendChild(workflowPinboardCell);
+
         const delayedAddButton = document.createElement("asset-handle");
         delayedAddButton.dataset.source = "grid";
         delayedAddButton.dataset.sourceType = "crop";

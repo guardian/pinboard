@@ -8,16 +8,15 @@ import ReactDOM from "react-dom";
 import { InlineModeWorkflowColumnHeading } from "./inlineModeWorkflowColumnHeading";
 import { useGlobalStateContext } from "../globalState";
 
+export const WORKFLOW_PINBOARD_COLUMN_HEADING_QUERY_SELECTOR =
+  ".content-list-head__heading--pinboard";
+
 export const WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR =
   ".content-list-item__field--pinboard";
 
 export const isInlineMode = () =>
-  window.location.hostname.startsWith("workflow.");
-
-const getPinboardColumnHeadingElement = () =>
-  document.querySelector(".content-list-head__heading--pinboard");
-export const isPinboardColumnTurnedOn = () =>
-  !!getPinboardColumnHeadingElement();
+  window.location.hostname.startsWith("workflow.") ||
+  window.location.hostname === "pinboard.local.dev-gutools.co.uk"; // for local testing sandbox
 
 export const getWorkflowTitleElementLookup = (
   workflowPinboardElements: HTMLElement[]
@@ -28,12 +27,14 @@ export const getWorkflowTitleElementLookup = (
   }, {} as Record<string, HTMLElement>);
 
 interface InlineModeProps {
+  workflowPinboardColumnHeadingElement: HTMLElement | null;
   workflowPinboardElements: HTMLElement[];
   maybeInlineSelectedPinboardId: string | null;
   setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
 
 export const InlineMode = ({
+  workflowPinboardColumnHeadingElement,
   workflowPinboardElements,
   maybeInlineSelectedPinboardId,
   setMaybeInlineSelectedPinboardId,
@@ -45,10 +46,6 @@ export const InlineMode = ({
 
   const pinboardArea = useMemo(
     () => document.getElementById("pinboard-area"),
-    []
-  );
-  const pinboardColumnHeadingElement = useMemo(
-    getPinboardColumnHeadingElement,
     []
   );
 
@@ -98,10 +95,10 @@ export const InlineMode = ({
 
   return (
     <React.Fragment>
-      {pinboardColumnHeadingElement &&
+      {workflowPinboardColumnHeadingElement &&
         ReactDOM.createPortal(
           <InlineModeWorkflowColumnHeading />,
-          pinboardColumnHeadingElement
+          workflowPinboardColumnHeadingElement
         )}
       {maybeSelectedNode &&
         pinboardArea &&

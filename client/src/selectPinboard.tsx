@@ -34,7 +34,6 @@ import { ComposerIcon } from "./navigation/icon";
 import {
   getWorkflowTitleElementLookup,
   isInlineMode,
-  isPinboardColumnTurnedOn,
 } from "./inline/inlineMode";
 import { WorkflowColumnInstructions } from "./inline/workflowColumnInstructions";
 
@@ -55,6 +54,7 @@ interface SelectPinboardProps {
   noOfTeamPinboardsNotShown: number;
   isShowAllTeamPinboards: boolean;
   setIsShowAllTeamPinboards: (newValue: boolean) => void;
+  workflowPinboardColumnHeadingElement: HTMLElement | null;
   workflowPinboardElements: HTMLElement[];
   setMaybeInlineSelectedPinboardId: (pinboardId: string | null) => void;
 }
@@ -64,6 +64,7 @@ export const SelectPinboard = ({
   noOfTeamPinboardsNotShown,
   isShowAllTeamPinboards,
   setIsShowAllTeamPinboards,
+  workflowPinboardColumnHeadingElement,
   workflowPinboardElements,
   setMaybeInlineSelectedPinboardId,
 }: SelectPinboardProps) => {
@@ -90,7 +91,6 @@ export const SelectPinboard = ({
   } = useGlobalStateContext();
 
   const isInline = useMemo(isInlineMode, []);
-  const hasPinboardColumn = useMemo(isPinboardColumnTurnedOn, []);
   const workflowTitleElementLookup = useMemo(
     () => getWorkflowTitleElementLookup(workflowPinboardElements),
     [workflowPinboardElements]
@@ -409,7 +409,9 @@ export const SelectPinboard = ({
         <Feedback
           setMaybeInlineSelectedPinboardId={setMaybeInlineSelectedPinboardId}
         />
-        {isInline && !hasPinboardColumn && <WorkflowColumnInstructions />}
+        {isInline && !workflowPinboardColumnHeadingElement && (
+          <WorkflowColumnInstructions />
+        )}
         {(preselectedPinboard === "notTrackedInWorkflow" ||
           preselectedPinboard === "unknown") && <NotTrackedInWorkflow />}
         {payloadToBeSent && (

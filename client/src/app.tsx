@@ -39,6 +39,7 @@ import { UserLookup } from "./types/UserLookup";
 import {
   InlineMode,
   isInlineMode,
+  WORKFLOW_PINBOARD_COLUMN_HEADING_QUERY_SELECTOR,
   WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR,
 } from "./inline/inlineMode";
 import { getAgateFontFaceIfApplicable } from "../fontNormaliser";
@@ -78,6 +79,10 @@ export const PinBoardApp = ({
     null
   );
   const [assetHandles, setAssetHandles] = useState<HTMLElement[]>([]);
+  const [
+    workflowPinboardColumnHeadingElement,
+    setWorkflowPinboardColumnHeadingElement,
+  ] = useState<HTMLElement | null>(null);
   const [workflowPinboardElements, setWorkflowPinboardElements] = useState<
     HTMLElement[]
   >([]);
@@ -109,12 +114,18 @@ export const PinBoardApp = ({
       Array.from(document.querySelectorAll(ASSET_HANDLE_HTML_TAG))
     );
 
-  const refreshWorkflowPinboardElements = () =>
+  const refreshWorkflowPinboardElements = () => {
     setWorkflowPinboardElements(
       Array.from(
         document.querySelectorAll(WORKFLOW_PINBOARD_ELEMENTS_QUERY_SELECTOR)
       )
     );
+    setWorkflowPinboardColumnHeadingElement(
+      document.querySelector<HTMLElement>(
+        WORKFLOW_PINBOARD_COLUMN_HEADING_QUERY_SELECTOR
+      )
+    );
+  };
 
   const refreshFrontsPinboardElements = () =>
     setFrontsPinboardElements(
@@ -475,6 +486,9 @@ export const PinBoardApp = ({
                 <Floaty isDropTarget={isDropTarget} />
                 <Panel
                   isDropTarget={isDropTarget}
+                  workflowPinboardColumnHeadingElement={
+                    workflowPinboardColumnHeadingElement
+                  }
                   workflowPinboardElements={workflowPinboardElements}
                   setMaybeInlineSelectedPinboardId={
                     setMaybeInlineSelectedPinboardId
@@ -482,6 +496,9 @@ export const PinBoardApp = ({
                 />
                 {useMemo(isInlineMode, []) && (
                   <InlineMode
+                    workflowPinboardColumnHeadingElement={
+                      workflowPinboardColumnHeadingElement
+                    }
                     workflowPinboardElements={workflowPinboardElements}
                     maybeInlineSelectedPinboardId={
                       maybeInlineSelectedPinboardId

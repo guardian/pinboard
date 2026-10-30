@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-fnm install
+mise install
 
 yarn graphql-refresh
 

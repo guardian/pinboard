@@ -9,16 +9,18 @@ import {
   pandaSettingsBucketName,
 } from "../../shared/panDomainAuth";
 
-const panda = new PanDomainAuthentication(
-  "gutoolsAuth-assym", // cookie name
-  AWS_REGION, // AWS region
-  pandaSettingsBucketName, // Settings bucket
-  pandaPublicConfigFilename, // Settings files
-  guardianValidation,
-  standardAwsConfig.credentials
-);
+export const initPanda = async () =>
+  PanDomainAuthentication.builder({
+    cookieName: "gutoolsAuth-assym",
+    region: AWS_REGION,
+    bucket: pandaSettingsBucketName,
+    keyFile: pandaPublicConfigFilename,
+    validateUser: guardianValidation,
+    credentialsProvider: standardAwsConfig.credentials,
+  });
 
 export const getVerifiedUserEmail = async (
+  panda: PanDomainAuthentication,
   cookieHeader: string | undefined
 ): Promise<void | string> => {
   if (cookieHeader) {

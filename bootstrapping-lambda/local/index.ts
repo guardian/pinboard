@@ -29,10 +29,15 @@ new AppSync(standardAwsConfig)
     process.env[ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint] =
       appSyncAPI.uris?.["GRAPHQL"];
 
-    initPanda().then((panda) => {
-      const PORT = 3030;
-      initApp(panda).listen(PORT, () =>
-        console.log(`Listening on port ${PORT}`)
-      );
-    });
+    initPanda()
+      .then((panda) => {
+        const PORT = 3030;
+        initApp(panda).listen(PORT, () =>
+          console.log(`Listening on port ${PORT}`)
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to initialise panda, server not started", error);
+        process.exit(1);
+      });
   });

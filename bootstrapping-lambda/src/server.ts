@@ -3,39 +3,59 @@ import type {
   APIGatewayProxyEvent,
   APIGatewayProxyHandler,
   APIGatewayProxyResult,
-  Callback,
-  Context,
+  Handler,
 } from "aws-lambda";
 
 import { initPanda } from "./panDomainAuth";
 import { initApp } from "./app";
 
-let serverlessExpressInstance: APIGatewayProxyHandler | undefined;
+type ServerlessExpressHandler = Handler<
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult
+>;
 
-async function setup(
-  event: APIGatewayProxyEvent,
-  context: Context,
-  callback: Callback<APIGatewayProxyResult>
-): Promise<APIGatewayProxyResult> {
-  const panda = await initPanda();
-  const app = initApp(panda);
-  serverlessExpressInstance = serverlessExpress({
-    app,
-    resolutionMode: "PROMISE", // this is the default mode, but worth being explicit because we're relying on it.
-  });
+let serverlessExpressInstancePromise:
+  | Promise<ServerlessExpressHandler>
+  | undefined;
+
+const getServerlessExpressInstance = () => {
+  if (!serverlessExpressInstancePromise) {
+    serverlessExpressInstancePromise = initPanda()
+      .then((panda) =>
+        serverlessExpress<APIGatewayProxyEvent, APIGatewayProxyResult>({
+          app: initApp(panda),
+          resolutionMode: "PROMISE", // this is the default mode, but worth being explicit because we're relying on it.
+        })
+      )
+      .catch((error) => {
+        console.error("Failed to initialise bootstrapping-lambda app", error);
+        // clear the cached failure so the next invocation retries, rather than this execution environment failing forever
+        serverlessExpressInstancePromise = undefined;
+        throw error;
+      });
+  }
+  return serverlessExpressInstancePromise;
+};
+
+// Start initialising during the Lambda init phase (i.e. at module load) to reduce latency on the first request.
+// Errors are logged above and initialisation is retried by the handler, so swallow here to avoid an unhandled rejection.
+getServerlessExpressInstance().catch(() => undefined);
+
+const unsupportedCallback = () => {
+  throw new Error(
+    "bootstrapping-lambda handler is Promise-based; serverless-express must use resolutionMode 'PROMISE'"
+  );
+};
+
+// This handler must stay Promise-based (async, no Lambda callback): a callback-style handler waits for the
+// event loop to empty by default (callbackWaitsForEmptyEventLoop), which never happens because the panda
+// client runs a setInterval to refresh its public key, so every invocation would time out.
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  const serverlessExpressInstance = await getServerlessExpressInstance();
   // serverless-express is set to resolutionMode "PROMISE", so this always returns a Promise
   return serverlessExpressInstance(
     event,
     context,
-    callback
+    unsupportedCallback
   ) as Promise<APIGatewayProxyResult>;
-}
-
-const handler: APIGatewayProxyHandler = (event, context, callback) => {
-  if (serverlessExpressInstance)
-    return serverlessExpressInstance(event, context, callback);
-
-  return setup(event, context, callback);
 };
-
-exports.handler = handler;

@@ -6,6 +6,7 @@ import {
 } from "../../shared/awsIntegration";
 import { APP } from "../../shared/constants";
 import { ENVIRONMENT_VARIABLE_KEYS } from "../../shared/environmentVariables";
+import { getApp } from "../src/appSingleton";
 
 pinboardConfigPromiseGetter("sentryDSN").then(
   (sentryDSN) => (process.env[ENVIRONMENT_VARIABLE_KEYS.sentryDSN] = sentryDSN)
@@ -27,5 +28,13 @@ new AppSync(standardAwsConfig)
     process.env[ENVIRONMENT_VARIABLE_KEYS.graphqlEndpoint] =
       appSyncAPI.uris?.["GRAPHQL"];
 
-    import("../src/server"); // actually start the server, once the environment variable is set
+    getApp()
+      .then((app) => {
+        const PORT = 3030;
+        app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+      })
+      .catch((error) => {
+        console.error("Failed to initialise panda, server not started", error);
+        process.exit(1);
+      });
   });

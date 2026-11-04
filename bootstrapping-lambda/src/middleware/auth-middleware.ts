@@ -1,4 +1,5 @@
 import { getVerifiedUserEmail } from "../panDomainAuth";
+import type { PanDomainAuthentication } from "@guardian/pan-domain-node";
 import { ACCESS_PERMISSION } from "shared/permissionDefinitions";
 import { userHasPermission } from "shared/permissions";
 import { NextFunction, Request, Response } from "express";
@@ -12,7 +13,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const getAuthMiddleware =
-  (sendErrorAsOk = false) =>
+  (panda: PanDomainAuthentication, sendErrorAsOk = false) =>
   async (
     request: AuthenticatedRequest,
     response: Response,
@@ -20,6 +21,7 @@ export const getAuthMiddleware =
   ) => {
     const maybeCookieHeader = request.header("Cookie");
     const maybeAuthenticatedEmail = await getVerifiedUserEmail(
+      panda,
       maybeCookieHeader
     );
 

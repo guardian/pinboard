@@ -1,23 +1,38 @@
 import { jwtVerify } from "jose";
-import { getPandaConfig } from "../../shared/panDomainAuth";
 import crypto from "crypto";
 import { standardAwsConfig } from "../../shared/awsIntegration";
-import { S3 } from "@aws-sdk/client-s3";
 import { AppSyncAuthorizerEvent } from "aws-lambda";
 
-const s3 = new S3(standardAwsConfig);
+import {
+  PanDomainAuthentication,
+  guardianValidation,
+} from "@guardian/pan-domain-node";
+import { AWS_REGION } from "../../shared/awsRegion";
+import {
+  pandaPublicConfigFilename,
+  pandaSettingsBucketName,
+} from "../../shared/panDomainAuth";
+
+const pandaPromise: Promise<PanDomainAuthentication> =
+  PanDomainAuthentication.builder({
+    cookieName: "gutoolsAuth-assym",
+    region: AWS_REGION,
+    bucket: pandaSettingsBucketName,
+    keyFile: pandaPublicConfigFilename,
+    validateUser: guardianValidation,
+    credentialsProvider: standardAwsConfig.credentials,
+  });
 
 exports.handler = async ({ authorizationToken }: AppSyncAuthorizerEvent) => {
-  const pandaConfig = await getPandaConfig<{ publicKey: string }>(s3);
+  const panda = await pandaPromise;
 
-  const publicKey = crypto.createPublicKey(
-    `-----BEGIN PUBLIC KEY-----\n${pandaConfig.publicKey}\n-----END PUBLIC KEY-----`
-  );
+  async function verifyJwt(key: crypto.KeyObject) {
+    return await jwtVerify(authorizationToken, key);
+  }
 
-  const maybeAuthedUserEmail =
-    authorizationToken &&
-    (await jwtVerify(authorizationToken, publicKey).catch(console.warn))
-      ?.payload["userEmail"];
+  const maybeAuthedUserEmail = (
+    await panda.decode(verifyJwt).catch(console.warn)
+  )?.payload["userEmail"];
 
   if (maybeAuthedUserEmail) {
     return {

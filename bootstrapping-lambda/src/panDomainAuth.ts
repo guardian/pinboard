@@ -23,9 +23,8 @@ export const getVerifiedUserEmail = async (
   cookieHeader: string | undefined
 ): Promise<void | string> => {
   if (cookieHeader) {
-    const result = await pandaPromise.then((panda) =>
-      panda.verify(cookieHeader)
-    );
+    const panda = await pandaPromise;
+    const result = await panda.verify(cookieHeader);
 
     if (result.success && result.user) {
       return result.user.email;

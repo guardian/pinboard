@@ -26,6 +26,7 @@ Object {
       "GuLambdaFunction",
       "GuLambdaErrorPercentageAlarm",
       "GuAlarm",
+      "GuCname",
     ],
     "gu:cdk:version": "62.1.2",
   },
@@ -4151,6 +4152,23 @@ $util.toJson($ctx.result)",
         "ValidationMethod": "DNS",
       },
       "Type": "AWS::CertificateManager::Certificate",
+    },
+    "pinboardbootstrappinglambdaapidnsrecord": Object {
+      "Properties": Object {
+        "Name": "pinboard.test.dev-gutools.co.uk",
+        "RecordType": "CNAME",
+        "ResourceRecords": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "pinboardbootstrappinglambdaapidomainname9CF70B03",
+              "RegionalDomainName",
+            ],
+          },
+        ],
+        "Stage": "TEST",
+        "TTL": 3600,
+      },
+      "Type": "Guardian::DNS::RecordSet",
     },
     "pinboardbootstrappinglambdaapidomainname9CF70B03": Object {
       "Properties": Object {

@@ -5719,6 +5719,7 @@ __metadata:
   resolution: "auth-lambda@workspace:auth-lambda"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
+    "@guardian/pan-domain-node": "npm:3.0.0"
     jose: "npm:^4.3.7"
   languageName: unknown
   linkType: soft

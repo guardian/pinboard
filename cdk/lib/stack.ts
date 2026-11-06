@@ -754,6 +754,13 @@ export class PinBoardStack extends GuStack {
       basePath: "",
     });
 
+    new GuCname(this, `${bootstrappingLambdaApiBaseName}-dns-record`, {
+      app: APP,
+      domainName,
+      resourceRecord: `${bootstrappingApiDomainName.domainNameAliasDomainName}.`,
+      ttl: Duration.hours(1),
+    });
+
     new CfnOutput(this, `${bootstrappingLambdaApiBaseName}-hostname`, {
       description: `${bootstrappingLambdaApiBaseName}-hostname`,
       value: `${bootstrappingApiDomainName.domainNameAliasDomainName}`,

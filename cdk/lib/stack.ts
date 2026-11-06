@@ -757,7 +757,7 @@ export class PinBoardStack extends GuStack {
     new GuCname(this, `${bootstrappingLambdaApiBaseName}-dns-record`, {
       app: APP,
       domainName,
-      resourceRecord: bootstrappingApiDomainName.domainNameAliasDomainName,
+      resourceRecord: `${bootstrappingApiDomainName.domainNameAliasDomainName}.`,
       ttl: Duration.hours(1),
     });
 

@@ -4159,9 +4159,17 @@ $util.toJson($ctx.result)",
         "RecordType": "CNAME",
         "ResourceRecords": Array [
           Object {
-            "Fn::GetAtt": Array [
-              "pinboardbootstrappinglambdaapidomainname9CF70B03",
-              "RegionalDomainName",
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "pinboardbootstrappinglambdaapidomainname9CF70B03",
+                    "RegionalDomainName",
+                  ],
+                },
+                ".",
+              ],
             ],
           },
         ],

@@ -180,7 +180,9 @@ for (const [name, token] of Object.entries(tokens)) {
       }
     } catch (error) {
       failures++;
-      console.log(`  lambda: 💥 ${error.message}`);
+      console.log(
+        `  lambda: 💥 ${error.message.split(token).join("[REDACTED]")}`
+      );
     }
   }
 }

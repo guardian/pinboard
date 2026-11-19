@@ -3241,15 +3241,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@guardian/pan-domain-node@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@guardian/pan-domain-node@npm:2.0.0"
+"@guardian/pan-domain-node@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@guardian/pan-domain-node@npm:3.0.0"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
     "@aws-sdk/credential-providers": "npm:^3.1061.0"
     cookie: "npm:^0.4.1"
     ini: "npm:6.0.0"
-  checksum: 10c0/287703013bb6bb2a7dee7e672398b81584d1318e3db4be72315b1d58f58fdff4f86cb48a50749cc02c8e5f94bb3f8d80562beca956313fa4f3a8cb63de56f985
+  checksum: 10c0/54b4517e33bf20a2ef030b842dc28efd8d9f81fcbb492c509d1c092670a6eb47a2fe65d97f7217512d03a22283bb2d99f144eab464ffc084860de588ed1df6b4
   languageName: node
   linkType: hard
 
@@ -5719,6 +5719,7 @@ __metadata:
   resolution: "auth-lambda@workspace:auth-lambda"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
+    "@guardian/pan-domain-node": "npm:3.0.0"
     jose: "npm:^4.3.7"
   languageName: unknown
   linkType: soft
@@ -6111,7 +6112,7 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.1061.0"
     "@babel/preset-typescript": "npm:^7.18.6"
     "@codegenie/serverless-express": "npm:^4.16.0"
-    "@guardian/pan-domain-node": "npm:2.0.0"
+    "@guardian/pan-domain-node": "npm:3.0.0"
     "@types/cors": "npm:^2.8.12"
     "@types/express": "npm:4.17.17"
     "@types/jest": "npm:^29.2.3"

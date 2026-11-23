@@ -9,6 +9,7 @@
     "build": "run-p --print-label type-check bundle"
   },
   "dependencies": {
+    "@guardian/pan-domain-node": "3.0.0",
     "jose": "^4.3.7"
   },
   "devDependencies": {
